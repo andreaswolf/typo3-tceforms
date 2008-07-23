@@ -986,6 +986,8 @@ class t3lib_TCEforms	{
 			case 'radio':
 			case 'select':
 			case 'group':
+			case 'user':
+			case 'flex':
 				$elementObject = $this->elementObjectFactory($PA['fieldConf']['config']['form_type']);
 				$elementObject->setTCEformsObject($this);
 				$elementObject->init($table,$fild,$row,$PA);
@@ -996,12 +998,6 @@ class t3lib_TCEforms	{
 			break;
 			case 'none':
 				$item = $this->getSingleField_typeNone($table,$field,$row,$PA);
-			break;
-			case 'user':
-				$item = $this->getSingleField_typeUser($table,$field,$row,$PA);
-			break;
-			case 'flex':
-				$item = $this->getSingleField_typeFlex($table,$field,$row,$PA);
 			break;
 			default:
 				$item = $this->getSingleField_typeUnknown($table,$field,$row,$PA);
