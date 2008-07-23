@@ -817,7 +817,7 @@ class t3lib_TCEforms	{
 				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
 				$elementObject->setTCEformsObject($this);
 				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal);
-				$item = $elementObject->renderField().$field;
+				$item = $elementObject->renderField();
 			break;
 			case 'inline':
 				$item = $this->inline->getSingleField_typeInline($table,$field,$row,$PA);

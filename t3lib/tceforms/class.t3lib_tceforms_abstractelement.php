@@ -25,6 +25,9 @@ abstract class t3lib_TCEforms_AbstractElement {
 		$this->row = $row;
 		$this->field = $field;
 
+		$this->prependFormFieldNames = $this->TCEformsObject->prependFormFieldNames;
+		$this->prependFormFieldNames_file = $this->TCEformsObject->prependFormFieldNames_file;
+
 		$this->alternativeName = $alternativeName;
 		$this->palette = $palette;
 		$this->extra = $extra;
@@ -51,7 +54,7 @@ abstract class t3lib_TCEforms_AbstractElement {
 			// Hook: getSingleField_preProcess
 		/*foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getSingleFieldsObjects'] as $hookObj)	{
 			if (method_exists($hookObj,'getSingleField_preProcess'))	{
-				$hookObj->getSingleField_preProcess($this->table, $this->field, $this->row, $this->altName, $this->palette, $this->extra, $this->pal, $this);
+				$hookObj->getSingleField_preProcess($this->table, $this->field, $this->row, $this->alternativeName, $this->palette, $this->extra, $this->pal, $this);
 			}
 		}*/
 
@@ -131,7 +134,7 @@ abstract class t3lib_TCEforms_AbstractElement {
 
 						// Find item
 					$item='';
-					$this->label = ($this->altName ? $this->altName : $this->fieldConfig['label']);
+					$this->label = ($this->alternativeName ? $this->alternativeName : $this->fieldConfig['label']);
 					$this->label = ($fieldTSConfig['label'] ? $fieldTSConfig['label'] : $this->label);
 					$this->label = ($fieldTSConfig['label.'][$GLOBALS['LANG']->lang] ? $fieldTSConfig['label.'][$GLOBALS['LANG']->lang] : $this->label);
 					$this->label = $this->sL($this->label);
@@ -205,7 +208,7 @@ abstract class t3lib_TCEforms_AbstractElement {
 			// Hook: getSingleField_postProcess
 		/*foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getSingleFieldsObjects'] as $hookObj)	{
 			if (method_exists($hookObj,'getSingleField_postProcess'))	{
-				$hookObj->getSingleField_postProcess($this->table, $this->field, $this->row, $this->altName, $this->palette, $this->extra, $this->pal, $this);
+				$hookObj->getSingleField_postProcess($this->table, $this->field, $this->row, $this->alternativeName, $this->palette, $this->extra, $this->pal, $this);
 			}
 		}*/
 
