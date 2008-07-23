@@ -17,6 +17,33 @@ abstract class t3lib_TCEforms_AbstractElement {
 
 	protected static $cachedTSconfig;
 
+	protected static $hooksInitialized = false;
+
+	protected static $hookObjects = array();
+
+	public function __construct() {
+		global $TYPO3_CONF_VARS;
+
+		if (!self::$hooksInitialized) {
+				// Prepare user defined objects (if any) for hooks which extend this function:
+			self::$hookObjects['getMainFields'] = array();
+			if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getMainFieldsClass']))	{
+				foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getMainFieldsClass'] as $classRef)	{
+					self::$hookObjects['getMainFields'][] = &t3lib_div::getUserObj($classRef);
+				}
+			}
+
+			self::$hookObjects['getSingleFields'] = array();
+			if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getSingleFieldClass']))	{
+				foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getSingleFieldClass'] as $classRef)	{
+					self::$hookObjects['getSingleFields'][] = &t3lib_div::getUserObj($classRef);
+				}
+			}
+
+			self::$hooksInitialized = true;
+		}
+	}
+
 	public function init($table, $field, $row, $fieldConfig, $alternativeName='', $palette=0, $extra='', $pal=0) {
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
@@ -52,11 +79,11 @@ abstract class t3lib_TCEforms_AbstractElement {
 		$this->PA = $PA;
 
 			// Hook: getSingleField_preProcess
-		/*foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getSingleFieldsObjects'] as $hookObj)	{
+		foreach (self::$hookObjects['getSingleFields'] as $hookObj)	{
 			if (method_exists($hookObj,'getSingleField_preProcess'))	{
 				$hookObj->getSingleField_preProcess($this->table, $this->field, $this->row, $this->alternativeName, $this->palette, $this->extra, $this->pal, $this);
 			}
-		}*/
+		}
 
 
 			// commented out because IRRE is not enabled by now -- andreaswolf, 23.07.2008
@@ -69,14 +96,14 @@ abstract class t3lib_TCEforms_AbstractElement {
 		global $BE_USER, $TCA;
 
 		// Now, check if this field is configured and editable (according to excludefields + other configuration)
-		if (	is_array($this->fieldConfig) //&&
-				//!$skipThisField &&
-				//(!$this->fieldConfig['exclude'] || $BE_USER->check('non_exclude_fields',$this->table.':'.$field)) &&
-				//$this->fieldConfig['config']['form_type']!='passthrough' &&
-				//($this->RTEenabled || !$this->fieldConfig['config']['showIfRTE']) &&
-				//(!$this->fieldConfig['displayCond'] || $this->isDisplayCondition($this->fieldConfig['displayCond'],$this->row)) &&
-				//(!$TCA[$this->table]['ctrl']['languageField'] || $this->fieldConfig['l10n_display'] || strcmp($this->fieldConfig['l10n_mode'],'exclude') || $this->row[$TCA[$this->table]['ctrl']['languageField']]<=0) &&
-				//(!$TCA[$this->table]['ctrl']['languageField'] || !$this->localizationMode || $this->localizationMode===$this->fieldConfig['l10n_cat'])
+		if (	is_array($this->fieldConfig) &&
+				!$skipThisField &&
+				(!$this->fieldConfig['exclude'] || $BE_USER->check('non_exclude_fields',$this->table.':'.$field)) &&
+				$this->fieldConfig['config']['form_type']!='passthrough' &&
+				($this->RTEenabled || !$this->fieldConfig['config']['showIfRTE']) &&
+				(!$this->fieldConfig['displayCond'] || $this->isDisplayCondition($this->fieldConfig['displayCond'],$this->row)) &&
+				(!$TCA[$this->table]['ctrl']['languageField'] || $this->fieldConfig['l10n_display'] || strcmp($this->fieldConfig['l10n_mode'],'exclude') || $this->row[$TCA[$this->table]['ctrl']['languageField']]<=0) &&
+				(!$TCA[$this->table]['ctrl']['languageField'] || !$this->localizationMode || $this->localizationMode===$this->fieldConfig['l10n_cat'])
 			) {
 
 				// Fetching the TSconfig for the current table/field. This includes the $this->row which means that
@@ -206,11 +233,11 @@ abstract class t3lib_TCEforms_AbstractElement {
 		}
 
 			// Hook: getSingleField_postProcess
-		/*foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getSingleFieldsObjects'] as $hookObj)	{
+		foreach (self::$hookObjects['getSingleFields'] as $hookObj)	{
 			if (method_exists($hookObj,'getSingleField_postProcess'))	{
 				$hookObj->getSingleField_postProcess($this->table, $this->field, $this->row, $this->alternativeName, $this->palette, $this->extra, $this->pal, $this);
 			}
-		}*/
+		}
 
 		return $out;
 	}
