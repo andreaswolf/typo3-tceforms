@@ -21,6 +21,7 @@ abstract class t3lib_TCEforms_AbstractElement {
 
 	protected static $hookObjects = array();
 
+
 	public function __construct() {
 		global $TYPO3_CONF_VARS;
 
@@ -87,7 +88,7 @@ abstract class t3lib_TCEforms_AbstractElement {
 
 
 			// commented out because IRRE is not enabled by now -- andreaswolf, 23.07.2008
-		//$skipThisField = $this->inline->skipField($table, $field, $this->row, $fieldConf['config']);
+		//$skipThisField = $this->inline->skipField($table, $this->field, $this->row, $this->fieldConfig['config']);
 
 
 	}
@@ -98,7 +99,7 @@ abstract class t3lib_TCEforms_AbstractElement {
 		// Now, check if this field is configured and editable (according to excludefields + other configuration)
 		if (	is_array($this->fieldConfig) &&
 				!$skipThisField &&
-				(!$this->fieldConfig['exclude'] || $BE_USER->check('non_exclude_fields',$this->table.':'.$field)) &&
+				(!$this->fieldConfig['exclude'] || $BE_USER->check('non_exclude_fields',$this->table.':'.$this->field)) &&
 				$this->fieldConfig['config']['form_type']!='passthrough' &&
 				($this->RTEenabled || !$this->fieldConfig['config']['showIfRTE']) &&
 				(!$this->fieldConfig['displayCond'] || $this->isDisplayCondition($this->fieldConfig['displayCond'], $this->row)) &&
@@ -123,13 +124,13 @@ abstract class t3lib_TCEforms_AbstractElement {
 					// set field to read-only if configured for translated records to show default language content as readonly
 				if ($this->fieldConfig['l10n_display'] && t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly') && $this->row[$TCA[$this->table]['ctrl']['languageField']]) {
 					$this->fieldConfig['config']['readOnly'] =  true;
-					$this->itemFormElValue = $this->defaultLanguageData[$this->table.':'.$this->row['uid']][$field];
+					$this->itemFormElValue = $this->defaultLanguageData[$this->table.':'.$this->row['uid']][$this->field];
 				}
 
 					// Create a JavaScript code line which will ask the user to save/update the form due to changing the element. This is used for eg. "type" fields and others configured with "requestUpdate"
 				if (
-				    ($TCA[$this->table]['ctrl']['type'] && !strcmp($field,$TCA[$this->table]['ctrl']['type'])) ||
-				    ($TCA[$this->table]['ctrl']['requestUpdate'] && t3lib_div::inList($TCA[$this->table]['ctrl']['requestUpdate'],$field))
+				    ($TCA[$this->table]['ctrl']['type'] && !strcmp($this->field,$TCA[$this->table]['ctrl']['type'])) ||
+				    ($TCA[$this->table]['ctrl']['requestUpdate'] && t3lib_div::inList($TCA[$this->table]['ctrl']['requestUpdate'],$this->field))
 				    ) {
 
 					if($GLOBALS['BE_USER']->jsConfirmation(1))	{
@@ -142,15 +143,15 @@ abstract class t3lib_TCEforms_AbstractElement {
 				}
 
 					// Render as a hidden field?
-				if (in_array($field,$this->hiddenFieldListArr))	{
+				if (in_array($this->field,$this->hiddenFieldListArr))	{
 					$this->hiddenFieldAccum[]='<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 				} else {	// Render as a normal field:
 
 						// If the field is NOT a palette field, then we might create an icon which links to a palette for the field, if one exists.
 					if (!$this->palette)	{
-						$paletteFields = $this->TCEformsObject->loadPaletteElements($this->table, $this->row, $pal);
-						if ($pal && $this->TCEformsObject->isPalettesCollapsed($this->table,$pal) && count($paletteFields))	{
-							list($thePalIcon,$palJSfunc) = $this->TCEformsObject->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->TCEformsObject->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->getLL('l_moreOptions')).'" alt="" />',$this->table,$this->row,$pal,1);
+						$paletteFields = $this->TCEformsObject->loadPaletteElements($this->table, $this->row, $this->pal);
+						if ($this->pal && $this->TCEformsObject->isPalettesCollapsed($this->table,$this->pal) && count($paletteFields))	{
+							list($thePalIcon,$palJSfunc) = $this->TCEformsObject->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->TCEformsObject->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->TCEformsObject->getLL('l_moreOptions')).'" alt="" />',$this->table,$this->row,$this->pal,1);
 						} else {
 							$thePalIcon = '';
 							$palJSfunc = '';
@@ -162,21 +163,21 @@ abstract class t3lib_TCEforms_AbstractElement {
 						// Find item
 					$item='';
 					$this->label = ($this->alternativeName ? $this->alternativeName : $this->fieldConfig['label']);
-					$this->label = ($fieldTSConfig['label'] ? $fieldTSConfig['label'] : $this->label);
-					$this->label = ($fieldTSConfig['label.'][$GLOBALS['LANG']->lang] ? $fieldTSConfig['label.'][$GLOBALS['LANG']->lang] : $this->label);
+					$this->label = ($fieldTSconfig['label'] ? $fieldTSconfig['label'] : $this->label);
+					$this->label = ($fieldTSconfig['label.'][$GLOBALS['LANG']->lang] ? $fieldTSconfig['label.'][$GLOBALS['LANG']->lang] : $this->label);
 					$this->label = $this->sL($this->label);
 						// JavaScript code for event handlers:
 					$this->fieldChangeFunc=array();
-					$this->fieldChangeFunc['TBE_EDITOR_fieldChanged'] = "TBE_EDITOR.fieldChanged('".$this->table."','".$this->row['uid']."','".$field."','".$this->itemFormElName."');";
+					$this->fieldChangeFunc['TBE_EDITOR_fieldChanged'] = "TBE_EDITOR.fieldChanged('".$this->table."','".$this->row['uid']."','".$this->field."','".$this->itemFormElName."');";
 					$this->fieldChangeFunc['alert']=$alertMsgOnChange;
 						// if this is the child of an inline type and it is the field creating the label
 					// disabled while IRRE is not supported -- andreaswolf, 23.07.2008
-					/*if ($this->inline->isInlineChildAndLabelField($this->table, $field)) {
-						$fieldChangeFunc['inline'] = "inline.handleChangedField('".$this->itemFormElName."','".$this->inline->inlineNames['object']."[$this->table][".$this->row['uid']."]');";
+					/*if ($this->inline->isInlineChildAndLabelField($this->table, $this->field)) {
+						$this->fieldChangeFunc['inline'] = "inline.handleChangedField('".$this->itemFormElName."','".$this->inline->inlineNames['object']."[$this->table][".$this->row['uid']."]');";
 					}*/
 
 						// Based on the type of the item, call a render function:
-					//$item = $this->getSingleField_SW($this->table,$field,$this->row,$PA);
+					//$item = $this->getSingleField_SW($this->table,$this->field,$this->row,$PA);
 					$item = $this->render();
 
 						// Add language + diff
@@ -193,8 +194,8 @@ abstract class t3lib_TCEforms_AbstractElement {
 
 						// If the record has been saved and the "linkTitleToSelf" is set, we make the field name into a link, which will load ONLY this field in alt_doc.php
 					$this->label = t3lib_div::deHSCentities(htmlspecialchars($this->label));
-					if (t3lib_div::testInt($this->row['uid']) && $fieldTSConfig['linkTitleToSelf'] && !t3lib_div::_GP('columnsOnly'))	{
-						$lTTS_url = $this->TCEformsObject->backPath.'alt_doc.php?edit['.$this->table.']['.$this->row['uid'].']=edit&columnsOnly='.$field.'&returnUrl='.rawurlencode($this->thisReturnUrl());
+					if (t3lib_div::testInt($this->row['uid']) && $fieldTSconfig['linkTitleToSelf'] && !t3lib_div::_GP('columnsOnly'))	{
+						$lTTS_url = $this->TCEformsObject->backPath.'alt_doc.php?edit['.$this->table.']['.$this->row['uid'].']=edit&columnsOnly='.$this->field.'&returnUrl='.rawurlencode($this->thisReturnUrl());
 						$this->label = '<a href="'.htmlspecialchars($lTTS_url).'">'.$this->label.'</a>';
 					}
 
@@ -206,12 +207,12 @@ abstract class t3lib_TCEforms_AbstractElement {
 						$out=array(
 							'NAME'=>$this->label,
 							'ID'=>$this->row['uid'],
-							'FIELD'=>$field,
+							'FIELD'=>$this->field,
 							'TABLE'=>$this->table,
 							'ITEM'=>$item,
-							'HELP_ICON' => $this->TCEformsObject->helpTextIcon($this->table,$field,1)
+							'HELP_ICON' => $this->TCEformsObject->helpTextIcon($this->table,$this->field,1)
 						);
-						$out = $this->TCEformsObject->addUserTemplateMarkers($out,$this->table,$field,$this->row,$PA);
+						$out = $this->TCEformsObject->addUserTemplateMarkers($out,$this->table,$this->field,$this->row,$PA);
 					} else {
 							// String:
 						$out=array(
@@ -219,17 +220,17 @@ abstract class t3lib_TCEforms_AbstractElement {
 							'ITEM'=>$item,
 							'TABLE'=>$this->table,
 							'ID'=>$this->row['uid'],
-							'HELP_ICON'=>$this->TCEformsObject->helpTextIcon($this->table,$field),
-							'HELP_TEXT'=>$this->TCEformsObject->helpText($this->table,$field),
+							'HELP_ICON'=>$this->TCEformsObject->helpTextIcon($this->table,$this->field),
+							'HELP_TEXT'=>$this->TCEformsObject->helpText($this->table,$this->field),
 							'PAL_LINK_ICON'=>$thePalIcon,
-							'FIELD'=>$field
+							'FIELD'=>$this->field
 						);
-						$out = $this->TCEformsObject->addUserTemplateMarkers($out,$this->table,$field,$this->row,$PA);
+						$out = $this->TCEformsObject->addUserTemplateMarkers($out,$this->table,$this->field,$this->row,$PA);
 							// String:
 						$out = $this->TCEformsObject->intoTemplate($out);
 					}
 				}
-			} else $this->commentMessages[]=$this->prependFormFieldNames.'['.$this->table.']['.$this->row['uid'].']['.$field.']: Disabled by TSconfig';
+			} else $this->commentMessages[]=$this->prependFormFieldNames.'['.$this->table.']['.$this->row['uid'].']['.$this->field.']: Disabled by TSconfig';
 		}
 
 			// Hook: getSingleField_postProcess

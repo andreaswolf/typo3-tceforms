@@ -805,7 +805,6 @@ class t3lib_TCEforms	{
 		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $PA['fieldConf']['config']['form_type'] : $fieldConf['config']['type'];	// Using "form_type" locally in this script
 
 		switch($fieldConf['config']['form_type'])	{
-			// temporarily disabled all types except check during heavy refactoring of the whole tceforms module + element classes
 			case 'input':
 			case 'text':
 			case 'check':
@@ -983,6 +982,7 @@ class t3lib_TCEforms	{
 	 * @param	string		The value to display
 	 * @return	string		Formatted Field content
 	 */
+	// TODO: move this function to t3lib_TCEforms_AbstractElement
 	function formatValue ($config, $itemValue)	{
 		$format = trim($config['format']);
 		switch($format)	{
