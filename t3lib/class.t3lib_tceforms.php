@@ -981,22 +981,15 @@ class t3lib_TCEforms	{
 
 		switch($PA['fieldConf']['config']['form_type'])	{
 			case 'input':
-				$item = $this->getSingleField_typeInput($table,$field,$row,$PA);
-			break;
 			case 'text':
-				$item = $this->getSingleField_typeText($table,$field,$row,$PA);
-			break;
 			case 'check':
-				$item = $this->getSingleField_typeCheck($table,$field,$row,$PA);
-			break;
 			case 'radio':
-				$item = $this->getSingleField_typeRadio($table,$field,$row,$PA);
-			break;
 			case 'select':
-				$item = $this->getSingleField_typeSelect($table,$field,$row,$PA);
-			break;
 			case 'group':
-				$item = $this->getSingleField_typeGroup($table,$field,$row,$PA);
+				$elementObject = $this->elementObjectFactory($PA['fieldConf']['config']['form_type']);
+				$elementObject->setTCEformsObject($this);
+				$elementObject->init($table,$fild,$row,$PA);
+				$item = $elementObject->render();
 			break;
 			case 'inline':
 				$item = $this->inline->getSingleField_typeInline($table,$field,$row,$PA);
@@ -1018,6 +1011,19 @@ class t3lib_TCEforms	{
 		return $item;
 	}
 
+	protected function elementObjectFactory($type) {
+		switch ($type) {
+			default:
+				$className = 't3lib_TCEforms_'.$type.'Element';
+				break;
+		}
+
+		if (!class_exists($className)) {
+			include_once PATH_t3lib.'tceforms/class.'.strtolower($className).'.php';
+		}
+
+		return t3lib_div::makeInstance($className);
+	}
 
 
 
@@ -6038,6 +6044,23 @@ class t3lib_TCEforms	{
 			array_shift($result);
 		}
 		return ($json ? json_encode($result) : $result);
+	}
+
+	/**
+	 * Wrapper for registerRequiredProperty, only necessary while splitting up t3lib_TCEforms
+	 * into several single files. Will be removed when this is completely done.
+	 *
+	 * @param	string		$type: Type of requirement ('field' or 'range')
+	 * @param	string		$name: The name of the form field
+	 * @param	mixed		$value: For type 'field' string, for type 'range' array
+	 * @return	void
+	 *
+	 * @see     registerRequiredProperty
+	 *
+	 * @author  Andreas Wolf <typo3@andreaswolf.info>
+	 */
+	public function registerRequiredPropertyExternal($type, $name, $value) {
+		$this->registerRequiredProperty($type, $name, $value);
 	}
 
 	/**
