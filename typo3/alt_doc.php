@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2008 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,7 +29,7 @@
  * By sending certain parameters to this script you can bring up a form
  * which allows the user to edit the content of one or more database records.
  *
- * $Id$
+ * $Id: alt_doc.php 3774 2008-06-10 11:48:56Z patrick $
  * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
  * XHTML compliant
  *
@@ -393,12 +393,12 @@ class SC_alt_doc {
 			}
 
 			$tce->printLogErrorMessages(
-				(isset($_POST['_saveandclosedok_x']) || isset($_POST['_translation_savedok_x'])) ?
+				isset($_POST['_saveandclosedok_x']) ?
 				$this->retUrl :
 				$this->R_URL_parts['path'].'?'.t3lib_div::implodeArrayForUrl('',$this->R_URL_getvars)	// popView will not be invoked here, because the information from the submit button for save/view will be lost .... But does it matter if there is an error anyways?
 			);
 		}
-		if ((isset($_POST['_saveandclosedok_x']) || isset($_POST['_translation_savedok_x'])) || $this->closeDoc<0)	{	//  || count($tce->substNEWwithIDs)... If any new items has been save, the document is CLOSED because if not, we just get that element re-listed as new. And we don't want that!
+		if (isset($_POST['_saveandclosedok_x']) || $this->closeDoc<0)	{	//  || count($tce->substNEWwithIDs)... If any new items has been save, the document is CLOSED because if not, we just get that element re-listed as new. And we don't want that!
 			$this->closeDocument(abs($this->closeDoc));
 		}
 	}
@@ -441,12 +441,13 @@ class SC_alt_doc {
 		$this->MOD_SETTINGS = t3lib_BEfunc::getModuleData($this->MOD_MENU, t3lib_div::_GP('SET'), $this->MCONF['name']);
 
 			// Create an instance of the document template object
-		$this->doc = $GLOBALS['TBE_TEMPLATE'];
+		$this->doc = t3lib_div::makeInstance('template');
 		$this->doc->backPath = $BACK_PATH;
 		$this->doc->setModuleTemplate('templates/alt_doc.html');
+		$this->doc->docType = 'xhtml_trans';
 		$this->doc->form = '<form action="'.htmlspecialchars($this->R_URI).'" method="post" enctype="'.$GLOBALS['TYPO3_CONF_VARS']['SYS']['form_enctype'].'" name="editform" onsubmit="document.editform._scrollPosition.value=(document.documentElement.scrollTop || document.body.scrollTop); return TBE_EDITOR.checkSubmit(1);">';
 
-		$this->doc->loadPrototype();
+		$this->doc->loadJavascriptLib('contrib/prototype/prototype.js');
 		$this->doc->JScode = $this->doc->wrapScriptTags('
 			function jumpToUrl(URL,formEl)	{	//
 				if (!TBE_EDITOR.isFormChanged())	{
@@ -513,6 +514,8 @@ class SC_alt_doc {
 			$this->tceforms->disableRTE = !$BE_USER->isRTE();
 			$this->tceforms->enableClickMenu = TRUE;
 			$this->tceforms->enableTabMenu = TRUE;
+
+			//$this->tceforms->setPalettesCollapsed(!$this->MOD_SETTINGS['showPalettes']);
 
 				// Clipboard is initialized:
 			$this->tceforms->clipObj = t3lib_div::makeInstance('t3lib_clipboard');		// Start clipboard
@@ -781,7 +784,7 @@ class SC_alt_doc {
 							} else {
 								$this->errorC++;
 								$editForm.=$LANG->sL('LLL:EXT:lang/locallang_core.php:labels.noEditPermission',1).'<br /><br />'.
-									($deniedAccessReason ? 'Reason: ' . htmlspecialchars($deniedAccessReason) . '<br /><br />' : '');
+											($deniedAccessReason ? 'Reason: '.htmlspecialchars($deniedAccessReason).'<br/><br/>' : '');
 							}
 						}
 					}
@@ -810,7 +813,6 @@ class SC_alt_doc {
 			'history' => '',
 			'columns_only' => '',
 			'csh' => '',
-			'translation_save' => ''
 		);
 
 			// Render SAVE type buttons:
@@ -818,24 +820,24 @@ class SC_alt_doc {
 		if (!$this->errorC && !$TCA[$this->firstEl['table']]['ctrl']['readOnly'])	{
 
 				// SAVE button:
-			$buttons['save'] = '<input type="image" class="c-inputButton" name="_savedok" src="' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/savedok.gif', '', 1) . '" title="' . $LANG->sL('LLL:EXT:lang/locallang_core.php:rm.saveDoc', 1) . '" />';
+			$buttons['save'] = '<input type="image" class="c-inputButton" name="_savedok"'.t3lib_iconWorks::skinImg($this->doc->backPath,'gfx/savedok.gif','').' title="'.$LANG->sL('LLL:EXT:lang/locallang_core.php:rm.saveDoc',1).'" />';
 
 				// SAVE / VIEW button:
-			if ($this->viewId && !$this->noView && t3lib_extMgm::isLoaded('cms') && $this->getNewIconMode($this->firstEl['table'], 'saveDocView')) {
-				$buttons['save_view'] = '<input type="image" class="c-inputButton" name="_savedokview" src="' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/savedokshow.gif', '', 1) . '" title="' . $LANG->sL('LLL:EXT:lang/locallang_core.php:rm.saveDocShow', 1) . '" />';
+			if ($this->viewId && !$this->noView && t3lib_extMgm::isLoaded('cms')) {
+				$buttons['save_view'] = '<input type="image" class="c-inputButton" name="_savedokview"'.t3lib_iconWorks::skinImg($this->doc->backPath,'gfx/savedokshow.gif','').' title="'.$LANG->sL('LLL:EXT:lang/locallang_core.php:rm.saveDocShow',1).'" />';
 			}
 
 				// SAVE / NEW button:
 			if (count($this->elementsData)==1 && $this->getNewIconMode($this->firstEl['table'])) {
-				$buttons['save_new'] = '<input type="image" class="c-inputButton" name="_savedoknew" src="' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/savedoknew.gif', '', 1) . '" title="' . $LANG->sL('LLL:EXT:lang/locallang_core.php:rm.saveNewDoc', 1) . '" />';
+				$buttons['save_new'] = '<input type="image" class="c-inputButton" name="_savedoknew"'.t3lib_iconWorks::skinImg($this->doc->backPath,'gfx/savedoknew.gif','').' title="'.$LANG->sL('LLL:EXT:lang/locallang_core.php:rm.saveNewDoc',1).'" />';
 			}
 
 				// SAVE / CLOSE
-			$buttons['save_close'] = '<input type="image" class="c-inputButton" name="_saveandclosedok" src="' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/saveandclosedok.gif', '', 1) . '" title="' . $LANG->sL('LLL:EXT:lang/locallang_core.php:rm.saveCloseDoc', 1) . '" />';
+			$buttons['save_close'] = '<input type="image" class="c-inputButton" name="_saveandclosedok"'.t3lib_iconWorks::skinImg($this->doc->backPath,'gfx/saveandclosedok.gif','').' title="'.$LANG->sL('LLL:EXT:lang/locallang_core.php:rm.saveCloseDoc',1).'" />';
 
 				// FINISH TRANSLATION / SAVE / CLOSE
 			if ($GLOBALS['TYPO3_CONF_VARS']['BE']['explicitConfirmationOfTranslation'])	{
-				$buttons['translation_save'] = '<input type="image" class="c-inputButton" name="_translation_savedok" src="' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/translationsavedok.gif', '', 1) . '" title="' . $LANG->sL('LLL:EXT:lang/locallang_core.php:rm.translationSaveDoc', 1) . '" />';
+				$buttons['translation_save'] = '<input type="image" class="c-inputButton" name="_translation_savedok"'.t3lib_iconWorks::skinImg($this->doc->backPath,'gfx/translationsavedok.gif','').' title="'.$LANG->sL('LLL:EXT:lang/locallang_core.php:rm.translationSaveDoc',1).'" />';
 			}
 		}
 
@@ -1356,12 +1358,10 @@ class SC_alt_doc {
 	 * @param	string		The option for look for. Default is checking if the saveDocNew button should be displayed.
 	 * @return	string		Return value fetched from USER TSconfig
 	 */
-	function getNewIconMode($table, $key = 'saveDocNew') {
-		$TSconfig = $GLOBALS['BE_USER']->getTSConfig('options.'.$key);
+	function getNewIconMode($table,$key='saveDocNew')	{
+		global $BE_USER;
+		$TSconfig = $BE_USER->getTSConfig('options.'.$key);
 		$output = trim(isset($TSconfig['properties'][$table]) ? $TSconfig['properties'][$table] : $TSconfig['value']);
-		if (($key == 'saveDocNew' || $key == 'saveDocView') && $TSconfig['value'] != '0') {
-			$output = !(isset($TSconfig['properties'][$table]) && $TSconfig['properties'][$table] == '0');
-		}
 		return $output;
 	}
 
@@ -1443,10 +1443,23 @@ class SC_alt_doc {
 	}
 }
 
-
+// Include extension?
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/alt_doc.php'])	{
 	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/alt_doc.php']);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1464,5 +1477,4 @@ if ($SOBE->doProcessData())	{		// Checks, if a save button has been clicked (or 
 $SOBE->init();
 $SOBE->main();
 $SOBE->printContent();
-
 ?>

@@ -5,13 +5,13 @@ require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
 
 class t3lib_TCEforms_TextElement extends t3lib_TCEforms_AbstractElement {
 	protected $item;
-	
-	public function init($table, $field, $row, &$PA) {
+
+	public function render() {
 			// Init config:
-		$config = $PA['fieldConf']['config'];
+		$config = $this->fieldConf['config'];
 
 		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
-			return $this->TCEformsObject->getSingleField_typeNone_render($config, $PA['itemFormElValue']);
+			return $this->TCEformsObject->getSingleField_typeNone_render($config, $this->itemFormElValue);
 		}
 
 			// Setting columns number:
@@ -19,9 +19,9 @@ class t3lib_TCEforms_TextElement extends t3lib_TCEforms_AbstractElement {
 
 			// Setting number of rows:
 		$origRows = $rows = t3lib_div::intInRange($config['rows'] ? $config['rows'] : 5, 1, 20);
-		if (strlen($PA['itemFormElValue']) > $this->TCEformsObject->charsPerRow*2)	{
+		if (strlen($this->itemFormElValue) > $this->TCEformsObject->charsPerRow*2)	{
 			$cols = $this->TCEformsObject->maxTextareaWidth;
-			$rows = t3lib_div::intInRange(round(strlen($PA['itemFormElValue'])/$this->TCEformsObject->charsPerRow), count(explode(chr(10),$PA['itemFormElValue'])), 20);
+			$rows = t3lib_div::intInRange(round(strlen($this->itemFormElValue)/$this->TCEformsObject->charsPerRow), count(explode(chr(10),$this->itemFormElValue)), 20);
 			if ($rows<$origRows)	$rows = $origRows;
 		}
 
@@ -30,10 +30,10 @@ class t3lib_TCEforms_TextElement extends t3lib_TCEforms_AbstractElement {
 		$RTEwouldHaveBeenLoaded = 0;	// Set true, if the RTE would have been loaded if it wasn't for the disable-RTE flag in the bottom of the page...
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. Traditionally, this is where RTE configuration has been found.
-		$specConf = $this->TCEformsObject->getSpecConfFromString($PA['extra'], $PA['fieldConf']['defaultExtras']);
+		$specConf = $this->TCEformsObject->getSpecConfFromString($PA['extra'], $this->fieldConf['defaultExtras']);
 
 			// Setting up the altItem form field, which is a hidden field containing the value
-		$altItem = '<input type="hidden" name="'.htmlspecialchars($PA['itemFormElName']).'" value="'.htmlspecialchars($PA['itemFormElValue']).'" />';
+		$altItem = '<input type="hidden" name="'.htmlspecialchars($PA['itemFormElName']).'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 
 			// If RTE is generally enabled (TYPO3_CONF_VARS and user settings)
 		if ($this->TCEformsObject->RTEenabled) {
@@ -116,28 +116,24 @@ class t3lib_TCEforms_TextElement extends t3lib_TCEforms_AbstractElement {
 								$evalObj = t3lib_div::getUserObj($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tce']['formevals'][$func].':&'.$func);
 								if (is_object($evalObj) && method_exists($evalObj, 'deevaluateFieldValue'))	{
 									$_params = array(
-										'value' => $PA['itemFormElValue']
+										'value' => $this->itemFormElValue
 									);
-									$PA['itemFormElValue'] = $evalObj->deevaluateFieldValue($_params);
+									$this->itemFormElValue = $evalObj->deevaluateFieldValue($_params);
 								}
 							}
 							break;
 					}
 				}
 
-				$iOnChange = implode('',$PA['fieldChangeFunc']);
+				$iOnChange = implode('',$this->fieldChangeFunc);
 				$item.= '
-							<textarea name="'.$PA['itemFormElName'].'"'.$formWidthText.$class.' rows="'.$rows.'" wrap="'.$wrap.'" onchange="'.htmlspecialchars($iOnChange).'"'.$PA['onFocus'].'>'.
-							t3lib_div::formatForTextarea($PA['itemFormElValue']).
+							<textarea name="'.$this->itemFormElName.'"'.$formWidthText.$class.' rows="'.$rows.'" wrap="'.$wrap.'" onchange="'.htmlspecialchars($iOnChange).'"'.$PA['onFocus'].'>'.
+							t3lib_div::formatForTextarea($this->itemFormElValue).
 							'</textarea>';
 				$item = $this->TCEformsObject->renderWizards(array($item,$altItem),$config['wizards'],$table,$row,$field,$PA,$PA['itemFormElName'],$specConf,$RTEwouldHaveBeenLoaded);
 			}
 		}
-		
-		$this->item = $item;
-	}
-	
-	public function render() {
-		return $this->item;
+
+		return $item;
 	}
 }
