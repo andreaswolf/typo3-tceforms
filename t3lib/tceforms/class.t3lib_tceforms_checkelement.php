@@ -13,13 +13,13 @@ class t3lib_TCEforms_CheckElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// Traversing the array of items:
-		$selItems = $this->TCEformsObject->initItemArray($this->PA['fieldConf']);
-		if ($this->config['itemsProcFunc']) $selItems = $this->TCEformsObject->procItems($selItems,$this->PA['fieldTSConfig']['itemsProcFunc.'],$this->config->table,$this->row,$this->field);
+		$selItems = $this->TCEformsObject->initItemArray($this->fieldConfig);
+		if ($this->config['itemsProcFunc']) $selItems = $this->TCEformsObject->procItems($selItems,$this->fieldTSConfig['itemsProcFunc.'],$this->config->table,$this->row,$this->field);
 
 		if (!count($selItems))	{
 			$selItems[]=array('','');
 		}
-		$this->TCEformsObjectValue = intval($this->PA['itemFormElValue']);
+		$this->TCEformsObjectValue = intval($this->itemFormElValue);
 
 		$cols = intval($this->config['cols']);
 		if ($cols > 1)	{
@@ -27,9 +27,9 @@ class t3lib_TCEforms_CheckElement extends t3lib_TCEforms_AbstractElement {
 			for ($c=0;$c<count($selItems);$c++) {
 				$p = $selItems[$c];
 				if(!($c%$cols))	{ $item.='<tr>'; }
-				$cBP = $this->TCEformsObject->checkBoxParams($this->PA['itemFormElName'],$this->TCEformsObjectValue,$c,count($selItems),implode('',$this->PA['fieldChangeFunc']));
-				$cBName = $this->PA['itemFormElName'].'_'.$c;
-				$cBID = $this->PA['itemFormElID'].'_'.$c;
+				$cBP = $this->TCEformsObject->checkBoxParams($this->itemFormElName,$this->TCEformsObjectValue,$c,count($selItems),implode('',$this->fieldChangeFunc));
+				$cBName = $this->itemFormElName.'_'.$c;
+				$cBID = $this->itemFormElID.'_'.$c;
 				$item.= '<td nowrap="nowrap">'.
 						'<input type="checkbox"'.$this->TCEformsObject->insertDefStyle('check').' value="1" name="'.$cBName.'"'.$cBP.$disabled.' id="'.$cBID.'" />'.
 						$this->wrapLabels('<label for="'.$cBID.'">'.htmlspecialchars($p[0]).'</label>&nbsp;').
@@ -47,18 +47,18 @@ class t3lib_TCEforms_CheckElement extends t3lib_TCEforms_AbstractElement {
 		} else {
 			for ($c=0;$c<count($selItems);$c++) {
 				$p = $selItems[$c];
-				$cBP = $this->TCEformsObject->checkBoxParams($this->PA['itemFormElName'],$this->TCEformsObjectValue,$c,count($selItems),implode('',$this->PA['fieldChangeFunc']));
-				$cBName = $this->PA['itemFormElName'].'_'.$c;
-				$cBID = $this->PA['itemFormElID'].'_'.$c;
+				$cBP = $this->TCEformsObject->checkBoxParams($this->itemFormElName,$this->TCEformsObjectValue,$c,count($selItems),implode('',$this->fieldChangeFunc));
+				$cBName = $this->itemFormElName.'_'.$c;
+				$cBID = $this->itemFormElID.'_'.$c;
 				$item.= ($c>0?'<br />':'').
-						'<input type="checkbox"'.$this->TCEformsObject->insertDefStyle('check').' value="1" name="'.$cBName.'"'.$cBP.$this->PA['onFocus'].$disabled.' id="'.$cBID.'" />'.
+						'<input type="checkbox"'.$this->TCEformsObject->insertDefStyle('check').' value="1" name="'.$cBName.'"'.$cBP.$this->onFocus.$disabled.' id="'.$cBID.'" />'.
 						htmlspecialchars($p[0]);
 			}
 		}
 		if (!$disabled) {
-			$item.= '<input type="hidden" name="'.$this->PA['itemFormElName'].'" value="'.htmlspecialchars($this->TCEformsObjectValue).'" />';
+			$item.= '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->TCEformsObjectValue).'" />';
 		}
 
-		return $this->item;
+		return $item;
 	}
 }

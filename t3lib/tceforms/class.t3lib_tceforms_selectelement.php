@@ -6,11 +6,11 @@ require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
 class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 	protected $item;
 
-	public function init($table, $field, $row, &$PA) {
+	public function render() {
 		global $TCA;
 
 			// Field configuration from TCA:
-		$config = $PA['fieldConf']['config'];
+		$config = $this->fieldConfig['config'];
 
 		$disabled = '';
 		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
@@ -18,15 +18,15 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. See http://typo3.org/documentation/document-library/doc_core_api/Wizards_Configuratio/.
-		$specConf = $this->TCEformsObject->getSpecConfFromString($PA['extra'], $PA['fieldConf']['defaultExtras']);
+		$specConf = $this->TCEformsObject->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
 
 			// Getting the selector box items from the system
-		$selItems = $this->TCEformsObject->addSelectOptionsToItemArray($this->TCEformsObject->initItemArray($PA['fieldConf']),$PA['fieldConf'],$this->TCEformsObject->setTSconfig($table,$row),$field);
-		$selItems = $this->TCEformsObject->addItems($selItems,$PA['fieldTSConfig']['addItems.']);
-		if ($config['itemsProcFunc']) $selItems = $this->TCEformsObject->procItems($selItems,$PA['fieldTSConfig']['itemsProcFunc.'],$config,$table,$row,$field);
+		$selItems = $this->TCEformsObject->addSelectOptionsToItemArray($this->TCEformsObject->initItemArray($this->fieldConfig),$this->fieldConfig,$this->TCEformsObject->setTSconfig($table,$row),$field);
+		$selItems = $this->TCEformsObject->addItems($selItems,$this->fieldTSConfig['addItems.']);
+		if ($config['itemsProcFunc']) $selItems = $this->TCEformsObject->procItems($selItems,$this->fieldTSConfig['itemsProcFunc.'],$config,$table,$row,$field);
 
 			// Possibly remove some items:
-		$removeItems = t3lib_div::trimExplode(',',$PA['fieldTSConfig']['removeItems'],1);
+		$removeItems = t3lib_div::trimExplode(',',$this->fieldTSConfig['removeItems'],1);
 		foreach($selItems as $tk => $p)	{
 
 				// Checking languages and authMode:
@@ -34,8 +34,8 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			$authModeDeny = $config['form_type']=='select' && $config['authMode'] && !$GLOBALS['BE_USER']->checkAuthMode($table,$field,$p[1],$config['authMode']);
 			if (in_array($p[1],$removeItems) || $languageDeny || $authModeDeny)	{
 				unset($selItems[$tk]);
-			} elseif (isset($PA['fieldTSConfig']['altLabels.'][$p[1]])) {
-				$selItems[$tk][0]=$this->TCEformsObject->sL($PA['fieldTSConfig']['altLabels.'][$p[1]]);
+			} elseif (isset($this->fieldTSConfig['altLabels.'][$p[1]])) {
+				$selItems[$tk][0]=$this->TCEformsObject->sL($this->fieldTSConfig['altLabels.'][$p[1]]);
 			}
 
 				// Removing doktypes with no access:
@@ -47,7 +47,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// Creating the label for the "No Matching Value" entry.
-		$nMV_label = isset($PA['fieldTSConfig']['noMatchingValue_label']) ? $this->TCEformsObject->sL($PA['fieldTSConfig']['noMatchingValue_label']) : '[ '.$this->TCEformsObject->getLL('l_noMatchingValue').' ]';
+		$nMV_label = isset($this->fieldTSConfig['noMatchingValue_label']) ? $this->TCEformsObject->sL($this->fieldTSConfig['noMatchingValue_label']) : '[ '.$this->TCEformsObject->getLL('l_noMatchingValue').' ]';
 
 			// Prepare some values:
 		$maxitems = intval($config['maxitems']);
@@ -65,11 +65,11 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 
 			// Wizards:
 		if (!$disabled) {
-			$altItem = '<input type="hidden" name="'.$PA['itemFormElName'].'" value="'.htmlspecialchars($PA['itemFormElValue']).'" />';
-			$item = $this->TCEformsObject->renderWizards(array($item,$altItem),$config['wizards'],$table,$row,$field,$PA,$PA['itemFormElName'],$specConf);
+			$altItem = '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
+			$item = $this->TCEformsObject->renderWizards(array($item,$altItem),$config['wizards'],$table,$row,$field,$PA,$this->itemFormElName,$specConf);
 		}
 
-		$this->item = $item;
+		return $item;
 	}
 
 	protected function initSubtypeSingle($table,$field,$row,&$PA,$config,$selItems,$nMV_label) {
@@ -78,7 +78,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		if(is_array($inlineParent) && $inlineParent['uid']) {
 			if ($inlineParent['config']['foreign_table'] == $table && $inlineParent['config']['foreign_unique'] == $field) {
 				$uniqueIds = $this->TCEformsObject->inline->inlineData['unique'][$this->TCEformsObject->inline->inlineNames['object'].'['.$table.']']['used'];
-				$PA['fieldChangeFunc']['inlineUnique'] = "inline.updateUnique(this,'".$this->TCEformsObject->inline->inlineNames['object'].'['.$table."]','".$this->TCEformsObject->inline->inlineNames['form']."','".$row['uid']."');";
+				$this->fieldChangeFunc['inlineUnique'] = "inline.updateUnique(this,'".$this->TCEformsObject->inline->inlineNames['object'].'['.$table."]','".$this->TCEformsObject->inline->inlineNames['form']."','".$row['uid']."');";
 			}
 				// hide uid of parent record for symmetric relations
 			if ($inlineParent['config']['foreign_table'] == $table && ($inlineParent['config']['foreign_field'] == $field || $inlineParent['config']['symmetric_field'] == $field)) {
@@ -104,7 +104,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 
 			// Icon configuration:
 		if ($config['suppress_icons']=='IF_VALUE_FALSE')	{
-			$suppressIcons = !$PA['itemFormElValue'] ? 1 : 0;
+			$suppressIcons = !$this->itemFormElValue ? 1 : 0;
 		} elseif ($config['suppress_icons']=='ONLY_SELECTED')	{
 			$suppressIcons=0;
 			$onlySelectedIconShown=1;
@@ -115,7 +115,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			// Traverse the Array of selector box items:
 		$optGroupStart = array();
 		foreach($selItems as $p)	{
-			$sM = (!strcmp($PA['itemFormElValue'],$p[1])?' selected="selected"':'');
+			$sM = (!strcmp($this->itemFormElValue,$p[1])?' selected="selected"':'');
 			if ($sM)	{
 				$sI = $c;
 				$noMatchingValue = 0;
@@ -133,7 +133,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			}
 
 				// Compiling the <option> tag:
-			if (!($p[1] != $PA['itemFormElValue'] && is_array($uniqueIds) && in_array($p[1], $uniqueIds))) {
+			if (!($p[1] != $this->itemFormElValue && is_array($uniqueIds) && in_array($p[1], $uniqueIds))) {
 				if(!strcmp($p[1],'--div--')) {
 					$optGroupStart[0] = $p[0];
 					$optGroupStart[1] = $styleAttrValue;
@@ -160,7 +160,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 				// If there is an icon for the selector box (rendered in table under)...:
 			if ($p[2] && !$suppressIcons && (!$onlySelectedIconShown || $sM))	{
 				list($selIconFile,$selIconInfo)=$this->TCEformsObject->getIcon($p[2]);
-				$iOnClick = $this->TCEformsObject->elName($PA['itemFormElName']).'.selectedIndex='.$c.'; '.implode('',$PA['fieldChangeFunc']).$this->TCEformsObject->blur().'return false;';
+				$iOnClick = $this->TCEformsObject->elName($this->itemFormElName).'.selectedIndex='.$c.'; '.implode('',$this->fieldChangeFunc).$this->TCEformsObject->blur().'return false;';
 				$selicons[]=array(
 					(!$onlySelectedIconShown ? '<a href="#" onclick="'.htmlspecialchars($iOnClick).'">' : '').
 					'<img src="'.$selIconFile.'" '.$selIconInfo[3].' vspace="2" border="0" title="'.htmlspecialchars($p[0]).'" alt="'.htmlspecialchars($p[0]).'" />'.
@@ -176,21 +176,21 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// No-matching-value:
-		if ($PA['itemFormElValue'] && $noMatchingValue && !$PA['fieldTSConfig']['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
-			$nMV_label = @sprintf($nMV_label, $PA['itemFormElValue']);
-			$opt[]= '<option value="'.htmlspecialchars($PA['itemFormElValue']).'" selected="selected">'.htmlspecialchars($nMV_label).'</option>';
+		if ($this->itemFormElValue && $noMatchingValue && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
+			$nMV_label = @sprintf($nMV_label, $this->itemFormElValue);
+			$opt[]= '<option value="'.htmlspecialchars($this->itemFormElValue).'" selected="selected">'.htmlspecialchars($nMV_label).'</option>';
 		}
 
 			// Create item form fields:
-		$sOnChange = 'if (this.options[this.selectedIndex].value==\'--div--\') {this.selectedIndex='.$sI.';} '.implode('',$PA['fieldChangeFunc']);
+		$sOnChange = 'if (this.options[this.selectedIndex].value==\'--div--\') {this.selectedIndex='.$sI.';} '.implode('',$this->fieldChangeFunc);
 		if(!$disabled) {
-			$item.= '<input type="hidden" name="'.$PA['itemFormElName'].'_selIconVal" value="'.htmlspecialchars($sI).'" />';	// MUST be inserted before the selector - else is the value of the hiddenfield here mysteriously submitted...
+			$item.= '<input type="hidden" name="'.$this->itemFormElName.'_selIconVal" value="'.htmlspecialchars($sI).'" />';	// MUST be inserted before the selector - else is the value of the hiddenfield here mysteriously submitted...
 		}
-		$item.= '<select'.$selectedStyle.' name="'.$PA['itemFormElName'].'"'.
+		$item.= '<select'.$selectedStyle.' name="'.$this->itemFormElName.'"'.
 					$this->TCEformsObject->insertDefStyle('select').
 					($size?' size="'.$size.'"':'').
 					' onchange="'.htmlspecialchars($sOnChange).'"'.
-					$PA['onFocus'].$disabled.'>';
+					$this->onFocus.$disabled.'>';
 		$item.= implode('',$opt);
 		$item.= '</select>';
 
@@ -221,7 +221,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 	protected function initSubtypeCheckbox($table,$field,$row,&$PA,$config,$selItems,$nMV_label) {
 
 			// Get values in an array (and make unique, which is fine because there can be no duplicates anyway):
-		$itemArray = array_flip($this->TCEformsObject->extractValuesOnlyFromValueLabelList($PA['itemFormElValue']));
+		$itemArray = array_flip($this->TCEformsObject->extractValuesOnlyFromValueLabelList($this->itemFormElValue));
 
 		$disabled = '';
 		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
@@ -232,7 +232,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		$tRows = array();
 		$c=0;
 		if (!$disabled) {
-			$sOnChange = implode('',$PA['fieldChangeFunc']);
+			$sOnChange = implode('',$this->fieldChangeFunc);
 			$setAll = array();	// Used to accumulate the JS needed to restore the original selection.
 			foreach($selItems as $p)	{
 					// Non-selectable element:
@@ -272,13 +272,13 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 
 						// Compile row:
 					$rowId = uniqid('select_checkbox_row_');
-					$onClickCell = $this->TCEformsObject->elName($PA['itemFormElName'] . '[' . $c . ']') . '.checked=!' . $this->TCEformsObject->elName($PA['itemFormElName'] . '[' . $c . ']') . '.checked;';
-					$onClick = 'this.attributes.getNamedItem("class").nodeValue = ' . $this->TCEformsObject->elName($PA['itemFormElName'] . '[' . $c . ']') . '.checked ? "c-selectedItem" : "c-unselectedItem";';
-					$setAll[] = $this->TCEformsObject->elName($PA['itemFormElName'] . '[' . $c . ']') . '.checked=1;';
+					$onClickCell = $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked=!' . $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked;';
+					$onClick = 'this.attributes.getNamedItem("class").nodeValue = ' . $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked ? "c-selectedItem" : "c-unselectedItem";';
+					$setAll[] = $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked=1;';
 					$setAll[] .= '$(\'' . $rowId . '\').removeClassName(\'c-unselectedItem\');$(\'' . $rowId . '\').addClassName(\'c-selectedItem\');';
-					$unSetAll[] = $this->TCEformsObject->elName($PA['itemFormElName'].'['.$c.']').'.checked=0;';
+					$unSetAll[] = $this->TCEformsObject->elName($this->itemFormElName.'['.$c.']').'.checked=0;';
 					$unSetAll[] .= '$(\'' . $rowId . '\').removeClassName(\'c-selectedItem\');$(\'' . $rowId . '\').addClassName(\'c-unselectedItem\');';
-					$restoreCmd[] = $this->TCEformsObject->elName($PA['itemFormElName'] . '[' . $c . ']') . '.checked=' . ($sM ? 1 : 0) . ';' .
+					$restoreCmd[] = $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked=' . ($sM ? 1 : 0) . ';' .
 								'$(\'' . $rowId . '\').removeClassName(\'c-selectedItem\');$(\'' . $rowId . '\').removeClassName(\'c-unselectedItem\');' .
 								'$(\'' . $rowId . '\').addClassName(\'c-' . ($sM ? '' : 'un') . 'selectedItem\');';
 
@@ -298,7 +298,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 
 					$tRows[] = '
 						<tr id="' . $rowId . '" class="'.($sM ? 'c-selectedItem' : 'c-unselectedItem').'" onclick="'.htmlspecialchars($onClick).'" style="cursor: pointer;">
-							<td width="12"><input type="checkbox"'.$this->TCEformsObject->insertDefStyle('check').' name="'.htmlspecialchars($PA['itemFormElName'].'['.$c.']').'" value="'.htmlspecialchars($p[1]).'"'.$sM.' onclick="'.htmlspecialchars($sOnChange).'"'.$PA['onFocus'].' /></td>
+							<td width="12"><input type="checkbox"'.$this->TCEformsObject->insertDefStyle('check').' name="'.htmlspecialchars($this->itemFormElName.'['.$c.']').'" value="'.htmlspecialchars($p[1]).'"'.$sM.' onclick="'.htmlspecialchars($sOnChange).'"'.$this->onFocus.' /></td>
 							<td class="c-labelCell" onclick="'.htmlspecialchars($onClickCell).'">'.
 								($selIconFile ? '<img src="'.$selIconFile.'" '.$selIconInfo[3].' vspace="2" border="0" class="absmiddle" style="margin-right: 4px;" alt="" />' : '').
 								$label .
@@ -326,12 +326,12 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// Remaining values (invalid):
-		if (count($itemArray) && !$PA['fieldTSConfig']['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
+		if (count($itemArray) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
 			foreach($itemArray as $theNoMatchValue => $temp)	{
 					// Compile <checkboxes> tag:
 				array_unshift($tRows,'
 						<tr class="c-invalidItem">
-							<td><input type="checkbox"'.$this->TCEformsObject->insertDefStyle('check').' name="'.htmlspecialchars($PA['itemFormElName'].'['.$c.']').'" value="'.htmlspecialchars($theNoMatchValue).'" checked="checked" onclick="'.htmlspecialchars($sOnChange).'"'.$PA['onFocus'].$disabled.' /></td>
+							<td><input type="checkbox"'.$this->TCEformsObject->insertDefStyle('check').' name="'.htmlspecialchars($this->itemFormElName.'['.$c.']').'" value="'.htmlspecialchars($theNoMatchValue).'" checked="checked" onclick="'.htmlspecialchars($sOnChange).'"'.$this->onFocus.$disabled.' /></td>
 							<td class="c-labelCell">'.
 								t3lib_div::deHSCentities(htmlspecialchars(@sprintf($nMV_label, $theNoMatchValue))).
 								'</td><td>&nbsp;</td>
@@ -341,7 +341,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// Add an empty hidden field which will send a blank value if all items are unselected.
-		$item .= '<input type="hidden" name="'.htmlspecialchars($PA['itemFormElName']) . '" value="" />';
+		$item .= '<input type="hidden" name="'.htmlspecialchars($this->itemFormElName) . '" value="" />';
 
 			// Add revert icon
 		if (is_array($restoreCmd)) {
@@ -361,7 +361,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 
 	protected function initSubtypeSinglebox($table,$field,$row,&$PA,$config,$selItems,$nMV_label) {
 			// Get values in an array (and make unique, which is fine because there can be no duplicates anyway):
-		$itemArray = array_flip($this->TCEformsObject->extractValuesOnlyFromValueLabelList($PA['itemFormElValue']));
+		$itemArray = array_flip($this->TCEformsObject->extractValuesOnlyFromValueLabelList($this->itemFormElValue));
 
 		$disabled = '';
 		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
@@ -377,7 +377,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			$sM = '';
 			if (isset($itemArray[$p[1]]))	{
 				$sM = ' selected="selected"';
-				$restoreCmd[] = $this->TCEformsObject->elName($PA['itemFormElName'].'[]').'.options['.$c.'].selected=1;';
+				$restoreCmd[] = $this->TCEformsObject->elName($this->itemFormElName.'[]').'.options['.$c.'].selected=1;';
 				unset($itemArray[$p[1]]);
 			}
 
@@ -402,7 +402,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// Remaining values:
-		if (count($itemArray) && !$PA['fieldTSConfig']['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
+		if (count($itemArray) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
 			foreach($itemArray as $theNoMatchValue => $temp)	{
 					// Compile <option> tag:
 				array_unshift($opt,'<option value="'.htmlspecialchars($theNoMatchValue).'" selected="selected">'.t3lib_div::deHSCentities(htmlspecialchars(@sprintf($nMV_label, $theNoMatchValue))).'</option>');
@@ -410,15 +410,15 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// Compile selector box:
-		$sOnChange = implode('',$PA['fieldChangeFunc']);
+		$sOnChange = implode('',$this->fieldChangeFunc);
 		$selector_itemListStyle = isset($config['itemListStyle']) ? ' style="'.htmlspecialchars($config['itemListStyle']).'"' : ' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"';
 		$size = intval($config['size']);
 		$size = $config['autoSizeMax'] ? t3lib_div::intInRange(count($selItems)+1,t3lib_div::intInRange($size,1),$config['autoSizeMax']) : $size;
-		$selectBox = '<select name="'.$PA['itemFormElName'].'[]"'.
+		$selectBox = '<select name="'.$this->itemFormElName.'[]"'.
 						$this->TCEformsObject->insertDefStyle('select').
 						($size ? ' size="'.$size.'"' : '').
 						' multiple="multiple" onchange="'.htmlspecialchars($sOnChange).'"'.
-						$PA['onFocus'].
+						$this->onFocus.
 						$selector_itemListStyle.
 						$disabled.'>
 						'.
@@ -428,7 +428,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 
 			// Add an empty hidden field which will send a blank value if all items are unselected.
 		if (!$disabled) {
-			$item.='<input type="hidden" name="'.htmlspecialchars($PA['itemFormElName']).'" value="" />';
+			$item.='<input type="hidden" name="'.htmlspecialchars($this->itemFormElName).'" value="" />';
 		}
 
 			// Put it all into a table:
@@ -443,7 +443,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 						'</em>
 					</td>
 					<td valign="top">
-					<a href="#" onclick="'.htmlspecialchars($this->TCEformsObject->elName($PA['itemFormElName'].'[]').'.selectedIndex=-1;'.implode('',$restoreCmd).' return false;').'">'.
+					<a href="#" onclick="'.htmlspecialchars($this->TCEformsObject->elName($this->itemFormElName.'[]').'.selectedIndex=-1;'.implode('',$restoreCmd).' return false;').'">'.
 						'<img'.t3lib_iconWorks::skinImg($this->TCEformsObject->backPath,'gfx/undo.gif','width="13" height="12"').' title="'.htmlspecialchars($this->TCEformsObject->getLL('l_revertSelection')).'" alt="" />'.
 						'</a>
 					</td>
@@ -463,7 +463,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 
 			// Setting this hidden field (as a flag that JavaScript can read out)
 		if (!$disabled) {
-			$item.= '<input type="hidden" name="'.$PA['itemFormElName'].'_mul" value="'.($config['multiple']?1:0).'" />';
+			$item.= '<input type="hidden" name="'.$this->itemFormElName.'_mul" value="'.($config['multiple']?1:0).'" />';
 		}
 
 			// Set max and min items:
@@ -472,21 +472,21 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		$minitems = t3lib_div::intInRange($config['minitems'],0);
 
 			// Register the required number of elements:
-		$this->TCEformsObject->registerRequiredPropertyExternal('range', $PA['itemFormElName'], array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
+		$this->TCEformsObject->registerRequiredPropertyExternal('range', $this->itemFormElName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
 
 			// Get "removeItems":
-		$removeItems = t3lib_div::trimExplode(',',$PA['fieldTSConfig']['removeItems'],1);
+		$removeItems = t3lib_div::trimExplode(',',$this->fieldTSConfig['removeItems'],1);
 
 			// Perform modification of the selected items array:
-		$itemArray = t3lib_div::trimExplode(',',$PA['itemFormElValue'],1);
+		$itemArray = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
 		foreach($itemArray as $tk => $tv) {
 			$tvP = explode('|',$tv,2);
 			$evalValue = rawurldecode($tvP[0]);
 			$isRemoved = in_array($evalValue,$removeItems)  || ($config['form_type']=='select' && $config['authMode'] && !$GLOBALS['BE_USER']->checkAuthMode($table,$field,$evalValue,$config['authMode']));
-			if ($isRemoved && !$PA['fieldTSConfig']['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
+			if ($isRemoved && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
 				$tvP[1] = rawurlencode(@sprintf($nMV_label, $evalValue));
-			} elseif (isset($PA['fieldTSConfig']['altLabels.'][$evalValue])) {
-				$tvP[1] = rawurlencode($this->TCEformsObject->sL($PA['fieldTSConfig']['altLabels.'][$evalValue]));
+			} elseif (isset($this->fieldTSConfig['altLabels.'][$evalValue])) {
+				$tvP[1] = rawurlencode($this->TCEformsObject->sL($this->fieldTSConfig['altLabels.'][$evalValue]));
 			}
 			$itemArray[$tk] = implode('|',$tvP);
 		}
@@ -510,17 +510,17 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			$size = intval($config['size']);
 			$size = $config['autoSizeMax'] ? t3lib_div::intInRange(count($itemArray)+1,t3lib_div::intInRange($size,1),$config['autoSizeMax']) : $size;
 			if ($config['exclusiveKeys'])	{
-				$sOnChange = 'setFormValueFromBrowseWin(\''.$PA['itemFormElName'].'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text,\''.$config['exclusiveKeys'].'\'); ';
+				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text,\''.$config['exclusiveKeys'].'\'); ';
 			} else {
-				$sOnChange = 'setFormValueFromBrowseWin(\''.$PA['itemFormElName'].'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text); ';
+				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text); ';
 			}
-			$sOnChange .= implode('',$PA['fieldChangeFunc']);
+			$sOnChange .= implode('',$this->fieldChangeFunc);
 			$itemsToSelect = '
-				<select name="'.$PA['itemFormElName'].'_sel"'.
+				<select name="'.$this->itemFormElName.'_sel"'.
 							$this->TCEformsObject->insertDefStyle('select').
 							($size ? ' size="'.$size.'"' : '').
 							' onchange="'.htmlspecialchars($sOnChange).'"'.
-							$PA['onFocus'].
+							$this->onFocus.
 							$selector_itemListStyle.'>
 					'.implode('
 					',$opt).'
@@ -543,12 +543,10 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			'thumbnails' => $itemsToSelect,
 			'readOnly' => $disabled
 		);
-		$item .= $this->TCEformsObject->dbFileIcons($PA['itemFormElName'],'','',$itemArray,'',$params,$PA['onFocus']);
+		$item .= $this->TCEformsObject->dbFileIcons($this->itemFormElName,'','',$itemArray,'',$params,$this->onFocus);
 
 		return $item;
 	}
-
-	public function render() {
-		return $this->item;
-	}
 }
+
+?>

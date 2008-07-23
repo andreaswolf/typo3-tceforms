@@ -808,12 +808,12 @@ class t3lib_TCEforms	{
 			// temporarily disabled all types except check during heavy refactoring of the whole tceforms module + element classes
 			case 'input':
 			case 'text':
-			//case 'check':
-			//case 'radio':
-			//case 'select':
-			//case 'group':
-			//case 'user':
-			//case 'flex':
+			case 'check':
+			case 'radio':
+			case 'select':
+			case 'group':
+			case 'user':
+			case 'flex':
 				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
 				$elementObject->setTCEformsObject($this);
 				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal);
@@ -831,189 +831,6 @@ class t3lib_TCEforms	{
 		}
 
 		return $item;
-
-
-
-			// Hook: getSingleField_preProcess
-		foreach ($this->hookObjectsSingleField as $hookObj)	{
-			if (method_exists($hookObj,'getSingleField_preProcess'))	{
-				$hookObj->getSingleField_preProcess($table, $field, $row, $altName, $palette, $extra, $pal, $this);
-			}
-		}
-
-		$out = '';
-		$PA = array();
-		$PA['altName'] = $altName;
-		$PA['palette'] = $palette;
-		$PA['extra'] = $extra;
-		$PA['pal'] = $pal;
-
-			// Make sure to load full $TCA array for the table:
-		t3lib_div::loadTCA($table);
-
-			// Get the TCA configuration for the current field:
-		$PA['fieldConf'] = $TCA[$table]['columns'][$field];
-		$PA['fieldConf']['config']['form_type'] = $PA['fieldConf']['config']['form_type'] ? $PA['fieldConf']['config']['form_type'] : $PA['fieldConf']['config']['type'];	// Using "form_type" locally in this script
-
-		$skipThisField = $this->inline->skipField($table, $field, $row, $PA['fieldConf']['config']);
-
-			// Now, check if this field is configured and editable (according to excludefields + other configuration)
-		if (	is_array($PA['fieldConf']) &&
-				!$skipThisField &&
-				(!$PA['fieldConf']['exclude'] || $BE_USER->check('non_exclude_fields',$table.':'.$field)) &&
-				$PA['fieldConf']['config']['form_type']!='passthrough' &&
-				($this->RTEenabled || !$PA['fieldConf']['config']['showIfRTE']) &&
-				(!$PA['fieldConf']['displayCond'] || $this->isDisplayCondition($PA['fieldConf']['displayCond'],$row)) &&
-				(!$TCA[$table]['ctrl']['languageField'] || $PA['fieldConf']['l10n_display'] || strcmp($PA['fieldConf']['l10n_mode'],'exclude') || $row[$TCA[$table]['ctrl']['languageField']]<=0) &&
-				(!$TCA[$table]['ctrl']['languageField'] || !$this->localizationMode || $this->localizationMode===$PA['fieldConf']['l10n_cat'])
-			)	{
-
-
-
-				// Fetching the TSconfig for the current table/field. This includes the $row which means that
-			$PA['fieldTSConfig'] = $this->setTSconfig($table,$row,$field);
-
-				// If the field is NOT disabled from TSconfig (which it could have been) then render it
-			if (!$PA['fieldTSConfig']['disabled'])	{
-					// Override fieldConf by fieldTSconfig:
-				$PA['fieldConf']['config'] = $this->overrideFieldConf($PA['fieldConf']['config'], $PA['fieldTSConfig']);
-
-					// Init variables:
-				$PA['itemFormElName']=$this->prependFormFieldNames.'['.$table.']['.$row['uid'].']['.$field.']';		// Form field name
-				$PA['itemFormElName_file']=$this->prependFormFieldNames_file.'['.$table.']['.$row['uid'].']['.$field.']';	// Form field name, in case of file uploads
-				$PA['itemFormElValue']=$row[$field];		// The value to show in the form field.
-				$PA['itemFormElID']=$this->prependFormFieldNames.'_'.$table.'_'.$row['uid'].'_'.$field;
-
-					// set field to read-only if configured for translated records to show default language content as readonly
-				if ($PA['fieldConf']['l10n_display'] AND t3lib_div::inList($PA['fieldConf']['l10n_display'], 'defaultAsReadonly') AND $row[$TCA[$table]['ctrl']['languageField']]) {
-					$PA['fieldConf']['config']['readOnly'] =  true;
-					$PA['itemFormElValue'] = $this->defaultLanguageData[$table.':'.$row['uid']][$field];
-				}
-
-					// Create a JavaScript code line which will ask the user to save/update the form due to changing the element. This is used for eg. "type" fields and others configured with "requestUpdate"
-				if (
-					($TCA[$table]['ctrl']['type'] && !strcmp($field,$TCA[$table]['ctrl']['type'])) ||
-					($TCA[$table]['ctrl']['requestUpdate'] && t3lib_div::inList($TCA[$table]['ctrl']['requestUpdate'],$field))) {
-					if($GLOBALS['BE_USER']->jsConfirmation(1))	{
-						$alertMsgOnChange = 'if (confirm(TBE_EDITOR.labels.onChangeAlert) && TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm() };';
-					} else {
-						$alertMsgOnChange = 'if (TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm() };';
-					}
-				} else {
-					$alertMsgOnChange = '';
-				}
-
-					// Render as a hidden field?
-				if (in_array($field,$this->hiddenFieldListArr))	{
-					$this->hiddenFieldAccum[]='<input type="hidden" name="'.$PA['itemFormElName'].'" value="'.htmlspecialchars($PA['itemFormElValue']).'" />';
-				} else {	// Render as a normal field:
-
-						// If the field is NOT a palette field, then we might create an icon which links to a palette for the field, if one exists.
-					if (!$PA['palette'])	{
-						$paletteFields = $this->loadPaletteElements($table, $row, $PA['pal']);
-						if ($PA['pal'] && $this->isPalettesCollapsed($table,$PA['pal']) && count($paletteFields))	{
-							list($thePalIcon,$palJSfunc) = $this->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->getLL('l_moreOptions')).'" alt="" />',$table,$row,$PA['pal'],1);
-						} else {
-							$thePalIcon = '';
-							$palJSfunc = '';
-						}
-					}
-						// onFocus attribute to add to the field:
-					$PA['onFocus'] = ($palJSfunc && !$BE_USER->uc['dontShowPalettesOnFocusInAB']) ? ' onfocus="'.htmlspecialchars($palJSfunc).'"' : '';
-
-						// Find item
-					$item='';
-					$PA['label'] = ($PA['altName'] ? $PA['altName'] : $PA['fieldConf']['label']);
-					$PA['label'] = ($PA['fieldTSConfig']['label'] ? $PA['fieldTSConfig']['label'] : $PA['label']);
-					$PA['label'] = ($PA['fieldTSConfig']['label.'][$GLOBALS['LANG']->lang] ? $PA['fieldTSConfig']['label.'][$GLOBALS['LANG']->lang] : $PA['label']);
-					$PA['label'] = $this->sL($PA['label']);
-						// JavaScript code for event handlers:
-					$PA['fieldChangeFunc']=array();
-					$PA['fieldChangeFunc']['TBE_EDITOR_fieldChanged'] = "TBE_EDITOR.fieldChanged('".$table."','".$row['uid']."','".$field."','".$PA['itemFormElName']."');";
-					$PA['fieldChangeFunc']['alert']=$alertMsgOnChange;
-						// if this is the child of an inline type and it is the field creating the label
-					if ($this->inline->isInlineChildAndLabelField($table, $field)) {
-						$PA['fieldChangeFunc']['inline'] = "inline.handleChangedField('".$PA['itemFormElName']."','".$this->inline->inlineNames['object']."[$table][".$row['uid']."]');";
-					}
-
-						// Based on the type of the item, call a render function:
-					$item = $this->getSingleField_SW($table,$field,$row,$PA);
-
-						// Add language + diff
-					if ($PA['fieldConf']['l10n_display'] && (t3lib_div::inList($PA['fieldConf']['l10n_display'], 'hideDiff') || t3lib_div::inList($PA['fieldConf']['l10n_display'], 'defaultAsReadonly'))) {
-						$renderLanguageDiff = false;
-					} else {
-						$renderLanguageDiff = true;
-					}
-
-					if ($renderLanguageDiff) {
-						$item = $this->renderDefaultLanguageContent($table,$field,$row,$item);
-						$item = $this->renderDefaultLanguageDiff($table,$field,$row,$item);
-					}
-
-						// If the record has been saved and the "linkTitleToSelf" is set, we make the field name into a link, which will load ONLY this field in alt_doc.php
-					$PA['label'] = t3lib_div::deHSCentities(htmlspecialchars($PA['label']));
-					if (t3lib_div::testInt($row['uid']) && $PA['fieldTSConfig']['linkTitleToSelf'] && !t3lib_div::_GP('columnsOnly'))	{
-						$lTTS_url = $this->backPath.'alt_doc.php?edit['.$table.']['.$row['uid'].']=edit&columnsOnly='.$field.'&returnUrl='.rawurlencode($this->thisReturnUrl());
-						$PA['label'] = '<a href="'.htmlspecialchars($lTTS_url).'">'.$PA['label'].'</a>';
-					}
-
-						// Create output value:
-					if ($PA['fieldConf']['config']['form_type']=='user' && $PA['fieldConf']['config']['noTableWrapping'])	{
-						$out = $item;
-					} elseif ($PA['palette'])	{
-							// Array:
-						$out=array(
-							'NAME'=>$PA['label'],
-							'ID'=>$row['uid'],
-							'FIELD'=>$field,
-							'TABLE'=>$table,
-							'ITEM'=>$item,
-							'HELP_ICON' => $this->helpTextIcon($table,$field,1)
-						);
-						$out = $this->addUserTemplateMarkers($out,$table,$field,$row,$PA);
-					} else {
-							// String:
-						$out=array(
-							'NAME'=>$PA['label'],
-							'ITEM'=>$item,
-							'TABLE'=>$table,
-							'ID'=>$row['uid'],
-							'HELP_ICON'=>$this->helpTextIcon($table,$field),
-							'HELP_TEXT'=>$this->helpText($table,$field),
-							'PAL_LINK_ICON'=>$thePalIcon,
-							'FIELD'=>$field
-						);
-						$out = $this->addUserTemplateMarkers($out,$table,$field,$row,$PA);
-							// String:
-						$out=$this->intoTemplate($out);
-					}
-				}
-			} else $this->commentMessages[]=$this->prependFormFieldNames.'['.$table.']['.$row['uid'].']['.$field.']: Disabled by TSconfig';
-		}
-			// Hook: getSingleField_postProcess
-		foreach ($this->hookObjectsSingleField as $hookObj)	{
-			if (method_exists($hookObj,'getSingleField_postProcess'))	{
-				$hookObj->getSingleField_postProcess($table, $field, $row, $out, $PA, $this);
-			}
-		}
-			// Return value (string or array)
-		return $out;
-	}
-
-	/**
-	 * Rendering a single item for the form
-	 *
-	 * @param	string		Table name of record
-	 * @param	string		Fieldname to render
-	 * @param	array		The record
-	 * @param	array		parameters array containing a lot of stuff. Value by Reference!
-	 * @return	string		Returns the item as HTML code to insert
-	 * @access private
-	 * @see getSingleField(), getSingleField_typeFlex_draw()
-	 */
-	function getSingleField_SW($table,$field,$row,&$PA)	{
-
 	}
 
 	protected function elementObjectFactory($type) {
@@ -3997,6 +3814,7 @@ class t3lib_TCEforms	{
 	 * @param	string		FlexForm value key, eg. vDEF
 	 * @return	boolean
 	 */
+	// moved to t3lib_TCEforms_AbstractElement
 	function isDisplayCondition($displayCond,$row,$ffValueKey='')	{
 		$output = FALSE;
 

@@ -6,9 +6,9 @@ require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
 class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 	protected $item;
 
-	public function init($table, $field, $row, &$PA) {
+	public function render() {
 			// Init:
-		$config = $PA['fieldConf']['config'];
+		$config = $this->fieldConfig['config'];
 		$internal_type = $config['internal_type'];
 		$show_thumbs = $config['show_thumbs'];
 		$size = intval($config['size']);
@@ -23,12 +23,12 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 			$disabled = ' disabled="disabled"';
 		}
 
-		$item.= '<input type="hidden" name="'.$PA['itemFormElName'].'_mul" value="'.($config['multiple']?1:0).'"'.$disabled.' />';
-		$this->TCEformsObject->registerRequiredPropertyExternal('range', $PA['itemFormElName'], array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
+		$item.= '<input type="hidden" name="'.$this->itemFormElName.'_mul" value="'.($config['multiple']?1:0).'"'.$disabled.' />';
+		$this->TCEformsObject->registerRequiredPropertyExternal('range', $this->itemFormElName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
 		$info='';
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. See http://typo3.org/documentation/document-library/doc_core_api/Wizards_Configuratio/.
-		$specConf = $this->TCEformsObject->getSpecConfFromString($PA['extra'], $PA['fieldConf']['defaultExtras']);
+		$specConf = $this->TCEformsObject->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
 
 			// Acting according to either "file" or "db" type:
 		switch((string)$config['internal_type'])	{
@@ -52,7 +52,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 				}
 
 					// Making the array of file items:
-				$itemArray = t3lib_div::trimExplode(',',$PA['itemFormElValue'],1);
+				$itemArray = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
 
 					// Showing thumbnails:
 				$thumbsnail = '';
@@ -94,17 +94,17 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 					'noBrowser' => $noList || isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser'),
 					'noList' => $noList,
 				);
-				$item.= $this->TCEformsObject->dbFileIcons($PA['itemFormElName'],'file',implode(',',$tempFT),$itemArray,'',$params,$PA['onFocus']);
+				$item.= $this->TCEformsObject->dbFileIcons($this->itemFormElName,'file',implode(',',$tempFT),$itemArray,'',$params,$this->onFocus);
 
 				if(!$disabled && !(isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'upload'))) {
 						// Adding the upload field:
-					if ($this->TCEformsObject->edit_docModuleUpload)	$item.='<input type="file" name="'.$PA['itemFormElName_file'].'"'.$this->TCEformsObject->formWidth().' size="60" />';
+					if ($this->TCEformsObject->edit_docModuleUpload)	$item.='<input type="file" name="'.$this->itemFormElName_file.'"'.$this->TCEformsObject->formWidth().' size="60" />';
 				}
 			break;
 			case 'folder':	// If the element is of the internal type "folder":
 
 					// array of folder items:
-				$itemArray = t3lib_div::trimExplode(',', $PA['itemFormElValue'], 1);
+				$itemArray = t3lib_div::trimExplode(',', $this->itemFormElValue, 1);
 
 					// Creating the element:
 				$params = array(
@@ -120,13 +120,13 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 				);
 
 				$item.= $this->TCEformsObject->dbFileIcons(
-					$PA['itemFormElName'],
+					$this->itemFormElName,
 					'folder',
 					'',
 					$itemArray,
 					'',
 					$params,
-					$PA['onFocus']
+					$this->onFocus
 				);
 			break;
 			case 'db':	// If the element is of the internal type "db":
@@ -153,7 +153,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 				$imgs = array();
 
 					// Thumbnails:
-				$temp_itemArray = t3lib_div::trimExplode(',',$PA['itemFormElValue'],1);
+				$temp_itemArray = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
 				foreach($temp_itemArray as $dbRead)	{
 					$recordParts = explode('|',$dbRead);
 					list($this->TCEformsObject_table,$this->TCEformsObject_uid) = t3lib_BEfunc::splitTable_Uid($recordParts[0]);
@@ -183,21 +183,19 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 					'thumbnails' => $thumbsnail,
 					'readOnly' => $disabled
 				);
-				$item.= $this->TCEformsObject->dbFileIcons($PA['itemFormElName'],'db',implode(',',$tempFT),$itemArray,'',$params,$PA['onFocus'],$table,$field,$row['uid']);
+				$item.= $this->TCEformsObject->dbFileIcons($this->itemFormElName,'db',implode(',',$tempFT),$itemArray,'',$params,$this->onFocus,$table,$field,$row['uid']);
 
 			break;
 		}
 
 			// Wizards:
-		$altItem = '<input type="hidden" name="'.$PA['itemFormElName'].'" value="'.htmlspecialchars($PA['itemFormElValue']).'" />';
+		$altItem = '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 		if (!$disabled) {
-			$item = $this->TCEformsObject->renderWizards(array($item,$altItem),$config['wizards'],$table,$row,$field,$PA,$PA['itemFormElName'],$specConf);
+			$item = $this->TCEformsObject->renderWizards(array($item,$altItem),$config['wizards'],$table,$row,$field,$PA,$this->itemFormElName,$specConf);
 		}
 
-		$this->item = $item;
-	}
-
-	public function render() {
-		return $this->item;
+		return $item;
 	}
 }
+
+?>
