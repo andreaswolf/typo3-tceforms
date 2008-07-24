@@ -66,6 +66,9 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 */
 	protected $TCEformsObject;
 
+	protected $templateFile;
+	protected $templateContent;
+
 
 	/**
 	 * The constructor of this class
@@ -76,6 +79,9 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 */
 	public function __construct($table, $row) {
 		global $TCA;
+
+		$this->setTemplateFile(PATH_typo3 . 'templates/tceforms.html');
+
 
 			// TODO: Refactor this!
 		$this->prependFormFieldNames = 'data';
@@ -241,11 +247,27 @@ abstract class t3lib_TCEforms_AbstractForm {
 			}
 		}
 
-		foreach ($this->formFieldObjects as $formFieldObject) {
-			$content .= $formFieldObject->render();
+		if ($this->useTabs == true) {
+			$tabContents = array();
+
+			$c = 0;
+				// $this->formFieldObjects should only contain t3lib_TCEforms_Tab objects
+			foreach ($this->formFieldObjects as $tabObject) {
+				++$c;
+				$tabContents[$c] = array(
+					'newline' => false, // TODO: make this configurable again
+					'label' => $tabObject->getHeader(),
+					'content' => $tabObject->render()
+				);
+			}
+			$content = $this->getDynTabMenu($tabContents, $tabIdentString);
+		} else {
+			foreach ($this->formFieldObjects as $formFieldObject) {
+				$content .= $formFieldObject->render();
+			}
 		}
 
-		return $content;
+		return $this->wrapTotal($content);
 	}
 
 	/**
@@ -320,6 +342,11 @@ abstract class t3lib_TCEforms_AbstractForm {
 		if ($this->useTabs == true && !($formFieldObject instanceof t3lib_TCEforms_Tab)) {
 			$this->currentTab->addChildObject($formFieldObject);
 		} else {
+				// only allow tabs if we used them for the whole form
+			if ($formFieldObject instanceof t3lib_TCEforms_Tab && $this->useTabs == false) {
+				die('Did not use tabs from the beginning, so you can\'t add a new one now. [1216914101]');
+			}
+
 			$this->formFieldObjects[] = $formFieldObject;
 		}
 	}
@@ -470,6 +497,105 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 	public function setTCEformsObject(t3lib_TCEforms $TCEformsObject) {
 		$this->TCEformsObject = $TCEformsObject;
+	}
+
+
+
+	/********************************************
+	 *
+	 * Template functions
+	 *
+	 ********************************************/
+
+	public function setTemplateFile($filePath) {
+		$filePath = t3lib_div::getFileAbsFileName($filePath);
+
+		if (!@file_exists($filePath)) {
+			die('Template file <em>'.$filePath.'</em> does not exist. [1216911730]');
+		}
+
+		$this->templateContent = file_get_contents($filePath);
+	}
+
+	/**
+	 * Create dynamic tab menu
+	 *
+	 * @param	array		Parts for the tab menu, fed to template::getDynTabMenu()
+	 * @param	string		ID string for the tab menu
+	 * @param	integer		If set to '1' empty tabs will be removed, If set to '2' empty tabs will be disabled
+	 * @return	string		HTML for the menu
+	 */
+	function getDynTabMenu($parts, $idString, $dividersToTabsBehaviour = 1) {
+		if (is_object($GLOBALS['TBE_TEMPLATE'])) {
+			return $GLOBALS['TBE_TEMPLATE']->getDynTabMenu($parts, $idString, 0, false, 50, 1, false, 1, $dividersToTabsBehaviour);
+		} else {
+			$output = '';
+			foreach($parts as $singlePad)	{
+				$output.='
+				<h3>'.htmlspecialchars($singlePad['label']).'</h3>
+				'.($singlePad['description'] ? '<p class="c-descr">'.nl2br(htmlspecialchars($singlePad['description'])).'</p>' : '').'
+				'.$singlePad['content'];
+			}
+
+			return '<div class="typo3-dyntabmenu-divs">'.$output.'</div>';
+		}
+	}
+
+	/**
+	 * Wraps all the table rows into a single table.
+	 * Used externally from scripts like alt_doc.php and db_layout.php (which uses TCEforms...)
+	 *
+	 * @param	string		Code to output between table-parts; table rows
+	 * @param	array		The record
+	 * @param	string		The table name
+	 * @return	string
+	 */
+	function wrapTotal($content) {
+		$wrap = t3lib_parsehtml::getSubpart($this->templateContent, '###TOTAL_WRAP###');
+		$content = $this->replaceTableWrap($wrap, $content);
+		return $content;//.implode('', $this->hiddenFieldAccum);
+	}
+
+	/**
+	 * This replaces markers in the total wrap
+	 *
+	 * @param	array		An array of template parts containing some markers.
+	 * @param	array		The record
+	 * @param	string		The table name
+	 * @return	string
+	 */
+	function replaceTableWrap($wrap, $content)	{
+		global $TCA;
+
+			// Make "new"-label
+		if (strstr($this->record['uid'],'NEW'))	{
+			$newLabel = ' <span class="typo3-TCEforms-newToken">'.
+						$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.new',1).
+						'</span>';
+
+			#t3lib_BEfunc::fixVersioningPid($this->table,$this->record);	// Kasper: Should not be used here because NEW records are not offline workspace versions...
+			$truePid = t3lib_BEfunc::getTSconfig_pidValue($this->table,$this->record['uid'],$this->record['pid']);
+			$prec = t3lib_BEfunc::getRecordWSOL('pages',$truePid,'title');
+			$rLabel = '<em>[PID: '.$truePid.'] '.htmlspecialchars(trim(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle('pages',$prec),40))).'</em>';
+		} else {
+			$newLabel = ' <span class="typo3-TCEforms-recUid">['.$this->record['uid'].']</span>';
+			$rLabel  = htmlspecialchars(trim(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle($this->table,$this->record),40)));
+		}
+
+		$titleA = t3lib_BEfunc::titleAltAttrib($this->TCEformsObject->getRecordPath($this->table,$this->record));
+
+		$markerArray = array(
+			'###ID_NEW_INDICATOR###' => $newLabel,
+			'###RECORD_LABEL###' => $rLabel,
+			'###TABLE_TITLE###' => htmlspecialchars($this->sL($TCA[$this->table]['ctrl']['title'])),
+
+			'###RECORD_ICON###' => t3lib_iconWorks::getIconImage($this->table,$this->record,$this->backPath,'class="absmiddle"'.$titleA),
+			'###WRAP_CONTENT###' => $content
+		);
+
+		$wrap = t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
+
+		return $wrap;
 	}
 }
 

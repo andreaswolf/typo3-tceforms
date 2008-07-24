@@ -10,8 +10,12 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Element {
 
 	protected $identString;
 
+	protected $header;
+
 	public function init($identString, $header) {
 		$this->identString = $identString;
+
+		$this->header = $header;
 
 		$this->childObjects = array();
 	}
@@ -26,6 +30,10 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Element {
 		}
 
 		return $content;
+	}
+
+	public function getHeader() {
+		return $this->header;
 	}
 }
 
