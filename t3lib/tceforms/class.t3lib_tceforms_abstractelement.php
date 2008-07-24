@@ -1,6 +1,8 @@
 <?php
 
-abstract class t3lib_TCEforms_AbstractElement {
+require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_element.php');
+
+abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element {
 	/**
 	 * @var t3lib_TCEforms  The parent TCEforms object
 	 */
@@ -93,6 +95,7 @@ abstract class t3lib_TCEforms_AbstractElement {
 
 	}
 
+	// TODO: refactor this (almost completly copied from t3lib_TCEforms)
 	public function renderField() {
 		global $BE_USER, $TCA;
 
@@ -243,7 +246,7 @@ abstract class t3lib_TCEforms_AbstractElement {
 		return $out;
 	}
 
-	abstract public function render();
+	//abstract public function render();
 
 	public function setTCEformsObject(t3lib_TCEforms $TCEformsObject) {
 		$this->TCEformsObject = $TCEformsObject;

@@ -1,5 +1,6 @@
 <?php
 
+require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_tab.php');
 
 abstract class t3lib_TCEforms_AbstractForm {
 
@@ -46,6 +47,27 @@ abstract class t3lib_TCEforms_AbstractForm {
 	protected $excludeElements;
 
 	/**
+	 * @var boolean  Whether or not to use tabs
+	 */
+	protected $useTabs;
+
+	/**
+	 * @var t3lib_TCEforms_Tab  The currently used tab
+	 */
+	protected $currentTab;
+
+
+	protected $formFieldObjects;
+
+	/**
+	 * May be safely removed as soon as all dependencies on the old TCEforms are removed!
+	 *
+	 * @var t3lib_TCEforms
+	 */
+	protected $TCEformsObject;
+
+
+	/**
 	 * The constructor of this class
 	 *
 	 * @param string   $table
@@ -90,6 +112,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 		}*/
 
 
+
+		$this->setExcludeElements();
 
 	}
 
@@ -159,6 +183,138 @@ abstract class t3lib_TCEforms_AbstractForm {
 				$hookObj->getMainFields_preProcess($table,$row,$this);
 			}
 		}*/
+//die('hier');
+			// check if there are dividers in this form and if yes, create tabs
+		if (count(preg_grep('/--div--/', $this->fieldList)) > 0) { // && $this->enableTabMenu && $dividers2Tabs
+			$this->useTabs = true;
+
+			if (isset($this->fieldList[0]) && strpos($this->fieldList[0], '--div--') !== 0) {
+				$tabIdentString = 'TCEforms:'.$table.':'.$row['uid'];
+				$tabIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($tabIdentString);
+
+				$this->currentTab = $this->createTabObject($tabIdentStringMD5.'-1', $this->getLL('l_generalTab'));
+				$this->addFormFieldObject($this->currentTab);
+			}
+		}
+
+		$tabCounter = 1;
+		foreach ($this->fieldList as $fieldInfo) {
+			// Exploding subparts of the field configuration:
+			$parts = explode(';', $fieldInfo);
+
+				// Getting the style information out:
+			/* TODO: Make this work again.
+			$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
+			if (strcmp($color_style_parts[0], ''))	{
+				$this->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
+			}
+			if (strcmp($color_style_parts[1], ''))	{
+				$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])];
+				if (!isset($this->fieldStyle)) {
+					$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
+				}
+			}
+			if (strcmp($color_style_parts[2], ''))	{
+				$this->wrapBorder($out_array[$out_sheet],$out_pointer);
+				$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])];
+				if (!isset($this->borderStyle)) {
+					$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
+				}
+			}*/
+
+			$theField = $parts[0];
+			if ($this->isExcludeElement($theField))	{
+				continue;
+			}
+
+			if ($this->tableTCAconfig['columns'][$theField]) {
+				// ToDo: Handle field configuration here.
+				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record);
+
+				$this->addFormFieldObject($formFieldObject);
+			} elseif ($theField == '--div--') {
+				++$tabCounter;
+
+				$tabObject = $this->createTabObject($tabIdentStringMD5.'-'.$tabCounter, $this->sL($parts[1]));
+				$this->addFormFieldObject($tabObject);
+				$this->currentTab = $tabObject;
+			}
+		}
+	}
+
+	/**
+	 * Returns the object representation for a database table field.
+	 *
+	 * @param	string		The table name
+	 * @param	string		The field name
+	 * @param	array		The record to edit from the database table.
+	 * @param	string		Alternative field name label to show.
+	 * @param	boolean		Set this if the field is on a palette (in top frame), otherwise not. (if set, field will render as a hidden field).
+	 * @param	string		The "extra" options from "Part 4" of the field configurations found in the "types" "showitem" list. Typically parsed by $this->getSpecConfFromString() in order to get the options as an associative array.
+	 * @param	integer		The palette pointer.
+	 * @return	t3lib_TCEforms_AbstractElement
+	 */
+	// TODO: remove the extra parameters/use them if neccessary
+	function getSingleField($table,$field,$row,$altName='',$palette=0,$extra='',$pal=0)	{
+		global $TCA,$BE_USER;
+
+		$fieldConf = $this->tableTCAconfig['columns'][$field];
+		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];	// Using "form_type" locally in this script
+
+		switch($fieldConf['config']['form_type'])	{
+			case 'input':
+			case 'text':
+			case 'check':
+			case 'radio':
+			case 'select':
+			case 'group':
+			case 'user':
+			case 'flex':
+				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
+				$elementObject->setTCEformsObject($this->TCEformsObject);
+				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal);
+			break;
+			case 'inline':
+				//$item = $this->inline->getSingleField_typeInline($table,$field,$row,$PA);
+			break;
+			case 'none':
+				//$item = $this->getSingleField_typeNone($table,$field,$row,$PA);
+			break;
+			default:
+				//$item = $this->getSingleField_typeUnknown($table,$field,$row,$PA);
+			break;
+		}
+
+		return $elementObject;
+	}
+
+	/**
+	 * Factory method for
+	 *
+	 * @param  string  $type  The type of record to create - directly taken from TCA
+	 * @return t3lib_TCEforms_AbstractElement  The element object
+	 */
+	protected function elementObjectFactory($type) {
+		switch ($type) {
+			default:
+				$className = 't3lib_TCEforms_'.$type.'Element';
+				break;
+		}
+
+		if (!class_exists($className)) {
+			include_once PATH_t3lib.'tceforms/class.'.strtolower($className).'.php';
+		}
+
+		return t3lib_div::makeInstance($className);
+	}
+
+	protected function addFormFieldObject(t3lib_TCEforms_Element $formFieldObject) {
+			// if we are using tabs, add the element to the current tab
+		if ($this->useTabs == true && !($formFieldObject instanceof t3lib_TCEforms_Tab)) {
+			$this->currentTab->addChildObject($formFieldObject);
+		} else {
+			$this->formFieldObjects[] = $formFieldObject;
+		}
 	}
 
 	public function isExcludeElement($elementName) {
@@ -244,6 +400,50 @@ abstract class t3lib_TCEforms_AbstractForm {
 			$varKey = substr($key, 3);
 			$this->$varKey = $value;
 		}
+	}
+
+	protected function createTabObject($tabIdentString, $header) {
+		$tabObject = new t3lib_TCEforms_Tab;
+		$tabObject->init($tabIdentString, $header);
+
+		return $tabObject;
+	}
+
+	/**
+	 * Fetches language label for key
+	 *
+	 * @param	string		Language label reference, eg. 'LLL:EXT:lang/locallang_core.php:labels.blablabla'
+	 * @return	string		The value of the label, fetched for the current backend language.
+	 */
+	protected function sL($str)	{
+		return $GLOBALS['LANG']->sL($str);
+	}
+
+	/**
+	 * Returns language label from locallang_core.php
+	 * Labels must be prefixed with either "l_" or "m_".
+	 * The prefix "l_" maps to the prefix "labels." inside locallang_core.php
+	 * The prefix "m_" maps to the prefix "mess." inside locallang_core.php
+	 *
+	 * @param	string		The label key
+	 * @return	string		The value of the label, fetched for the current backend language.
+	 */
+	protected function getLL($str)	{
+		$content = '';
+
+		switch(substr($str, 0, 2))	{
+			case 'l_':
+				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.' . substr($str,2));
+			break;
+			case 'm_':
+				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:mess.' . substr($str,2));
+			break;
+		}
+		return $content;
+	}
+
+	public function setTCEformsObject(t3lib_TCEforms $TCEformsObject) {
+		$this->TCEformsObject = $TCEformsObject;
 	}
 }
 
