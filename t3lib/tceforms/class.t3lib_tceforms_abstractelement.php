@@ -47,15 +47,19 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 
 			self::$hooksInitialized = true;
 		}
+
+		$this->resetSchemes();
 	}
 
-	public function init($table, $field, $row, $fieldConfig, $alternativeName='', $palette=0, $extra='', $pal=0) {
+	public function init($table, $field, $row, $fieldConfig, $alternativeName='', $palette=0, $extra='', $pal=0, $parentObject = null) {
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
 		$this->fieldConfig = $fieldConfig;
 		$this->table = $table;
 		$this->record = $row;
 		$this->field = $field;
+
+		$this->parentObject = $parentObject;
 
 		$this->prependFormFieldNames = $this->TCEformsObject->prependFormFieldNames;
 		$this->prependFormFieldNames_file = $this->TCEformsObject->prependFormFieldNames_file;
@@ -232,7 +236,7 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 						);
 						$out = $this->TCEformsObject->addUserTemplateMarkers($out,$this->table,$this->field,$this->record,$PA);
 							// String:
-						$out = $this->TCEformsObject->intoTemplate($out);
+						$out = $this->intoTemplate($out);
 					}
 				}
 			} else $this->commentMessages[]=$this->prependFormFieldNames.'['.$this->table.']['.$this->record['uid'].']['.$this->field.']: Disabled by TSconfig';
@@ -243,6 +247,10 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 			if (method_exists($hookObj,'getSingleField_postProcess'))	{
 				$hookObj->getSingleField_postProcess($this->table, $this->field, $this->record, $this->alternativeName, $this->palette, $this->extra, $this->pal, $this);
 			}
+		}
+
+		if ($this->_wrapBorder == true) {
+			//$out = $this->wrapBorder($out);
 		}
 
 		return $out;
@@ -445,5 +453,90 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 		}
 
 		return $output;
+	}
+
+	/************************************
+	 *
+	 * Template functions
+	 *
+	 ************************************/
+
+	/**
+	 * This inserts the content of $inArr into the field-template
+	 *
+	 * @param	array		Array with key/value pairs to insert in the template.
+	 * @param	string		Alternative template to use instead of the default.
+	 * @return	string
+	 */
+	function intoTemplate($inArr,$altTemplate='')	{
+		$parentTemplate = t3lib_parsehtml::getSubpart($this->parentObject->getTemplateContent(), '###FIELD_WRAP###');
+		$template = $this->rplColorScheme($altTemplate?$altTemplate:$parentTemplate);
+
+		foreach ($inArr as $key => $value) {
+			$markerArray['###FIELD_'.$key.'###'] = $value;
+		}
+
+		$content = t3lib_parsehtml::substituteMarkerArray($template, $markerArray);
+
+		return $content;
+	}
+
+	/**
+	 * Replaces colorscheme markers in the template string
+	 *
+	 * @param	string		Template string with markers to be substituted.
+	 * @return	string
+	 */
+	// TODO: refactor this/replace it
+	function rplColorScheme($inTemplate)	{
+			// Colors:
+		$markerArray = array(
+			'###BGCOLOR###' => $this->colorScheme[0] ? ' bgcolor="' . $this->colorScheme[0].'"' : '',
+			'###BGCOLOR_HEAD###' => $this->colorScheme[1] ? ' bgcolor="' . $this->colorScheme[1].'"':'',
+			'###FONTCOLOR_HEAD###' => $this->colorScheme[3],
+			'###CLASSATTR_1###' => $this->classScheme[0] ? ' class="' . $this->classScheme[0] . '"' : '',
+			'###CLASSATTR_2###' => $this->classScheme[1] ? ' class="' . $this->classScheme[1] . '"' : '',
+			'###CLASSATTR_4###' => $this->classScheme[3] ? ' class="' . $this->classScheme[3] . '"' : ''
+		);
+
+		$inTemplate = t3lib_parsehtml::substituteMarkerArray($inTemplate, $markerArray);
+
+		return $inTemplate;
+	}
+
+	/**
+	 * Setting the current color scheme ($this->colorScheme) based on $this->defColorScheme plus input string.
+	 *
+	 * @param	string		A color scheme string.
+	 * @return	void
+	 */
+	function setColorScheme($scheme)	{
+		$this->colorScheme = $this->defColorScheme;
+		$this->classScheme = $this->defClassScheme;
+
+		$parts = t3lib_div::trimExplode(',',$scheme);
+		foreach($parts as $key => $col)	{
+				// Split for color|class:
+			list($color,$class) = t3lib_div::trimExplode('|',$col);
+
+				// Handle color values:
+			if ($color)	$this->colorScheme[$key] = $color;
+			if ($color=='-')	$this->colorScheme[$key] = '';
+
+				// Handle class values:
+			if ($class)	$this->classScheme[$key] = $class;
+			if ($class=='-')	$this->classScheme[$key] = '';
+		}
+	}
+
+	/**
+	 * Reset color schemes.
+	 *
+	 * @return	void
+	 */
+	function resetSchemes()	{
+		$this->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][0]);
+		$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
+		$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
 	}
 }

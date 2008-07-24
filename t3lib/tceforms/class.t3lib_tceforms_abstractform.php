@@ -189,18 +189,14 @@ abstract class t3lib_TCEforms_AbstractForm {
 				$hookObj->getMainFields_preProcess($table,$row,$this);
 			}
 		}*/
-//die('hier');
-			// check if there are dividers in this form and if yes, create tabs
-		if (count(preg_grep('/--div--/', $this->fieldList)) > 0) { // && $this->enableTabMenu && $dividers2Tabs
-			$this->useTabs = true;
 
-			if (isset($this->fieldList[0]) && strpos($this->fieldList[0], '--div--') !== 0) {
-				$tabIdentString = 'TCEforms:'.$table.':'.$row['uid'];
-				$tabIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($tabIdentString);
+			// always create at least one default tab
+		if (isset($this->fieldList[0]) && strpos($this->fieldList[0], '--div--') !== 0) {
+			$tabIdentString = 'TCEforms:'.$table.':'.$row['uid'];
+			$tabIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($tabIdentString);
 
-				$this->currentTab = $this->createTabObject($tabIdentStringMD5.'-1', $this->getLL('l_generalTab'));
-				$this->addFormFieldObject($this->currentTab);
-			}
+			$this->currentTab = $this->createTabObject($tabIdentStringMD5.'-1', $this->getLL('l_generalTab'));
+			$this->addFormFieldObject($this->currentTab);
 		}
 
 		$tabCounter = 1;
@@ -208,25 +204,6 @@ abstract class t3lib_TCEforms_AbstractForm {
 			// Exploding subparts of the field configuration:
 			$parts = explode(';', $fieldInfo);
 
-				// Getting the style information out:
-			/* TODO: Make this work again.
-			$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
-			if (strcmp($color_style_parts[0], ''))	{
-				$this->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
-			}
-			if (strcmp($color_style_parts[1], ''))	{
-				$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])];
-				if (!isset($this->fieldStyle)) {
-					$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
-				}
-			}
-			if (strcmp($color_style_parts[2], ''))	{
-				$this->wrapBorder($out_array[$out_sheet],$out_pointer);
-				$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])];
-				if (!isset($this->borderStyle)) {
-					$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
-				}
-			}*/
 
 			$theField = $parts[0];
 			if ($this->isExcludeElement($theField))	{
@@ -238,6 +215,27 @@ abstract class t3lib_TCEforms_AbstractForm {
 				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record);
 
 				$this->addFormFieldObject($formFieldObject);
+
+
+					// Getting the style information out:
+				// TODO: Make this really object oriented
+				$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
+				if (strcmp($color_style_parts[0], ''))	{
+					$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
+				}
+				if (strcmp($color_style_parts[1], ''))	{
+					$formFieldObject->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])];
+					if (!isset($this->fieldStyle)) {
+						$formFieldObject->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
+					}
+				}
+				if (strcmp($color_style_parts[2], ''))	{
+					$formFieldObject->_wrapBorder = true;
+					$formFieldObject->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])];
+					if (!isset($this->borderStyle)) {
+						$formFieldObject->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
+					}
+				}
 			} elseif ($theField == '--div--') {
 				++$tabCounter;
 
@@ -247,24 +245,22 @@ abstract class t3lib_TCEforms_AbstractForm {
 			}
 		}
 
-		if ($this->useTabs == true) {
-			$tabContents = array();
+		$tabContents = array();
 
-			$c = 0;
-				// $this->formFieldObjects should only contain t3lib_TCEforms_Tab objects
-			foreach ($this->formFieldObjects as $tabObject) {
-				++$c;
-				$tabContents[$c] = array(
-					'newline' => false, // TODO: make this configurable again
-					'label' => $tabObject->getHeader(),
-					'content' => $tabObject->render()
-				);
-			}
+		$c = 0;
+			// $this->formFieldObjects should only contain t3lib_TCEforms_Tab objects
+		foreach ($this->formFieldObjects as $tabObject) {
+			++$c;
+			$tabContents[$c] = array(
+				'newline' => false, // TODO: make this configurable again
+				'label' => $tabObject->getHeader(),
+				'content' => $tabObject->render()
+			);
+		}
+		if (count($tabContents) > 1) {
 			$content = $this->getDynTabMenu($tabContents, $tabIdentString);
 		} else {
-			foreach ($this->formFieldObjects as $formFieldObject) {
-				$content .= $formFieldObject->render();
-			}
+			$content = $tabContents[1]['content'];
 		}
 
 		return $this->wrapTotal($content);
@@ -301,7 +297,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 			case 'none':
 				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
 				$elementObject->setTCEformsObject($this->TCEformsObject);
-				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal);
+				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal, $this);
 
 				break;
 
@@ -339,15 +335,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 	protected function addFormFieldObject(t3lib_TCEforms_Element $formFieldObject) {
 			// if we are using tabs, add the element to the current tab
-		if ($this->useTabs == true && !($formFieldObject instanceof t3lib_TCEforms_Tab)) {
-			$this->currentTab->addChildObject($formFieldObject);
-		} else {
-				// only allow tabs if we used them for the whole form
-			if ($formFieldObject instanceof t3lib_TCEforms_Tab && $this->useTabs == false) {
-				die('Did not use tabs from the beginning, so you can\'t add a new one now. [1216914101]');
-			}
-
+		if ($formFieldObject instanceof t3lib_TCEforms_Tab) {
 			$this->formFieldObjects[] = $formFieldObject;
+		} else {
+			$this->currentTab->addChildObject($formFieldObject);
 		}
 	}
 
@@ -438,7 +429,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 	protected function createTabObject($tabIdentString, $header) {
 		$tabObject = new t3lib_TCEforms_Tab;
-		$tabObject->init($tabIdentString, $header);
+		$tabObject->init($tabIdentString, $header, $this);
 
 		return $tabObject;
 	}
@@ -515,6 +506,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 		}
 
 		$this->templateContent = file_get_contents($filePath);
+	}
+
+	public function getTemplateContent() {
+		return $this->templateContent;
 	}
 
 	/**
