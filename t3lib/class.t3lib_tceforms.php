@@ -520,14 +520,14 @@ class t3lib_TCEforms	{
 				$itemList = $TCA[$table]['types'][$typeNum]['showitem'];
 				if ($itemList)	{	// If such a list existed...
 						// Explode the field list and possibly rearrange the order of the fields, if configured for
-					$fields = t3lib_div::trimExplode(',',$itemList,1);
+					$fields = t3lib_div::trimExplode(',', $itemList, 1);
 					if ($this->fieldOrder)	{
 						$fields = $this->rearrange($fields);
 					}
 
 						// Get excluded fields, added fiels and put it together:
-					$excludeElements = $this->excludeElements = $this->getExcludeElements($table,$row,$typeNum);
-					$fields = $this->mergeFieldsWithAddedFields($fields,$this->getFieldsToAdd($table,$row,$typeNum));
+					$excludeElements = $this->excludeElements = $this->getExcludeElements($table, $row, $typeNum);
+					$fields = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd($table, $row, $typeNum));
 
 						// If TCEforms will render a tab menu in the next step, push the name to the tab stack:
 					$tabIdentString = '';
@@ -542,78 +542,86 @@ class t3lib_TCEforms	{
 					}
 
 						// Traverse the fields to render:
-					$cc=0;
+					$cc = 0;
 					foreach($fields as $fieldInfo)	{
+						++$cc;
+
 							// Exploding subparts of the field configuration:
-						$parts = explode(';',$fieldInfo);
+						$parts = explode(';', $fieldInfo);
 
 							// Getting the style information out:
 						$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
-						if (strcmp($color_style_parts[0],''))	{
+						if (strcmp($color_style_parts[0], ''))	{
 							$this->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
 						}
-						if (strcmp($color_style_parts[1],''))	{
+						if (strcmp($color_style_parts[1], ''))	{
 							$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])];
-							if (!isset($this->fieldStyle))	$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
+							if (!isset($this->fieldStyle)) {
+								$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
+							}
 						}
-						if (strcmp($color_style_parts[2],''))	{
+						if (strcmp($color_style_parts[2], ''))	{
 							$this->wrapBorder($out_array[$out_sheet],$out_pointer);
 							$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])];
-							if (!isset($this->borderStyle))	$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
+							if (!isset($this->borderStyle)) {
+								$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
+							}
 						}
 
 							// Render the field:
 						$theField = $parts[0];
-						if (!in_array($theField,$excludeElements))	{
-							if ($TCA[$table]['columns'][$theField])	{
-								$sFieldPal='';
-
-								if ($parts[2] && !isset($this->palettesRendered[$this->renderDepth][$table][$parts[2]]))	{
-									$sFieldPal=$this->getPaletteFields($table,$row,$parts[2]);
-									$this->palettesRendered[$this->renderDepth][$table][$parts[2]] = 1;
-								}
-								$sField = $this->getSingleField($table,$theField,$row,$parts[1],0,$parts[3],$parts[2]);
-								if ($sField)	{ $sField.= $sFieldPal; }
-
-								$out_array[$out_sheet][$out_pointer].= $sField;
-							} elseif ($theField=='--div--')	{
-								if ($cc>0)	{
-									$out_array[$out_sheet][$out_pointer].=$this->getDivider();
-
-									if ($this->enableTabMenu && $dividers2tabs) {
-										$this->wrapBorder($out_array[$out_sheet],$out_pointer);
-											// Remove last tab entry from the dynNestedStack:
-										$out_sheet++;
-											// Remove the previous sheet from stack (if any):
-										$this->popFromDynNestedStack('tab', $tabIdentStringMD5.'-'.($out_sheet));
-											// Remember on which sheet we're currently working:
-										$this->pushToDynNestedStack('tab', $tabIdentStringMD5.'-'.($out_sheet+1));
-										$out_array[$out_sheet] = array();
-										$out_array_meta[$out_sheet]['title'] = $this->sL($parts[1]);
- 											// Register newline for Tab
- 										$out_array_meta[$out_sheet]['newline'] = ($parts[2] == "newline");
-									}
-								} else {	// Setting alternative title for "General" tab if "--div--" is the very first element.
-									$out_array_meta[$out_sheet]['title'] = $this->sL($parts[1]);
-										// Only add the first tab to the dynNestedStack if there are more tabs:
-									if ($tabIdentString && strpos($itemList, '--div--', strlen($fieldInfo))) {
-										$this->pushToDynNestedStack('tab', $tabIdentStringMD5.'-1');
-									}
-								}
-							} elseif($theField=='--palette--')	{
-								if ($parts[2] && !isset($this->palettesRendered[$this->renderDepth][$table][$parts[2]]))	{
-										// render a 'header' if not collapsed
-									if ($TCA[$table]['palettes'][$parts[2]]['canNotCollapse'] AND $parts[1]) {
-										$out_array[$out_sheet][$out_pointer].=$this->getPaletteFields($table,$row,$parts[2],$this->sL($parts[1]));
-									} else {
-										$out_array[$out_sheet][$out_pointer].=$this->getPaletteFields($table,$row,$parts[2],'','',$this->sL($parts[1]));
-									}
-									$this->palettesRendered[$this->renderDepth][$table][$parts[2]] = 1;
-								}
-							}
+						if (in_array($theField,$excludeElements))	{
+							continue;
 						}
 
-						$cc++;
+						if ($TCA[$table]['columns'][$theField])	{
+							$sFieldPal = '';
+
+							if ($parts[2] && !isset($this->palettesRendered[$this->renderDepth][$table][$parts[2]]))	{
+								$sFieldPal = $this->getPaletteFields($table,$row,$parts[2]);
+								$this->palettesRendered[$this->renderDepth][$table][$parts[2]] = 1;
+							}
+							$sField = $this->getSingleField($table,$theField,$row,$parts[1],0,$parts[3],$parts[2]);
+							if ($sField) {
+								$sField .= $sFieldPal;
+							}
+
+							$out_array[$out_sheet][$out_pointer].= $sField;
+						} elseif ($theField == '--div--')	{
+							if ($cc > 1) {
+								$out_array[$out_sheet][$out_pointer].=$this->getDivider();
+
+								if ($this->enableTabMenu && $dividers2tabs) {
+									$this->wrapBorder($out_array[$out_sheet],$out_pointer);
+										// Remove last tab entry from the dynNestedStack:
+									++$out_sheet;
+										// Remove the previous sheet from stack (if any):
+									$this->popFromDynNestedStack('tab', $tabIdentStringMD5.'-'.($out_sheet));
+										// Remember on which sheet we're currently working:
+									$this->pushToDynNestedStack('tab', $tabIdentStringMD5.'-'.($out_sheet+1));
+									$out_array[$out_sheet] = array();
+									$out_array_meta[$out_sheet]['title'] = $this->sL($parts[1]);
+ 										// Register newline for Tab
+ 									$out_array_meta[$out_sheet]['newline'] = ($parts[2] == "newline");
+								}
+							} else {	// Setting alternative title for "General" tab if "--div--" is the very first element.
+								$out_array_meta[$out_sheet]['title'] = $this->sL($parts[1]);
+									// Only add the first tab to the dynNestedStack if there are more tabs:
+								if ($tabIdentString && strpos($itemList, '--div--', strlen($fieldInfo))) {
+									$this->pushToDynNestedStack('tab', $tabIdentStringMD5.'-1');
+								}
+							}
+						} elseif ($theField == '--palette--')	{
+							if ($parts[2] && !isset($this->palettesRendered[$this->renderDepth][$table][$parts[2]]))	{
+									// render a 'header' if not collapsed
+								if ($TCA[$table]['palettes'][$parts[2]]['canNotCollapse'] AND $parts[1]) {
+									$out_array[$out_sheet][$out_pointer].=$this->getPaletteFields($table,$row,$parts[2],$this->sL($parts[1]));
+								} else {
+									$out_array[$out_sheet][$out_pointer].=$this->getPaletteFields($table,$row,$parts[2],'','',$this->sL($parts[1]));
+								}
+								$this->palettesRendered[$this->renderDepth][$table][$parts[2]] = 1;
+							}
+						}
 					}
 				}
 			}
@@ -1181,6 +1189,7 @@ class t3lib_TCEforms	{
 	 * @return	array		An array containing two values: 1) Another array containing fieldnames to add and 2) the subtype value field.
 	 * @see getMainFields()
 	 */
+	// copied to t3lib_TCEforms_AbstractForm
 	function getFieldsToAdd($table,$row,$typeNum)	{
 		global $TCA;
 
@@ -1206,6 +1215,7 @@ class t3lib_TCEforms	{
 	 * @return	array		Return the modified $fields array.
 	 * @see getMainFields(),getFieldsToAdd()
 	 */
+	// copied to t3lib_TCEforms_AbstractForm
 	function mergeFieldsWithAddedFields($fields,$fieldsToAdd)	{
 		if (count($fieldsToAdd[0]))	{
 			reset($fields);

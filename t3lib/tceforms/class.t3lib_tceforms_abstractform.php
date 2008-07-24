@@ -58,7 +58,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 			// TODO: Refactor this!
 		$this->prependFormFieldNames = 'data';
 		$this->formName = 'editform';
-		$this->setNewBEDesign();
+		//$this->setNewBEDesign();
 		$this->docLarge = $GLOBALS['BE_USER']->uc['edit_wideDocument'] ? 1 : 0;
 		$this->edit_showFieldHelp = $GLOBALS['BE_USER']->uc['edit_showFieldHelp'];
 
@@ -78,18 +78,72 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$this->table = $table;
 		$this->record = $row;
 
+
 		$this->tableTCAconfig = &$TCA[$this->table];
 
 			// set type number
-		$this->setRecordTypeNum();
+		$this->setRecordTypeNumber();
 
-		if (!$this->tableTCAconfig['types'][$this->typeNumber]) {
+		/*if ($this->typeNumber === '') {
 			// TODO: throw exception here
-			die('TypeNumber '.$this->typeNumber.' does not exist for table '.$this->table.' [1216891550]');
+			die('typeNumber '.$this->typeNumber.' does not exist for table '.$this->table.' [1216891550]');
+		}*/
+
+
+
+	}
+
+	/**
+	 * Finds possible field to add to the form, based on subtype fields.
+	 *
+	 * @return	array		An array containing two values: 1) Another array containing fieldnames to add and 2) the subtype value field.
+	 * @see getMainFields()
+	 */
+	protected function getFieldsToAdd()	{
+		global $TCA;
+
+			// Init:
+		$addElements = array();
+
+			// If a subtype field is defined for the type
+		if ($this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field'])	{
+			$subtypeField = $this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field'];
+			if (trim($this->tableTCAconfig['types'][$this->typeNumber]['subtypes_addlist'][$this->record[$subtypeField]]))	{
+				$addElements = t3lib_div::trimExplode(',', $this->tableTCAconfig['types'][$this->typeNumber]['subtypes_addlist'][$this->record[$subtypeField]], 1);
+			}
 		}
 
+			// Return the array
+		return array($addElements, $subtypeField);
+	}
 
-
+	/**
+	 * Merges the current [types][showitem] array with the array of fields to add for the current subtype field of the "type" value.
+	 *
+	 * @param	array		A [types][showitem] list of fields, exploded by ","
+	 * @param	array		The output from getFieldsToAdd()
+	 * @return	array		Return the modified $fields array.
+	 * @see getMainFields(),getFieldsToAdd()
+	 */
+	protected function mergeFieldsWithAddedFields($fields,$fieldsToAdd)	{
+		if (count($fieldsToAdd[0]))	{
+			reset($fields);
+			$c=0;
+			while(list(,$fieldInfo)=each($fields))	{
+				$parts = explode(';',$fieldInfo);
+				if (!strcmp(trim($parts[0]),$fieldsToAdd[1]))	{
+					array_splice(
+						$fields,
+						$c+1,
+						0,
+						$fieldsToAdd[0]
+					);
+					break;
+				}
+				$c++;
+			}
+		}
+		return $fields;
 	}
 
 	/**
@@ -130,26 +184,26 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$this->excludeElements = array();
 
 			// If a subtype field is defined for the type
-		if ($TCA[$this->table]['types'][$this->typeNum]['subtype_value_field'])	{
-			$sTfield = $TCA[$this->table]['types'][$this->typeNum]['subtype_value_field'];
-			if (trim($TCA[$this->table]['types'][$this->typeNum]['subtypes_excludelist'][$this->row[$sTfield]]))	{
-				$this->excludeElements=t3lib_div::trimExplode(',',$TCA[$this->table]['types'][$this->typeNum]['subtypes_excludelist'][$this->row[$sTfield]],1);
+		if ($this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field'])	{
+			$subtypeField = $this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field'];
+			if (trim($this->tableTCAconfig['types'][$this->typeNumber]['subtypes_excludelist'][$this->record[$subtypeField]]))	{
+				$this->excludeElements=t3lib_div::trimExplode(',',$this->tableTCAconfig['types'][$this->typeNumber]['subtypes_excludelist'][$this->record[$subtypeField]],1);
 			}
 		}
 
 			// If a bitmask-value field has been configured, then find possible fields to exclude based on that:
-		if ($TCA[$this->table]['types'][$this->typeNum]['bitmask_value_field'])	{
-			$sTfield = $TCA[$this->table]['types'][$this->typeNum]['bitmask_value_field'];
-			$sTValue = t3lib_div::intInRange($this->row[$sTfield],0);
-			if (is_array($TCA[$this->table]['types'][$this->typeNum]['bitmask_excludelist_bits']))	{
-				reset($TCA[$this->table]['types'][$this->typeNum]['bitmask_excludelist_bits']);
-				while(list($bitKey,$eList)=each($TCA[$this->table]['types'][$this->typeNum]['bitmask_excludelist_bits']))	{
+		if ($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_value_field'])	{
+			$subtypeField = $this->tableTCAconfig['types'][$this->typeNumber]['bitmask_value_field'];
+			$subtypeValue = t3lib_div::intInRange($this->record[$subtypeField],0);
+			if (is_array($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_excludelist_bits']))	{
+				reset($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_excludelist_bits']);
+				while(list($bitKey,$eList)=each($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_excludelist_bits']))	{
 					$bit=substr($bitKey,1);
 					if (t3lib_div::testInt($bit))	{
 						$bit = t3lib_div::intInRange($bit,0,30);
 						if (
-								(substr($bitKey,0,1)=='-' && !($sTValue&pow(2,$bit))) ||
-								(substr($bitKey,0,1)=='+' && ($sTValue&pow(2,$bit)))
+								(substr($bitKey,0,1)=='-' && !($subtypeValue&pow(2,$bit))) ||
+								(substr($bitKey,0,1)=='+' && ($subtypeValue&pow(2,$bit)))
 							) {
 							$this->excludeElements = array_merge($this->excludeElements,t3lib_div::trimExplode(',',$eList,1));
 						}
@@ -162,25 +216,25 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * Calculate the current "types" pointer value for the record this form is instantiated for
 	 *
-	 * Sets $this->typeNum to the types pointer value.
+	 * Sets $this->typeNumber to the types pointer value.
 	 *
 	 * @return	void
 	 */
-	protected function setRecordTypeNum()	{
+	protected function setRecordTypeNumber()	{
 		global $TCA;
 
 			// If there is a "type" field configured...
-		if ($TCA[$this->table]['ctrl']['type'])	{
-			$typeFieldName = $TCA[$this->table]['ctrl']['type'];
-			$typeNum=$this->row[$typeFieldName];	// Get value of the row from the record which contains the type value.
-			if (!strcmp($this->typeNum,''))	$this->typeNum = 0;			// If that value is an empty string, set it to "0" (zero)
+		if ($this->tableTCAconfig['ctrl']['type'])	{
+			$typeFieldName = $this->tableTCAconfig['ctrl']['type'];
+			$this->typeNumber=$this->record[$typeFieldName];	// Get value of the row from the record which contains the type value.
+			if (!strcmp($this->typeNumber,''))	$this->typeNumber = 0;			// If that value is an empty string, set it to "0" (zero)
 		} else {
-			$this->typeNum = 0;	// If no "type" field, then set to "0" (zero)
+			$this->typeNumber = 0;	// If no "type" field, then set to "0" (zero)
 		}
 
-		$this->typeNum = (string)$this->typeNum;		// Force to string. Necessary for eg '-1' to be recognized as a type value.
-		if (!$TCA[$this->table]['types'][$this->typeNum])	{	// However, if the type "0" is not found in the "types" array, then default to "1" (for historical reasons)
-			$this->typeNum = 1;
+		$this->typeNumber = (string)$this->typeNumber;		// Force to string. Necessary for eg '-1' to be recognized as a type value.
+		if (!$this->tableTCAconfig['types'][$this->typeNumber])	{	// However, if the type "0" is not found in the "types" array, then default to "1" (for historical reasons)
+			$this->typeNumber = 1;
 		}
 	}
 
