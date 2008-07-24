@@ -479,6 +479,7 @@ class t3lib_TCEforms	{
 	function getMainFields($table,$row,$depth=0)	{
 		global $TCA, $TYPO3_CONF_VARS;
 
+			// What is $depth good for?
 		$this->renderDepth=$depth;
 
 			// Init vars:
@@ -1131,6 +1132,7 @@ class t3lib_TCEforms	{
 	 * @return	array		Array with fieldnames as values. The fieldnames are those which should NOT be displayed "anyways"
 	 * @see getMainFields()
 	 */
+	// copied to t3lib_TCEforms_AbstractForm::setExcludeElements
 	function getExcludeElements($table,$row,$typeNum)	{
 		global $TCA;
 
