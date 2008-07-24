@@ -240,6 +240,12 @@ abstract class t3lib_TCEforms_AbstractForm {
 				$this->currentTab = $tabObject;
 			}
 		}
+
+		foreach ($this->formFieldObjects as $formFieldObject) {
+			$content .= $formFieldObject->render();
+		}
+
+		return $content;
 	}
 
 	/**
@@ -270,16 +276,17 @@ abstract class t3lib_TCEforms_AbstractForm {
 			case 'group':
 			case 'user':
 			case 'flex':
+			case 'none':
 				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
 				$elementObject->setTCEformsObject($this->TCEformsObject);
 				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal);
-			break;
+
+				break;
+
 			case 'inline':
 				//$item = $this->inline->getSingleField_typeInline($table,$field,$row,$PA);
-			break;
-			case 'none':
-				//$item = $this->getSingleField_typeNone($table,$field,$row,$PA);
-			break;
+
+				break;
 			default:
 				//$item = $this->getSingleField_typeUnknown($table,$field,$row,$PA);
 			break;
@@ -417,6 +424,25 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 */
 	protected function sL($str)	{
 		return $GLOBALS['LANG']->sL($str);
+	}
+
+	public function getBottomJavaScript() {
+		$javascript = '
+			<!--
+			 	JavaScript after the form has been drawn:
+			-->
+
+			<script type="text/javascript">
+				/*<![CDATA[*/
+
+				formObj = document.forms[0]
+				backPath = "'.$this->backPath.'";
+
+
+				/*]]>*/
+			</script>';
+
+		return $javascript;
 	}
 
 	/**

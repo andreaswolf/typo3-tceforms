@@ -21,7 +21,11 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Element {
 	}
 
 	public function render() {
+		foreach ($this->childObjects as $childObject) {
+			$content .= $childObject->render();
+		}
 
+		return $content;
 	}
 }
 

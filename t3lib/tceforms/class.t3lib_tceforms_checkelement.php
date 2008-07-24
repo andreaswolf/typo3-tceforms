@@ -6,7 +6,7 @@ require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
 class t3lib_TCEforms_CheckElement extends t3lib_TCEforms_AbstractElement {
 	protected $item;
 
-	public function render() {
+	public function renderField() {
 		$disabled = '';
 		if($this->TCEformsObject->renderReadonly || $this->config['readOnly'])  {
 			$disabled = ' disabled="disabled"';

@@ -6,7 +6,7 @@ require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
 class t3lib_TCEforms_InputElement extends t3lib_TCEforms_AbstractElement {
 	protected $item;
 
-	public function render() {
+	public function renderField() {
 		$config = $this->fieldConfig['config'];
 
 #		$specConf = $this->TCEformsObject->getSpecConfForField($this->table,$this->row,$this->field);

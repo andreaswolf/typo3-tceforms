@@ -96,7 +96,7 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 	}
 
 	// TODO: refactor this (almost completly copied from t3lib_TCEforms)
-	public function renderField() {
+	public function render() {
 		global $BE_USER, $TCA;
 
 		// Now, check if this field is configured and editable (according to excludefields + other configuration)
@@ -181,7 +181,7 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 
 						// Based on the type of the item, call a render function:
 					//$item = $this->getSingleField_SW($this->table,$this->field,$this->row,$PA);
-					$item = $this->render();
+					$item = $this->renderField();
 
 						// Add language + diff
 					if ($this->fieldConfig['l10n_display'] && (t3lib_div::inList($this->fieldConfig['l10n_display'], 'hideDiff') || t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly'))) {
