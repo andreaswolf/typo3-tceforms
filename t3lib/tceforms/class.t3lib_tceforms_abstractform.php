@@ -70,6 +70,12 @@ abstract class t3lib_TCEforms_AbstractForm {
 	protected $templateContent;
 
 
+	protected $additionalCode_pre = array();			// Additional HTML code, printed before the form.
+	protected $additionalJS_pre = array();			// Additional JavaScript, printed before the form
+	protected $additionalJS_post = array();			// Additional JavaScript printed after the form
+	protected $additionalJS_submit = array();			// Additional JavaScript executed on submit; If you set "OK" variable it will raise an error about RTEs not being loaded and offer to block further submission.
+
+
 	/**
 	 * The constructor of this class
 	 *
@@ -94,6 +100,9 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$this->titleLen = $GLOBALS['BE_USER']->uc['titleLen'];		// @deprecated
 
 		//$this->inline->init($this);
+
+
+		$this->requiredFields = array();
 
 
 			// check if table exists in TCA. This is required!
@@ -213,6 +222,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 			if ($this->tableTCAconfig['columns'][$theField]) {
 				// ToDo: Handle field configuration here.
 				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record);
+				$formFieldObject->setContainingTab($this->currentTab);
 
 				$this->addFormFieldObject($formFieldObject);
 
@@ -296,6 +306,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 			case 'flex':
 			case 'none':
 				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
+					// don't set the containing tab here because we can't be sure if this item
+					// will be attached to $this->currentTab
 				$elementObject->setTCEformsObject($this->TCEformsObject);
 				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal, $this);
 
@@ -591,6 +603,249 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$wrap = t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
 
 		return $wrap;
+	}
+
+	/********************************************
+	 *
+	 * JavaScript related functions
+	 *
+	 ********************************************/
+
+	/**
+	 * JavaScript code added BEFORE the form is drawn:
+	 *
+	 * @return	string		A <script></script> section with JavaScript.
+	 */
+	function JStop()	{
+
+		$out = '';
+
+			// Additional top HTML:
+		if (count($this->additionalCode_pre))	{
+			$out.= implode('
+
+				<!-- NEXT: -->
+			',$this->additionalCode_pre);
+		}
+
+			// Additional top JavaScript
+		if (count($this->additionalJS_pre))	{
+			$out.='
+
+
+		<!--
+			JavaScript in top of page (before form):
+		-->
+
+		<script type="text/javascript">
+			/*<![CDATA[*/
+
+			'.implode('
+
+				// NEXT:
+			',$this->additionalJS_pre).'
+
+			/*]]>*/
+		</script>
+			';
+		}
+
+			// Return result:
+		return $out;
+	}
+
+	/**
+	 * JavaScript code used for input-field evaluation.
+	 *
+	 * 		Example use:
+	 *
+	 * 		$msg.='Distribution time (hh:mm dd-mm-yy):<br /><input type="text" name="send_mail_datetime_hr" onchange="typo3form.fieldGet(\'send_mail_datetime\', \'datetime\', \'\', 0,0);"'.$GLOBALS['TBE_TEMPLATE']->formWidth(20).' /><input type="hidden" value="'.time().'" name="send_mail_datetime" /><br />';
+	 * 		$this->extJSCODE.='typo3form.fieldSet("send_mail_datetime", "datetime", "", 0,0);';
+	 *
+	 * 		... and then include the result of this function after the form
+	 *
+	 * @param	string		$formname: The identification of the form on the page.
+	 * @param	boolean		$update: Just extend/update existing settings, e.g. for AJAX call
+	 * @return	string		A section with JavaScript - if $update is false, embedded in <script></script>
+	 */
+	function JSbottom($formname='forms[0]', $update = false)	{
+		$jsFile = array();
+		$elements = array();
+
+			// required:
+		foreach ($this->formFieldObjects as $tab) {
+			foreach ($tab->getRequiredFields() as $itemImgName => $itemName) {
+				$match = array();
+				if (preg_match('/^(.+)\[((\w|\d|_)+)\]$/', $itemName, $match)) {
+					$record = $match[1];
+					$field = $match[2];
+					$elements[$record][$field]['required'] = 1;
+					$elements[$record][$field]['requiredImg'] = $itemImgName;
+					if (isset($this->requiredAdditional[$itemName]) && is_array($this->requiredAdditional[$itemName])) {
+						$elements[$record][$field]['additional'] = $this->requiredAdditional[$itemName];
+					}
+				}
+			}
+				// range:
+			foreach ($tab->getRequiredElements() as $itemName => $range) {
+				if (preg_match('/^(.+)\[((\w|\d|_)+)\]$/', $itemName, $match)) {
+					$record = $match[1];
+					$field = $match[2];
+					$elements[$record][$field]['range'] = array($range[0], $range[1]);
+					$elements[$record][$field]['rangeImg'] = $range['imgName'];
+				}
+			}
+		}
+
+		$this->TBE_EDITOR_fieldChanged_func='TBE_EDITOR.fieldChanged_fName(fName,formObj[fName+"_list"]);';
+
+		if (!$update) {
+			if ($this->loadMD5_JS) {
+				$jsFile[] =	'<script type="text/javascript" src="'.$this->backPath.'md5.js"></script>';
+			}
+
+			$jsFile[] = '<script type="text/javascript" src="'.$this->backPath.'contrib/prototype/prototype.js"></script>';
+			$jsFile[] = '<script type="text/javascript" src="'.$this->backPath.'contrib/scriptaculous/scriptaculous.js"></script>';
+			$jsFile[] =	'<script type="text/javascript" src="'.$this->backPath.'../t3lib/jsfunc.evalfield.js"></script>';
+			$jsFile[] =	'<script type="text/javascript" src="'.$this->backPath.'jsfunc.tbe_editor.js"></script>';
+			$jsFile[] =	'<script type="text/javascript" src="'.$this->backPath.'js/tceforms.js"></script>';
+
+				// if IRRE fields were processed, add the JavaScript functions:
+			if ($this->inline->inlineCount) {
+				$jsFile[] = '<script src="'.$this->backPath.'contrib/scriptaculous/scriptaculous.js" type="text/javascript"></script>';
+				$jsFile[] = '<script src="'.$this->backPath.'../t3lib/jsfunc.inline.js" type="text/javascript"></script>';
+				$out .= '
+				inline.setPrependFormFieldNames("'.$this->inline->prependNaming.'");
+				inline.setNoTitleString("'.addslashes(t3lib_BEfunc::getNoRecordTitle(true)).'");
+				';
+			}
+
+				// Toggle icons:
+			$toggleIcon_open = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/pil2down.gif','width="12" height="7"').' hspace="2" alt="Open" title="Open" />';
+			$toggleIcon_close = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/pil2right.gif','width="7" height="12"').' hspace="2" alt="Close" title="Close" />';
+
+			$out .= '
+			var toggleIcon_open = \''.$toggleIcon_open.'\';
+			var toggleIcon_close = \''.$toggleIcon_close.'\';
+
+			TBE_EDITOR.images.req.src = "'.t3lib_iconWorks::skinImg($this->backPath,'gfx/required_h.gif','',1).'";
+			TBE_EDITOR.images.cm.src = "'.t3lib_iconWorks::skinImg($this->backPath,'gfx/content_client.gif','',1).'";
+			TBE_EDITOR.images.sel.src = "'.t3lib_iconWorks::skinImg($this->backPath,'gfx/content_selected.gif','',1).'";
+			TBE_EDITOR.images.clear.src = "'.$this->backPath.'clear.gif";
+
+			TBE_EDITOR.auth_timeout_field = '.intval($GLOBALS['BE_USER']->auth_timeout_field).';
+			TBE_EDITOR.formname = "'.$formname.'";
+			TBE_EDITOR.formnameUENC = "'.rawurlencode($formname).'";
+			TBE_EDITOR.backPath = "'.addslashes($this->backPath).'";
+			TBE_EDITOR.prependFormFieldNames = "'.$this->prependFormFieldNames.'";
+			TBE_EDITOR.prependFormFieldNamesUENC = "'.rawurlencode($this->prependFormFieldNames).'";
+			TBE_EDITOR.prependFormFieldNamesCnt = '.substr_count($this->prependFormFieldNames,'[').';
+			TBE_EDITOR.isPalettedoc = '.($this->isPalettedoc ? addslashes($this->isPalettedoc) : 'null').';
+			TBE_EDITOR.doSaveFieldName = "'.($this->doSaveFieldName ? addslashes($this->doSaveFieldName) : '').'";
+			TBE_EDITOR.labels.fieldsChanged = '.$GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.fieldsChanged')).';
+			TBE_EDITOR.labels.fieldsMissing = '.$GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.fieldsMissing')).';
+			TBE_EDITOR.labels.refresh_login = '.$GLOBALS['LANG']->JScharCode($this->getLL('m_refresh_login')).';
+			TBE_EDITOR.labels.onChangeAlert = '.$GLOBALS['LANG']->JScharCode($this->getLL('m_onChangeAlert')).';
+			evalFunc.USmode = '.($GLOBALS['TYPO3_CONF_VARS']['SYS']['USdateFormat']?'1':'0').';
+			';
+		}
+
+			// add JS required for inline fields
+		if (count($this->inline->inlineData)) {
+			$out .=	'
+			inline.addToDataArray('.t3lib_div::array2json($this->inline->inlineData).');
+			';
+		}
+			// Registered nested elements for tabs or inline levels:
+		if (count($this->requiredNested)) {
+			$out .= '
+			TBE_EDITOR.addNested('.t3lib_div::array2json($this->requiredNested).');
+			';
+		}
+			// elements which are required or have a range definition:
+		if (count($elements)) {
+			$out .= '
+			TBE_EDITOR.addElements('.t3lib_div::array2json($elements).');
+			TBE_EDITOR.initRequired();
+			';
+		}
+			// $this->additionalJS_submit:
+		if ($this->additionalJS_submit) {
+			$additionalJS_submit = implode('', $this->additionalJS_submit);
+			$additionalJS_submit = str_replace("\r", '', $additionalJS_submit);
+			$additionalJS_submit = str_replace("\n", '', $additionalJS_submit);
+			$out .= '
+			TBE_EDITOR.addActionChecks("submit", "'.addslashes($additionalJS_submit).'");
+			';
+		}
+
+		$out .= chr(10).implode(chr(10),$this->additionalJS_post).chr(10).$this->extJSCODE;
+		$out .= '
+			TBE_EDITOR.loginRefreshed();
+		';
+
+			// Regular direct output:
+		if (!$update) {
+			$spacer = chr(10).chr(9);
+			$out  = $spacer.implode($spacer, $jsFile).t3lib_div::wrapJS($out);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Used to connect the db/file browser with this document and the formfields on it!
+	 *
+	 * @param	string		Form object reference (including "document.")
+	 * @return	string		JavaScript functions/code (NOT contained in a <script>-element)
+	 */
+	function dbFileCon($formObj='document.forms[0]')	{
+			// @TODO: Export this to an own file, it is more static than dynamic JavaScript -- olly
+		$str='
+			var backPath = "'.$this->backPath.'";
+			var formObj = '.$formObj.';
+		';
+		return $str;
+	}
+
+	/**
+	 * Prints necessary JavaScript for TCEforms (after the form HTML).
+	 *
+	 * @return	void
+	 */
+	function printNeededJSFunctions()	{
+			// JS evaluation:
+		$out = $this->JSbottom($this->formName);
+
+
+			// Integrate JS functions for the element browser if such fields or IRRE fields were processed:
+		if ($this->printNeededJS['dbFileIcons'] || $this->inline->inlineCount)	{
+			$out.= '
+
+
+
+			<!--
+			 	JavaScript after the form has been drawn:
+			-->
+
+			<script type="text/javascript">
+				/*<![CDATA[*/
+			'.$this->dbFileCon('document.'.$this->formName).'
+				/*]]>*/
+			</script>';
+		}
+		return $out;
+	}
+
+	/**
+	 * Returns necessary JavaScript for the top
+	 *
+	 * @return	void
+	 */
+	function printNeededJSFunctions_top()	{
+			// JS evaluation:
+		$out = $this->JStop($this->formName);
+		return $out;
 	}
 }
 

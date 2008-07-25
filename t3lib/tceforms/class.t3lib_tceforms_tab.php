@@ -17,7 +17,14 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Element {
 	 */
 	protected $parentObject;
 
-	public function init($identString, $header, $parentObject) {
+	/**
+	 * @var array
+	 */
+	protected $requiredFields = array();
+	protected $requiredElements = array();
+
+
+	public function init($identString, $header, t3lib_TCEforms_AbstractForm $parentObject) {
 		$this->identString = $identString;
 
 		$this->header = $header;
@@ -32,14 +39,22 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Element {
 	}
 
 	public function render() {
+			// just return nothing if there are no child objects
+		if (count($this->childObjects) == 0) {
+			return '';
+		}
+
 		$contentStack = array();
+		$tempBorderStyle = $this->childObjects[0]->borderStyle;
 		foreach ($this->childObjects as $childObject) {
 			if ($childObject->_wrapBorder == true) {
-				$content .= $this->wrapBorder(implode('', $contentStack), $tempBorderStyle);
+				if (count($contentStack) > 0) {
+					$content .= $this->wrapBorder(implode('', $contentStack), $tempBorderStyle);
 
-				$tempBorderStyle = $childObject->wrapBorder;
+					$contentStack = array();
+				}
 
-				$contentStack = array();
+				$tempBorderStyle = $childObject->borderStyle;
 			}
 
 			$contentStack[] = $childObject->render();
@@ -55,6 +70,14 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Element {
 		return $this->header;
 	}
 
+	public function getRequiredFields() {
+		return $this->requiredFields;
+	}
+
+	public function getRequiredElements() {
+		return $this->requiredElements;
+	}
+
 	/**
 	 * Wraps an element in the $out_array with the template row for a "section" ($this->sectionWrap)
 	 *
@@ -65,7 +88,7 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Element {
 	protected function wrapBorder($content, $borderStyle)	{
 		$wrap = t3lib_parsehtml::getSubpart($this->parentObject->getTemplateContent(), '###SECTION_WRAP###');
 
-		$tableAttribs=' class="wrapperTable1"';
+		$tableAttribs='';
 		$tableAttribs.= $borderStyle[0] ? ' style="'.htmlspecialchars($borderStyle[0]).'"':'';
 		$tableAttribs.= $borderStyle[2] ? ' background="'.htmlspecialchars($this->backPath.$borderStyle[2]).'"':'';
 		$tableAttribs.= $borderStyle[3] ? ' class="'.htmlspecialchars($borderStyle[3]).'"':'';
@@ -83,6 +106,30 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Element {
 
 		return $content;
 	 }
+
+	/**
+	 * Takes care of registering properties in requiredFields and requiredElements.
+	 * The current hierarchy of IRRE and/or Tabs is stored. Thus, it is possible to determine,
+	 * which required field/element was filled incorrectly and show it, even if the Tab or IRRE
+	 * level is hidden.
+	 *
+	 * @param	string		$type: Type of requirement ('field' or 'range')
+	 * @param	string		$name: The name of the form field
+	 * @param	mixed		$value: For type 'field' string, for type 'range' array
+	 * @return	void
+	 */
+	public function registerRequiredProperty($type, $name, $value) {
+		if ($type == 'field' && is_string($value)) {
+			$this->requiredFields[$name] = $value;
+				// requiredFields have name/value swapped! For backward compatibility we keep this:
+			$itemName = $value;
+		} elseif ($type == 'range' && is_array($value)) {
+			$this->requiredElements[$name] = $value;
+			$itemName = $name;
+		}
+			// Set the situation of nesting for the current field:
+		//$this->registerNestedElement($itemName);
+	}
 }
 
 ?>

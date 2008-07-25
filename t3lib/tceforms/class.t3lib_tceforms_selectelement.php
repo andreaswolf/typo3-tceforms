@@ -472,7 +472,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		$minitems = t3lib_div::intInRange($config['minitems'],0);
 
 			// Register the required number of elements:
-		$this->TCEformsObject->registerRequiredPropertyExternal('range', $this->itemFormElName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
+		$this->containingTab->registerRequiredProperty('range', $this->itemFormElName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
 
 			// Get "removeItems":
 		$removeItems = t3lib_div::trimExplode(',',$this->fieldTSConfig['removeItems'],1);

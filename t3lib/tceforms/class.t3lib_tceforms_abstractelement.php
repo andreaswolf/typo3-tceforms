@@ -8,6 +8,11 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 	 */
 	protected $TCEformsObject;
 
+	/**
+	 * @var t3lib_TCEforms_Tab  The tab containing this element.
+	 */
+	protected $containingTab;
+
 	protected $alternativeName;
 
 	/**
@@ -262,6 +267,10 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 		$this->TCEformsObject = $TCEformsObject;
 	}
 
+	public function setContainingTab(t3lib_TCEforms_Tab $tabObject) {
+		$this->containingTab = $tabObject;
+	}
+
 	/**
 	 * Calculate and return the current "types" pointer value for a record
 	 *
@@ -310,6 +319,10 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 		} else {
 			return self::$cachedTSconfig[$mainKey];
 		}
+	}
+
+	public function getFieldname() {
+		return $this->field;
 	}
 
 	/**

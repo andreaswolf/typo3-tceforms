@@ -24,7 +24,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 		$item.= '<input type="hidden" name="'.$this->itemFormElName.'_mul" value="'.($config['multiple']?1:0).'"'.$disabled.' />';
-		$this->TCEformsObject->registerRequiredPropertyExternal('range', $this->itemFormElName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
+		$this->containingTab->registerRequiredProperty('range', $this->itemFormElName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
 		$info='';
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. See http://typo3.org/documentation/document-library/doc_core_api/Wizards_Configuratio/.

@@ -108,7 +108,7 @@ class t3lib_TCEforms_TextElement extends t3lib_TCEforms_AbstractElement {
 				foreach ($evalList as $func) {
 					switch ($func) {
 						case 'required':
-							$this->TCEformsObject->registerRequiredProperty('field', $table.'_'.$row['uid'].'_'.$field, $PA['itemFormElName']);
+							$this->containingTab->registerRequiredProperty('field', $table.'_'.$row['uid'].'_'.$field, $PA['itemFormElName']);
 							break;
 						default:
 							if (substr($func, 0, 3) == 'tx_')	{
