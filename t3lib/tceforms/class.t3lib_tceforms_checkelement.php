@@ -14,7 +14,7 @@ class t3lib_TCEforms_CheckElement extends t3lib_TCEforms_AbstractElement {
 
 			// Traversing the array of items:
 		$selItems = $this->TCEformsObject->initItemArray($this->fieldConfig);
-		if ($this->config['itemsProcFunc']) $selItems = $this->TCEformsObject->procItems($selItems,$this->fieldTSConfig['itemsProcFunc.'],$this->config->table,$this->row,$this->field);
+		if ($this->config['itemsProcFunc']) $selItems = $this->TCEformsObject->procItems($selItems,$this->fieldTSConfig['itemsProcFunc.'],$this->config->table,$this->record,$this->field);
 
 		if (!count($selItems))	{
 			$selItems[]=array('','');

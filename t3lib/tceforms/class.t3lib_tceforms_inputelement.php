@@ -9,7 +9,7 @@ class t3lib_TCEforms_InputElement extends t3lib_TCEforms_AbstractElement {
 	public function renderField() {
 		$config = $this->fieldConfig['config'];
 
-#		$specConf = $this->TCEformsObject->getSpecConfForField($this->table,$this->row,$this->field);
+#		$specConf = $this->TCEformsObject->getSpecConfForField($this->table,$this->record,$this->field);
 		$specConf = $this->TCEformsObject->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
 		$size = t3lib_div::intInRange($config['size']?$config['size']:30,5,$this->TCEformsObject->maxInputWidth);
 		$evalList = t3lib_div::trimExplode(',',$config['eval'],1);
@@ -34,7 +34,7 @@ class t3lib_TCEforms_InputElement extends t3lib_TCEforms_AbstractElement {
 		foreach ($evalList as $func) {
 			switch ($func) {
 				case 'required':
-					$this->containingTab->registerRequiredProperty('field', $this->table.'_'.$this->row['uid'].'_'.$this->field, $this->itemFormElName);
+					$this->containingTab->registerRequiredProperty('field', $this->table.'_'.$this->record['uid'].'_'.$this->field, $this->itemFormElName);
 						// Mark this field for date/time disposal:
 					if (array_intersect($evalList, array('date', 'datetime', 'time'))) {
 						 $this->TCEformsObject->requiredAdditional[$this->itemFormElName]['isPositiveNumber'] = true;
@@ -96,6 +96,6 @@ class t3lib_TCEforms_InputElement extends t3lib_TCEforms_AbstractElement {
 		$altItem .= '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 
 			// Wrap a wizard around the item?
-		return $this->TCEformsObject->renderWizards(array($item,$altItem),$config['wizards'],$this->table,$this->row,$this->field,$this->PA,$this->itemFormElName.'_hr',$specConf);
+		return $this->TCEformsObject->renderWizards(array($item,$altItem),$config['wizards'],$this->table,$this->record,$this->field,$this->PA,$this->itemFormElName.'_hr',$specConf);
 	}
 }

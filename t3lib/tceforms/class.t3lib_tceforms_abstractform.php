@@ -75,6 +75,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 	protected $additionalJS_post = array();			// Additional JavaScript printed after the form
 	protected $additionalJS_submit = array();			// Additional JavaScript executed on submit; If you set "OK" variable it will raise an error about RTEs not being loaded and offer to block further submission.
 
+	protected $formName;
+	protected $prependFormFieldNames;
 
 	/**
 	 * The constructor of this class
