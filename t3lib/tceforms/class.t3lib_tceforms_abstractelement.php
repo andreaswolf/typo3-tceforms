@@ -191,6 +191,7 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 						$this->paletteObject = t3lib_div::makeInstance('t3lib_TCEforms_Palette');
 						$this->paletteObject->init($this->table, $this->record, $this->typeNumber, $this->pal, $this->field, '');
 						$this->paletteObject->setTCEformsObject($this->_TCEformsObject);
+						$this->paletteObject->setContainingObject($this);
 						$paletteFields = $this->paletteObject->render();
 
 						$this->hasPalette = true;
@@ -284,6 +285,10 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 			if (method_exists($hookObj,'getSingleField_postProcess'))	{
 				$hookObj->getSingleField_postProcess($this->table, $this->field, $this->record, $this->alternativeName, $this->palette, $this->extra, $this->pal, $this);
 			}
+		}
+
+		if ($this->hasPalette) {
+			$out .= $paletteFields;
 		}
 
 		return $out;

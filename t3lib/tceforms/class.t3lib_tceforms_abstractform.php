@@ -519,6 +519,14 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$this->TCEformsObject = $TCEformsObject;
 	}
 
+	public function setPalettesCollapsed($collapsed) {
+		$this->palettesCollapsed = $collapsed;
+	}
+
+	public function getPalettesCollapsed() {
+		return $this->palettesCollapsed;
+	}
+
 
 
 	/********************************************
