@@ -229,7 +229,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 			if ($this->tableTCAconfig['columns'][$theField]) {
 				// ToDo: Handle field configuration here.
-				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record);
+				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record, $parts[1], 0, $parts[3], $parts[2]);
 				$formFieldObject->setContainingTab($this->currentTab);
 
 				$this->addFormFieldObject($formFieldObject);
@@ -334,6 +334,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 		return $elementObject;
 	}
 
+	public function getPaletteField($field) {
+
+	}
+
 	/**
 	 * Factory method for
 	 *
@@ -366,6 +370,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 	public function isExcludeElement($elementName) {
 		// TODO: check $elementName against array of excluded elements
 		return t3lib_div::inArray($this->excludeElements, $elementName);
+	}
+
+	public function getExcludeElements() {
+		return $this->excludeElements;
 	}
 
 	/**
@@ -818,7 +826,6 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @return	string		JavaScript functions/code (NOT contained in a <script>-element)
 	 */
 	function dbFileCon($formObj='document.forms[0]')	{
-			// @TODO: Export this to an own file, it is more static than dynamic JavaScript -- olly
 		$str='
 			var backPath = "'.$this->backPath.'";
 			var formObj = '.$formObj.';

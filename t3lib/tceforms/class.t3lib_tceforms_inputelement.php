@@ -79,6 +79,7 @@ class t3lib_TCEforms_InputElement extends t3lib_TCEforms_AbstractElement {
 		$iOnChange = implode('',$this->fieldChangeFunc);
 		$item.='<input type="text" name="'.$this->itemFormElName.'_hr" value=""'.$this->TCEformsObject->formWidth($size).' maxlength="'.$mLgd.'" onchange="'.htmlspecialchars($iOnChange).'"'.$this->onFocus.' />';	// This is the EDITABLE form field.
 		$item.='<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';			// This is the ACTUAL form field - values from the EDITABLE field must be transferred to this field which is the one that is written to the database.
+
 		$this->_TCEformsObject->addToEvaluationJS('typo3form.fieldSet('.$this->paramsList.');');
 
 			// going through all custom evaluations configured for this field

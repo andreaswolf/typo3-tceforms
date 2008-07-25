@@ -30,10 +30,10 @@ class t3lib_TCEforms_TextElement extends t3lib_TCEforms_AbstractElement {
 		$RTEwouldHaveBeenLoaded = 0;	// Set true, if the RTE would have been loaded if it wasn't for the disable-RTE flag in the bottom of the page...
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. Traditionally, this is where RTE configuration has been found.
-		$specConf = $this->TCEformsObject->getSpecConfFromString($PA['extra'], $this->fieldConf['defaultExtras']);
+		$specConf = $this->TCEformsObject->getSpecConfFromString($this->PA['extra'], $this->fieldConf['defaultExtras']);
 
 			// Setting up the altItem form field, which is a hidden field containing the value
-		$altItem = '<input type="hidden" name="'.htmlspecialchars($PA['itemFormElName']).'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
+		$altItem = '<input type="hidden" name="'.htmlspecialchars($this->itemFormElName).'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 
 			// If RTE is generally enabled (TYPO3_CONF_VARS and user settings)
 		if ($this->TCEformsObject->RTEenabled) {

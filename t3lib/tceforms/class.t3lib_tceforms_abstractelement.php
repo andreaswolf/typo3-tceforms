@@ -1,6 +1,7 @@
 <?php
 
 require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_element.php');
+require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_palette.php');
 
 abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element {
 	/**
@@ -34,7 +35,25 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 
 	protected static $hookObjects = array();
 
+	protected $fieldChangeFunc = array();
+
+
 	protected $record;
+
+	/**
+	 * Vars related to palettes
+	 */
+
+	/**
+	 * @var t3lib_TCEforms_Palette  The palette object
+	 */
+	protected $paletteObject;
+
+	protected $pal = NULL;
+
+	protected $hasPalette = false;
+
+
 
 
 	public function __construct() {
@@ -62,7 +81,7 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 		$this->resetSchemes();
 	}
 
-	public function init($table, $field, $row, $fieldConfig, $alternativeName='', $palette=0, $extra='', $pal=0, $parentObject = null) {
+	public function init($table, $field, $row, $fieldConfig, $alternativeName='', $palette=0, $extra='', $pal = null, $parentObject = null) {
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
 		$this->fieldConfig = $fieldConfig;
@@ -168,8 +187,15 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 				} else {	// Render as a normal field:
 
 						// If the field is NOT a palette field, then we might create an icon which links to a palette for the field, if one exists.
-					if (!$this->palette)	{
-						$paletteFields = $this->TCEformsObject->loadPaletteElements($this->table, $this->record, $this->pal);
+					if (!$this->palette && $this->pal !== NULL)	{
+						$this->paletteObject = t3lib_div::makeInstance('t3lib_TCEforms_Palette');
+						$this->paletteObject->init($this->table, $this->record, $this->typeNumber, $this->pal, $this->field, '');
+						$this->paletteObject->setTCEformsObject($this->_TCEformsObject);
+						$paletteFields = $this->paletteObject->render();
+
+						$this->hasPalette = true;
+
+						//$paletteFields = $this->TCEformsObject->loadPaletteElements($this->table, $this->record, $this->pal);
 						if ($this->pal && $this->TCEformsObject->isPalettesCollapsed($this->table,$this->pal) && count($paletteFields))	{
 							list($thePalIcon,$palJSfunc) = $this->TCEformsObject->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->TCEformsObject->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->TCEformsObject->getLL('l_moreOptions')).'" alt="" />',$this->table,$this->record,$this->pal,1);
 						} else {
@@ -258,10 +284,6 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 			if (method_exists($hookObj,'getSingleField_postProcess'))	{
 				$hookObj->getSingleField_postProcess($this->table, $this->field, $this->record, $this->alternativeName, $this->palette, $this->extra, $this->pal, $this);
 			}
-		}
-
-		if ($this->_wrapBorder == true) {
-			//$out = $this->wrapBorder($out);
 		}
 
 		return $out;
