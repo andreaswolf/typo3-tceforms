@@ -75,6 +75,12 @@ abstract class t3lib_TCEforms_AbstractForm {
 	protected $additionalJS_post = array();			// Additional JavaScript printed after the form
 	protected $additionalJS_submit = array();			// Additional JavaScript executed on submit; If you set "OK" variable it will raise an error about RTEs not being loaded and offer to block further submission.
 
+	/**
+	 * @var array  The JavaScript code to add to various parts of the form. Contains e.g. the following
+	 *             keys: evaluation, submit, pre (before the form), post (after the form)
+	 */
+	protected $JScode;
+
 	protected $formName;
 	protected $prependFormFieldNames;
 
@@ -311,6 +317,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 					// don't set the containing tab here because we can't be sure if this item
 					// will be attached to $this->currentTab
 				$elementObject->setTCEformsObject($this->TCEformsObject);
+				$elementObject->set_TCEformsObject($this);
 				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal, $this);
 
 				break;
@@ -614,6 +621,15 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 ********************************************/
 
 	/**
+	 * Adds JavaScript code for form field evaluation. Used to be the global var <extJSCode in old t3lib_TCEforms
+	 *
+	 * @param string $JScode
+	 */
+	public function addToEvaluationJS($JScode) {
+		$this->JScode['evaluation'] .= $JScode;
+	}
+
+	/**
 	 * JavaScript code added BEFORE the form is drawn:
 	 *
 	 * @return	string		A <script></script> section with JavaScript.
@@ -781,7 +797,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 			';
 		}
 
-		$out .= chr(10).implode(chr(10),$this->additionalJS_post).chr(10).$this->extJSCODE;
+		$out .= chr(10).implode(chr(10),$this->additionalJS_post).chr(10).$this->JScode['evaluation'];
 		$out .= '
 			TBE_EDITOR.loginRefreshed();
 		';

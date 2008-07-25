@@ -9,6 +9,12 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 	protected $TCEformsObject;
 
 	/**
+	 * @var t3lib_TCEforms_AbstractForm  Used for the transition phase to the new TCEforms object structure.
+	 *                                   Will be renamed to $TCEformsObject once this is done.
+	 */
+	protected $_TCEformsObject;
+
+	/**
 	 * @var t3lib_TCEforms_Tab  The tab containing this element.
 	 */
 	protected $containingTab;
@@ -265,6 +271,11 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 
 	public function setTCEformsObject(t3lib_TCEforms $TCEformsObject) {
 		$this->TCEformsObject = $TCEformsObject;
+	}
+
+	// TODO: remove this once the transition to the new TCEforms object structure is doen
+	public function set_TCEformsObject(t3lib_TCEforms_AbstractForm $_TCEformsObject) {
+		$this->_TCEformsObject = $_TCEformsObject;
 	}
 
 	public function setContainingTab(t3lib_TCEforms_Tab $tabObject) {
