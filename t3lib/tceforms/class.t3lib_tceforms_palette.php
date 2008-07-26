@@ -140,6 +140,7 @@ class t3lib_TCEforms_Palette implements t3lib_TCEforms_Element {
 
 		return $out;
 	}
+
  	/**
 	 * Add the id and the style property to the field palette
 	 *

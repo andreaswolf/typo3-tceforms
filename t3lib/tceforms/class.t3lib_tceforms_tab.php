@@ -35,6 +35,8 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Element {
 	}
 
 	public function addChildObject(t3lib_TCEforms_AbstractElement $childObject) {
+		// TODO: set container of child object here! (-> first need to create function setContainer() in AbstractElement)
+		$childObject->setContainingTab($this);
 		$this->childObjects[] = $childObject;
 	}
 

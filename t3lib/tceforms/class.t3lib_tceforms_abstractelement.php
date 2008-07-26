@@ -310,34 +310,6 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 	}
 
 	/**
-	 * Calculate and return the current "types" pointer value for a record
-	 *
-	 * @param	string		The table name. MUST be in $TCA
-	 * @param	array		The row from the table, should contain at least the "type" field, if applicable.
-	 * @return	string		Return the "type" value for this record, ready to pick a "types" configuration from the $TCA array.
-	 */
-	// copied from t3lib_tceforms -- andreaswolf, 23.07.2008
-	function getRTypeNum()	{
-		global $TCA;
-
-			// If there is a "type" field configured...
-		if ($TCA[$this->table]['ctrl']['type'])	{
-			$typeFieldName = $TCA[$this->table]['ctrl']['type'];
-			$typeNum=$this->record[$typeFieldName];  // Get value of the row from the record which contains the type value.
-			if (!strcmp($typeNum,''))	$typeNum=0;	 // If that value is an empty string, set it to "0" (zero)
-		} else {
-			$typeNum = 0;  // If no "type" field, then set to "0" (zero)
-		}
-
-		$typeNum = (string)$typeNum;  // Force to string. Necessary for eg '-1' to be recognized as a type value.
-		if (!$TCA[$this->table]['types'][$typeNum])	{  // However, if the type "0" is not found in the "types" array, then default to "1" (for historical reasons)
-			$typeNum = 1;
-		}
-
-		return $typeNum;
-	}
-
-	/**
 	 * Returns TSconfig for table/row
 	 * Multiple requests to this function will return cached content so there is no performance loss in calling this many times since the information is looked up only once.
 	 *

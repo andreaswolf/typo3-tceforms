@@ -52,12 +52,14 @@ abstract class t3lib_TCEforms_AbstractForm {
 	protected $useTabs;
 
 	/**
+	 * @var array  All tabs directly "owned" by this form (=> does not include sub-tabs of these tabs)
+	 */
+	protected $tabs = array();
+
+	/**
 	 * @var t3lib_TCEforms_Tab  The currently used tab
 	 */
 	protected $currentTab;
-
-
-	protected $formFieldObjects;
 
 	/**
 	 * May be safely removed as soon as all dependencies on the old TCEforms are removed!
@@ -213,7 +215,6 @@ abstract class t3lib_TCEforms_AbstractForm {
 			$tabIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($tabIdentString);
 
 			$this->currentTab = $this->createTabObject($tabIdentStringMD5.'-1', $this->getLL('l_generalTab'));
-			$this->addFormFieldObject($this->currentTab);
 		}
 
 		$tabCounter = 1;
@@ -228,11 +229,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 			}
 
 			if ($this->tableTCAconfig['columns'][$theField]) {
+				// TODO: Check if the order makes sense (tab->addField($formFieldObject))
 				// ToDo: Handle field configuration here.
 				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record, $parts[1], 0, $parts[3], $parts[2]);
-				$formFieldObject->setContainingTab($this->currentTab);
-
-				$this->addFormFieldObject($formFieldObject);
+				$this->currentTab->addChildObject($formFieldObject);
 
 
 					// Getting the style information out:
@@ -258,9 +258,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 				++$tabCounter;
 
 				$tabObject = $this->createTabObject($tabIdentStringMD5.'-'.$tabCounter, $this->sL($parts[1]));
-				$this->addFormFieldObject($tabObject);
 				$this->currentTab = $tabObject;
-			}
+			} // TODO: add top-level palette handling!
 		}
 
 		$tabContents = array();
@@ -280,7 +279,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 		} else {
 			$content = $tabContents[1]['content'];
 		}
-
+			// TODO: move the wrap to alt_doc.php
 		return $this->wrapTotal($content);
 	}
 
@@ -304,6 +303,11 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];	// Using "form_type" locally in this script
 
 		switch($fieldConf['config']['form_type'])	{
+			case 'inline':
+				//$item = $this->inline->getSingleField_typeInline($table,$field,$row,$PA);
+
+				break;
+
 			case 'input':
 			case 'text':
 			case 'check':
@@ -313,6 +317,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 			case 'user':
 			case 'flex':
 			case 'none':
+			default:
 				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
 					// don't set the containing tab here because we can't be sure if this item
 					// will be attached to $this->currentTab
@@ -321,14 +326,6 @@ abstract class t3lib_TCEforms_AbstractForm {
 				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal, $this);
 
 				break;
-
-			case 'inline':
-				//$item = $this->inline->getSingleField_typeInline($table,$field,$row,$PA);
-
-				break;
-			default:
-				//$item = $this->getSingleField_typeUnknown($table,$field,$row,$PA);
-			break;
 		}
 
 		return $elementObject;
@@ -356,15 +353,6 @@ abstract class t3lib_TCEforms_AbstractForm {
 		}
 
 		return t3lib_div::makeInstance($className);
-	}
-
-	protected function addFormFieldObject(t3lib_TCEforms_Element $formFieldObject) {
-			// if we are using tabs, add the element to the current tab
-		if ($formFieldObject instanceof t3lib_TCEforms_Tab) {
-			$this->formFieldObjects[] = $formFieldObject;
-		} else {
-			$this->currentTab->addChildObject($formFieldObject);
-		}
 	}
 
 	public function isExcludeElement($elementName) {
@@ -460,6 +448,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$tabObject = new t3lib_TCEforms_Tab;
 		$tabObject->init($tabIdentString, $header, $this);
 
+		$this->tabs[] = $tabObject;
+
 		return $tabObject;
 	}
 
@@ -471,25 +461,6 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 */
 	protected function sL($str)	{
 		return $GLOBALS['LANG']->sL($str);
-	}
-
-	public function getBottomJavaScript() {
-		$javascript = '
-			<!--
-			 	JavaScript after the form has been drawn:
-			-->
-
-			<script type="text/javascript">
-				/*<![CDATA[*/
-
-				formObj = document.forms[0]
-				backPath = "'.$this->backPath.'";
-
-
-				/*]]>*/
-			</script>';
-
-		return $javascript;
 	}
 
 	/**
@@ -707,7 +678,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$elements = array();
 
 			// required:
-		foreach ($this->formFieldObjects as $tab) {
+		foreach ($this->tabs as $tab) {
 			foreach ($tab->getRequiredFields() as $itemImgName => $itemName) {
 				$match = array();
 				if (preg_match('/^(.+)\[((\w|\d|_)+)\]$/', $itemName, $match)) {
@@ -828,33 +799,12 @@ abstract class t3lib_TCEforms_AbstractForm {
 	}
 
 	/**
-	 * Used to connect the db/file browser with this document and the formfields on it!
-	 *
-	 * @param	string		Form object reference (including "document.")
-	 * @return	string		JavaScript functions/code (NOT contained in a <script>-element)
-	 */
-	function dbFileCon($formObj='document.forms[0]')	{
-		$str='
-			var backPath = "'.$this->backPath.'";
-			var formObj = '.$formObj.';
-		';
-		return $str;
-	}
-
-	/**
 	 * Prints necessary JavaScript for TCEforms (after the form HTML).
 	 *
-	 * @return	void
+	 * @return  string  The JavaScript code
 	 */
-	function printNeededJSFunctions()	{
-			// JS evaluation:
-		$out = $this->JSbottom($this->formName);
-
-
-			// Integrate JS functions for the element browser if such fields or IRRE fields were processed:
-		if ($this->printNeededJS['dbFileIcons'] || $this->inline->inlineCount)	{
-			$out.= '
-
+	public function getBottomJavaScript() {
+		$javascript = $this->JSbottom($this->formName).'
 
 
 			<!--
@@ -863,11 +813,18 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 			<script type="text/javascript">
 				/*<![CDATA[*/
-			'.$this->dbFileCon('document.'.$this->formName).'
+
+				formObj = document.forms[0]
+				backPath = "'.$this->backPath.'";
+
+				function TBE_EDITOR_fieldChanged_func(fName, formObj) {
+					'.$this->TCEformsObject->TBE_EDITOR_fieldChanged_func.'
+				}
+
 				/*]]>*/
 			</script>';
-		}
-		return $out;
+
+		return $javascript;
 	}
 
 	/**
