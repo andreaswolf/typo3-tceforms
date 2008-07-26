@@ -229,8 +229,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 			}
 
 			if ($this->tableTCAconfig['columns'][$theField]) {
-				// TODO: Check if the order makes sense (tab->addField($formFieldObject))
-				// ToDo: Handle field configuration here.
+				// TODO: Handle field configuration here.
 				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record, $parts[1], 0, $parts[3], $parts[2]);
 				$this->currentTab->addChildObject($formFieldObject);
 
@@ -265,8 +264,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$tabContents = array();
 
 		$c = 0;
-			// $this->formFieldObjects should only contain t3lib_TCEforms_Tab objects
-		foreach ($this->formFieldObjects as $tabObject) {
+		foreach ($this->tabs as $tabObject) {
 			++$c;
 			$tabContents[$c] = array(
 				'newline' => false, // TODO: make this configurable again

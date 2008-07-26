@@ -1,8 +1,8 @@
 <?php
 
-require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_element.php');
+require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_container.php');
 
-class t3lib_TCEforms_Palette implements t3lib_TCEforms_Element {
+class t3lib_TCEforms_Palette implements t3lib_TCEforms_Container {
 	protected $table;
 	protected $record;
 	protected $paletteNumber;
