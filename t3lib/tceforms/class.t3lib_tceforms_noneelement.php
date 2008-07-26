@@ -4,7 +4,7 @@ require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
 
 
 class t3lib_TCEforms_NoneElement extends t3lib_TCEforms_AbstractElement {
-	public function renderField() {
+	protected function renderField() {
 			// Init:
 		$config = $this->fieldConfig['config'];
 		$itemValue = $this->itemFormElValue;

@@ -4,9 +4,7 @@ require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
 
 
 class t3lib_TCEforms_FlexElement extends t3lib_TCEforms_AbstractElement {
-	protected $item;
-
-	public function render() {
+	protected function renderField() {
 
 			// Data Structure:
 		$dataStructArray = t3lib_BEfunc::getFlexFormDS($PA['fieldConf']['config'],$row,$table);
