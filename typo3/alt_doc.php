@@ -546,9 +546,9 @@ class SC_alt_doc {
 					// Module configuration
 				$this->modTSconfig = ($this->viewId ? t3lib_BEfunc::getModTSconfig($this->viewId,'mod.xMOD_alt_doc') : array());
 
-				$body.= $this->tceforms->printNeededJSFunctions_top();
+				//$body.= $this->tceforms->printNeededJSFunctions_top();
 				$body.= $this->compileForm($editForm);
-				$body.= $this->tceforms->printNeededJSFunctions();
+				//$body.= $this->tceforms->printNeededJSFunctions();
 				$body.= $this->functionMenus();
 				$body.= $this->tceformMessages();
 			}
@@ -727,6 +727,20 @@ class SC_alt_doc {
 									// Now, render the form:
 								if (is_array($rec))	{
 
+									// Initialize the TCEforms record (testing only!)
+									$TCEformsClassName = t3lib_div::makeInstanceClassName('t3lib_TCEforms_MultiFieldForm');
+									$localTCEforms = new $TCEformsClassName($table, $rec);
+
+									$localTCEforms->setTCEformsObject($this->tceforms);
+									$localTCEforms->setPalettesCollapsed(!$this->MOD_SETTINGS['showPalettes']);
+
+									$editForm .= $localTCEforms->printNeededJSFunctions_top();
+									$editForm .= $localTCEforms->render();
+
+									$editForm .= $localTCEforms->getBottomJavascript();
+
+
+
 										// Setting visual path / title of form:
 									$this->generalPathOfForm = $this->tceforms->getRecordPath($table,$rec);
 									if (!$this->storeTitle)	{
@@ -744,7 +758,7 @@ class SC_alt_doc {
 									$this->tceforms->registerDefaultLanguageData($table,$rec);
 
 										// Create form for the record (either specific list of fields or the whole record):
-									$panel = '';
+									/*$panel = '';
 									if ($this->columnsOnly)	{
 										if(is_array($this->columnsOnly)){
 											$panel.= $this->tceforms->getListedFields($table,$rec,$this->columnsOnly[$table]);
@@ -754,7 +768,8 @@ class SC_alt_doc {
 									} else {
 										$panel.= $this->tceforms->getMainFields($table,$rec);
 									}
-									$panel = $this->tceforms->wrapTotal($panel,$rec,$table);
+									$panel = $this->tceforms->wrapTotal($panel,$rec,$table);*/
+									// what about wrapTotal in new TCEforms-classes? -- AW, 25.07.2008
 
 										// Setting the pid value for new records:
 									if ($cmd=='new')	{

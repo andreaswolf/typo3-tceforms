@@ -49,7 +49,7 @@ function setFormValueFromBrowseWin(fName,value,label,exclusiveValues)	{	//
 				// Traversing list and set the hidden-field
 			setHiddenFromList(fObj,formObj[fName]);
 
-			TBE_EDITOR_fieldChanged_func();
+			TBE_EDITOR_fieldChanged_func(fName, formObj);
 		}
 	}
 }
@@ -193,7 +193,7 @@ function setFormValueManipulate(fName,type)	{	//
 		setHiddenFromList(fObjSel,formObj[fName]);
 
 		// TODO: create this function dynamically
-		TBE_EDITOR_fieldChanged_func();
+		TBE_EDITOR_fieldChanged_func(fName, formObj);
 	}
 }
 
