@@ -183,7 +183,7 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 
 					// Render as a hidden field?
 				if (in_array($this->field,$this->hiddenFieldListArr))	{
-					$this->hiddenFieldAccum[]='<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
+					$this->TCEformsObject->addHiddenFieldHTMLCode($this->itemFormElName, '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />');
 				} else {	// Render as a normal field:
 
 						// If the field is NOT a palette field, then we might create an icon which links to a palette for the field, if one exists.
@@ -333,6 +333,21 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 
 	public function getFieldname() {
 		return $this->field;
+	}
+
+	/**
+	 * Returns the HTML code for disabling a form field if the current field should be displayed
+	 * disabled
+	 *
+	 */
+	protected function getDisabledCode() {
+		if($this->_TCEformsObject->renderReadonly || $this->fieldConfig['config']['readOnly'])  {
+			$disabled = ' disabled="disabled"';
+		} else {
+			$disabled = '';
+		}
+
+		return $disabled;
 	}
 
 	/**

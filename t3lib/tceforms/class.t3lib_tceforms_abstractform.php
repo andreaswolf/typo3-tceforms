@@ -86,6 +86,17 @@ abstract class t3lib_TCEforms_AbstractForm {
 	protected $formName;
 	protected $prependFormFieldNames;
 
+	protected $hiddenFields = array();
+
+	/**
+	 * @var array  HTML code rendered for fields which are marked as hidden. Previously called hiddenFieldAccum
+	 */
+	protected $hiddenFields_HTMLcode = array();
+
+	protected $backPath;
+
+
+
 	/**
 	 * The constructor of this class
 	 *
@@ -347,6 +358,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 		}
 
 		if (!class_exists($className)) {
+				// if class(file) does not exist, resolve to type "unknown"
+			if (!@file_exists(PATH_t3lib.'tceforms/class.'.strtolower($className).'.php')) {
+				return $this->elementObjectFactory('unknown');
+			}
 			include_once PATH_t3lib.'tceforms/class.'.strtolower($className).'.php';
 		}
 
@@ -354,7 +369,6 @@ abstract class t3lib_TCEforms_AbstractForm {
 	}
 
 	public function isExcludeElement($elementName) {
-		// TODO: check $elementName against array of excluded elements
 		return t3lib_div::inArray($this->excludeElements, $elementName);
 	}
 
@@ -410,6 +424,30 @@ abstract class t3lib_TCEforms_AbstractForm {
 	}
 
 	/**
+	 * Returns the "special" configuration of an "extra" string (non-parsed)
+	 *
+	 * @param	string		The "Part 4" of the fields configuration in "types" "showitem" lists.
+	 * @param	string		The ['defaultExtras'] value from field configuration
+	 * @return	array		An array with the special options in.
+	 * @see getSpecConfForField(), t3lib_BEfunc::getSpecConfParts()
+	 */
+	function getSpecConfFromString($extraString, $defaultExtras)    {
+		return t3lib_BEfunc::getSpecConfParts($extraString, $defaultExtras);
+	}
+
+	public function setHiddenField($fieldName) {
+		if (is_array($fieldName)) {
+			$this->hiddenFields = t3lib_div::array_merge($this->hiddenFields, $fieldName);
+		} else {
+			$this->hiddenFields[] = $fieldName;
+		}
+	}
+
+	public function addHiddenFieldHTMLCode($formFieldName, $code) {
+		$this->hiddenFields_HTMLcode[$formFieldName] = $code;
+	}
+
+	/**
 	 * Calculate the current "types" pointer value for the record this form is instantiated for
 	 *
 	 * Sets $this->typeNumber to the types pointer value.
@@ -434,12 +472,29 @@ abstract class t3lib_TCEforms_AbstractForm {
 		}
 	}
 
+	/**
+	 * Generic setter function
+	 *
+	 * @param string  $key
+	 * @param mixed   $value
+	 */
 	public function __set($key, $value) {
 			// DANGEROUS, may be used to overwrite *EVERYTHING* in this class! Should be secured later on
 		if (substr($key, 0, 3) == 'set') {
 			$varKey = substr($key, 3);
-			$this->$varKey = $value;
+		} else {
+			$varKey = $key;
 		}
+
+		$this->$varKey = $value;
+	}
+
+	public function __get($key) {
+		if (substr($key, 0, 3) == 'get') {
+			$varKey = substr($key, 3);
+		}
+
+		return $this->$varKey;
 	}
 
 	protected function createTabObject($tabIdentString, $header) {
@@ -526,7 +581,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @param	integer		If set to '1' empty tabs will be removed, If set to '2' empty tabs will be disabled
 	 * @return	string		HTML for the menu
 	 */
-	function getDynTabMenu($parts, $idString, $dividersToTabsBehaviour = 1) {
+	protected function getDynTabMenu($parts, $idString, $dividersToTabsBehaviour = 1) {
 		if (is_object($GLOBALS['TBE_TEMPLATE'])) {
 			return $GLOBALS['TBE_TEMPLATE']->getDynTabMenu($parts, $idString, 0, false, 50, 1, false, 1, $dividersToTabsBehaviour);
 		} else {
@@ -551,10 +606,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @param	string		The table name
 	 * @return	string
 	 */
-	function wrapTotal($content) {
+	public function wrapTotal($content) {
 		$wrap = t3lib_parsehtml::getSubpart($this->templateContent, '###TOTAL_WRAP###');
 		$content = $this->replaceTableWrap($wrap, $content);
-		return $content;//.implode('', $this->hiddenFieldAccum);
+		return $content.implode('', $this->hiddenFields_HTMLcode);
 	}
 
 	/**

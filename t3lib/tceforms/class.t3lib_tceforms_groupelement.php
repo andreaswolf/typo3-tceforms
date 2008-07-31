@@ -16,17 +16,14 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 		$allowed = $config['allowed'];
 		$disallowed = $config['disallowed'];
 
-		$disabled = '';
-		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
-			$disabled = ' disabled="disabled"';
-		}
+		$disabled = $this->getDisabledCode();
 
 		$item.= '<input type="hidden" name="'.$this->itemFormElName.'_mul" value="'.($config['multiple']?1:0).'"'.$disabled.' />';
 		$this->containingTab->registerRequiredProperty('range', $this->itemFormElName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
 		$info='';
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. See http://typo3.org/documentation/document-library/doc_core_api/Wizards_Configuratio/.
-		$specConf = $this->TCEformsObject->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
+		$specConf = $this->_TCEformsObject->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
 
 			// Acting according to either "file" or "db" type:
 		switch((string)$config['internal_type'])	{
@@ -68,9 +65,9 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 
 						$fI = pathinfo($imgPath);
 						$fileIcon = t3lib_BEfunc::getFileIcon(strtolower($fI['extension']));
-						$fileIcon = '<img'.t3lib_iconWorks::skinImg($this->TCEformsObject->backPath,'gfx/fileicons/'.$fileIcon,'width="18" height="16"').' class="absmiddle" title="'.htmlspecialchars($fI['basename'].($absFilePath && @is_file($absFilePath) ? ' ('.t3lib_div::formatSize(filesize($absFilePath)).'bytes)' : ' - FILE NOT FOUND!')).'" alt="" />';
+						$fileIcon = '<img'.t3lib_iconWorks::skinImg($this->_TCEformsObject->backPath,'gfx/fileicons/'.$fileIcon,'width="18" height="16"').' class="absmiddle" title="'.htmlspecialchars($fI['basename'].($absFilePath && @is_file($absFilePath) ? ' ('.t3lib_div::formatSize(filesize($absFilePath)).'bytes)' : ' - FILE NOT FOUND!')).'" alt="" />';
 
-						$imgs[] = '<span class="nobr">'.t3lib_BEfunc::thumbCode($rowCopy,$table,$field,$this->TCEformsObject->backPath,'thumbs.php',$config['uploadfolder'],0,' align="middle"').
+						$imgs[] = '<span class="nobr">'.t3lib_BEfunc::thumbCode($rowCopy,$table,$field,$this->_TCEformsObject->backPath,'thumbs.php',$config['uploadfolder'],0,' align="middle"').
 									($absFilePath ? $this->TCEformsObject->getClickMenu($fileIcon, $absFilePath) : $fileIcon).
 									$imgPath.
 									'</span>';
@@ -139,7 +136,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 					while(list(,$theT)=each($tempFT))	{
 						if ($theT)	{
 							$info.='<span class="nobr">&nbsp;&nbsp;&nbsp;&nbsp;'.
-									t3lib_iconWorks::getIconImage($theT,array(),$this->TCEformsObject->backPath,'align="top"').
+									t3lib_iconWorks::getIconImage($theT,array(),$this->_TCEformsObject->backPath,'align="top"').
 									htmlspecialchars($this->TCEformsObject->sL($GLOBALS['TCA'][$theT]['ctrl']['title'])).
 									'</span><br />';
 						}
@@ -159,7 +156,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 					if (!$disabled && $show_thumbs)	{
 						$rr = t3lib_BEfunc::getRecordWSOL($this->TCEformsObject_table,$this->TCEformsObject_uid);
 						$imgs[] = '<span class="nobr">'.
-								$this->TCEformsObject->getClickMenu(t3lib_iconWorks::getIconImage($this->TCEformsObject_table,$rr,$this->TCEformsObject->backPath,'align="top" title="'.htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'],$perms_clause,15)).' [UID: '.$rr['uid'].']"'),$this->TCEformsObject_table, $this->TCEformsObject_uid).
+								$this->TCEformsObject->getClickMenu(t3lib_iconWorks::getIconImage($this->TCEformsObject_table,$rr,$this->_TCEformsObject->backPath,'align="top" title="'.htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'],$perms_clause,15)).' [UID: '.$rr['uid'].']"'),$this->TCEformsObject_table, $this->TCEformsObject_uid).
 								'&nbsp;'.
 								t3lib_BEfunc::getRecordTitle($this->TCEformsObject_table,$rr,TRUE).' <span class="typo3-dimmed"><em>['.$rr['uid'].']</em></span>'.
 								'</span>';
