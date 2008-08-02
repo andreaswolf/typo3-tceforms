@@ -100,9 +100,9 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * The constructor of this class
 	 *
-	 * @param string   $table
-	 * @param array    $row
-	 * @param integer  $typeNumber
+	 * @param  string   $table
+	 * @param  array    $row
+	 * @param  integer  $typeNumber
 	 */
 	public function __construct($table, $row) {
 		global $TCA;
@@ -156,7 +156,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * Finds possible field to add to the form, based on subtype fields.
 	 *
-	 * @return	array		An array containing two values: 1) Another array containing fieldnames to add and 2) the subtype value field.
+	 * @return  array  An array containing two values: 1) Another array containing fieldnames to add and 2) the subtype value field.
 	 * @see getMainFields()
 	 */
 	protected function getFieldsToAdd()	{
@@ -180,9 +180,9 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * Merges the current [types][showitem] array with the array of fields to add for the current subtype field of the "type" value.
 	 *
-	 * @param	array		A [types][showitem] list of fields, exploded by ","
-	 * @param	array		The output from getFieldsToAdd()
-	 * @return	array		Return the modified $fields array.
+	 * @param   array  A [types][showitem] list of fields, exploded by ","
+	 * @param   array  The output from getFieldsToAdd()
+	 * @return  array  Return the modified $fields array.
 	 * @see getMainFields(),getFieldsToAdd()
 	 */
 	protected function mergeFieldsWithAddedFields($fields,$fieldsToAdd)	{
@@ -295,14 +295,14 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * Returns the object representation for a database table field.
 	 *
-	 * @param	string		The table name
-	 * @param	string		The field name
-	 * @param	array		The record to edit from the database table.
-	 * @param	string		Alternative field name label to show.
-	 * @param	boolean		Set this if the field is on a palette (in top frame), otherwise not. (if set, field will render as a hidden field).
-	 * @param	string		The "extra" options from "Part 4" of the field configurations found in the "types" "showitem" list. Typically parsed by $this->getSpecConfFromString() in order to get the options as an associative array.
-	 * @param	integer		The palette pointer.
-	 * @return	t3lib_TCEforms_AbstractElement
+	 * @param   string   $table    The table name
+	 * @param   string   $field    The field name
+	 * @param   array    $row      The record to edit from the database table.
+	 * @param   string   $altName  Alternative field name label to show.
+	 * @param   boolean  $palette  Set this if the field is on a palette (in top frame), otherwise not. (if set, field will render as a hidden field).
+	 * @param   string   $extra    The "extra" options from "Part 4" of the field configurations found in the "types" "showitem" list. Typically parsed by $this->getSpecConfFromString() in order to get the options as an associative array.
+	 * @param   integer  $pal      The palette pointer.
+	 * @return  t3lib_TCEforms_AbstractElement
 	 */
 	// TODO: remove the extra parameters/use them if neccessary
 	function getSingleField($table,$field,$row,$altName='',$palette=0,$extra='',$pal=0)	{
@@ -345,7 +345,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 	}
 
 	/**
-	 * Factory method for
+	 * Factory method for form element objects. Defaults to type "unknown" if the class(file)
+	 * is not found.
 	 *
 	 * @param  string  $type  The type of record to create - directly taken from TCA
 	 * @return t3lib_TCEforms_AbstractElement  The element object
@@ -368,10 +369,22 @@ abstract class t3lib_TCEforms_AbstractForm {
 		return t3lib_div::makeInstance($className);
 	}
 
+	/**
+	 * Returns if a given element is among the elements set via setExcludeElements(), i.e.
+	 * not displayed in the form
+	 *
+	 * @param  string  $elementName  The name of the element to check
+	 * @return boolean
+	 */
 	public function isExcludeElement($elementName) {
 		return t3lib_div::inArray($this->excludeElements, $elementName);
 	}
 
+	/**
+	 * Returns the full array of elements which are excluded and thus not displayed on the form
+	 *
+	 * @return array
+	 */
 	public function getExcludeElements() {
 		return $this->excludeElements;
 	}
@@ -385,7 +398,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * Sets $this->excludeElements to an array with fieldnames as values. The fieldnames are
 	 * those which should NOT be displayed "anyways"
 	 *
-	 * @return	void
+	 * @return void
 	 */
 	protected function setExcludeElements() {
 		global $TCA;
@@ -426,15 +439,20 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * Returns the "special" configuration of an "extra" string (non-parsed)
 	 *
-	 * @param	string		The "Part 4" of the fields configuration in "types" "showitem" lists.
-	 * @param	string		The ['defaultExtras'] value from field configuration
-	 * @return	array		An array with the special options in.
+	 * @param  string  The "Part 4" of the fields configuration in "types" "showitem" lists.
+	 * @param  string  The ['defaultExtras'] value from field configuration
+	 * @return array   An array with the special options in.
 	 * @see getSpecConfForField(), t3lib_BEfunc::getSpecConfParts()
 	 */
 	function getSpecConfFromString($extraString, $defaultExtras)    {
 		return t3lib_BEfunc::getSpecConfParts($extraString, $defaultExtras);
 	}
 
+	/**
+	 * Sets an field's status to "hidden", thus not displaying it visibly on the form
+	 *
+	 * @param mixed  $fieldName  The fieldname to exclude. May also be an array of fieldnames.
+	 */
 	public function setHiddenField($fieldName) {
 		if (is_array($fieldName)) {
 			$this->hiddenFields = t3lib_div::array_merge($this->hiddenFields, $fieldName);
@@ -443,6 +461,15 @@ abstract class t3lib_TCEforms_AbstractForm {
 		}
 	}
 
+	/**
+	 * Adds HTML code for a hidden form field to the form
+	 *
+	 * WARNING: You may only add code for a field once. The second time you try to "add" code
+	 *          for this field, the first code will be overwritten!
+	 *
+	 * @param string  $formFieldName  The fieldname for which the HTML is added.
+	 * @param string  $code  The complete HTML to render for the field
+	 */
 	public function addHiddenFieldHTMLCode($formFieldName, $code) {
 		$this->hiddenFields_HTMLcode[$formFieldName] = $code;
 	}
@@ -452,7 +479,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 *
 	 * Sets $this->typeNumber to the types pointer value.
 	 *
-	 * @return	void
+	 * @return void
 	 */
 	protected function setRecordTypeNumber()	{
 		global $TCA;
@@ -475,28 +502,35 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * Generic setter function
 	 *
-	 * @param string  $key
-	 * @param mixed   $value
+	 * @param string  $key    The var name to (over)write
+	 * @param mixed   $value  The value to write to the variable
 	 */
 	public function __set($key, $value) {
 			// DANGEROUS, may be used to overwrite *EVERYTHING* in this class! Should be secured later on
-		if (substr($key, 0, 3) == 'set') {
-			$varKey = substr($key, 3);
-		} else {
-			$varKey = $key;
-		}
-
-		$this->$varKey = $value;
+		$this->$key = $value;
 	}
 
+	/**
+	 * Generic getter function, will be called by PHP if the given var is protected/private or does
+	 * not exist at all. The latter case will fail at the moment, as the function does no mapping of
+	 * non-existing keys at the moment.
+	 *
+	 * @param  string  $key  The name of the variable to return
+	 * @return array
+	 */
 	public function __get($key) {
-		if (substr($key, 0, 3) == 'get') {
-			$varKey = substr($key, 3);
-		}
-
-		return $this->$varKey;
+		// TODO: implement access check based on whitelist
+		return $this->$key;
 	}
 
+	/**
+	 * Factory method for tab objects on forms.
+	 *
+	 * @param   string  $tabIdentString  The identifier of the tab. Must be unique for the whole form
+	 *                                   (and all sub-forms!)
+	 * @param   string  $header  The caption of the form
+	 * @return  t3lib_TCEforms_Tab
+	 */
 	protected function createTabObject($tabIdentString, $header) {
 		$tabObject = new t3lib_TCEforms_Tab;
 		$tabObject->init($tabIdentString, $header, $this);
@@ -509,8 +543,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * Fetches language label for key
 	 *
-	 * @param	string		Language label reference, eg. 'LLL:EXT:lang/locallang_core.php:labels.blablabla'
-	 * @return	string		The value of the label, fetched for the current backend language.
+	 * @param   string  Language label reference, eg. 'LLL:EXT:lang/locallang_core.php:labels.blablabla'
+	 * @return  string  The value of the label, fetched for the current backend language.
 	 */
 	protected function sL($str)	{
 		return $GLOBALS['LANG']->sL($str);
@@ -522,8 +556,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * The prefix "l_" maps to the prefix "labels." inside locallang_core.php
 	 * The prefix "m_" maps to the prefix "mess." inside locallang_core.php
 	 *
-	 * @param	string		The label key
-	 * @return	string		The value of the label, fetched for the current backend language.
+	 * @param   string  The label key
+	 * @return  string  The value of the label, fetched for the current backend language.
 	 */
 	protected function getLL($str)	{
 		$content = '';
@@ -539,14 +573,30 @@ abstract class t3lib_TCEforms_AbstractForm {
 		return $content;
 	}
 
+	/**
+	 * Sets the (old) TCEforms-object used by this form.
+	 *
+	 * @param  t3lib_TCEforms $TCEformsObject
+	 * @deprecated  since 4.2
+	 */
 	public function setTCEformsObject(t3lib_TCEforms $TCEformsObject) {
 		$this->TCEformsObject = $TCEformsObject;
 	}
 
+	/**
+	 * Sets the global status of all palettes to collapsed/uncollapsed
+	 *
+	 * @param  boolean  $collapsed
+	 */
 	public function setPalettesCollapsed($collapsed) {
-		$this->palettesCollapsed = $collapsed;
+		$this->palettesCollapsed = (bool)$collapsed;
 	}
 
+	/**
+	 * Returns whether or not the palettes are collapsed
+	 *
+	 * @return boolean
+	 */
 	public function getPalettesCollapsed() {
 		return $this->palettesCollapsed;
 	}
@@ -559,6 +609,12 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 *
 	 ********************************************/
 
+	/**
+	 * Sets the path to the template file. Also automatically loads the contents of this file.
+	 * It may be accessed via getTemplateContent()
+	 *
+	 * @param  string  $filePath
+	 */
 	public function setTemplateFile($filePath) {
 		$filePath = t3lib_div::getFileAbsFileName($filePath);
 
@@ -615,10 +671,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * This replaces markers in the total wrap
 	 *
-	 * @param	array		An array of template parts containing some markers.
-	 * @param	array		The record
-	 * @param	string		The table name
-	 * @return	string
+	 * @param   array    An array of template parts containing some markers.
+	 * @param   array    The record
+	 * @param   string   The table name
+	 * @return  string
 	 */
 	function replaceTableWrap($wrap, $content)	{
 		global $TCA;
