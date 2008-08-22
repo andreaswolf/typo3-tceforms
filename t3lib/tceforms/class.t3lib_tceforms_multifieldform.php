@@ -36,13 +36,13 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 
 			// always create at least one default tab
 		if (isset($this->fieldList[0]) && strpos($this->fieldList[0], '--div--') !== 0) {
-			$tabIdentString = 'TCEforms:'.$table.':'.$row['uid'];
-			$tabIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($tabIdentString);
+			$sheetIdentString = 'TCEforms:'.$table.':'.$row['uid'];
+			$sheetIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($sheetIdentString);
 
-			$this->currentTab = $this->createTabObject($tabIdentStringMD5.'-1', $this->getLL('l_generalTab'));
+			$this->currentSheet = $this->createSheetObject($sheetIdentStringMD5.'-1', $this->getLL('l_generalTab'));
 		}
 
-		$tabCounter = 1;
+		$sheetCounter = 1;
 		foreach ($this->fieldList as $fieldInfo) {
 			// Exploding subparts of the field configuration:
 			$parts = explode(';', $fieldInfo);
@@ -56,7 +56,7 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 			if ($this->tableTCAconfig['columns'][$theField]) {
 				// TODO: Handle field configuration here.
 				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record, $parts[1], 0, $parts[3], $parts[2]);
-				$this->currentTab->addChildObject($formFieldObject);
+				$this->currentSheet->addChildObject($formFieldObject);
 
 
 					// Getting the style information out:
@@ -79,26 +79,26 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 					}
 				}
 			} elseif ($theField == '--div--') {
-				++$tabCounter;
+				++$sheetCounter;
 
-				$tabObject = $this->createTabObject($tabIdentStringMD5.'-'.$tabCounter, $this->sL($parts[1]));
-				$this->currentTab = $tabObject;
+				$sheetObject = $this->createSheetObject($tabIdentStringMD5.'-'.$sheetCounter, $this->sL($parts[1]));
+				$this->currentSheet = $sheetObject;
 			} // TODO: add top-level palette handling!
 		}
 
 		$tabContents = array();
 
 		$c = 0;
-		foreach ($this->tabs as $tabObject) {
+		foreach ($this->sheets as $sheetObject) {
 			++$c;
 			$tabContents[$c] = array(
 				'newline' => false, // TODO: make this configurable again
-				'label' => $tabObject->getHeader(),
-				'content' => $tabObject->render()
+				'label' => $sheetObject->getHeader(),
+				'content' => $sheetObject->render()
 			);
 		}
 		if (count($tabContents) > 1) {
-			$content = $this->getDynTabMenu($tabContents, $tabIdentString);
+			$content = $this->getDynTabMenu($tabContents, $sheetIdentString);
 		} else {
 			$content = $tabContents[1]['content'];
 		}

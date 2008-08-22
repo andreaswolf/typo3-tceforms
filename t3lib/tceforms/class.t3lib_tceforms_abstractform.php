@@ -1,6 +1,6 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_tab.php');
+require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_sheet.php');
 
 abstract class t3lib_TCEforms_AbstractForm {
 
@@ -52,14 +52,14 @@ abstract class t3lib_TCEforms_AbstractForm {
 	protected $useTabs;
 
 	/**
-	 * @var array  All tabs directly "owned" by this form (=> does not include sub-tabs of these tabs)
+	 * @var array  All sheets of this form
 	 */
-	protected $tabs = array();
+	protected $sheets = array();
 
 	/**
-	 * @var t3lib_TCEforms_Tab  The currently used tab
+	 * @var t3lib_TCEforms_Sheet  The currently used sheet
 	 */
-	protected $currentTab;
+	protected $currentSheet;
 
 	/**
 	 * May be safely removed as soon as all dependencies on the old TCEforms are removed!
@@ -245,8 +245,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 			case 'none':
 			default:
 				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
-					// don't set the containing tab here because we can't be sure if this item
-					// will be attached to $this->currentTab
+					// don't set the container here because we can't be sure if this item
+					// will be attached to $this->currentSheet or another sheet
 				$elementObject->setTCEformsObject($this->TCEformsObject);
 				$elementObject->set_TCEformsObject($this);
 				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal, $this);
@@ -441,20 +441,20 @@ abstract class t3lib_TCEforms_AbstractForm {
 	}
 
 	/**
-	 * Factory method for tab objects on forms.
+	 * Factory method for sheet objects on forms.
 	 *
-	 * @param   string  $tabIdentString  The identifier of the tab. Must be unique for the whole form
-	 *                                   (and all sub-forms!)
-	 * @param   string  $header  The caption of the form
-	 * @return  t3lib_TCEforms_Tab
+	 * @param   string  $sheetIdentString  The identifier of the sheet. Must be unique for the whole form
+	 *                                     (and all sub-forms!)
+	 * @param   string  $header  The name of the sheet (e.g. displayed as the title in tabs
+	 * @return  t3lib_TCEforms_Sheet
 	 */
-	protected function createTabObject($tabIdentString, $header) {
-		$tabObject = new t3lib_TCEforms_Tab;
-		$tabObject->init($tabIdentString, $header, $this);
+	protected function createSheetObject($sheetIdentString, $header) {
+		$sheetObject = new t3lib_TCEforms_Sheet;
+		$sheetObject->init($sheetIdentString, $header, $this);
 
-		$this->tabs[] = $tabObject;
+		$this->sheets[] = $sheetObject;
 
-		return $tabObject;
+		return $sheetObject;
 	}
 
 	/**
@@ -704,8 +704,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$elements = array();
 
 			// required:
-		foreach ($this->tabs as $tab) {
-			foreach ($tab->getRequiredFields() as $itemImgName => $itemName) {
+		foreach ($this->sheets as $sheet) {
+			foreach ($sheet->getRequiredFields() as $itemImgName => $itemName) {
 				$match = array();
 				if (preg_match('/^(.+)\[((\w|\d|_)+)\]$/', $itemName, $match)) {
 					$record = $match[1];
@@ -718,7 +718,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 				}
 			}
 				// range:
-			foreach ($tab->getRequiredElements() as $itemName => $range) {
+			foreach ($sheet->getRequiredElements() as $itemName => $range) {
 				if (preg_match('/^(.+)\[((\w|\d|_)+)\]$/', $itemName, $match)) {
 					$record = $match[1];
 					$field = $match[2];

@@ -16,9 +16,9 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 	protected $_TCEformsObject;
 
 	/**
-	 * @var t3lib_TCEforms_Tab  The tab containing this element.
+	 * @var t3lib_TCEforms_Container  The element containing this element (may be a sheet, a palette, ...).
 	 */
-	protected $containingTab;
+	protected $container;
 
 	protected $alternativeName;
 
@@ -319,7 +319,11 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 	}
 
 	public function setContainingTab(t3lib_TCEforms_Tab $tabObject) {
-		$this->containingTab = $tabObject;
+		$this->setContainer($tabObject);
+	}
+
+	public function setContainer(t3lib_TCEforms_Container $container) {
+		$this->container = $container;
 	}
 
 	/**

@@ -2,9 +2,9 @@
 
 require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_container.php');
 
-class t3lib_TCEforms_Tab implements t3lib_TCEforms_Container {
+class t3lib_TCEforms_Sheet implements t3lib_TCEforms_Container {
 	/**
-	 * @var array  The sub-elements of this tab
+	 * @var array  The sub-elements of this sheet
 	 */
 	protected $childObjects;
 
@@ -13,7 +13,7 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Container {
 	protected $header;
 
 	/**
-	 * @var t3lib_TCEforms_AbstractForm  The parent form this tab belongs to
+	 * @var t3lib_TCEforms_AbstractForm  The parent form this sheet belongs to
 	 */
 	protected $parentObject;
 
@@ -36,7 +36,7 @@ class t3lib_TCEforms_Tab implements t3lib_TCEforms_Container {
 
 	public function addChildObject(t3lib_TCEforms_AbstractElement $childObject) {
 		// TODO: set container of child object here! (-> first need to create function setContainer() in AbstractElement)
-		$childObject->setContainingTab($this);
+		$childObject->setContainer($this);
 		$this->childObjects[] = $childObject;
 	}
 
