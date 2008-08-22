@@ -95,6 +95,9 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 	protected $backPath;
 
+	protected $fieldList = array();
+	protected $fieldsToList = array();
+
 
 
 	/**
@@ -204,92 +207,6 @@ abstract class t3lib_TCEforms_AbstractForm {
 			}
 		}
 		return $fields;
-	}
-
-	/**
-	 * Renders the form; this function is the successor of the old
-	 * t3lib_tceforms::getSoloField()/getMainFields()/...
-	 *
-	 *
-	 */
-	public function render() {
-			// Hook: getMainFields_preProcess (requested by Thomas Hempel for use with the "dynaflex" extension)
-		/*foreach ($this->hookObjectsMainFields as $hookObj)	{
-			if (method_exists($hookObj,'getMainFields_preProcess'))	{
-				$hookObj->getMainFields_preProcess($table,$row,$this);
-			}
-		}*/
-
-			// always create at least one default tab
-		if (isset($this->fieldList[0]) && strpos($this->fieldList[0], '--div--') !== 0) {
-			$tabIdentString = 'TCEforms:'.$table.':'.$row['uid'];
-			$tabIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($tabIdentString);
-
-			$this->currentTab = $this->createTabObject($tabIdentStringMD5.'-1', $this->getLL('l_generalTab'));
-		}
-
-		$tabCounter = 1;
-		foreach ($this->fieldList as $fieldInfo) {
-			// Exploding subparts of the field configuration:
-			$parts = explode(';', $fieldInfo);
-
-
-			$theField = $parts[0];
-			if ($this->isExcludeElement($theField))	{
-				continue;
-			}
-
-			if ($this->tableTCAconfig['columns'][$theField]) {
-				// TODO: Handle field configuration here.
-				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record, $parts[1], 0, $parts[3], $parts[2]);
-				$this->currentTab->addChildObject($formFieldObject);
-
-
-					// Getting the style information out:
-				// TODO: Make this really object oriented
-				$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
-				if (strcmp($color_style_parts[0], ''))	{
-					$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
-				}
-				if (strcmp($color_style_parts[1], ''))	{
-					$formFieldObject->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])];
-					if (!isset($this->fieldStyle)) {
-						$formFieldObject->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
-					}
-				}
-				if (strcmp($color_style_parts[2], ''))	{
-					$formFieldObject->_wrapBorder = true;
-					$formFieldObject->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])];
-					if (!isset($this->borderStyle)) {
-						$formFieldObject->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
-					}
-				}
-			} elseif ($theField == '--div--') {
-				++$tabCounter;
-
-				$tabObject = $this->createTabObject($tabIdentStringMD5.'-'.$tabCounter, $this->sL($parts[1]));
-				$this->currentTab = $tabObject;
-			} // TODO: add top-level palette handling!
-		}
-
-		$tabContents = array();
-
-		$c = 0;
-		foreach ($this->tabs as $tabObject) {
-			++$c;
-			$tabContents[$c] = array(
-				'newline' => false, // TODO: make this configurable again
-				'label' => $tabObject->getHeader(),
-				'content' => $tabObject->render()
-			);
-		}
-		if (count($tabContents) > 1) {
-			$content = $this->getDynTabMenu($tabContents, $tabIdentString);
-		} else {
-			$content = $tabContents[1]['content'];
-		}
-			// TODO: move the wrap to alt_doc.php
-		return $this->wrapTotal($content);
 	}
 
 	/**

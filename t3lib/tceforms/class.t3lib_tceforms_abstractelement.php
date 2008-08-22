@@ -128,7 +128,24 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 			// commented out because IRRE is not enabled by now -- andreaswolf, 23.07.2008
 		//$skipThisField = $this->inline->skipField($table, $this->field, $this->record, $this->fieldConfig['config']);
 
+			// create the palette icon here
+		if (!$this->palette && $this->pal !== NULL)	{
+			$this->paletteObject = t3lib_div::makeInstance('t3lib_TCEforms_Palette');
+			$this->paletteObject->init($this->table, $this->record, $this->typeNumber, $this->pal, $this->field, '');
+			$this->paletteObject->setTCEformsObject($this->_TCEformsObject);
+			$this->paletteObject->setContainingObject($this);
+			$paletteFields = $this->paletteObject->render();
 
+			$this->hasPalette = true;
+
+			//$paletteFields = $this->TCEformsObject->loadPaletteElements($this->table, $this->record, $this->pal);
+			if ($this->pal && $this->TCEformsObject->isPalettesCollapsed($this->table,$this->pal) && count($paletteFields))	{
+				list($thePalIcon,$palJSfunc) = $this->TCEformsObject->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->TCEformsObject->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->TCEformsObject->getLL('l_moreOptions')).'" alt="" />',$this->table,$this->record,$this->pal,1);
+			} else {
+				$thePalIcon = '';
+				$palJSfunc = '';
+			}
+		}
 	}
 
 	// TODO: refactor this (almost completly copied from t3lib_TCEforms)
@@ -188,10 +205,6 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 
 						// If the field is NOT a palette field, then we might create an icon which links to a palette for the field, if one exists.
 					if (!$this->palette && $this->pal !== NULL)	{
-						$this->paletteObject = t3lib_div::makeInstance('t3lib_TCEforms_Palette');
-						$this->paletteObject->init($this->table, $this->record, $this->typeNumber, $this->pal, $this->field, '');
-						$this->paletteObject->setTCEformsObject($this->_TCEformsObject);
-						$this->paletteObject->setContainingObject($this);
 						$paletteFields = $this->paletteObject->render();
 
 						$this->hasPalette = true;
