@@ -37,6 +37,9 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 
 	protected $fieldChangeFunc = array();
 
+	protected $table;
+
+	protected $field;
 
 	protected $record;
 
@@ -84,6 +87,7 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 	public function init($table, $field, $row, $fieldConfig, $alternativeName='', $palette=0, $extra='', $pal = null, $parentObject = null) {
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
+			// Field config is the same as $PA['fieldConf'] below
 		$this->fieldConfig = $fieldConfig;
 		$this->table = $table;
 		$this->record = $row;
@@ -107,13 +111,13 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 
 			// only used temporarily, should be removed later on
 		$PA = array();
-		$PA['altName'] = $altName;
+		$PA['altName'] = $alternativeName;
 		$PA['palette'] = $palette;
 		$PA['extra'] = $extra;
 		$PA['pal'] = $pal;
 
 			// Get the TCA configuration for the current field:
-		$PA['fieldConf'] = $TCA[$table]['columns'][$field];
+		$PA['fieldConf'] =& $this->fieldConfig; //$TCA[$table]['columns'][$field];
 		$PA['fieldConf']['config']['form_type'] = $PA['fieldConf']['config']['form_type'] ? $PA['fieldConf']['config']['form_type'] : $PA['fieldConf']['config']['type'];	// Using "form_type" locally in this script
 		$this->PA = $PA;
 
@@ -128,7 +132,7 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 			// commented out because IRRE is not enabled by now -- andreaswolf, 23.07.2008
 		//$skipThisField = $this->inline->skipField($table, $this->field, $this->record, $this->fieldConfig['config']);
 
-			// create the palette icon here
+			// create the palette object & icon here
 		if (!$this->palette && $this->pal !== NULL)	{
 			$this->paletteObject = t3lib_div::makeInstance('t3lib_TCEforms_Palette');
 			$this->paletteObject->init($this->table, $this->record, $this->typeNumber, $this->pal, $this->field, '');
@@ -248,8 +252,8 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 					}
 
 					if ($renderLanguageDiff) {
-						$item = $this->TCEformsObject->renderDefaultLanguageContent($this->table,$this->field,$this->record,$item);
-						$item = $this->TCEformsObject->renderDefaultLanguageDiff($this->table,$this->field,$this->record,$item);
+						$item = $this->renderDefaultLanguageContent($item);
+						$item = $this->renderDefaultLanguageDiff($item);
 					}
 
 						// If the record has been saved and the "linkTitleToSelf" is set, we make the field name into a link, which will load ONLY this field in alt_doc.php
@@ -593,5 +597,165 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 		$this->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][0]);
 		$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
 		$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
+	}
+
+
+	/************************************************************
+	 *
+	 * Display of localized content etc.
+	 *
+	 ************************************************************/
+
+	public function setDefaultLanguageValue($defaultValue) {
+		$this->defaultLanguageValue = $defaultValue;
+	}
+
+	/**
+	 * Creates language-overlay for a field value
+	 * This means the requested field value will be overridden with the data from the default language.
+	 * Can be used to render read only fields for example.
+	 *
+	 * @param	string		Table name of the record being edited
+	 * @param	string		Field name represented by $item
+	 * @param	array		Record array of the record being edited in current language
+	 * @param	array		Content of $PA['fieldConf']
+	 * @return	string		Unprocessed field value merged with default language data if needed
+	 */
+	function getLanguageOverlayRawValue() {
+		global $TCA;
+
+		if ($this->fieldConf['l10n_mode']=='exclude'
+		  || ($this->fieldConf['l10n_mode']=='mergeIfNotBlank'
+		  && strcmp(trim($this->defaultLanguageValue),''))) {
+
+			$value = $this->defaultLanguageValue;
+		}
+
+
+		return $value;
+	}
+
+	/**
+	 * Renders the display of default language record content around current field.
+	 * Will render content if any is found in the internal array, $this->defaultLanguageData, depending on registerDefaultLanguageData() being called prior to this.
+	 *
+	 * @param	string		Table name of the record being edited
+	 * @param	string		Field name represented by $item
+	 * @param	array		Record array of the record being edited
+	 * @param	string		HTML of the form field. This is what we add the content to.
+	 * @return	string		Item string returned again, possibly with the original value added to.
+	 * @see getSingleField(), registerDefaultLanguageData()
+	 */
+	// TODO: check where $this->previewFieldValue() gets set
+	function renderDefaultLanguageContent($item) {
+		if ($this->defaultLanguageValue != '') {
+			$dLVal = t3lib_BEfunc::getProcessedValue($this->table, $this->field, $this->defaultLanguageValue, 0, 1);
+
+				// Don't show content if it's for IRRE child records:
+			if ($this->fieldConfig['type']!='inline') {
+				if (strcmp($dLVal,''))	{
+					$item.='<div class="typo3-TCEforms-originalLanguageValue">'.$this->_TCEformsObject->getLanguageIcon(0).$this->previewFieldValue($dLVal).'&nbsp;</div>';
+				}
+
+				$prLang = $this->TCEformsObject->getAdditionalPreviewLanguages();
+				foreach($prLang as $prL)	{
+					$dlVal = t3lib_BEfunc::getProcessedValue($this->table,$this->field,$this->additionalPreviewLanguageValue[$prL['uid']][$field],0,1);
+
+					if(strcmp($dlVal, '')) {
+						$item.= '<div class="typo3-TCEforms-originalLanguageValue">'.$this->_TCEformsObject->getLanguageIcon('v'.$prL['ISOcode']).$this->previewFieldValue($dlVal).'&nbsp;</div>';
+					}
+				}
+			}
+		}
+
+		return $item;
+	}
+
+	/**
+	 * Renders the diff-view of default language record content compared with what the record was originally translated from.
+	 * Will render content if any is found in the internal array, $this->defaultLanguageData, depending on registerDefaultLanguageData() being called prior to this.
+	 *
+	 * @param	string		Table name of the record being edited
+	 * @param	string		Field name represented by $item
+	 * @param	array		Record array of the record being edited
+	 * @param	string		HTML of the form field. This is what we add the content to.
+	 * @return	string		Item string returned again, possibly with the original value added to.
+	 * @see getSingleField(), registerDefaultLanguageData()
+	 */
+	function renderDefaultLanguageDiff($item) {
+		if (is_array($this->defaultLanguageData_diff[$this->table.':'.$this->record['uid']])) {
+
+				// Initialize:
+			$dLVal = array(
+				'old' => $this->defaultLanguageData_diff[$this->table.':'.$this->record['uid']],
+				'new' => $this->defaultLanguageData[$this->table.':'.$this->record['uid']],
+			);
+
+			if (isset($dLVal['old'][$this->field])) { // There must be diff-data:
+			 	if (strcmp($dLVal['old'][$this->field],$dLVal['new'][$this->field])) {
+
+						// Create diff-result:
+					$t3lib_diff_Obj = t3lib_div::makeInstance('t3lib_diff');
+					$diffres = $t3lib_diff_Obj->makeDiffDisplay(
+						t3lib_BEfunc::getProcessedValue($this->table,$this->field,$dLVal['old'][$this->field],0,1),
+						t3lib_BEfunc::getProcessedValue($this->table,$this->field,$dLVal['new'][$this->field],0,1)
+					);
+
+					$item.='<div class="typo3-TCEforms-diffBox">'.
+						'<div class="typo3-TCEforms-diffBox-header">'.htmlspecialchars($this->getLL('l_changeInOrig')).':</div>'.
+						$diffres.
+					'</div>';
+				}
+			}
+		}
+
+		return $item;
+	}
+
+	/**
+	 * Rendering preview output of a field value which is not shown as a form field but just outputted.
+	 *
+	 * @param	string		The value to output
+	 * @param	array		Configuration for field.
+	 * @return 	string		HTML formatted output
+	 */
+	function previewFieldValue($value) {
+		if ($this->fieldConfig['type']==='group' && $this->fieldConfig['internal_type'] === 'file') {
+			$show_thumbs = TRUE;
+			$table = 'tt_content';
+
+				// Making the array of file items:
+			$itemArray = t3lib_div::trimExplode(',', $value, 1);
+
+				// Showing thumbnails:
+			$thumbsnail = '';
+			if ($show_thumbs) {
+				$imgs = array();
+				foreach($itemArray as $imgRead) {
+					$imgP = explode('|',$imgRead);
+					$imgPath = rawurldecode($imgP[0]);
+
+					$rowCopy = array();
+					$rowCopy[$field] = $imgPath;
+
+						// Icon + clickmenu:
+					$absFilePath = t3lib_div::getFileAbsFileName($this->fieldConfig['uploadfolder'].'/'.$imgPath);
+
+					$fI = pathinfo($imgPath);
+					$fileIcon = t3lib_BEfunc::getFileIcon(strtolower($fI['extension']));
+					$fileIcon = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/fileicons/'.$fileIcon,'width="18" height="16"').' class="absmiddle" title="'.htmlspecialchars($fI['basename'].($absFilePath && @is_file($absFilePath) ? ' ('.t3lib_div::formatSize(filesize($absFilePath)).'bytes)' : ' - FILE NOT FOUND!')).'" alt="" />';
+
+					$imgs[] = '<span class="nobr">'.t3lib_BEfunc::thumbCode($rowCopy,$table,$field,$this->backPath,'thumbs.php',$config['config']['uploadfolder'],0,' align="middle"').
+								($absFilePath ? $this->getClickMenu($fileIcon, $absFilePath) : $fileIcon).
+								$imgPath.
+								'</span>';
+				}
+				$thumbsnail = implode('<br />',$imgs);
+			}
+
+			return $thumbsnail;
+		} else {
+			return nl2br(htmlspecialchars($value));
+		}
 	}
 }
