@@ -116,6 +116,13 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 		$PA['extra'] = $extra;
 		$PA['pal'] = $pal;
 
+
+			// Init variables:
+		$this->itemFormElName = $this->prependFormFieldNames.'['.$this->table.']['.$this->record['uid'].']['.$this->field.']'; // Form field name
+		$this->itemFormElName_file = $this->prependFormFieldNames_file.'['.$this->table.']['.$this->record['uid'].']['.$this->field.']'; // Form field name, in case of file uploads
+		$this->itemFormElValue = $this->record[$this->field]; // The value to show in the form field.
+		$this->itemFormElID = $this->prependFormFieldNames.'_'.$this->table.'_'.$this->record['uid'].'_'.$this->field;
+
 			// Get the TCA configuration for the current field:
 		$PA['fieldConf'] =& $this->fieldConfig; //$TCA[$table]['columns'][$field];
 		$PA['fieldConf']['config']['form_type'] = $PA['fieldConf']['config']['form_type'] ? $PA['fieldConf']['config']['form_type'] : $PA['fieldConf']['config']['type'];	// Using "form_type" locally in this script
@@ -152,6 +159,19 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 		}
 	}
 
+	public function setItemFormElementName($itemFormElementName) {
+		$this->itemFormElName = $itemFormElementName;
+		$this->itemFormElName_file = $itemFormElementName;
+	}
+
+	public function setItemFormElementID($itemFormElementID) {
+		$this->itemFormElID = $itemFormElementID;
+	}
+
+	public function setItemFormElementValue($formElementValue) {
+		$this->itemFormElValue = $formElementValue;
+	}
+
 	// TODO: refactor this (almost completly copied from t3lib_TCEforms)
 	public function render() {
 		global $BE_USER, $TCA;
@@ -174,12 +194,6 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 			if (!$fieldTSConfig['disabled'])	{
 					// Override fieldConf by fieldTSconfig:
 				$this->fieldConfig['config'] = $this->overrideFieldConf($this->fieldConfig['config'], $fieldTSConfig);
-
-					// Init variables:
-				$this->itemFormElName = $this->prependFormFieldNames.'['.$this->table.']['.$this->record['uid'].']['.$this->field.']'; // Form field name
-				$this->itemFormElName_file = $this->prependFormFieldNames_file.'['.$this->table.']['.$this->record['uid'].']['.$this->field.']'; // Form field name, in case of file uploads
-				$this->itemFormElValue = $this->record[$this->field]; // The value to show in the form field.
-				$this->itemFormElID = $this->prependFormFieldNames.'_'.$this->table.'_'.$this->record['uid'].'_'.$this->field;
 
 					// set field to read-only if configured for translated records to show default language content as readonly
 				if ($this->fieldConfig['l10n_display'] && t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly') && $this->record[$TCA[$this->table]['ctrl']['languageField']]) {
@@ -317,7 +331,7 @@ abstract class t3lib_TCEforms_AbstractElement implements t3lib_TCEforms_Element 
 		$this->TCEformsObject = $TCEformsObject;
 	}
 
-	// TODO: remove this once the transition to the new TCEforms object structure is doen
+	// TODO: remove this once the transition to the new TCEforms object structure is done
 	public function set_TCEformsObject(t3lib_TCEforms_AbstractForm $_TCEformsObject) {
 		$this->_TCEformsObject = $_TCEformsObject;
 	}
