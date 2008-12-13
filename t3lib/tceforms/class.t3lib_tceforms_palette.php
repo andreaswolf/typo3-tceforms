@@ -55,7 +55,7 @@ class t3lib_TCEforms_Palette implements t3lib_TCEforms_Container {
 
 					if (!in_array($theField, $this->excludeElements) && $TCA[$this->table]['columns'][$theField])	{
 						$this->fieldArr[] = $theField;
-						$elem = $this->TCEformsObject->getSingleField($this->table,$theField,$this->record,$fieldParts[1],1,'',$fieldParts[2]);
+						$elem = $this->TCEformsObject->getSingleField($theField, $fieldParts[1], 1, '', $fieldParts[2]);
 
 						if ($elem instanceof t3lib_TCEforms_AbstractElement) {
 							$parts[] = $elem;

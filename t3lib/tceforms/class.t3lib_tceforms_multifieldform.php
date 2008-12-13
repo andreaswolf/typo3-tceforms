@@ -55,7 +55,7 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 
 			if ($this->tableTCAconfig['columns'][$theField]) {
 				// TODO: Handle field configuration here.
-				$formFieldObject = $this->getSingleField($this->table, $theField, $this->record, $parts[1], 0, $parts[3], $parts[2]);
+				$formFieldObject = $this->getSingleField($theField, $parts[1], 0, $parts[3], $parts[2]);
 				$this->currentSheet->addChildObject($formFieldObject);
 
 
