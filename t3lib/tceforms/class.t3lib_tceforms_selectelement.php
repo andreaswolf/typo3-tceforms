@@ -4,42 +4,53 @@ require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
 
 
 class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
+
+	/**
+	 * @var string
+	 */
+	protected $nonMatchingValueLabel;
+
+	protected $selectItems;
+
+
 	protected function renderField() {
 		global $TCA;
 
-			// Field configuration from TCA:
-		$config = $this->fieldConfig['config'];
-
 		$disabled = '';
-		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
+		if($this->TCEformsObject->renderReadonly || $this->fieldConfig['config']['readOnly'])  {
 			$disabled = ' disabled="disabled"';
 		}
 
-			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. See http://typo3.org/documentation/document-library/doc_core_api/Wizards_Configuratio/.
+		// "Extra" configuration; Returns configuration for the field based
+		// on settings found in the "types" fieldlist. See http://typo3.org/documentation/document-library/doc_core_api/Wizards_Configuratio/.
 		$specConf = $this->TCEformsObject->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
 
-			// Getting the selector box items from the system
-		$selItems = $this->TCEformsObject->addSelectOptionsToItemArray($this->TCEformsObject->initItemArray($this->fieldConfig),$this->fieldConfig,$this->TCEformsObject->setTSconfig($table,$row),$field);
-		$selItems = $this->TCEformsObject->addItems($selItems,$this->fieldTSConfig['addItems.']);
-		if ($config['itemsProcFunc']) $selItems = $this->TCEformsObject->procItems($selItems,$this->fieldTSConfig['itemsProcFunc.'],$config,$table,$row,$field);
+		// Getting the selector box items from the system
+		$this->selectItems = $this->TCEformsObject->addSelectOptionsToItemArray($this->TCEformsObject->initItemArray($this->fieldConfig), $this->fieldConfig, $this->TCEformsObject->setTSconfig($this->table, $this->record), $this->field);
+		$this->selectItems = $this->TCEformsObject->addItems($this->selectItems, $this->fieldTSConfig['addItems.']);
+		if ($this->fieldConfig['config']['itemsProcFunc']) {
+			$this->selectItems = $this->TCEformsObject->procItems($this->selectItems, $this->fieldTSConfig['itemsProcFunc.'], $this->fieldConfig['config'], $this->table, $this->record, $this->field);
+		}
 
 			// Possibly remove some items:
 		$removeItems = t3lib_div::trimExplode(',',$this->fieldTSConfig['removeItems'],1);
 		foreach($selItems as $tk => $p)	{
 
-				// Checking languages and authMode:
-			$languageDeny = $TCA[$table]['ctrl']['languageField'] && !strcmp($TCA[$table]['ctrl']['languageField'], $field) && !$GLOBALS['BE_USER']->checkLanguageAccess($p[1]);
-			$authModeDeny = $config['form_type']=='select' && $config['authMode'] && !$GLOBALS['BE_USER']->checkAuthMode($table,$field,$p[1],$config['authMode']);
-			if (in_array($p[1],$removeItems) || $languageDeny || $authModeDeny)	{
-				unset($selItems[$tk]);
+		foreach ($this->selectItems as $tk => $p)	{
+
+			// Checking languages and authMode:
+			$languageDeny = ($TCA[$this->table]['ctrl']['languageField'] && !strcmp($TCA[$this->table]['ctrl']['languageField'], $this->field) && !$GLOBALS['BE_USER']->checkLanguageAccess($p[1]));
+			$authModeDeny = ($this->fieldConfig['config']['form_type'] == 'select' && $this->fieldConfig['config']['authMode'] && !$GLOBALS['BE_USER']->checkAuthMode($this->table, $this->field, $p[1], $this->fieldConfig['config']['authMode']));
+			if (in_array($p[1], $removeItems) || $languageDeny || $authModeDeny) {
+				unset($this->selectItems[$tk]);
 			} elseif (isset($this->fieldTSConfig['altLabels.'][$p[1]])) {
-				$selItems[$tk][0]=$this->TCEformsObject->sL($this->fieldTSConfig['altLabels.'][$p[1]]);
+				$this->selectItems[$tk][0]=$this->TCEformsObject->sL($this->fieldTSConfig['altLabels.'][$p[1]]);
 			}
 
-				// Removing doktypes with no access:
-			if ($table.'.'.$field == 'pages.doktype')	{
-				if (!($GLOBALS['BE_USER']->isAdmin() || t3lib_div::inList($GLOBALS['BE_USER']->groupData['pagetypes_select'],$p[1])))	{
-					unset($selItems[$tk]);
+			// Removing doktypes with no access:
+			if ($this->table.'.'.$this->field == 'pages.doktype') {
+				if (!($GLOBALS['BE_USER']->isAdmin() || t3lib_div::inList($GLOBALS['BE_USER']->groupData['pagetypes_select'],$p[1]))) {
+					unset($this->selectItems[$tk]);
 				}
 			}
 		}
@@ -47,39 +58,40 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			// Creating the label for the "No Matching Value" entry.
 		$nMV_label = isset($this->fieldTSConfig['noMatchingValue_label']) ? $this->TCEformsObject->sL($this->fieldTSConfig['noMatchingValue_label']) : '[ '.$this->TCEformsObject->getLL('l_noMatchingValue').' ]';
 
-			// Prepare some values:
-		$maxitems = intval($config['maxitems']);
-
-			// If a SINGLE selector box...
-		if ($maxitems<=1)	{
-			$item = $this->initSubtypeSingle($table,$field,$row,$PA,$config,$selItems,$nMV_label);
-		} elseif (!strcmp($config['renderMode'],'checkbox'))	{	// Checkbox renderMode
-			$item = $this->initSubtypeCheckbox($table,$field,$row,$PA,$config,$selItems,$nMV_label);
-		} elseif (!strcmp($config['renderMode'],'singlebox'))	{	// Single selector box renderMode
-			$item = $this->initSubtypeSinglebox($table,$field,$row,$PA,$config,$selItems,$nMV_label);
-		} else {	// Traditional multiple selector box:
-			$item = $this->initSubtypeMultiple($table,$field,$row,$PA,$config,$selItems,$nMV_label);
+		// If a SINGLE selector box...
+		if (intval($this->fieldConfig['config']['maxitems']) <= 1) {
+			$item = $this->initSubtypeSingle();
+		} elseif (!strcmp($this->fieldConfig['config']['renderMode'], 'checkbox')) {
+			// Checkbox renderMode
+			$item = $this->initSubtypeCheckbox();
+		} elseif (!strcmp($this->fieldConfig['config']['renderMode'], 'singlebox')) {
+			// Single selector box renderMode
+			$item = $this->initSubtypeSinglebox();
+		} else {
+			// Traditional multiple selector box:
+			$item = $this->initSubtypeMultiple();
 		}
 
 			// Wizards:
 		if (!$disabled) {
-			$altItem = '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
-			$item = $this->TCEformsObject->renderWizards(array($item,$altItem),$config['wizards'],$table,$row,$field,$PA,$this->itemFormElName,$specConf);
+			$altItem = '<input type="hidden" name="' . $this->itemFormElName . '" value="' . htmlspecialchars($this->itemFormElValue)  .'" />';
+			$item = $this->TCEformsObject->renderWizards(array($item, $altItem), $this->fieldConfig['config']['wizards'], $this->table, $this->record, $this->field, $PA, $this->itemFormElName, $specConf);
 		}
 
 		return $item;
 	}
 
-	protected function initSubtypeSingle($table,$field,$row,&$PA,$config,$selItems,$nMV_label) {
+
+	protected function initSubtypeSingle() {
 			// check against inline uniqueness
 		$inlineParent = $this->TCEformsObject->inline->getStructureLevel(-1);
 		if(is_array($inlineParent) && $inlineParent['uid']) {
-			if ($inlineParent['config']['foreign_table'] == $table && $inlineParent['config']['foreign_unique'] == $field) {
-				$uniqueIds = $this->TCEformsObject->inline->inlineData['unique'][$this->TCEformsObject->inline->inlineNames['object'].'['.$table.']']['used'];
-				$this->fieldChangeFunc['inlineUnique'] = "inline.updateUnique(this,'".$this->TCEformsObject->inline->inlineNames['object'].'['.$table."]','".$this->TCEformsObject->inline->inlineNames['form']."','".$row['uid']."');";
+			if ($inlineParent['config']['foreign_table'] == $this->table && $inlineParent['config']['foreign_unique'] == $this->field) {
+				$uniqueIds = $this->TCEformsObject->inline->inlineData['unique'][$this->TCEformsObject->inline->inlineNames['object'].'['.$this->table.']']['used'];
+				$this->fieldChangeFunc['inlineUnique'] = "inline.updateUnique(this,'".$this->TCEformsObject->inline->inlineNames['object'].'['.$this->table."]','".$this->TCEformsObject->inline->inlineNames['form']."','".$this->record['uid']."');";
 			}
 				// hide uid of parent record for symmetric relations
-			if ($inlineParent['config']['foreign_table'] == $table && ($inlineParent['config']['foreign_field'] == $field || $inlineParent['config']['symmetric_field'] == $field)) {
+			if ($inlineParent['config']['foreign_table'] == $this->table && ($inlineParent['config']['foreign_field'] == $this->field || $inlineParent['config']['symmetric_field'] == $this->field)) {
 				$uniqueIds[] = $inlineParent['uid'];
 			}
 		}
@@ -91,28 +103,28 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		$opt = array();
 		$selicons = array();
 		$onlySelectedIconShown = 0;
-		$size = intval($config['size']);
+		$size = intval($this->fieldConfig['config']['size']);
 		$selectedStyle = ''; // Style set on <select/>
 
 		$disabled = '';
-		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
+		if($this->TCEformsObject->renderReadonly || $this->fieldConfig['config']['readOnly'])  {
 			$disabled = ' disabled="disabled"';
 			$onlySelectedIconShown = 1;
 		}
 
 			// Icon configuration:
-		if ($config['suppress_icons']=='IF_VALUE_FALSE')	{
+		if ($this->fieldConfig['config']['suppress_icons']=='IF_VALUE_FALSE')	{
 			$suppressIcons = !$this->itemFormElValue ? 1 : 0;
-		} elseif ($config['suppress_icons']=='ONLY_SELECTED')	{
+		} elseif ($this->fieldConfig['config']['suppress_icons']=='ONLY_SELECTED')	{
 			$suppressIcons=0;
 			$onlySelectedIconShown=1;
-		} elseif ($config['suppress_icons']) 	{
+		} elseif ($this->fieldConfig['config']['suppress_icons']) 	{
 			$suppressIcons = 1;
 		} else $suppressIcons = 0;
 
 			// Traverse the Array of selector box items:
 		$optGroupStart = array();
-		foreach($selItems as $p)	{
+		foreach($this->selectItems as $p)	{
 			$sM = (!strcmp($this->itemFormElValue,$p[1])?' selected="selected"':'');
 			if ($sM)	{
 				$sI = $c;
@@ -120,7 +132,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			}
 
 				// Getting style attribute value (for icons):
-			if ($config['iconsInOptionTags'])	{
+			if ($this->fieldConfig['config']['iconsInOptionTags'])	{
 				$styleAttrValue = $this->TCEformsObject->optionTagStyle($p[2]);
 				if ($sM) {
 					list($selectIconFile,$selectIconInfo) = $this->TCEformsObject->getIcon($p[2]);
@@ -174,7 +186,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// No-matching-value:
-		if ($this->itemFormElValue && $noMatchingValue && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
+		if ($this->itemFormElValue && $noMatchingValue && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$this->fieldConfig['config']['disableNoMatchingValueElement'])	{
 			$nMV_label = @sprintf($nMV_label, $this->itemFormElValue);
 			$opt[]= '<option value="'.htmlspecialchars($this->itemFormElValue).'" selected="selected">'.htmlspecialchars($nMV_label).'</option>';
 		}
@@ -193,9 +205,9 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		$item.= '</select>';
 
 			// Create icon table:
-		if (count($selicons) && !$config['noIconsBelowSelect'])	{
+		if (count($selicons) && !$this->fieldConfig['config']['noIconsBelowSelect'])	{
 			$item.='<table border="0" cellpadding="0" cellspacing="0" class="typo3-TCEforms-selectIcons">';
-			$selicon_cols = intval($config['selicon_cols']);
+			$selicon_cols = intval($this->fieldConfig['config']['selicon_cols']);
 			if (!$selicon_cols)	$selicon_cols=count($selicons);
 			$sR = ceil(count($selicons)/$selicon_cols);
 			$selicons = array_pad($selicons,$sR*$selicon_cols,'');
@@ -203,7 +215,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 				$item.='<tr>';
 				for($sb=0;$sb<$selicon_cols;$sb++)	{
 					$sk=($sa*$selicon_cols+$sb);
-					$imgN = 'selIcon_'.$table.'_'.$row['uid'].'_'.$field.'_'.$selicons[$sk][1];
+					$imgN = 'selIcon_'.$this->table.'_'.$this->record['uid'].'_'.$this->field.'_'.$selicons[$sk][1];
 					$imgS = ($selicons[$sk][2]?$this->TCEformsObject->backPath.'gfx/content_selected.gif':'clear.gif');
 					$item.='<td><img name="'.htmlspecialchars($imgN).'" src="'.$imgS.'" width="7" height="10" alt="" /></td>';
 					$item.='<td>'.$selicons[$sk][0].'</td>';
@@ -216,13 +228,13 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		return $item;
 	}
 
-	protected function initSubtypeCheckbox($table,$field,$row,&$PA,$config,$selItems,$nMV_label) {
+	protected function initSubtypeCheckbox() {
 
 			// Get values in an array (and make unique, which is fine because there can be no duplicates anyway):
 		$itemArray = array_flip($this->TCEformsObject->extractValuesOnlyFromValueLabelList($this->itemFormElValue));
 
 		$disabled = '';
-		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
+		if($this->TCEformsObject->renderReadonly || $this->fieldConfig['config']['readOnly'])  {
 			$disabled = ' disabled="disabled"';
 		}
 
@@ -232,7 +244,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		if (!$disabled) {
 			$sOnChange = implode('',$this->fieldChangeFunc);
 			$setAll = array();	// Used to accumulate the JS needed to restore the original selection.
-			foreach($selItems as $p)	{
+			foreach($this->selectItems as $p)	{
 					// Non-selectable element:
 				if (!strcmp($p[1],'--div--'))	{
 					if (count($setAll))	{
@@ -269,16 +281,16 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 					}
 
 						// Compile row:
-					$rowId = uniqid('select_checkbox_row_');
+					$this->recordId = uniqid('select_checkbox_row_');
 					$onClickCell = $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked=!' . $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked;';
 					$onClick = 'this.attributes.getNamedItem("class").nodeValue = ' . $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked ? "c-selectedItem" : "c-unselectedItem";';
 					$setAll[] = $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked=1;';
-					$setAll[] .= '$(\'' . $rowId . '\').removeClassName(\'c-unselectedItem\');$(\'' . $rowId . '\').addClassName(\'c-selectedItem\');';
+					$setAll[] .= '$(\'' . $this->recordId . '\').removeClassName(\'c-unselectedItem\');$(\'' . $this->recordId . '\').addClassName(\'c-selectedItem\');';
 					$unSetAll[] = $this->TCEformsObject->elName($this->itemFormElName.'['.$c.']').'.checked=0;';
-					$unSetAll[] .= '$(\'' . $rowId . '\').removeClassName(\'c-selectedItem\');$(\'' . $rowId . '\').addClassName(\'c-unselectedItem\');';
+					$unSetAll[] .= '$(\'' . $this->recordId . '\').removeClassName(\'c-selectedItem\');$(\'' . $this->recordId . '\').addClassName(\'c-unselectedItem\');';
 					$restoreCmd[] = $this->TCEformsObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked=' . ($sM ? 1 : 0) . ';' .
-								'$(\'' . $rowId . '\').removeClassName(\'c-selectedItem\');$(\'' . $rowId . '\').removeClassName(\'c-unselectedItem\');' .
-								'$(\'' . $rowId . '\').addClassName(\'c-' . ($sM ? '' : 'un') . 'selectedItem\');';
+								'$(\'' . $this->recordId . '\').removeClassName(\'c-selectedItem\');$(\'' . $this->recordId . '\').removeClassName(\'c-unselectedItem\');' .
+								'$(\'' . $this->recordId . '\').addClassName(\'c-' . ($sM ? '' : 'un') . 'selectedItem\');';
 
 					$hasHelp = ($p[3] !='');
 
@@ -295,7 +307,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 					}
 
 					$tRows[] = '
-						<tr id="' . $rowId . '" class="'.($sM ? 'c-selectedItem' : 'c-unselectedItem').'" onclick="'.htmlspecialchars($onClick).'" style="cursor: pointer;">
+						<tr id="' . $this->recordId . '" class="'.($sM ? 'c-selectedItem' : 'c-unselectedItem').'" onclick="'.htmlspecialchars($onClick).'" style="cursor: pointer;">
 							<td width="12"><input type="checkbox"'.$this->TCEformsObject->insertDefStyle('check').' name="'.htmlspecialchars($this->itemFormElName.'['.$c.']').'" value="'.htmlspecialchars($p[1]).'"'.$sM.' onclick="'.htmlspecialchars($sOnChange).'"'.$this->onFocus.' /></td>
 							<td class="c-labelCell" onclick="'.htmlspecialchars($onClickCell).'">'.
 								($selIconFile ? '<img src="'.$selIconFile.'" '.$selIconInfo[3].' vspace="2" border="0" class="absmiddle" style="margin-right: 4px;" alt="" />' : '').
@@ -324,7 +336,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// Remaining values (invalid):
-		if (count($itemArray) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
+		if (count($itemArray) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$this->fieldConfig['config']['disableNoMatchingValueElement'])	{
 			foreach($itemArray as $theNoMatchValue => $temp)	{
 					// Compile <checkboxes> tag:
 				array_unshift($tRows,'
@@ -357,12 +369,12 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		return $item;
 	}
 
-	protected function initSubtypeSinglebox($table,$field,$row,&$PA,$config,$selItems,$nMV_label) {
+	protected function initSubtypeSinglebox() {
 			// Get values in an array (and make unique, which is fine because there can be no duplicates anyway):
 		$itemArray = array_flip($this->TCEformsObject->extractValuesOnlyFromValueLabelList($this->itemFormElValue));
 
 		$disabled = '';
-		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
+		if($this->TCEformsObject->renderReadonly || $this->fieldConfig['config']['readOnly'])  {
 			$disabled = ' disabled="disabled"';
 		}
 
@@ -370,7 +382,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		$opt = array();
 		$restoreCmd = array();	// Used to accumulate the JS needed to restore the original selection.
 		$c = 0;
-		foreach($selItems as $p)	{
+		foreach($this->selectItems as $p)	{
 				// Selected or not by default:
 			$sM = '';
 			if (isset($itemArray[$p[1]]))	{
@@ -386,7 +398,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			}
 
 				// Icon style for option tag:
-			if ($config['iconsInOptionTags']) {
+			if ($this->fieldConfig['config']['iconsInOptionTags']) {
 				$styleAttrValue = $this->TCEformsObject->optionTagStyle($p[2]);
 			}
 
@@ -400,7 +412,7 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		}
 
 			// Remaining values:
-		if (count($itemArray) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
+		if (count($itemArray) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$this->fieldConfig['config']['disableNoMatchingValueElement'])	{
 			foreach($itemArray as $theNoMatchValue => $temp)	{
 					// Compile <option> tag:
 				array_unshift($opt,'<option value="'.htmlspecialchars($theNoMatchValue).'" selected="selected">'.t3lib_div::deHSCentities(htmlspecialchars(@sprintf($nMV_label, $theNoMatchValue))).'</option>');
@@ -409,9 +421,9 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 
 			// Compile selector box:
 		$sOnChange = implode('',$this->fieldChangeFunc);
-		$selector_itemListStyle = isset($config['itemListStyle']) ? ' style="'.htmlspecialchars($config['itemListStyle']).'"' : ' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"';
-		$size = intval($config['size']);
-		$size = $config['autoSizeMax'] ? t3lib_div::intInRange(count($selItems)+1,t3lib_div::intInRange($size,1),$config['autoSizeMax']) : $size;
+		$selector_itemListStyle = isset($this->fieldConfig['config']['itemListStyle']) ? ' style="'.htmlspecialchars($this->fieldConfig['config']['itemListStyle']).'"' : ' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"';
+		$size = intval($this->fieldConfig['config']['size']);
+		$size = $this->fieldConfig['config']['autoSizeMax'] ? t3lib_div::intInRange(count($this->selectItems)+1,t3lib_div::intInRange($size,1),$this->fieldConfig['config']['autoSizeMax']) : $size;
 		$selectBox = '<select name="'.$this->itemFormElName.'[]"'.
 						$this->TCEformsObject->insertDefStyle('select').
 						($size ? ' size="'.$size.'"' : '').
@@ -452,25 +464,27 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		return $item;
 	}
 
-	protected function initSubtypeMultiple($table,$field,$row,&$PA,$config,$selItems,$nMV_label)	{
+	protected function initSubtypeMultiple() {
 
 		$disabled = '';
-		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
+		if($this->TCEformsObject->renderReadonly || $this->fieldConfig['config']['readOnly'])  {
 			$disabled = ' disabled="disabled"';
 		}
 
 			// Setting this hidden field (as a flag that JavaScript can read out)
 		if (!$disabled) {
-			$item.= '<input type="hidden" name="'.$this->itemFormElName.'_mul" value="'.($config['multiple']?1:0).'" />';
+			$item.= '<input type="hidden" name="'.$this->itemFormElName.'_mul" value="'.($this->fieldConfig['config']['multiple']?1:0).'" />';
 		}
 
 			// Set max and min items:
-		$maxitems = t3lib_div::intInRange($config['maxitems'],0);
+		$maxitems = t3lib_div::intInRange($this->fieldConfig['config']['maxitems'],0);
 		if (!$maxitems)	$maxitems=100000;
-		$minitems = t3lib_div::intInRange($config['minitems'],0);
+		$minitems = t3lib_div::intInRange($this->fieldConfig['config']['minitems'],0);
 
 			// Register the required number of elements:
-		$this->container->registerRequiredProperty('range', $this->itemFormElName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
+		// TODO: solve the problem that we don't have container set here (it does not get set in AbstractForm::getSingleField()!)
+		/*$this->container->registerRequiredProperty('range', $this->itemFormElName,
+			array($minitems, $maxitems, 'imgName' => $this->table.'_'.$this->record['uid'].'_'.$this->field));*/
 
 			// Get "removeItems":
 		$removeItems = t3lib_div::trimExplode(',',$this->fieldTSConfig['removeItems'],1);
@@ -480,8 +494,8 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 		foreach($itemArray as $tk => $tv) {
 			$tvP = explode('|',$tv,2);
 			$evalValue = rawurldecode($tvP[0]);
-			$isRemoved = in_array($evalValue,$removeItems)  || ($config['form_type']=='select' && $config['authMode'] && !$GLOBALS['BE_USER']->checkAuthMode($table,$field,$evalValue,$config['authMode']));
-			if ($isRemoved && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
+			$isRemoved = in_array($evalValue,$removeItems)  || ($this->fieldConfig['config']['form_type']=='select' && $this->fieldConfig['config']['authMode'] && !$GLOBALS['BE_USER']->checkAuthMode($this->table,$this->field,$evalValue,$this->fieldConfig['config']['authMode']));
+			if ($isRemoved && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$this->fieldConfig['config']['disableNoMatchingValueElement'])	{
 				$tvP[1] = rawurlencode(@sprintf($nMV_label, $evalValue));
 			} elseif (isset($this->fieldTSConfig['altLabels.'][$evalValue])) {
 				$tvP[1] = rawurlencode($this->TCEformsObject->sL($this->fieldTSConfig['altLabels.'][$evalValue]));
@@ -494,8 +508,8 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 				// Create option tags:
 			$opt = array();
 			$styleAttrValue = '';
-			foreach($selItems as $p)	{
-				if ($config['iconsInOptionTags'])	{
+			foreach($this->selectItems as $p)	{
+				if ($this->fieldConfig['config']['iconsInOptionTags'])	{
 					$styleAttrValue = $this->TCEformsObject->optionTagStyle($p[2]);
 				}
 				$opt[]= '<option value="'.htmlspecialchars($p[1]).'"'.
@@ -504,11 +518,11 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			}
 
 				// Put together the selector box:
-			$selector_itemListStyle = isset($config['itemListStyle']) ? ' style="'.htmlspecialchars($config['itemListStyle']).'"' : ' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"';
-			$size = intval($config['size']);
-			$size = $config['autoSizeMax'] ? t3lib_div::intInRange(count($itemArray)+1,t3lib_div::intInRange($size,1),$config['autoSizeMax']) : $size;
-			if ($config['exclusiveKeys'])	{
-				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text,\''.$config['exclusiveKeys'].'\'); ';
+			$selector_itemListStyle = isset($this->fieldConfig['config']['itemListStyle']) ? ' style="'.htmlspecialchars($this->fieldConfig['config']['itemListStyle']).'"' : ' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"';
+			$size = intval($this->fieldConfig['config']['size']);
+			$size = $this->fieldConfig['config']['autoSizeMax'] ? t3lib_div::intInRange(count($itemArray)+1,t3lib_div::intInRange($size,1),$this->fieldConfig['config']['autoSizeMax']) : $size;
+			if ($this->fieldConfig['config']['exclusiveKeys'])	{
+				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text,\''.$this->fieldConfig['config']['exclusiveKeys'].'\'); ';
 			} else {
 				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text); ';
 			}
@@ -528,8 +542,8 @@ class t3lib_TCEforms_SelectElement extends t3lib_TCEforms_AbstractElement {
 			// Pass to "dbFileIcons" function:
 		$params = array(
 			'size' => $size,
-			'autoSizeMax' => t3lib_div::intInRange($config['autoSizeMax'],0),
-			'style' => isset($config['selectedListStyle']) ? ' style="'.htmlspecialchars($config['selectedListStyle']).'"' : ' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"',
+			'autoSizeMax' => t3lib_div::intInRange($this->fieldConfig['config']['autoSizeMax'],0),
+			'style' => isset($this->fieldConfig['config']['selectedListStyle']) ? ' style="'.htmlspecialchars($this->fieldConfig['config']['selectedListStyle']).'"' : ' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"',
 			'dontShowMoveIcons' => ($maxitems<=1),
 			'maxitems' => $maxitems,
 			'info' => '',
