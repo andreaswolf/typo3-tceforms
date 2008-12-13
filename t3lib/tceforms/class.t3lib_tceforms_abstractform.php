@@ -98,6 +98,16 @@ abstract class t3lib_TCEforms_AbstractForm {
 	protected $fieldList = array();
 	protected $fieldsToList = array();
 
+	/**
+	 * @var string  Prefix for all form fields in this form. Usually starts with data[...]
+	 */
+	protected $formFieldNamePrefix;
+
+	/**
+	 * @var t3lib_TCEforms_AbstractForm  The form object containing this form
+	 */
+	protected $parentFormObject;
+
 
 
 	/**
@@ -142,6 +152,12 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 		$this->tableTCAconfig = &$TCA[$this->table];
 
+
+		// Load the description content for the table.
+		if ($this->edit_showFieldHelp || $this->TCEformsObject->doLoadTableDescr($table)) {
+			$GLOBALS['LANG']->loadSingleTableDescription($table);
+		}
+
 			// set type number
 		$this->setRecordTypeNumber();
 
@@ -156,22 +172,26 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 	}
 
+	public function setParentFormObject(t3lib_TCEforms_AbstractForm $formObject) {
+		$this->parentFormObject = $formObject;
+	}
+
 	/**
 	 * Finds possible field to add to the form, based on subtype fields.
 	 *
 	 * @return  array  An array containing two values: 1) Another array containing fieldnames to add and 2) the subtype value field.
 	 * @see getMainFields()
 	 */
-	protected function getFieldsToAdd()	{
+	protected function getFieldsToAdd() {
 		global $TCA;
 
 			// Init:
 		$addElements = array();
 
 			// If a subtype field is defined for the type
-		if ($this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field'])	{
+		if ($this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field']) {
 			$subtypeField = $this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field'];
-			if (trim($this->tableTCAconfig['types'][$this->typeNumber]['subtypes_addlist'][$this->record[$subtypeField]]))	{
+			if (trim($this->tableTCAconfig['types'][$this->typeNumber]['subtypes_addlist'][$this->record[$subtypeField]])) {
 				$addElements = t3lib_div::trimExplode(',', $this->tableTCAconfig['types'][$this->typeNumber]['subtypes_addlist'][$this->record[$subtypeField]], 1);
 			}
 		}
@@ -188,13 +208,13 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @return  array  Return the modified $fields array.
 	 * @see getMainFields(),getFieldsToAdd()
 	 */
-	protected function mergeFieldsWithAddedFields($fields,$fieldsToAdd)	{
-		if (count($fieldsToAdd[0]))	{
+	protected function mergeFieldsWithAddedFields($fields, $fieldsToAdd) {
+		if (count($fieldsToAdd[0])) {
+			$c = 0;
 			reset($fields);
-			$c=0;
-			while(list(,$fieldInfo)=each($fields))	{
-				$parts = explode(';',$fieldInfo);
-				if (!strcmp(trim($parts[0]),$fieldsToAdd[1]))	{
+			foreach ($fields as $fieldInfo) {
+				$parts = explode(';', $fieldInfo);
+				if (!strcmp(trim($parts[0]), $fieldsToAdd[1])) {
 					array_splice(
 						$fields,
 						$c+1,
@@ -212,27 +232,22 @@ abstract class t3lib_TCEforms_AbstractForm {
 	/**
 	 * Returns the object representation for a database table field.
 	 *
-	 * @param   string   $table    The table name
 	 * @param   string   $field    The field name
-	 * @param   array    $row      The record to edit from the database table.
 	 * @param   string   $altName  Alternative field name label to show.
 	 * @param   boolean  $palette  Set this if the field is on a palette (in top frame), otherwise not. (if set, field will render as a hidden field).
 	 * @param   string   $extra    The "extra" options from "Part 4" of the field configurations found in the "types" "showitem" list. Typically parsed by $this->getSpecConfFromString() in order to get the options as an associative array.
 	 * @param   integer  $pal      The palette pointer.
+	 * @param   string   $formFieldName  The name of the field on the form
 	 * @return  t3lib_TCEforms_AbstractElement
 	 */
 	// TODO: remove the extra parameters/use them if neccessary
-	function getSingleField($table,$field,$row,$altName='',$palette=0,$extra='',$pal=0)	{
-		global $TCA,$BE_USER;
+	function getSingleField($theField, $altName='', $palette=0, $extra='', $pal=0, $formFieldName = '') {
+		$fieldConf = $this->tableTCAconfig['columns'][$theField];
 
-		$fieldConf = $this->tableTCAconfig['columns'][$field];
-		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];	// Using "form_type" locally in this script
+		// Using "form_type" locally in this script
+		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
 
-		switch($fieldConf['config']['form_type'])	{
-			case 'inline':
-				//$item = $this->inline->getSingleField_typeInline($table,$field,$row,$PA);
-
-				break;
+		switch ($fieldConf['config']['form_type']) {
 
 			case 'input':
 			case 'text':
@@ -242,6 +257,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 			case 'group':
 			case 'user':
 			case 'flex':
+			case 'inline':
 			case 'none':
 			default:
 				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
@@ -250,10 +266,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 				$elementObject->setTCEformsObject($this->TCEformsObject);
 				$elementObject->set_TCEformsObject($this);
 				if (is_array($this->defaultLanguageData)) {
-					$elementObject->setDefaultLanguageValue($this->defaultLanguageData[$field]);
+					$elementObject->setDefaultLanguageValue($this->defaultLanguageData[$theField]);
 				}
 
-				$elementObject->init($table, $field, $row, $fieldConf, $altName, $palette, $extra, $pal, $this);
+				$elementObject->init($this->table, $theField, $this->record, $fieldConf, $altName, $palette, $extra, $pal, $this);
 
 				break;
 		}
@@ -328,22 +344,22 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$this->excludeElements = array();
 
 			// If a subtype field is defined for the type
-		if ($this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field'])	{
+		if ($this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field']) {
 			$subtypeField = $this->tableTCAconfig['types'][$this->typeNumber]['subtype_value_field'];
-			if (trim($this->tableTCAconfig['types'][$this->typeNumber]['subtypes_excludelist'][$this->record[$subtypeField]]))	{
+			if (trim($this->tableTCAconfig['types'][$this->typeNumber]['subtypes_excludelist'][$this->record[$subtypeField]])) {
 				$this->excludeElements=t3lib_div::trimExplode(',',$this->tableTCAconfig['types'][$this->typeNumber]['subtypes_excludelist'][$this->record[$subtypeField]],1);
 			}
 		}
 
 			// If a bitmask-value field has been configured, then find possible fields to exclude based on that:
-		if ($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_value_field'])	{
+		if ($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_value_field']) {
 			$subtypeField = $this->tableTCAconfig['types'][$this->typeNumber]['bitmask_value_field'];
 			$subtypeValue = t3lib_div::intInRange($this->record[$subtypeField],0);
-			if (is_array($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_excludelist_bits']))	{
+			if (is_array($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_excludelist_bits'])) {
 				reset($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_excludelist_bits']);
-				while(list($bitKey,$eList)=each($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_excludelist_bits']))	{
+				while(list($bitKey,$eList)=each($this->tableTCAconfig['types'][$this->typeNumber]['bitmask_excludelist_bits'])) {
 					$bit=substr($bitKey,1);
-					if (t3lib_div::testInt($bit))	{
+					if (t3lib_div::testInt($bit)) {
 						$bit = t3lib_div::intInRange($bit,0,30);
 						if (
 								(substr($bitKey,0,1)=='-' && !($subtypeValue&pow(2,$bit))) ||
@@ -402,11 +418,11 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 *
 	 * @return void
 	 */
-	protected function setRecordTypeNumber()	{
+	protected function setRecordTypeNumber() {
 		global $TCA;
 
 			// If there is a "type" field configured...
-		if ($this->tableTCAconfig['ctrl']['type'])	{
+		if ($this->tableTCAconfig['ctrl']['type']) {
 			$typeFieldName = $this->tableTCAconfig['ctrl']['type'];
 			$this->typeNumber=$this->record[$typeFieldName];	// Get value of the row from the record which contains the type value.
 			if (!strcmp($this->typeNumber,''))	$this->typeNumber = 0;			// If that value is an empty string, set it to "0" (zero)
@@ -415,7 +431,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 		}
 
 		$this->typeNumber = (string)$this->typeNumber;		// Force to string. Necessary for eg '-1' to be recognized as a type value.
-		if (!$this->tableTCAconfig['types'][$this->typeNumber])	{	// However, if the type "0" is not found in the "types" array, then default to "1" (for historical reasons)
+		if (!$this->tableTCAconfig['types'][$this->typeNumber]) {	// However, if the type "0" is not found in the "types" array, then default to "1" (for historical reasons)
 			$this->typeNumber = 1;
 		}
 	}
@@ -467,7 +483,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @param   string  Language label reference, eg. 'LLL:EXT:lang/locallang_core.php:labels.blablabla'
 	 * @return  string  The value of the label, fetched for the current backend language.
 	 */
-	protected function sL($str)	{
+	protected function sL($str) {
 		return $GLOBALS['LANG']->sL($str);
 	}
 
@@ -480,10 +496,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @param   string  The label key
 	 * @return  string  The value of the label, fetched for the current backend language.
 	 */
-	protected function getLL($str)	{
+	protected function getLL($str) {
 		$content = '';
 
-		switch(substr($str, 0, 2))	{
+		switch(substr($str, 0, 2)) {
 			case 'l_':
 				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.' . substr($str,2));
 			break;
@@ -563,14 +579,14 @@ abstract class t3lib_TCEforms_AbstractForm {
 			return $GLOBALS['TBE_TEMPLATE']->getDynTabMenu($parts, $idString, 0, false, 50, 1, false, 1, $dividersToTabsBehaviour);
 		} else {
 			$output = '';
-			foreach($parts as $singlePad)	{
-				$output.='
-				<h3>'.htmlspecialchars($singlePad['label']).'</h3>
-				'.($singlePad['description'] ? '<p class="c-descr">'.nl2br(htmlspecialchars($singlePad['description'])).'</p>' : '').'
-				'.$singlePad['content'];
+			foreach($parts as $singlePad) {
+				$output .= '
+				<h3>' . htmlspecialchars($singlePad['label']) . '</h3>
+				' . ($singlePad['description'] ? '<p class="c-descr">' . nl2br(htmlspecialchars($singlePad['description'])) . '</p>' : '') . '
+				' . $singlePad['content'];
 			}
 
-			return '<div class="typo3-dyntabmenu-divs">'.$output.'</div>';
+			return '<div class="typo3-dyntabmenu-divs">' . $output . '</div>';
 		}
 	}
 
@@ -586,7 +602,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	public function wrapTotal($content) {
 		$wrap = t3lib_parsehtml::getSubpart($this->templateContent, '###TOTAL_WRAP###');
 		$content = $this->replaceTableWrap($wrap, $content);
-		return $content.implode('', $this->hiddenFields_HTMLcode);
+		return $content . implode('', $this->hiddenFields_HTMLcode);
 	}
 
 	/**
@@ -597,11 +613,11 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @param   string   The table name
 	 * @return  string
 	 */
-	function replaceTableWrap($wrap, $content)	{
+	function replaceTableWrap($wrap, $content) {
 		global $TCA;
 
 			// Make "new"-label
-		if (strstr($this->record['uid'],'NEW'))	{
+		if (strstr($this->record['uid'],'NEW')) {
 			$newLabel = ' <span class="typo3-TCEforms-newToken">'.
 						$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.new',1).
 						'</span>';
@@ -627,7 +643,6 @@ abstract class t3lib_TCEforms_AbstractForm {
 		);
 
 		$wrap = t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
-
 		return $wrap;
 	}
 
@@ -651,12 +666,12 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 *
 	 * @return	string		A <script></script> section with JavaScript.
 	 */
-	function JStop()	{
+	function JStop() {
 
 		$out = '';
 
 			// Additional top HTML:
-		if (count($this->additionalCode_pre))	{
+		if (count($this->additionalCode_pre)) {
 			$out.= implode('
 
 				<!-- NEXT: -->
@@ -664,7 +679,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 		}
 
 			// Additional top JavaScript
-		if (count($this->additionalJS_pre))	{
+		if (count($this->additionalJS_pre)) {
 			$out.='
 
 
@@ -703,7 +718,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @param	boolean		$update: Just extend/update existing settings, e.g. for AJAX call
 	 * @return	string		A section with JavaScript - if $update is false, embedded in <script></script>
 	 */
-	function JSbottom($formname='forms[0]', $update = false)	{
+	function JSbottom($formname='forms[0]', $update = false) {
 		$jsFile = array();
 		$elements = array();
 
@@ -862,7 +877,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 *
 	 * @return	void
 	 */
-	function printNeededJSFunctions_top()	{
+	function printNeededJSFunctions_top() {
 			// JS evaluation:
 		$out = $this->JStop($this->formName);
 		return $out;
@@ -992,6 +1007,14 @@ abstract class t3lib_TCEforms_AbstractForm {
 			$this->cache_getTSCpid[$key] = t3lib_BEfunc::getTSCpid($this->table, $this->record['uid'], $this->record['pid']);
 		}
 		return $this->cache_getTSCpid[$key];
+	}
+
+	public function getFormFieldNamePrefix() {
+		return $this->formFieldNamePrefix;
+	}
+
+	public function setFormFieldNamePrefix($prefix) {
+		$this->formFieldNamePrefix = $prefix;
 	}
 }
 
