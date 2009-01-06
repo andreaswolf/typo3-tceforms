@@ -234,89 +234,68 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_AbstractForm {
 
 
 			foreach ($dataStructArray as $itemKey => $itemDefinition) {
-				if (!$itemDefinition['TCEforms']['displayCond'] || $this->isDisplayCondition($itemDefinition['TCEforms']['displayCond'],$editData,$vDEFkey)) {
-					$fakePA=array();
-					// TODO: find a better way for this - there might be name collisions between real fields in the table and "faked" fields in the flexform!
-					$this->tableTCAconfig['columns'][$itemKey]=array(
-						'label' => $this->sL(trim($itemDefinition['TCEforms']['label'])),
-						'config' => $itemDefinition['TCEforms']['config'],
-						'defaultExtras' => $itemDefinition['TCEforms']['defaultExtras'],
-						'onChange' => $itemDefinition['TCEforms']['onChange']
-					);
-					if ($this->PA['_noEditDEF'] && $this->PA['_lang']==='lDEF') {
-						$fakePA['fieldConf']['config'] = array(
-							'type' => 'none',
-							'rows' => 2
+				if ($itemDefinition['type'] == 'array') {
+
+					$tRows[]='<div><div class="bgColor5"><table><tr><td>Array: '.$itemKey.'</td></tr></table></div>
+						</div>';
+
+				} else {
+
+					if (!$itemDefinition['TCEforms']['displayCond'] || $this->isDisplayCondition($itemDefinition['TCEforms']['displayCond'],$editData,$vDEFkey)) {
+						$fakePA=array();
+						// TODO: find a better way for this - there might be name collisions between real fields in the table and "faked" fields in the flexform!
+						$this->tableTCAconfig['columns'][$itemKey]=array(
+							'label' => $this->sL(trim($itemDefinition['TCEforms']['label'])),
+							'config' => $itemDefinition['TCEforms']['config'],
+							'defaultExtras' => $itemDefinition['TCEforms']['defaultExtras'],
+							'onChange' => $itemDefinition['TCEforms']['onChange']
 						);
-					}
+						if ($this->PA['_noEditDEF'] && $this->PA['_lang']==='lDEF') {
+							$fakePA['fieldConf']['config'] = array(
+								'type' => 'none',
+								'rows' => 2
+							);
+						}
 
-					if (
-						$fakePA['fieldConf']['onChange'] == 'reload' ||
-						($GLOBALS['TCA'][$this->table]['ctrl']['type'] && !strcmp($itemKey, $GLOBALS['TCA'][$this->table]['ctrl']['type'])) ||
-						($GLOBALS['TCA'][$this->table]['ctrl']['requestUpdate'] && t3lib_div::inList($GLOBALS['TCA'][$this->table]['ctrl']['requestUpdate'], $itemKey))) {
-						if ($GLOBALS['BE_USER']->jsConfirmation(1))	{
-							$alertMsgOnChange = 'if (confirm(TBE_EDITOR.labels.onChangeAlert) && TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm() };';
+						if (
+							$fakePA['fieldConf']['onChange'] == 'reload' ||
+							($GLOBALS['TCA'][$this->table]['ctrl']['type'] && !strcmp($itemKey, $GLOBALS['TCA'][$this->table]['ctrl']['type'])) ||
+							($GLOBALS['TCA'][$this->table]['ctrl']['requestUpdate'] && t3lib_div::inList($GLOBALS['TCA'][$this->table]['ctrl']['requestUpdate'], $itemKey))) {
+							if ($GLOBALS['BE_USER']->jsConfirmation(1))	{
+								$alertMsgOnChange = 'if (confirm(TBE_EDITOR.labels.onChangeAlert) && TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm() };';
+							} else {
+								$alertMsgOnChange = 'if(TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm();}';
+							}
 						} else {
-							$alertMsgOnChange = 'if(TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm();}';
+							$alertMsgOnChange = '';
 						}
-					} else {
-						$alertMsgOnChange = '';
-					}
 
-					$fakePA['fieldChangeFunc']=$this->PA['fieldChangeFunc'];
-					if (strlen($alertMsgOnChange)) {
-						$fakePA['fieldChangeFunc']['alert']=$alertMsgOnChange;
-					}
-					$fakePA['onFocus']=$this->PA['onFocus'];
-					$fakePA['label']=$this->PA['label'];
-
-					$fakePA['itemFormElName']=$this->formFieldNamePrefix.$this->PA['itemFormElName'].$formPrefix.'['.$itemKey.']['.$vDEFkey.']';
-					$fakePA['itemFormElName_file']=$this->formFieldNamePrefix.$this->PA['itemFormElName_file'].$formPrefix.'['.$itemKey.']['.$vDEFkey.']';
-
-					if(isset($editData[$itemKey][$vDEFkey])) {
-						$fakePA['itemFormElValue']=$editData[$itemKey][$vDEFkey];
-					} else {
-						$fakePA['itemFormElValue']=$fakePA['fieldConf']['config']['default'];
-					}
-
-					$theFormEl = $this->getSingleField($itemKey);
-					$theFormEl->setItemFormElementName($fakePA['itemFormElName']);
-					$theFormEl->setItemFormElementValue($fakePA['itemFormElValue']);
-					$theFormEl->set_TCEformsObject($this->parentFormObject);
-					$theTitle = htmlspecialchars($fakePA['fieldConf']['label']);
-
-					if (!in_array('DEF',$rotateLang))	{
-						//$defInfo = '<div class="typo3-TCEforms-originalLanguageValue">'.$this->getLanguageIcon($this->table,$this->record,0).$this->previewFieldValue($editData[$itemKey]['vDEF'], $fakePA['fieldConf']).'&nbsp;</div>';
-					} else {
-						$defInfo = '';
-					}
-
-					if (!$this->PA['_noEditDEF'])	{
-						$prLang = $this->getAdditionalPreviewLanguages();
-						foreach($prLang as $prL)	{
-							//$defInfo.= '<div class="typo3-TCEforms-originalLanguageValue">'.$this->getLanguageIcon($this->table,$this->record,'v'.$prL['ISOcode']).$this->previewFieldValue($editData[$itemKey]['v'.$prL['ISOcode']], $fakePA['fieldConf']).'&nbsp;</div>';
+						$fakePA['fieldChangeFunc']=$this->PA['fieldChangeFunc'];
+						if (strlen($alertMsgOnChange)) {
+							$fakePA['fieldChangeFunc']['alert']=$alertMsgOnChange;
 						}
-					}
+						$fakePA['onFocus']=$this->PA['onFocus'];
+						$fakePA['label']=$this->PA['label'];
 
-						// Put row together
-						// possible linebreaks in the label through xml: \n => <br/>, usage of nl2br() not possible, so it's done through str_replace
-					$processedTitle = str_replace('\n', '<br />', $theTitle);
-					$helpText = $this->helpText($ky, $processedTitle, $this->PA['_cshFile']);
-					$tRows[]='<div>' .
-						'<div class="bgColor5">' .
-						($helpText ?
-							($vDEFkey=='vDEF' ? '' : $this->getLanguageIcon($this->table, $this->record, $vDEFkey)) . '<strong>' . $processedTitle . '</strong>' . $helpText :
-							$this->helpTextIcon($itemKey, $processedTitle, $this->PA['_cshFile']) . ($vDEFkey == 'vDEF' ? '' : $this->getLanguageIcon($this->table, $this->record, $vDEFkey)) . $processedTitle
-						) .
-						'</div>
-						<div class="bgColor4">'.$theFormEl->render().$defInfo.$this->renderVDEFDiff($editData[$itemKey],$vDEFkey).'</div>
-					</div>';
+						$fakePA['itemFormElName']=$this->formFieldNamePrefix.$this->PA['itemFormElName'].$formPrefix.'['.$itemKey.']['.$vDEFkey.']';
+						$fakePA['itemFormElName_file']=$this->formFieldNamePrefix.$this->PA['itemFormElName_file'].$formPrefix.'['.$itemKey.']['.$vDEFkey.']';
+
+						if(isset($editData[$itemKey][$vDEFkey])) {
+							$fakePA['itemFormElValue']=$editData[$itemKey][$vDEFkey];
+						} else {
+							$fakePA['itemFormElValue']=$fakePA['fieldConf']['config']['default'];
+						}
+
+						$theFormEl = $this->getSingleField($itemKey);
+						$theFormEl->setItemFormElementName($fakePA['itemFormElName']);
+						$theFormEl->setItemFormElementValue($fakePA['itemFormElValue']);
+						$theFormEl->set_TCEformsObject($this->parentFormObject);
+
+						$this->currentSheet->addChildObject($theFormEl);
+					}
 				}
 			}
 		}
-		if (count($tRows))	$output.= implode('',$tRows);
-
-		return $output;
 	}
 
 
@@ -506,8 +485,6 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_AbstractForm {
 
 	protected function elementObjectFactory($type) {
 		$elementObject = parent::elementObjectFactory($type);
-
-		$this->currentSheet->addChildObject($elementObject);
 
 		return $elementObject;
 	}

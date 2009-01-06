@@ -615,7 +615,7 @@ class SC_alt_doc {
 	 * @return	string		HTML form elements wrapped in tables
 	 */
 	function makeEditForm()	{
-		global $BE_USER,$LANG,$TCA;
+		global $BE_USER,$LANG,$TCA,$BACK_PATH;
 
 			// Initialize variables:
 		$this->elementsData=array();
@@ -623,6 +623,16 @@ class SC_alt_doc {
 		$this->newC=0;
 		$thePrevUid='';
 		$editForm='';
+
+		$newTCEforms = new t3lib_TCEforms_Form();
+		$newTCEforms->injectFormBuilder(new t3lib_TCEforms_Formbuilder())
+		            ->setFieldList($this->columnsOnly)
+		            ->setPalettesCollapsed(!$this->MOD_SETTINGS['showPalettes'])
+		            ->setTemplateFile(PATH_typo3 . 'templates/tceforms.html')
+		            ->setEditFieldHelpMode($BE_USER->uc['edit_showFieldHelp'])
+		            ->setBackpath($BACK_PATH)
+		            ->setRTEEnabled($BE_USER->isRTE())
+		            ->setDoSaveFieldName('doSave');
 
 			// Traverse the GPvar edit array
 		foreach($this->editconf as $table => $conf)	{	// Tables:
@@ -728,20 +738,40 @@ class SC_alt_doc {
 								if (is_array($rec))	{
 
 									// Initialize the TCEforms record (testing only!)
-									$TCEformsClassName = t3lib_div::makeInstanceClassName('t3lib_TCEforms_MultiFieldForm');
-									$localTCEforms = new $TCEformsClassName($table, $rec);
 
-									$localTCEforms->setTCEformsObject($this->tceforms);
+									/*if ($this->columnsOnly)	{
+										$TCEformsClassName = t3lib_div::makeInstanceClassName('t3lib_TCEforms_ListedFieldsForm');
+										$localTCEforms = new $TCEformsClassName($table, $rec);
+
+										if(is_array($this->columnsOnly)){
+											$localTCEforms->setFieldList($this->columnsOnly[$table]);
+										} else {
+											$localTCEforms->setFieldList($this->columnsOnly);
+										}
+									} else {
+										$TCEformsClassName = t3lib_div::makeInstanceClassName('t3lib_TCEforms_MultiFieldForm');
+										$localTCEforms = new $TCEformsClassName($table, $rec);
+									}*/
+									// TODO: add code for columnsOnly here (need to implement the limit function in
+									// _Form first.
+
+									$recordObject = $newTCEforms->addRecord($table, $rec);
+
+									/*$localTCEforms->setTCEformsObject($this->tceforms);
 									$localTCEforms->setPalettesCollapsed(!$this->MOD_SETTINGS['showPalettes']);
 
-									$editForm .= $localTCEforms->printNeededJSFunctions_top();
-									$editForm .= $localTCEforms->render();
+									$localTCEforms->backPath = $BACK_PATH;*/
 
-									$editForm .= $localTCEforms->getBottomJavascript();
+									//$editForm .= $localTCEforms->printNeededJSFunctions_top();
+									$editForm .= $newTCEforms->render();
+									//$editForm .= $localTCEforms->render();
+
+									//$editForm .= $localTCEforms->getBottomJavascript();
 
 
 
 										// Setting visual path / title of form:
+
 									$this->generalPathOfForm = $this->tceforms->getRecordPath($table,$rec);
 									if (!$this->storeTitle)	{
 										$this->storeTitle = $this->recTitle ? htmlspecialchars($this->recTitle) : t3lib_BEfunc::getRecordTitle($table,$rec,TRUE);
@@ -806,6 +836,10 @@ class SC_alt_doc {
 				}
 			}
 		}
+
+
+		$editForm = $newTCEforms->renderJavascriptBeforeForm() . $editForm .
+		  $newTCEforms->renderJavascriptAfterForm();
 
 		return $editForm;
 	}
@@ -1373,10 +1407,12 @@ class SC_alt_doc {
 	 * @param	string		The option for look for. Default is checking if the saveDocNew button should be displayed.
 	 * @return	string		Return value fetched from USER TSconfig
 	 */
-	function getNewIconMode($table,$key='saveDocNew')	{
-		global $BE_USER;
-		$TSconfig = $BE_USER->getTSConfig('options.'.$key);
+	function getNewIconMode($table, $key = 'saveDocNew') {
+		$TSconfig = $GLOBALS['BE_USER']->getTSConfig('options.'.$key);
 		$output = trim(isset($TSconfig['properties'][$table]) ? $TSconfig['properties'][$table] : $TSconfig['value']);
+		if ($key == 'saveDocNew' && $TSconfig['value'] != '0') {
+			$output = !(isset($TSconfig['properties'][$table]) && $TSconfig['properties'][$table] == '0');
+		}
 		return $output;
 	}
 

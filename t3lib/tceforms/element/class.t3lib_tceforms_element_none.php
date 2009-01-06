@@ -1,16 +1,16 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
+require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.php');
 
 
-class t3lib_TCEforms_NoneElement extends t3lib_TCEforms_AbstractElement {
+class t3lib_TCEforms_Element_None extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
 			// Init:
 		$config = $this->fieldConfig['config'];
 		$itemValue = $this->itemFormElValue;
 
 			// is colorScheme[0] the right value?
-		$divStyle = 'border:solid 1px '.t3lib_div::modifyHTMLColorAll($this->colorScheme[0],-30).';'.$this->defStyle.$this->formElStyle('none').' background-color: '.$this->colorScheme[0].'; padding-left:1px;color:#555;';
+		$divStyle = 'border:solid 1px '.t3lib_div::modifyHTMLColorAll($this->colorScheme[0],-30).';'.$this->defStyle./*$this->formElStyle('none').*/' background-color: '.$this->colorScheme[0].'; padding-left:1px;color:#555;';
 
 		if ($config['format'])	{
 			$itemValue = $this->formatValue($config, $itemValue);
@@ -38,7 +38,7 @@ class t3lib_TCEforms_NoneElement extends t3lib_TCEforms_AbstractElement {
 			$height=$rows*12;
 
 			$item='
-				<div style="'.htmlspecialchars($divStyle.' overflow:auto; height:'.$height.'px; width:'.$width.'px;').'" class="'.htmlspecialchars($this->formElClass('none')).'">'.
+				<div style="'.htmlspecialchars($divStyle.' overflow:auto; height:'.$height.'px; width:'.$width.'px;').'" class="'./*htmlspecialchars($this->formElClass('none')).*/'">'.
 				$itemValue.
 				'</div>';
 		} else {
@@ -52,7 +52,7 @@ class t3lib_TCEforms_NoneElement extends t3lib_TCEforms_AbstractElement {
 
 				// overflow:auto crashes mozilla here. Title tag is usefull when text is longer than the div box (overflow:hidden).
 			$item = '
-				<div style="'.htmlspecialchars($divStyle.' overflow:hidden; width:'.$width.'px;').'" class="'.htmlspecialchars($this->formElClass('none')).'" title="'.$itemValue.'">'.
+				<div style="'.htmlspecialchars($divStyle.' overflow:hidden; width:'.$width.'px;').'" class="'./*htmlspecialchars($this->formElClass('none')).*/'" title="'.$itemValue.'">'.
 				'<span class="nobr">'.(strcmp($itemValue,'')?$itemValue:'&nbsp;').'</span>'.
 				'</div>';
 		}
@@ -60,3 +60,5 @@ class t3lib_TCEforms_NoneElement extends t3lib_TCEforms_AbstractElement {
 		return $item;
 	}
 }
+
+?>

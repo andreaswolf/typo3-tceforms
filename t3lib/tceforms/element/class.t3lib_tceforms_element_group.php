@@ -1,9 +1,9 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
+require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.php');
 
 
-class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
+class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
 			// Init:
 		$config = $this->fieldConfig['config'];
@@ -23,7 +23,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 		$info='';
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. See http://typo3.org/documentation/document-library/doc_core_api/Wizards_Configuratio/.
-		$specConf = $this->_TCEformsObject->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
+		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
 
 			// Acting according to either "file" or "db" type:
 		switch((string)$config['internal_type'])	{
@@ -68,7 +68,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 						$fileIcon = '<img'.t3lib_iconWorks::skinImg($this->_TCEformsObject->backPath,'gfx/fileicons/'.$fileIcon,'width="18" height="16"').' class="absmiddle" title="'.htmlspecialchars($fI['basename'].($absFilePath && @is_file($absFilePath) ? ' ('.t3lib_div::formatSize(filesize($absFilePath)).'bytes)' : ' - FILE NOT FOUND!')).'" alt="" />';
 
 						$imgs[] = '<span class="nobr">'.t3lib_BEfunc::thumbCode($rowCopy,$table,$field,$this->_TCEformsObject->backPath,'thumbs.php',$config['uploadfolder'],0,' align="middle"').
-									($absFilePath ? $this->TCEformsObject->getClickMenu($fileIcon, $absFilePath) : $fileIcon).
+									($absFilePath ? $this->getClickMenu($fileIcon, $absFilePath) : $fileIcon).
 									$imgPath.
 									'</span>';
 					}
@@ -82,14 +82,14 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 					'dontShowMoveIcons' => ($maxitems<=1),
 					'autoSizeMax' => t3lib_div::intInRange($config['autoSizeMax'],0),
 					'maxitems' => $maxitems,
-					'style' => isset($config['selectedListStyle']) ? ' style="'.htmlspecialchars($config['selectedListStyle']).'"' : ' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"',
+					'style' => isset($config['selectedListStyle']) ? ' style="'.htmlspecialchars($config['selectedListStyle']).'"' : ' style="'.$this->defaultMultipleSelectorStyle.'"',
 					'info' => $info,
 					'thumbnails' => $thumbsnail,
 					'readOnly' => $disabled,
 					'noBrowser' => $noList || isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser'),
 					'noList' => $noList,
 				);
-				$item.= $this->TCEformsObject->dbFileIcons($this->itemFormElName,'file',implode(',',$tempFT),$itemArray,'',$params,$this->onFocus);
+				$item.= $this->dbFileIcons($this->itemFormElName, 'file', implode(',',$tempFT), $itemArray, '', $params ,$this->onFocus);
 
 				if(!$disabled && !(isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'upload'))) {
 						// Adding the upload field:
@@ -109,7 +109,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 					'maxitems'          => $maxitems,
 					'style'             => isset($config['selectedListStyle']) ?
 							' style="'.htmlspecialchars($config['selectedListStyle']).'"'
-						:	' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"',
+						:	' style="'.$this->defaultMultipleSelectorStyle.'"',
 					'info'              => $info,
 					'readOnly'          => $disabled
 				);
@@ -130,14 +130,14 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 				$tempFT = t3lib_div::trimExplode(',',$allowed,1);
 				if (!strcmp(trim($tempFT[0]),'*'))	{
 					$info.='<span class="nobr">&nbsp;&nbsp;&nbsp;&nbsp;'.
-							htmlspecialchars($this->TCEformsObject->getLL('l_allTables')).
+							htmlspecialchars($this->getLL('l_allTables')).
 							'</span><br />';
 				} else {
 					while(list(,$theT)=each($tempFT))	{
 						if ($theT)	{
 							$info.='<span class="nobr">&nbsp;&nbsp;&nbsp;&nbsp;'.
 									t3lib_iconWorks::getIconImage($theT,array(),$this->_TCEformsObject->backPath,'align="top"').
-									htmlspecialchars($this->TCEformsObject->sL($GLOBALS['TCA'][$theT]['ctrl']['title'])).
+									htmlspecialchars($this->sL($GLOBALS['TCA'][$theT]['ctrl']['title'])).
 									'</span><br />';
 						}
 					}
@@ -156,7 +156,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 					if (!$disabled && $show_thumbs)	{
 						$rr = t3lib_BEfunc::getRecordWSOL($this->TCEformsObject_table,$this->TCEformsObject_uid);
 						$imgs[] = '<span class="nobr">'.
-								$this->TCEformsObject->getClickMenu(t3lib_iconWorks::getIconImage($this->TCEformsObject_table,$rr,$this->_TCEformsObject->backPath,'align="top" title="'.htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'],$perms_clause,15)).' [UID: '.$rr['uid'].']"'),$this->TCEformsObject_table, $this->TCEformsObject_uid).
+								$this->getClickMenu(t3lib_iconWorks::getIconImage($this->TCEformsObject_table,$rr,$this->_TCEformsObject->backPath,'align="top" title="'.htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'],$perms_clause,15)).' [UID: '.$rr['uid'].']"'),$this->TCEformsObject_table, $this->TCEformsObject_uid).
 								'&nbsp;'.
 								t3lib_BEfunc::getRecordTitle($this->TCEformsObject_table,$rr,TRUE).' <span class="typo3-dimmed"><em>['.$rr['uid'].']</em></span>'.
 								'</span>';
@@ -173,12 +173,12 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 					'dontShowMoveIcons' => ($maxitems<=1),
 					'autoSizeMax' => t3lib_div::intInRange($config['autoSizeMax'],0),
 					'maxitems' => $maxitems,
-					'style' => isset($config['selectedListStyle']) ? ' style="'.htmlspecialchars($config['selectedListStyle']).'"' : ' style="'.$this->TCEformsObject->defaultMultipleSelectorStyle.'"',
+					'style' => isset($config['selectedListStyle']) ? ' style="'.htmlspecialchars($config['selectedListStyle']).'"' : ' style="'.$this->defaultMultipleSelectorStyle.'"',
 					'info' => $info,
 					'thumbnails' => $thumbsnail,
 					'readOnly' => $disabled
 				);
-				$item.= $this->TCEformsObject->dbFileIcons($this->itemFormElName,'db',implode(',',$tempFT),$itemArray,'',$params,$this->onFocus,$table,$field,$row['uid']);
+				$item.= $this->dbFileIcons($this->itemFormElName,'db',implode(',',$tempFT),$itemArray,'',$params,$this->onFocus,$table,$field,$row['uid']);
 
 			break;
 		}
@@ -186,7 +186,7 @@ class t3lib_TCEforms_GroupElement extends t3lib_TCEforms_AbstractElement {
 			// Wizards:
 		$altItem = '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 		if (!$disabled) {
-			$item = $this->TCEformsObject->renderWizards(array($item,$altItem),$config['wizards'],$table,$row,$field,$PA,$this->itemFormElName,$specConf);
+			$item = $this->renderWizards(array($item,$altItem),$config['wizards'],$this->itemFormElName,$specConf);
 		}
 
 		return $item;

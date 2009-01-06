@@ -1,9 +1,9 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
+require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.php');
 
 
-class t3lib_TCEforms_RadioElement extends t3lib_TCEforms_AbstractElement {
+class t3lib_TCEforms_Element_Radio extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
 		$config = $this->fieldConfig['config'];
 

@@ -27,6 +27,7 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 	 *
 	 */
 	public function render() {
+			// TODO: check typical uses of this, and re-implement the initialization of the hook objects
 			// Hook: getMainFields_preProcess (requested by Thomas Hempel for use with the "dynaflex" extension)
 		/*foreach ($this->hookObjectsMainFields as $hookObj)	{
 			if (method_exists($hookObj,'getMainFields_preProcess'))	{
@@ -34,6 +35,7 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 			}
 		}*/
 
+		// TODO: move this to a new initialize method (abstract in AbstractForm)
 			// always create at least one default tab
 		if (isset($this->fieldList[0]) && strpos($this->fieldList[0], '--div--') !== 0) {
 			$sheetIdentString = 'TCEforms:'.$table.':'.$row['uid'];
@@ -53,11 +55,22 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 				continue;
 			}
 
-			if ($this->tableTCAconfig['columns'][$theField]) {
-				// TODO: Handle field configuration here.
-				$formFieldObject = $this->getSingleField($theField, $parts[1], 0, $parts[3], $parts[2]);
-				$this->currentSheet->addChildObject($formFieldObject);
+			if ($theField == '--div--') {
+				++$sheetCounter;
 
+				$sheetObject = $this->createSheetObject($tabIdentStringMD5.'-'.$sheetCounter, $this->sL($parts[1]));
+				$sheetObject->setStartingNewRowInTabmenu(($parts[2] == "newline"));
+				$this->currentSheet = $sheetObject;
+			} else {
+				if ($this->tableTCAconfig['columns'][$theField]) {
+					// TODO: Handle field configuration here.
+					$formFieldObject = $this->getSingleField($theField, $parts[1], 0, $parts[3], $parts[2]);
+					$this->currentSheet->addChildObject($formFieldObject);
+				} elseif ($theField == '--palette--') {
+					// TODO: add top-level palette handling! (--palette--, see TYPO3 Core API, section 4.2)
+					//       steps: create a new element type "palette" as a dumb wrapper for a palette
+					//       for testing see tt_content, type text w/image, image dimensions and links
+				}
 
 					// Getting the style information out:
 				// TODO: Make this really object oriented
@@ -65,6 +78,7 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 				if (strcmp($color_style_parts[0], ''))	{
 					$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
 				}
+				// TODO: add getters and setters for fieldStyle, _wrapBorder and borderStyle
 				if (strcmp($color_style_parts[1], ''))	{
 					$formFieldObject->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])];
 					if (!isset($this->fieldStyle)) {
@@ -78,12 +92,7 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 						$formFieldObject->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
 					}
 				}
-			} elseif ($theField == '--div--') {
-				++$sheetCounter;
-
-				$sheetObject = $this->createSheetObject($tabIdentStringMD5.'-'.$sheetCounter, $this->sL($parts[1]));
-				$this->currentSheet = $sheetObject;
-			} // TODO: add top-level palette handling!
+			}
 		}
 
 		$tabContents = array();
@@ -92,7 +101,7 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 		foreach ($this->sheets as $sheetObject) {
 			++$c;
 			$tabContents[$c] = array(
-				'newline' => false, // TODO: make this configurable again
+				'newline' => $sheetObject->isStartingNewRowInTabmenu(),
 				'label' => $sheetObject->getHeader(),
 				'content' => $sheetObject->render()
 			);
@@ -102,7 +111,7 @@ class t3lib_TCEforms_MultiFieldForm extends t3lib_TCEforms_AbstractForm {
 		} else {
 			$content = $tabContents[1]['content'];
 		}
-			// TODO: move the wrap to alt_doc.php
+
 		return $this->wrapTotal($content);
 	}
 

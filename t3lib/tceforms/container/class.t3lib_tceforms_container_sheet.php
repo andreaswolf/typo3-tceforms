@@ -2,20 +2,31 @@
 
 require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_container.php');
 
-class t3lib_TCEforms_Sheet implements t3lib_TCEforms_Container {
+class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 	/**
 	 * @var array  The sub-elements of this sheet
 	 */
-	protected $childObjects;
+	protected $childObjects = array();
 
 	protected $identString;
 
 	protected $header;
 
 	/**
-	 * @var t3lib_TCEforms_AbstractForm  The parent form this sheet belongs to
+	 * The parent form this sheet belongs to
+	 *
+	 * @var t3lib_TCEforms_Form
+	 *
+	 * TODO: perhaps rename to parentForm
 	 */
 	protected $parentObject;
+
+	/**
+	 * The global context object this sheet belongs to
+	 *
+	 * @var unknown_type
+	 */
+	protected $contextObject;
 
 	/**
 	 * @var array
@@ -23,19 +34,41 @@ class t3lib_TCEforms_Sheet implements t3lib_TCEforms_Container {
 	protected $requiredFields = array();
 	protected $requiredElements = array();
 
+	/**
+	 * Set to true to start a new row in the tab menu (i.e., this and all following sheets will be
+	 * put on a separate line)
+	 *
+	 * @var boolean
+	 */
+	protected $startNewRowInTabmenu;
 
-	public function init($identString, $header, t3lib_TCEforms_AbstractForm $parentObject) {
+
+	public function __construct($identString, $header) {
 		$this->identString = $identString;
 
 		$this->header = $header;
 
-		$this->childObjects = array();
-
 		$this->parentObject = $parentObject;
 	}
 
-	public function addChildObject(t3lib_TCEforms_AbstractElement $childObject) {
-		// TODO: set container of child object here! (-> first need to create function setContainer() in AbstractElement)
+	public function init() {
+
+	}
+
+	// TODO: add type hinting for $parentObject
+	public function setParentObject($parentObject) {
+		$this->parentObject = $parentObject;
+
+		return $this;
+	}
+
+	public function setParentFormObject(t3lib_TCEforms_Form $parentFormObject) {
+		$this->contextObject = $parentFormObject;
+
+		return $this;
+	}
+
+	public function addChildObject(t3lib_TCEforms_Element $childObject) {
 		$childObject->setContainer($this);
 		$this->childObjects[] = $childObject;
 	}
@@ -47,22 +80,23 @@ class t3lib_TCEforms_Sheet implements t3lib_TCEforms_Container {
 		}
 
 		$contentStack = array();
-		$tempBorderStyle = $this->childObjects[0]->borderStyle;
+		$currentBorderStyle = $this->childObjects[0]->getBorderStyle();
 		foreach ($this->childObjects as $childObject) {
 			if ($childObject->_wrapBorder == true) {
 				if (count($contentStack) > 0) {
-					$content .= $this->wrapBorder(implode('', $contentStack), $tempBorderStyle);
+					$content .= $this->wrapBorder(implode('', $contentStack), $currentBorderStyle);
 
 					$contentStack = array();
 				}
 
-				$tempBorderStyle = $childObject->borderStyle;
+				$currentBorderStyle = $childObject->getBorderStyle();
 			}
 
 			$contentStack[] = $childObject->render();
 		}
 
-		$content .= $this->wrapBorder(implode('', $contentStack), $tempBorderStyle);
+		$content .= $this->wrapBorder(implode('', $contentStack), $currentBorderStyle);
+		// TODO move this to CSS file
 		$content = '<table border="0" cellspacing="0" cellpadding="0" width="100%">'.$content.'</table>';
 
 		return $content;
@@ -88,13 +122,14 @@ class t3lib_TCEforms_Sheet implements t3lib_TCEforms_Container {
 	 * @return	void
 	 */
 	protected function wrapBorder($content, $borderStyle)	{
-		$wrap = t3lib_parsehtml::getSubpart($this->parentObject->getTemplateContent(), '###SECTION_WRAP###');
+		$wrap = t3lib_parsehtml::getSubpart($this->contextObject->getTemplateContent(), '###SECTION_WRAP###');
 
 		$tableAttribs='';
 		$tableAttribs.= $borderStyle[0] ? ' style="'.htmlspecialchars($borderStyle[0]).'"':'';
 		$tableAttribs.= $borderStyle[2] ? ' background="'.htmlspecialchars($this->backPath.$borderStyle[2]).'"':'';
 		$tableAttribs.= $borderStyle[3] ? ' class="'.htmlspecialchars($borderStyle[3]).'"':'';
 		if ($tableAttribs)	{
+			// TODO: move this to CSS file and add the class above
 			$tableAttribs='border="0" cellspacing="0" cellpadding="0" width="100%"'.$tableAttribs;
 			$markerArray = array(
 				'###CONTENT###' => $content,
@@ -120,6 +155,7 @@ class t3lib_TCEforms_Sheet implements t3lib_TCEforms_Container {
 	 * @param	mixed		$value: For type 'field' string, for type 'range' array
 	 * @return	void
 	 */
+	// TODO: make this interact with the form object or move it there
 	public function registerRequiredProperty($type, $name, $value) {
 		if ($type == 'field' && is_string($value)) {
 			$this->requiredFields[$name] = $value;
@@ -131,6 +167,16 @@ class t3lib_TCEforms_Sheet implements t3lib_TCEforms_Container {
 		}
 			// Set the situation of nesting for the current field:
 		//$this->registerNestedElement($itemName);
+	}
+
+	public function setStartingNewRowInTabmenu($startNewRow) {
+		$this->startNewRowInTabmenu = $startNewRow;
+
+		return $this;
+	}
+
+	public function isStartingNewRowInTabmenu() {
+		return $this->startNewRowInTabmenu;
 	}
 }
 

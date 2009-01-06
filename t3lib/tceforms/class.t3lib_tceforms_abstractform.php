@@ -1,7 +1,8 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_sheet.php');
+require_once(PATH_t3lib.'tceforms/container/class.t3lib_tceforms_container_sheet.php');
 
+// TODO: define abstract render() method
 abstract class t3lib_TCEforms_AbstractForm {
 
 	/**
@@ -109,6 +110,9 @@ abstract class t3lib_TCEforms_AbstractForm {
 	protected $parentFormObject;
 
 
+	protected static $cachedTSconfig;
+
+
 
 	/**
 	 * The constructor of this class
@@ -142,6 +146,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 			// check if table exists in TCA. This is required!
 		if (!$TCA[$table]) {
 			// TODO: throw exception here
+
 			die('Table '.$table.'does not exist! [1216891229]');
 		}
 
@@ -149,7 +154,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 		$this->table = $table;
 		$this->record = $row;
 
-
+		// TODO: load TCA here
 		$this->tableTCAconfig = &$TCA[$this->table];
 
 
@@ -174,6 +179,8 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 	public function setParentFormObject(t3lib_TCEforms_AbstractForm $formObject) {
 		$this->parentFormObject = $formObject;
+
+		return $this;
 	}
 
 	/**
@@ -247,32 +254,22 @@ abstract class t3lib_TCEforms_AbstractForm {
 		// Using "form_type" locally in this script
 		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
 
-		switch ($fieldConf['config']['form_type']) {
-
-			case 'input':
-			case 'text':
-			case 'check':
-			case 'radio':
-			case 'select':
-			case 'group':
-			case 'user':
-			case 'flex':
-			case 'inline':
-			case 'none':
-			default:
-				$elementObject = $this->elementObjectFactory($fieldConf['config']['form_type']);
-					// don't set the container here because we can't be sure if this item
-					// will be attached to $this->currentSheet or another sheet
-				$elementObject->setTCEformsObject($this->TCEformsObject);
-				$elementObject->set_TCEformsObject($this);
-				if (is_array($this->defaultLanguageData)) {
-					$elementObject->setDefaultLanguageValue($this->defaultLanguageData[$theField]);
-				}
-
-				$elementObject->init($this->table, $theField, $this->record, $fieldConf, $altName, $palette, $extra, $pal, $this);
-
-				break;
+		$elementClassname = $this->elementObjectFactory($fieldConf['config']['form_type']);
+		//$this->table, $this->record
+		$elementObject = new $elementClassname($theField, $fieldConf, $altName, $extra, $this);
+		$elementObject->setTable($this->table)
+		              ->setRecord($this->record)
+			// don't set the container here because we can't be sure if this item
+			// will be attached to $this->currentSheet or another sheet
+		              ->setTCEformsObject($this->TCEformsObject)
+		              ->set_TCEformsObject($this);
+		if (is_array($this->defaultLanguageData)) {
+			$elementObject->setDefaultLanguageValue($this->defaultLanguageData[$theField]);
 		}
+
+		// TODO: don't call init here, call it in the container after the element has been added to it
+		$elementObject->init();
+
 
 		return $elementObject;
 	}
@@ -288,22 +285,23 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @param  string  $type  The type of record to create - directly taken from TCA
 	 * @return t3lib_TCEforms_AbstractElement  The element object
 	 */
+	// TODO: refactor this as soon as the autoloader is available in core
 	protected function elementObjectFactory($type) {
 		switch ($type) {
 			default:
-				$className = 't3lib_TCEforms_'.$type.'Element';
+				$className = 't3lib_TCEforms_Element_'.$type;
 				break;
 		}
 
 		if (!class_exists($className)) {
 				// if class(file) does not exist, resolve to type "unknown"
-			if (!@file_exists(PATH_t3lib.'tceforms/class.'.strtolower($className).'.php')) {
+			if (!@file_exists(PATH_t3lib.'tceforms/element/class.'.strtolower($className).'.php')) {
 				return $this->elementObjectFactory('unknown');
 			}
-			include_once PATH_t3lib.'tceforms/class.'.strtolower($className).'.php';
+			include_once PATH_t3lib.'tceforms/element/class.'.strtolower($className).'.php';
 		}
 
-		return t3lib_div::makeInstance($className);
+		return t3lib_div::makeInstanceClassName($className);
 	}
 
 	/**
@@ -469,8 +467,9 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @return  t3lib_TCEforms_Sheet
 	 */
 	protected function createSheetObject($sheetIdentString, $header) {
-		$sheetObject = new t3lib_TCEforms_Sheet;
-		$sheetObject->init($sheetIdentString, $header, $this);
+		$sheetObject = new t3lib_TCEforms_Sheet($sheetIdentString, $header);
+		$sheetObject->setParentObject($this)
+		            ->init();
 
 		$this->sheets[] = $sheetObject;
 
@@ -483,6 +482,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @param   string  Language label reference, eg. 'LLL:EXT:lang/locallang_core.php:labels.blablabla'
 	 * @return  string  The value of the label, fetched for the current backend language.
 	 */
+	// TODO: refactor the method name
 	protected function sL($str) {
 		return $GLOBALS['LANG']->sL($str);
 	}
@@ -595,11 +595,10 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * Used externally from scripts like alt_doc.php and db_layout.php (which uses TCEforms...)
 	 *
 	 * @param	string		Code to output between table-parts; table rows
-	 * @param	array		The record
-	 * @param	string		The table name
 	 * @return	string
 	 */
-	public function wrapTotal($content) {
+	// TODO: refactorthe next two methods
+	protected function wrapTotal($content) {
 		$wrap = t3lib_parsehtml::getSubpart($this->templateContent, '###TOTAL_WRAP###');
 		$content = $this->replaceTableWrap($wrap, $content);
 		return $content . implode('', $this->hiddenFields_HTMLcode);
@@ -613,7 +612,7 @@ abstract class t3lib_TCEforms_AbstractForm {
 	 * @param   string   The table name
 	 * @return  string
 	 */
-	function replaceTableWrap($wrap, $content) {
+	protected function replaceTableWrap($wrap, $content) {
 		global $TCA;
 
 			// Make "new"-label
@@ -1015,6 +1014,28 @@ abstract class t3lib_TCEforms_AbstractForm {
 
 	public function setFormFieldNamePrefix($prefix) {
 		$this->formFieldNamePrefix = $prefix;
+	}
+
+	/**
+	 * Returns TSconfig for table/row
+	 * Multiple requests to this function will return cached content so there is no performance loss in calling this many times since the information is looked up only once.
+	 *
+	 * @param	string		The table name
+	 * @param	array		The table row (Should at least contain the "uid" value, even if "NEW..." string. The "pid" field is important as well, and negative values will be intepreted as pointing to a record from the same table.)
+	 * @param	string		Optionally you can specify the field name as well. In that case the TSconfig for the field is returned.
+	 * @return	mixed		The TSconfig values (probably in an array)
+	 * @see t3lib_BEfunc::getTCEFORM_TSconfig()
+	 */
+	public static function getTSconfig($table, $row, $field='') {
+		$mainKey = $table.':'.$row['uid'];
+		if (!isset(self::$cachedTSconfig[$mainKey])) {
+			self::$cachedTSconfig[$mainKey] = t3lib_BEfunc::getTCEFORM_TSconfig($table, $row);
+		}
+		if ($field) {
+			return self::$cachedTSconfig[$mainKey][$field];
+		} else {
+			return self::$cachedTSconfig[$mainKey];
+		}
 	}
 }
 

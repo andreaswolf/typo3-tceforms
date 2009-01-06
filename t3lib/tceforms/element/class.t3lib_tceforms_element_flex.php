@@ -1,12 +1,12 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractelement.php');
-require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_flexform.php');
+require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.php');
+//require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_flexform.php');
 
 
-class t3lib_TCEforms_FlexElement extends t3lib_TCEforms_AbstractElement {
+class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
-		$formObject = new t3lib_TCEforms_Flexform($this->table, $this->record, $this->fieldConfig['config']);
+		/*$formObject = new t3lib_TCEforms_Flexform($this->table, $this->record, $this->fieldConfig['config']);
 		$formObject->setTCEformsObject($this->TCEformsObject);
 		$formObject->registerDefaultLanguageData();
 		$formObject->setFormFieldNamePrefix($this->itemFormElName);
@@ -15,7 +15,9 @@ class t3lib_TCEforms_FlexElement extends t3lib_TCEforms_AbstractElement {
 
 		$output = $formObject->render();
 
-		return $output;
+		return $output;*/
+
+		return 'Flexforms are not implemented yet.';
 	}
 
 	/**
@@ -66,7 +68,6 @@ class t3lib_TCEforms_FlexElement extends t3lib_TCEforms_AbstractElement {
 
 					// If it's a "single form element":
 				} elseif (is_array($sheetDefinition['TCEforms']['config'])) {	// Rendering a single form element:
-					// TODO: create _flexform here
 					$formObject = new t3lib_TCEforms_Flexform($this->table, $this->record, $dataStructArray);
 					$formObject->setTCEformsObject($this->TCEformsObject);
 					$formObject->registerDefaultLanguageData();
@@ -79,3 +80,5 @@ class t3lib_TCEforms_FlexElement extends t3lib_TCEforms_AbstractElement {
 		}
 	}
 }
+
+?>
