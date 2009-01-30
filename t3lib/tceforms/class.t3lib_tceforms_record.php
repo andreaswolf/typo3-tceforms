@@ -177,9 +177,7 @@ class t3lib_TCEforms_Record {
 			$fields = $this->rearrange($fields);
 		}*/
 
-		// TODO:
-		//$this->fieldList = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd());
-		$this->fieldList = $fields;
+		$this->fieldList = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd());
 	}
 
 	public function buildTCAObjectTree() {
@@ -211,7 +209,6 @@ class t3lib_TCEforms_Record {
 						//       steps: create a new element type "palette" as a dumb wrapper for a palette
 						//       for testing see tt_content, type text w/image, image dimensions and links
 						$formFieldObject = $this->formBuilder->createPaletteElement($parts[2], $this->sL($parts[1]));
-						//print_r($formFieldObject);
 					}
 
 					$this->currentSheet->addChildObject($formFieldObject);
@@ -241,7 +238,7 @@ class t3lib_TCEforms_Record {
 						$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][0]);
 					}
 				}
-				// TODO: add getters and setters for fieldStyle, _wrapBorder and borderStyle
+				// TODO: add getter and setter for _wrapBorder
 				if (strcmp($color_style_parts[1], '')) {
 					$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])]);
 					// TODO check if this check is still neccessary
@@ -363,8 +360,6 @@ class t3lib_TCEforms_Record {
 	 * @return void
 	 */
 	protected function setExcludeElements() {
-		global $TCA;
-
 			// Init:
 		$this->excludeElements = array();
 
@@ -397,6 +392,57 @@ class t3lib_TCEforms_Record {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Finds possible field to add to the form, based on subtype fields.
+	 *
+	 * @return	array		An array containing two values: 1) Another array containing fieldnames to add and 2) the subtype value field.
+	 * @see getMainFields()
+	 */
+	protected function getFieldsToAdd()	{
+			// Init:
+		$addElements = array();
+
+			// If a subtype field is defined for the type
+		if ($this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field']) {
+			$subtypeValueField = $this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field'];
+			if (trim($this->TCAdefinition['types'][$this->typeNumber]['subtypes_addlist'][$this->recordData[$subtypeValueField]])) {
+				$addElements = t3lib_div::trimExplode(',', $this->TCAdefinition['types'][$this->typeNumber]['subtypes_addlist'][$this->recordData[$subtypeValueField]],1);
+			}
+		}
+
+			// Return the return
+		return array($addElements, $subtypeValueField);
+	}
+
+	/**
+	 * Merges the current [types][showitem] array with the array of fields to add for the current subtype field of the "type" value.
+	 *
+	 * @param	array		A [types][showitem] list of fields, exploded by ","
+	 * @param	array		The output from getFieldsToAdd()
+	 * @return	array		Return the modified $fields array.
+	 * @see getMainFields(),getFieldsToAdd()
+	 */
+	protected function mergeFieldsWithAddedFields($fields, $fieldsToAdd)	{
+		if (count($fieldsToAdd[0])) {
+			reset($fields);
+			$c=0;
+			while(list(,$fieldInfo)=each($fields)) {
+				$parts = explode(';',$fieldInfo);
+				if (!strcmp(trim($parts[0]),$fieldsToAdd[1])) {
+					array_splice(
+						$fields,
+						$c+1,
+						0,
+						$fieldsToAdd[0]
+					);
+					break;
+				}
+				$c++;
+			}
+		}
+		return $fields;
 	}
 
 	public function getTCAdefinitionForField($fieldName) {
