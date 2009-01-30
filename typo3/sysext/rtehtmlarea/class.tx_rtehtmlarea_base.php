@@ -2,9 +2,9 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2009 Kasper Skaarhoj (kasper@typo3.com)
-*  (c) 2004-2009 Philipp Borgmann <philipp.borgmann@gmx.de>
-*  (c) 2004-2009 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2004 Kasper Skaarhoj (kasper@typo3.com)
+*  (c) 2004 Philipp Borgmann <philipp.borgmann@gmx.de>
+*  (c) 2004-2008 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -305,6 +305,28 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 			 */
 			$this->initializeToolbarConfiguration();
 
+			if ($this->client['BROWSER'] == 'msie') {
+				$this->thisConfig['keepButtonGroupTogether'] = 0;
+			}
+			if ($this->client['BROWSER'] == 'opera') {
+				$this->thisConfig['keepButtonGroupTogether'] = 0;
+			}
+			if ($this->client['BROWSER'] == 'gecko' && $this->client['VERSION'] == '1.3')  {
+				$this->thisConfig['keepButtonGroupTogether'] = 0;
+			}
+
+				// Toolbar
+			$this->setToolbar();
+
+				// Check if some plugins need to be disabled
+			$this->setPlugins();
+			
+				// Merge the list of enabled plugins with the lists from the previous RTE editing areas on the same form
+			$this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()] = $this->pluginEnabledArray;
+			if ($this->TCEform->getRTEcounter() > 1 && isset($this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()-1]) && is_array($this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()-1])) {
+				$this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()] = array_unique(array_values(array_merge($this->pluginEnabledArray,$this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()-1])));
+			}
+			
 			/* =======================================
 			 * SET STYLES
 			 * =======================================
@@ -360,7 +382,7 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 				}
 			}
 				// Register RTE windows
-			$this->TCEform->RTEwindows[] = $PA['itemFormElName'];
+			$this->TCEform->registerRTEWindow($PA['itemFormElName']);
 			$textAreaId = htmlspecialchars($PA['itemFormElName']);
 
 				// Check if wizard_rte called this for fullscreen edtition; if so, change the size of the RTE to fullscreen using JS
@@ -378,15 +400,15 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 				$editorWrapWidth = '100%';
 				$editorWrapHeight = '100%';
 				$this->RTEdivStyle = 'position:relative; left:0px; top:0px; height:100%; width:100%; border: 1px solid black; padding: 2px 0px 2px 2px;';
-				$this->TCEform->additionalJS_post[] = $this->setRTEsizeByJS('RTEarea' . $textAreaId, $height, $width);
+				$this->TCEform->addToAdditionalJSPostForm('', $this->setRTEsizeByJS('RTEarea' . $textAreaId, $height, $width));
 			}
 
 				// Register RTE in JS:
-			$this->TCEform->additionalJS_post[] = $this->registerRTEinJS($this->TCEform->RTEcounter, $table, $row['uid'], $field, $textAreaId);
+			$this->TCEform->addToAdditionalJSPostForm('', $this->registerRTEinJS($this->TCEform->getRTEcounter(), $table, $row['uid'], $field, $textAreaId));
 
 				// Set the save option for the RTE:
-			$this->TCEform->additionalJS_submit[] = $this->setSaveRTE($this->TCEform->RTEcounter, $this->TCEform->formName, $textAreaId);
-			$this->TCEform->additionalJS_delete[] = $this->setDeleteRTE($this->TCEform->RTEcounter, $this->TCEform->formName, $textAreaId);
+			$this->TCEform->additionalJS_submit[] = $this->setSaveRTE($this->TCEform->getRTEcounter(), $this->TCEform->getFormName(), $textAreaId);
+			$this->TCEform->additionalJS_delete[] = $this->setDeleteRTE($this->TCEform->getRTEcounter(), $this->TCEform->getFormName(), $textAreaId);
 
 				// Draw the textarea
 			$visibility = 'hidden';
