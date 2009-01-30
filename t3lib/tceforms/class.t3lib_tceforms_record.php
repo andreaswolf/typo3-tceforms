@@ -129,6 +129,8 @@ class t3lib_TCEforms_Record {
 
 		$this->setExcludeElements();
 
+		$this->registerDefaultLanguageData();
+
 		$this->buildTCAObjectTree();
 
 		$this->resolveMainPalettes();
@@ -219,6 +221,10 @@ class t3lib_TCEforms_Record {
 					                ->setRecord($this->recordData)
 					                ->injectFormBuilder($this->formBuilder)
 					                ->init();
+
+					if (is_array($this->defaultLanguageData)) {
+						$formFieldObject->setDefaultLanguageValue($this->defaultLanguageData[$theField]);
+					}
 
 					if (isset($parts[2]) && t3lib_div::testInt($parts[2])) {
 						$formFieldObject->initializePalette($parts[2]);
@@ -533,6 +539,127 @@ class t3lib_TCEforms_Record {
 			break;
 		}
 		return $content;
+	}
+
+
+	/************************************************************
+	 *
+	 * Display of localized content etc.
+	 *
+	 ************************************************************/
+
+	/**
+	 * Will register data from original language records if the current record is a translation of another.
+	 * The original data is shown with the edited record in the form. The information also includes possibly diff-views of what changed in the original record.
+	 * Function called from outside (see alt_doc.php + quick edit) before rendering a form for a record
+	 *
+	 * @param	string		Table name of the record being edited
+	 * @param	array		Record array of the record being edited
+	 * @return	void
+	 */
+	protected function registerDefaultLanguageData()	{
+			// Add default language:
+		if ($this->TCAdefinition['ctrl']['languageField']
+				&& $this->recordData[$this->TCAdefinition['ctrl']['languageField']] > 0
+				&& $this->TCAdefinition['ctrl']['transOrigPointerField']
+				&& intval($this->recordData[$this->TCAdefinition['ctrl']['transOrigPointerField']]) > 0) {
+
+			$lookUpTable = $this->TCAdefinition['ctrl']['transOrigPointerTable'] ? $this->TCAdefinition['ctrl']['transOrigPointerTable'] : $this->table;
+
+				// Get data formatted:
+			$this->defaultLanguageData = t3lib_BEfunc::getRecordWSOL($lookUpTable, intval($this->recordData[$this->TCAdefinition['ctrl']['transOrigPointerField']]));
+
+				// Get data for diff:
+			if ($this->TCAdefinition['ctrl']['transOrigDiffSourceField'])	{
+				$this->defaultLanguageData_diff = unserialize($this->recordData[$this->TCAdefinition['ctrl']['transOrigDiffSourceField']]);
+			}
+
+				// If there are additional preview languages, load information for them also:
+			$prLang = $this->getAdditionalPreviewLanguages();
+			foreach($prLang as $prL) {
+				$t8Tools = t3lib_div::makeInstance('t3lib_transl8tools');
+				$tInfo = $t8Tools->translationInfo($lookUpTable,intval($this->recordData[$this->TCAdefinition['ctrl']['transOrigPointerField']]),$prL['uid']);
+				if (is_array($tInfo['translations'][$prL['uid']]))	{
+					$this->additionalPreviewLanguageData[$prL['uid']] = t3lib_BEfunc::getRecordWSOL($this->table, intval($tInfo['translations'][$prL['uid']]['uid']));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Generates and return information about which languages the current user should see in preview, configured by options.additionalPreviewLanguages
+	 *
+	 * return array	Array of additional languages to preview
+	 */
+	public function getAdditionalPreviewLanguages()	{
+		if (!isset($this->cachedAdditionalPreviewLanguages)) 	{
+			if ($GLOBALS['BE_USER']->getTSConfigVal('options.additionalPreviewLanguages'))	{
+				$uids = t3lib_div::intExplode(',',$GLOBALS['BE_USER']->getTSConfigVal('options.additionalPreviewLanguages'));
+				foreach($uids as $uid)	{
+					if ($sys_language_rec = t3lib_BEfunc::getRecord('sys_language',$uid))	{
+						$this->cachedAdditionalPreviewLanguages[$uid] = array('uid' => $uid);
+
+						if ($sys_language_rec['static_lang_isocode'] && t3lib_extMgm::isLoaded('static_info_tables'))	{
+							$staticLangRow = t3lib_BEfunc::getRecord('static_languages',$sys_language_rec['static_lang_isocode'],'lg_iso_2');
+							if ($staticLangRow['lg_iso_2']) {
+								$this->cachedAdditionalPreviewLanguages[$uid]['uid'] = $uid;
+								$this->cachedAdditionalPreviewLanguages[$uid]['ISOcode'] = $staticLangRow['lg_iso_2'];
+							}
+						}
+					}
+				}
+			} else {
+					// None:
+				$this->cachedAdditionalPreviewLanguages = array();
+			}
+		}
+		return $this->cachedAdditionalPreviewLanguages;
+	}
+
+	/**
+	 * Initializes language icons etc.
+	 *
+	 * param	string	Sys language uid OR ISO language code prefixed with "v", eg. "vDA"
+	 * @return	void
+	 */
+	public function getLanguageIcon($sys_language_uid)	{
+		global $TCA, $LANG;
+
+		$mainKey = $this->table.':'.$this->recordData['uid'];
+
+		if (!isset($this->cachedLanguageFlag[$mainKey])) {
+			t3lib_BEfunc::fixVersioningPid($this->table, $this->recordData);
+			list($tscPID,$thePidValue) = $this->getTSCpid($this->table, $this->recordData['uid'], $this->recordData['pid']);
+
+			$t8Tools = t3lib_div::makeInstance('t3lib_transl8tools');
+			$this->cachedLanguageFlag[$mainKey] = $t8Tools->getSystemLanguages($tscPID, $this->backPath);
+		}
+
+			// Convert sys_language_uid to sys_language_uid if input was in fact a string (ISO code expected then)
+		if (!t3lib_div::testInt($sys_language_uid)) {
+			foreach($this->cachedLanguageFlag[$mainKey] as $rUid => $cD) {
+				if ('v' . $cD['ISOcode'] === $sys_language_uid) {
+					$sys_language_uid = $rUid;
+				}
+			}
+		}
+
+		return ($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon'] ? '<img src="'.$this->cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon'].'" class="absmiddle" alt="" />' : ($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['title'] ? '['.$this->cachedLanguageFlag[$mainKey][$sys_language_uid]['title'].']' : '')).'&nbsp;';
+	}
+
+	/**
+	 * Return TSCpid (cached)
+	 * Using t3lib_BEfunc::getTSCpid()
+	 *
+	 * @return	integer		Returns the REAL pid of the record, if possible. If both $uid and $pid is strings, then pid=-1 is returned as an error indication.
+	 * @see t3lib_BEfunc::getTSCpid()
+	 */
+	function getTSCpid() {
+		$key = $this->table.':'.$this->recordData['uid'].':'.$this->recordData['pid'];
+		if (!isset($this->cache_getTSCpid[$key])) {
+			$this->cache_getTSCpid[$key] = t3lib_BEfunc::getTSCpid($this->table, $this->recordData['uid'], $this->recordData['pid']);
+		}
+		return $this->cache_getTSCpid[$key];
 	}
 }
 
