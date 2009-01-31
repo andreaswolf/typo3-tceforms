@@ -26,7 +26,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
 
 		// Getting the selector box items from the system
-		$this->selectItems = $this->addSelectOptionsToItemArray($this->initItemArray($this->fieldConfig), $this->fieldConfig, $this->getTSconfig($this->table, $this->record), $this->field);
+		$this->selectItems = $this->addSelectOptionsToItemArray($this->initItemArray($this->fieldConfig), $this->getTSconfig(FALSE));
 		$this->selectItems = $this->addItems($this->selectItems, $this->fieldTSConfig['addItems.']);
 		if ($this->fieldConfig['config']['itemsProcFunc']) {
 			$this->selectItems = $this->TCEformsObject->procItems($this->selectItems, $this->fieldTSConfig['itemsProcFunc.'], $this->fieldConfig['config'], $this->table, $this->record, $this->field);
@@ -573,25 +573,25 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 	 * @param	string		The fieldname
 	 * @return	array		The $items array modified.
 	 */
-	function addSelectOptionsToItemArray($items,$fieldValue,$TSconfig,$field)	{
+	protected function addSelectOptionsToItemArray($items, $TSconfig) {
 		global $TCA;
 
 			// Values from foreign tables:
-		if ($fieldValue['config']['foreign_table'])	{
-			$items = $this->foreignTable($items,$fieldValue,$TSconfig,$field);
-			if ($fieldValue['config']['neg_foreign_table'])	{
-				$items = $this->foreignTable($items,$fieldValue,$TSconfig,$field,1);
+		if ($this->fieldConfig['config']['foreign_table']) {
+			$items = $this->foreignTable($items, $TSconfig);
+			if ($this->fieldConfig['config']['neg_foreign_table'])	{
+				$items = $this->foreignTable($items, $TSconfig, 1);
 			}
 		}
 
 			// Values from a file folder:
-		if ($fieldValue['config']['fileFolder'])	{
-			$fileFolder = t3lib_div::getFileAbsFileName($fieldValue['config']['fileFolder']);
+		if ($this->fieldConfig['config']['fileFolder'])	{
+			$fileFolder = t3lib_div::getFileAbsFileName($this->fieldConfig['config']['fileFolder']);
 			if (@is_dir($fileFolder))	{
 
 					// Configurations:
-				$extList = $fieldValue['config']['fileFolder_extList'];
-				$recursivityLevels = isset($fieldValue['config']['fileFolder_recursions']) ? t3lib_div::intInRange($fieldValue['config']['fileFolder_recursions'],0,99) : 99;
+				$extList = $this->fieldConfig['config']['fileFolder_extList'];
+				$recursivityLevels = isset($this->fieldConfig['config']['fileFolder_recursions']) ? t3lib_div::intInRange($this->fieldConfig['config']['fileFolder_recursions'],0,99) : 99;
 
 					// Get files:
 				$fileFolder = ereg_replace('\/$','',$fileFolder).'/';
@@ -611,8 +611,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		}
 
 			// If 'special' is configured:
-		if ($fieldValue['config']['special'])	{
-			switch ($fieldValue['config']['special'])	{
+		if ($this->fieldConfig['config']['special'])	{
+			switch ($this->fieldConfig['config']['special'])	{
 				case 'tables':
 					$temp_tc = array_keys($TCA);
 					$descr = '';
@@ -749,7 +749,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 					$loadModules = t3lib_div::makeInstance('t3lib_loadModules');
 					$loadModules->load($GLOBALS['TBE_MODULES']);
 
-					$modList = $fieldValue['config']['special']=='modListUser' ? $loadModules->modListUser : $loadModules->modListGroup;
+					$modList = $this->fieldConfig['config']['special']=='modListUser' ? $loadModules->modListUser : $loadModules->modListGroup;
 					if (is_array($modList))	{
 						$descr = '';
 
@@ -793,7 +793,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 	 * @access private
 	 * @see addSelectOptionsToItemArray()
 	 */
-	function addSelectOptionsToItemArray_makeModuleData($value)	{
+	protected function addSelectOptionsToItemArray_makeModuleData($value) {
 		$label = '';
 			// Add label for main module:
 		$pp = explode('_',$value);
@@ -808,23 +808,21 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 	 * Adds records from a foreign table (for selector boxes)
 	 *
 	 * @param	array		The array of items (label,value,icon)
-	 * @param	array		The 'columns' array for the field (from TCA)
 	 * @param	array		TSconfig for the table/row
-	 * @param	string		The fieldname
 	 * @param	boolean		If set, then we are fetching the 'neg_' foreign tables.
 	 * @return	array		The $items array modified.
 	 * @see addSelectOptionsToItemArray(), t3lib_BEfunc::exec_foreign_table_where_query()
 	 */
-	function foreignTable($items,$fieldValue,$TSconfig,$field,$pFFlag=0)	{
+	protected function foreignTable($items, $TSconfig, $pFFlag=0) {
 		global $TCA;
 
 			// Init:
 		$pF=$pFFlag?'neg_':'';
-		$f_table = $fieldValue['config'][$pF.'foreign_table'];
+		$f_table = $this->fieldConfig['config'][$pF.'foreign_table'];
 		$uidPre = $pFFlag?'-':'';
 
 			// Get query:
-		$res = t3lib_BEfunc::exec_foreign_table_where_query($fieldValue,$field,$TSconfig,$pF);
+		$res = t3lib_BEfunc::exec_foreign_table_where_query($this->fieldConfig, $this->field, $TSconfig, $pF);
 
 			// Perform lookup
 		if ($GLOBALS['TYPO3_DB']->sql_error())	{
@@ -833,7 +831,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		}
 
 			// Get label prefix.
-		$lPrefix = $this->sL($fieldValue['config'][$pF.'foreign_table_prefix']);
+		$lPrefix = $this->sL($this->fieldConfig['config'][$pF.'foreign_table_prefix']);
 
 			// Get icon field + path if any:
 		$iField = $TCA[$f_table]['ctrl']['selicon_field'];
@@ -848,7 +846,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 				if ($iField && $iPath && $row[$iField])	{
 					$iParts = t3lib_div::trimExplode(',',$row[$iField],1);
 					$icon = '../'.$iPath.'/'.trim($iParts[0]);
-				} elseif (t3lib_div::inList('singlebox,checkbox',$fieldValue['config']['renderMode'])) {
+				} elseif (t3lib_div::inList('singlebox,checkbox',$this->fieldConfig['config']['renderMode'])) {
 					$icon = '../'.TYPO3_mainDir.t3lib_iconWorks::skinImg($this->backPath,t3lib_iconWorks::getIcon($f_table, $row),'',1);
 				} else $icon = '';
 

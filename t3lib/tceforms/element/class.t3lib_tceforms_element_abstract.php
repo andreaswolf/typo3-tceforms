@@ -456,8 +456,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 *
 	 * @see t3lib_TCEForms_AbstractForm::getTSconfig()
 	 */
-	protected function getTSconfig() {
-		return t3lib_TCEForms_AbstractForm::getTSconfig($this->table, $this->record, $this->field);
+	protected function getTSconfig($useField = TRUE) {
+		return t3lib_TCEForms_AbstractForm::getTSconfig($this->table, $this->record, ($useField ? $this->field : ''));
 	}
 
 	public function getFieldname() {
@@ -766,30 +766,27 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * Renders the display of default language record content around current field.
 	 * Will render content if any is found in the internal array, $this->defaultLanguageData, depending on registerDefaultLanguageData() being called prior to this.
 	 *
-	 * @param	string		Table name of the record being edited
-	 * @param	string		Field name represented by $item
-	 * @param	array		Record array of the record being edited
 	 * @param	string		HTML of the form field. This is what we add the content to.
 	 * @return	string		Item string returned again, possibly with the original value added to.
 	 * @see getSingleField(), registerDefaultLanguageData()
 	 */
-	// TODO: check where $this->previewFieldValue() gets set
+	// TODO: check where $this->previewFieldValue() gets its data from
 	protected function renderDefaultLanguageContent($item) {
 		if ($this->defaultLanguageValue != '') {
 			$dLVal = t3lib_BEfunc::getProcessedValue($this->table, $this->field, $this->defaultLanguageValue, 0, 1);
 
 				// Don't show content if it's for IRRE child records:
-			if ($this->fieldConfig['type']!='inline') {
-				if (strcmp($dLVal,''))	{
-					$item.='<div class="typo3-TCEforms-originalLanguageValue">'.$this->_TCEformsObject->getLanguageIcon(0).$this->previewFieldValue($dLVal).'&nbsp;</div>';
+			if ($this->fieldConfig['type'] != 'inline') {
+				if (strcmp($dLVal, '')) {
+					$item.='<div class="typo3-TCEforms-originalLanguageValue">'.$this->parentRecordObject->getLanguageIcon(0).$this->previewFieldValue($dLVal).'&nbsp;</div>';
 				}
 
-				$prLang = $this->TCEformsObject->getAdditionalPreviewLanguages();
-				foreach($prLang as $prL)	{
-					$dlVal = t3lib_BEfunc::getProcessedValue($this->table,$this->field,$this->additionalPreviewLanguageValue[$prL['uid']][$field],0,1);
+				$prLang = $this->parentRecordObject->getAdditionalPreviewLanguages();
+				foreach ($prLang as $prL) {
+					$dlVal = t3lib_BEfunc::getProcessedValue($this->table,$this->field,$this->additionalPreviewLanguageValue[$prL['uid']][$this->field],0,1);
 
-					if(strcmp($dlVal, '')) {
-						$item.= '<div class="typo3-TCEforms-originalLanguageValue">'.$this->_TCEformsObject->getLanguageIcon('v'.$prL['ISOcode']).$this->previewFieldValue($dlVal).'&nbsp;</div>';
+					if (strcmp($dlVal, '')) {
+						$item .= '<div class="typo3-TCEforms-originalLanguageValue">'.$this->parentRecordObject->getLanguageIcon('v'.$prL['ISOcode']).$this->previewFieldValue($dlVal).'&nbsp;</div>';
 					}
 				}
 			}
@@ -828,7 +825,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 						t3lib_BEfunc::getProcessedValue($this->table,$this->field,$dLVal['new'][$this->field],0,1)
 					);
 
-					$item.='<div class="typo3-TCEforms-diffBox">'.
+					$item .= '<div class="typo3-TCEforms-diffBox">'.
 						'<div class="typo3-TCEforms-diffBox-header">'.htmlspecialchars($this->getLL('l_changeInOrig')).':</div>'.
 						$diffres.
 					'</div>';
@@ -848,7 +845,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	// TODO: move to renderField in type group
 	protected function previewFieldValue($value) {
-		if ($this->fieldConfig['type']==='group' && $this->fieldConfig['internal_type'] === 'file') {
+		if ($this->fieldConfig['type'] === 'group' && $this->fieldConfig['internal_type'] === 'file') {
 			$show_thumbs = TRUE;
 			$table = 'tt_content';
 
