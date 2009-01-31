@@ -166,6 +166,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			}
 		}
 
+		$this->defaultLanguageValue = $this->parentRecordObject->getDefaultLanguageValue($this->field);
+
 
 		// TODO: move this to AbstractForm
 		//$skipThisField = $this->inline->skipField($table, $this->field, $this->record, $this->fieldConfig['config']);

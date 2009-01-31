@@ -222,10 +222,6 @@ class t3lib_TCEforms_Record {
 					                ->injectFormBuilder($this->formBuilder)
 					                ->init();
 
-					if (is_array($this->defaultLanguageData)) {
-						$formFieldObject->setDefaultLanguageValue($this->defaultLanguageData[$theField]);
-					}
-
 					if (isset($parts[2]) && t3lib_div::testInt($parts[2])) {
 						$formFieldObject->initializePalette($parts[2]);
 					}
@@ -467,6 +463,15 @@ class t3lib_TCEforms_Record {
 		return $this->recordData;
 	}
 
+	// TODO: load data if neccessary before returning anything
+	public function getDefaultLanguageData() {
+		return $this->defaultLanguageData;
+	}
+
+	public function getDefaultLanguageValue($key) {
+		return $this->defaultLanguageData[$key];
+	}
+
 	public function getValue($key) {
 		return $this->recordData[$key];
 	}
@@ -553,8 +558,6 @@ class t3lib_TCEforms_Record {
 	 * The original data is shown with the edited record in the form. The information also includes possibly diff-views of what changed in the original record.
 	 * Function called from outside (see alt_doc.php + quick edit) before rendering a form for a record
 	 *
-	 * @param	string		Table name of the record being edited
-	 * @param	array		Record array of the record being edited
 	 * @return	void
 	 */
 	protected function registerDefaultLanguageData()	{
@@ -570,7 +573,7 @@ class t3lib_TCEforms_Record {
 			$this->defaultLanguageData = t3lib_BEfunc::getRecordWSOL($lookUpTable, intval($this->recordData[$this->TCAdefinition['ctrl']['transOrigPointerField']]));
 
 				// Get data for diff:
-			if ($this->TCAdefinition['ctrl']['transOrigDiffSourceField'])	{
+			if ($this->TCAdefinition['ctrl']['transOrigDiffSourceField']) {
 				$this->defaultLanguageData_diff = unserialize($this->recordData[$this->TCAdefinition['ctrl']['transOrigDiffSourceField']]);
 			}
 
