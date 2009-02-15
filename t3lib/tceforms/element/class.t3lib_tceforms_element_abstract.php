@@ -53,6 +53,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 	protected $isInPalette = false;
 
+	/**
+	 * The context this element is in (i.e., the top-level form)
+	 *
+	 * @var t3lib_TCEforms_Context
+	 */
 	protected $contextObject;
 
 	/*
@@ -150,14 +155,15 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
 		// TODO: rename this to formFieldNamePrefix/formFieldFileNamePrefix
-		$this->prependFormFieldNames = $this->contextObject->getFormFieldNamePrefix();//'data';//$this->TCEformsObject->prependFormFieldNames;
-		$this->prependFormFieldNames_file = $this->contextObject->getFormFieldNamePrefix();//$this->TCEformsObject->prependFormFieldNames_file;
+		$this->prependFormFieldNames = $this->parentRecordObject->getFormFieldNamePrefix();//'data';//$this->TCEformsObject->prependFormFieldNames;
+		$this->prependFormFieldNames_file = $this->parentRecordObject->getFormFieldNamePrefix();//$this->TCEformsObject->prependFormFieldNames_file;
+		$this->formFieldIdPrefix = $this->parentRecordObject->getFormFieldIdPrefix();;
 
 			// Init variables:
-		$this->itemFormElName = $this->prependFormFieldNames.'['.$this->table.']['.$this->record['uid'].']['.$this->field.']'; // Form field name
-		$this->itemFormElName_file = $this->prependFormFieldNames_file.'['.$this->table.']['.$this->record['uid'].']['.$this->field.']'; // Form field name, in case of file uploads
+		$this->itemFormElName = $this->prependFormFieldNames.'['.$this->field.']'; // Form field name
+		$this->itemFormElName_file = $this->prependFormFieldNames_file.'['.$this->field.']'; // Form field name, in case of file uploads
 		$this->itemFormElValue = $this->record[$this->field]; // The value to show in the form field.
-		$this->itemFormElID = $this->prependFormFieldNames.'_'.$this->table.'_'.$this->record['uid'].'_'.$this->field;
+		$this->itemFormElID = $this->formFieldIdPrefix . '_' . $this->field;
 
 			// Hook: getSingleField_preProcess
 		foreach (self::$hookObjects['getSingleFields'] as $hookObj)	{
@@ -184,7 +190,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 		$this->paletteObject = new $paletteClassName($paletteNumber);
 		$this->paletteObject->setContainingObject($this)
-		                    ->setParentFormObject($this->contextObject)
+		                    ->setContextObject($this->contextObject)
 		                    ->setRecordObject($this->parentRecordObject)
 		                    ->injectFormBuilder($this->formBuilder);
 
@@ -209,10 +215,10 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return $this;
 	}
 
-	public function setParentFormObject($parentFormObject) {
-		$this->contextObject = $parentFormObject;
+	public function setContextObject(t3lib_TCEforms_Context $contextObject) {
+		$this->contextObject = $contextObject;
 
-		$this->backPath = $parentFormObject->getBackpath();
+		$this->backPath = $contextObject->getBackpath();
 
 		return $this;
 	}
@@ -242,6 +248,33 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return $this;
 	}
 
+
+	// NOTE: these methods were extracted from the monster condition in render()
+
+	protected function isPassThroughField() {
+		return $this->fieldConfig['config']['form_type'] == 'passthrough';
+	}
+
+	protected function hasFieldConfig() {
+		return is_array($this->fieldConfig);
+	}
+
+	protected function isRteEnabled() {
+		return $this->RTEenabled;
+	}
+
+	protected function isOnlyShownIfRteIsEnabled() {
+		return $this->fieldConfig['config']['showIfRTE'];
+	}
+
+	protected function hasDisplayCondition() {
+		return $this->fieldConfig['displayCond'];
+	}
+
+	protected function isExcludeField() {
+		return $this->fieldConfig['exclude'];
+	}
+
 	/*
 	 * TODO:refactor:
 	 *
@@ -254,14 +287,14 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		global $BE_USER, $TCA;
 
 		// Now, check if this field is configured and editable (according to excludefields + other configuration)
-		if (	is_array($this->fieldConfig) &&
-				!$skipThisField &&
-				(!$this->fieldConfig['exclude'] || $BE_USER->check('non_exclude_fields',$this->table.':'.$this->field)) &&
-				$this->fieldConfig['config']['form_type']!='passthrough' &&
-				($this->RTEenabled || !$this->fieldConfig['config']['showIfRTE']) &&
-				(!$this->fieldConfig['displayCond'] || $this->isDisplayCondition($this->fieldConfig['displayCond'], $this->record)) &&
-				(!$TCA[$this->table]['ctrl']['languageField'] || $this->fieldConfig['l10n_display'] || strcmp($this->fieldConfig['l10n_mode'],'exclude') || $this->record[$TCA[$this->table]['ctrl']['languageField']]<=0) &&
-				(!$TCA[$this->table]['ctrl']['languageField'] || !$this->localizationMode || $this->localizationMode===$this->fieldConfig['l10n_cat'])
+		if (	$this->hasFieldConfig()
+				&& !$skipThisField // TODO: check this before calling render(), i.e. in the record object -- AW
+				&& (!$this->isExcludeField() || $BE_USER->check('non_exclude_fields',$this->table.':'.$this->field))
+				&& !$this->isPassThroughField()
+				&& ($this->isRteEnabled() || !$this->isOnlyShownIfRteIsEnabled())
+				&& (!$this->hasDisplayCondition() || $this->isDisplayCondition($this->fieldConfig['displayCond'], $this->record))
+				&& (!$TCA[$this->table]['ctrl']['languageField'] || $this->fieldConfig['l10n_display'] || strcmp($this->fieldConfig['l10n_mode'],'exclude') || $this->record[$TCA[$this->table]['ctrl']['languageField']]<=0)
+				&& (!$TCA[$this->table]['ctrl']['languageField'] || !$this->localizationMode || $this->localizationMode===$this->fieldConfig['l10n_cat'])
 			) {
 
 				// Fetching the TSconfig for the current table/field. This includes the $this->record which means that
@@ -408,15 +441,15 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return $out;
 	}
 
-	public function renderHelpText() {
+	public function getHelpText() {
 		return $this->helpText();
 	}
 
-	public function renderHelpTextIcon() {
+	public function getHelpTextIcon() {
 		return $this->helpTextIcon();
 	}
 
-	public function renderLabel() {
+	public function getLabel() {
 		return $this->label;
 	}
 

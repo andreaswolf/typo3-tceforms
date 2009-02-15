@@ -93,8 +93,14 @@ class t3lib_TCEforms_Record {
 
 
 	/**
-	 * The form object this record belongs to. The form is the global context of the whole form and will
-	 * hold all information about Javascript etc.
+	 * The top-level form object of this TCEforms object tree.
+	 *
+	 * @var t3lib_TCEforms_Context
+	 */
+	protected $contextObject;
+
+	/**
+	 * The form object this record belongs to.
 	 *
 	 * @var t3lib_TCEforms_Form
 	 */
@@ -105,13 +111,25 @@ class t3lib_TCEforms_Record {
 	protected $sheetCounter = 0;
 
 	/**
+	 * The prefix for form field names, used to build a hierarchical structure.
+	 *
+	 * @var string
+	 */
+	protected $formFieldNamePrefix;
+
+	/**
+	 * The prefix for form field ids. May only contain A-Z, a-z, 0-9, _, -, : and .
+	 *
+	 * @var string
+	 */
+	protected $formFieldIdPrefix;
+
+	/**
 	 *
 	 *
 	 * @var integer
 	 */
 	protected $typeNumber;
-
-	protected $contextObject;
 
 
 	public function __construct($table, array $recordData, array $TCAdefinition) {
@@ -122,8 +140,28 @@ class t3lib_TCEforms_Record {
 		$this->setRecordTypeNumber();
 	}
 
+	public function setContextObject(t3lib_TCEforms_Context $contextObject) {
+		$this->contextObject = $contextObject;
+
+		return $this;
+	}
+
+	public function setParentFormObject(t3lib_TCEforms_Form $formObject) {
+		$this->parentFormObject = $formObject;
+
+		return $this;
+	}
+
+	// TODO: perhaps remove this and create a form builder in __construct (if we implement different form builders for different record types)
+	public function injectFormBuilder(t3lib_TCEforms_FormBuilder $formBuilder) {
+		$this->formBuilder = $formBuilder;
+
+		return $this;
+	}
+
 	public function init() {
-		$this->formFieldNamePrefix = $this->formBuilder->getFormFieldNamePrefix();
+		$this->formFieldNamePrefix = $this->parentFormObject->getFormFieldNamePrefix().'[' . $this->getTable() . '][' . $this->recordData['uid'] . ']';
+		$this->formFieldIdPrefix = $this->parentFormObject->getFormFieldIdPrefix() . '_' . $this->getTable() . '_' . $this->recordData['uid'];
 
 		$this->createFieldsList();
 
@@ -135,6 +173,7 @@ class t3lib_TCEforms_Record {
 
 		$this->resolveMainPalettes();
 	}
+
 
 	public function render() {
 		$tabContents = array();
@@ -158,13 +197,6 @@ class t3lib_TCEforms_Record {
 	}
 
 
-	public function injectFormBuilder(t3lib_TCEforms_FormBuilder $formBuilder) {
-		$this->formBuilder = $formBuilder;
-
-		return $this;
-	}
-
-
 	/**
 	 * Creates the list of fields to display
 	 *
@@ -182,7 +214,7 @@ class t3lib_TCEforms_Record {
 		$this->fieldList = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd());
 	}
 
-	public function buildTCAObjectTree() {
+	protected function buildTCAObjectTree() {
 		if (isset($this->fieldList[0]) && strpos($this->fieldList[0], '--div--') !== 0) {
 			$this->currentSheet = $this->createNewSheetObject($this->getLL('l_generalTab'));
 		}
@@ -215,7 +247,7 @@ class t3lib_TCEforms_Record {
 
 					$this->currentSheet->addChildObject($formFieldObject);
 
-					$formFieldObject->setParentFormObject($this->contextObject)
+					$formFieldObject->setContextObject($this->contextObject)
 					                ->setParentRecordObject($this)
 					                ->setTable($this->table)
 					                ->setRecord($this->recordData)
@@ -260,13 +292,6 @@ class t3lib_TCEforms_Record {
 		}
 	}
 
-
-	public function setParentFormObject(t3lib_TCEforms_Form $parentFormObject) {
-		$this->contextObject = $parentFormObject;
-
-		return $this;
-	}
-
 	protected function resolveMainPalettes() {
 		$mainPalettesArray = t3lib_div::trimExplode(',', $this->TCAdefinition['ctrl']['mainpalette']);
 
@@ -288,7 +313,7 @@ class t3lib_TCEforms_Record {
 
 				$this->currentSheet->addChildObject($paletteFieldObject);
 
-				$paletteFieldObject->setParentFormObject($this->contextObject)
+				$paletteFieldObject->setContextObject($this->contextObject)
 				                   ->setParentRecordObject($this)
 				                   ->setTable($this->table)
 				                   ->setRecord($this->recordData)
@@ -301,6 +326,14 @@ class t3lib_TCEforms_Record {
 				$this->renderDepth--;
 			}*/
 		}
+	}
+
+	public function getFormFieldNamePrefix() {
+		return $this->formFieldNamePrefix;
+	}
+
+	public function getFormFieldIdPrefix() {
+		return $this->formFieldIdPrefix;
 	}
 
 	/**
@@ -472,6 +505,14 @@ class t3lib_TCEforms_Record {
 		return $this->defaultLanguageData[$key];
 	}
 
+	public function getDefaultLanguageDiffData() {
+		return $this->defaultLanguageData_diff;
+	}
+
+	public function getDefaultLanguageDiffValue($key) {
+		return $this->defaultLanguageData_diff[$key];
+	}
+
 	public function getValue($key) {
 		return $this->recordData[$key];
 	}
@@ -492,8 +533,7 @@ class t3lib_TCEforms_Record {
 		++$this->sheetCounter;
 
 		$sheetObject = $this->formBuilder->createSheetObject($sheetIdentStringMD5.'-'.$this->sheetCounter, $header);
-		$sheetObject->setParentObject($this)
-		            ->setParentFormObject($this->contextObject);
+		$sheetObject->setContextObject($this->contextObject);
 
 		$this->sheetObjects[] = $sheetObject;
 

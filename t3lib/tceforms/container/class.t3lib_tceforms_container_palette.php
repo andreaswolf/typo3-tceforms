@@ -23,8 +23,11 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	 */
 	protected $recordObject;
 
-	protected $containingObject;
-
+	/**
+	 * The context this element is in (i.e., the top-level form)
+	 *
+	 * @var t3lib_TCEforms_Context
+	 */
 	protected $contextObject;
 
 
@@ -44,7 +47,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		return $this;
 	}
 
-	public function setParentFormObject(t3lib_TCEforms_Form $formObject) {
+	public function setContextObject(t3lib_TCEforms_Form $formObject) {
 		$this->contextObject = $formObject;
 
 		return $this;
@@ -81,7 +84,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 						$this->fieldArr[] = $theField;
 						$elem = $this->formBuilder->getSingleField($theField, $this->recordObject->getTCAdefinitionForField($theField), $fieldParts[1], $fieldParts[3]);
 
-						$elem->setParentFormObject($this->contextObject)
+						$elem->setContextObject($this->contextObject)
 						     ->setParentRecordObject($this->recordObject)
 						     ->setTable($this->recordObject->getTable())
 						     ->setRecord($this->recordObject->getRecordData())

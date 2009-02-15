@@ -13,18 +13,9 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 	protected $header;
 
 	/**
-	 * The parent form this sheet belongs to
-	 *
-	 * @var t3lib_TCEforms_Form
-	 *
-	 * TODO: perhaps rename to parentForm
-	 */
-	protected $parentObject;
-
-	/**
 	 * The global context object this sheet belongs to
 	 *
-	 * @var unknown_type
+	 * @var t3lib_TCEforms_Context
 	 */
 	protected $contextObject;
 
@@ -47,23 +38,14 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 		$this->identString = $identString;
 
 		$this->header = $header;
-
-		$this->parentObject = $parentObject;
 	}
 
 	public function init() {
 
 	}
 
-	// TODO: add type hinting for $parentObject
-	public function setParentObject($parentObject) {
-		$this->parentObject = $parentObject;
-
-		return $this;
-	}
-
-	public function setParentFormObject(t3lib_TCEforms_Form $parentFormObject) {
-		$this->contextObject = $parentFormObject;
+	public function setContextObject(t3lib_TCEforms_Context $contextObject) {
+		$this->contextObject = $contextObject;
 
 		return $this;
 	}

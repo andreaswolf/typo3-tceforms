@@ -4,6 +4,13 @@ require_once(PATH_t3lib.'tceforms/container/class.t3lib_tceforms_container_sheet
 
 class t3lib_TCEforms_Formbuilder {
 
+	/**
+	 * The context object this builder builds elements for.
+	 *
+	 * @var t3lib_TCEforms_Context
+	 */
+	protected $contextObject;
+
 	protected $formFieldNamePrefix;
 
 	public function getFormFieldNamePrefix() {
@@ -20,6 +27,12 @@ class t3lib_TCEforms_Formbuilder {
 		return $this;
 	}
 
+	public function setContextObject(t3lib_TCEforms_Form $contextObject) {
+		$this->contextObject = $contextObject;
+
+		return $this;
+	}
+
 	/**
 	 * Returns the object representation for a database table field.
 	 *
@@ -32,6 +45,10 @@ class t3lib_TCEforms_Formbuilder {
 	 * @return  t3lib_TCEforms_AbstractElement
 	 */
 	public function getSingleField($theField, $fieldConf, $altName='', $extra='', $formFieldName = '') {
+		if (!$this->contextObject) {
+			throw new RuntimeException('No context object defined. Can\'t build new form element objects.', 1234711129);
+		}
+
 		// Using "form_type" locally in this script
 		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
 
@@ -44,9 +61,6 @@ class t3lib_TCEforms_Formbuilder {
 			// will be attached to $this->currentSheet or another sheet
 		//              ->setTCEformsObject($this->TCEformsObject)
 		//              ->set_TCEformsObject($this);
-		if (is_array($this->defaultLanguageData)) {
-			$elementObject->setDefaultLanguageValue($this->defaultLanguageData[$theField]);
-		}
 
 		// TODO: don't call init here, call it in the container after the element has been added to it
 		//$elementObject->init();

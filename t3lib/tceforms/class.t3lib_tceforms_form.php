@@ -2,9 +2,10 @@
 
 require_once (PATH_t3lib.'tceforms/class.t3lib_tceforms_record.php');
 require_once (PATH_t3lib.'tceforms/class.t3lib_tceforms_formbuilder.php');
+require_once (PATH_t3lib.'interfaces/interface.t3lib_tceforms_context.php');
 
 // TODO: check if docLarge is needed
-class t3lib_TCEforms_Form {
+class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 	/**
 	 * All record objects belonging to this form
@@ -29,6 +30,8 @@ class t3lib_TCEforms_Form {
 	 */
 	protected $formFieldNamePrefix;
 	protected $formFieldFileNamePrefix;
+
+	protected $formFieldIdPrefix;
 
 	/**
 	 * The form builder object constructing the
@@ -97,6 +100,13 @@ class t3lib_TCEforms_Form {
 
 	protected $doSaveFieldName = '';
 
+	/**
+	 * This objects top-level context (i.e., the root of the object tree this form belongs to
+	 *
+	 * @var t3lib_TCEforms_Context
+	 */
+	protected $contextObject;
+
 
 	// TODO implement variable defaultStyle + getter/setter (replacement for defStyle of old tceforms)
 
@@ -105,8 +115,8 @@ class t3lib_TCEforms_Form {
 			// TODO: make this adjustable!
 		$this->formName = 'editform';
 
-		// TODO: implement getters and setters for this
 		$this->setFormFieldNamePrefix('data');//$this->TCEformsObject->prependFormFieldNames;
+		$this->setFormFieldIdPrefix('data');
 	}
 
 	public function init() {
@@ -123,10 +133,15 @@ class t3lib_TCEforms_Form {
 
 	public function injectFormBuilder(t3lib_TCEforms_FormBuilder $formBuilder) {
 		$this->formBuilder = $formBuilder;
+		$this->formBuilder->setContextObject($this);
 
 		$this->setFormFieldNamePrefix($this->formFieldNamePrefix);
 
 		return $this;
+	}
+
+	public function getFormBuilder() {
+		return $this->formBuilder;
 	}
 
 
@@ -140,7 +155,8 @@ class t3lib_TCEforms_Form {
 
 		$recordObject = new t3lib_TCEforms_Record($table, $record, $GLOBALS['TCA'][$table]);
 		$recordObject->injectFormBuilder($this->formBuilder)
-		             ->setParentFormObject($this);
+		             ->setParentFormObject($this)
+		             ->setContextObject($this->contextObject ? $this->contextObject : $this);
 
 		$recordObject->init();
 
@@ -163,6 +179,14 @@ class t3lib_TCEforms_Form {
 		}
 
 		return $this;
+	}
+
+	public function getFormFieldIdPrefix() {
+		return $this->formFieldIdPrefix;
+	}
+
+	public function setFormFieldIdPrefix($prefix) {
+		$this->formFieldIdPrefix = $prefix;
 	}
 
 	/**
@@ -661,6 +685,18 @@ class t3lib_TCEforms_Form {
 		return $this->backPath;
 	}
 
+	/**
+	 * Sets the object this form is in context of
+	 *
+	 * @param t3lib_TCEforms_Form $contextObject The object on top of the page tree
+	 * @return t3lib_TCEforms_Form This form object
+	 */
+	public function setContextObject(t3lib_TCEforms_Context $contextObject) {
+		$this->contextObject = $contextObject;
+
+		return $this;
+	}
+
 	public function isHelpGloballyShown() {
 			// TODO use config option here and add setter
 		return TRUE;
@@ -749,6 +785,41 @@ class t3lib_TCEforms_Form {
 
 	public function getDoSaveFieldName() {
 		return $this->doSaveFieldName;
+	}
+
+	/**
+	 * Returns an array of available languages (to use for FlexForms)
+	 *
+	 * @param	boolean		If set, only languages which are paired with a static_info_table / static_language record will be returned.
+	 * @param	boolean		If set, an array entry for a default language is set.
+	 * @return	array
+	 */
+	function getAvailableLanguages($onlyIsoCoded = TRUE, $setDefault = TRUE) {
+		$isL = t3lib_extMgm::isLoaded('static_info_tables');
+
+			// Find all language records in the system:
+		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('static_lang_isocode,title,uid', 'sys_language', 'pid=0 AND hidden=0'.t3lib_BEfunc::deleteClause('sys_language'), '', 'title');
+
+			// Traverse them:
+		$output=array();
+		if ($setDefault) {
+			$output[0] = array(
+				'uid' => 0,
+				'title' => 'Default language',
+				'ISOcode' => 'DEF'
+			);
+		}
+		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+			$output[$row['uid']] = $row;
+
+			if ($isL && $row['static_lang_isocode']) {
+				$rr = t3lib_BEfunc::getRecord('static_languages', $row['static_lang_isocode'], 'lg_iso_2');
+				if ($rr['lg_iso_2']) $output[$row['uid']]['ISOcode']=$rr['lg_iso_2'];
+			}
+
+			if ($onlyIsoCoded && !$output[$row['uid']]['ISOcode']) unset($output[$row['uid']]);
+		}
+		return $output;
 	}
 }
 
