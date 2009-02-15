@@ -301,130 +301,132 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$fieldTSConfig = $this->getTSconfig();
 
 				// If the field is NOT disabled from TSconfig (which it could have been) then render it
-			if (!$fieldTSConfig['disabled']) {
-					// Override fieldConf by fieldTSconfig:
-				$this->overrideFieldConf($fieldTSConfig);
+			if ($fieldTSConfig['disabled']) {
+				$this->commentMessages[] = $this->itemFormElName . ': Disabled by TSconfig';
+				return '';
+			}
 
-					// set field to read-only if configured for translated records to show default language content as readonly
-				if ($this->fieldConfig['l10n_display'] && t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly') && $this->record[$TCA[$this->table]['ctrl']['languageField']]) {
-					$this->fieldConfig['config']['readOnly'] =  true;
-					$this->itemFormElValue = $this->defaultLanguageData[$this->table.':'.$this->record['uid']][$this->field];
-				}
+				// Override fieldConf by fieldTSconfig:
+			$this->overrideFieldConf($fieldTSConfig);
 
-					// Create a JavaScript code line which will ask the user to save/update the form due to changing the element. This is used for eg. "type" fields and others configured with "requestUpdate"
-				if (
-				    ($TCA[$this->table]['ctrl']['type'] && !strcmp($this->field,$TCA[$this->table]['ctrl']['type'])) ||
-				    ($TCA[$this->table]['ctrl']['requestUpdate'] && t3lib_div::inList($TCA[$this->table]['ctrl']['requestUpdate'],$this->field))
-				    ) {
+				// set field to read-only if configured for translated records to show default language content as readonly
+			if ($this->fieldConfig['l10n_display'] && t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly') && $this->record[$TCA[$this->table]['ctrl']['languageField']]) {
+				$this->fieldConfig['config']['readOnly'] =  true;
+				$this->itemFormElValue = $this->defaultLanguageData[$this->table.':'.$this->record['uid']][$this->field];
+			}
 
-					if($GLOBALS['BE_USER']->jsConfirmation(1))	{
-						$alertMsgOnChange = 'if (confirm(TBE_EDITOR.labels.onChangeAlert) && TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm() };';
-					} else {
-						$alertMsgOnChange = 'if (TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm() };';
-					}
+				// Create a JavaScript code line which will ask the user to save/update the form due to changing the element. This is used for eg. "type" fields and others configured with "requestUpdate"
+			if (
+			    ($TCA[$this->table]['ctrl']['type'] && !strcmp($this->field,$TCA[$this->table]['ctrl']['type'])) // TODO: refactor into method isTypeField()
+			    || ($TCA[$this->table]['ctrl']['requestUpdate'] && t3lib_div::inList($TCA[$this->table]['ctrl']['requestUpdate'],$this->field))
+			    ) {
+
+				if($GLOBALS['BE_USER']->jsConfirmation(1)) {
+					$alertMsgOnChange = 'if (confirm(TBE_EDITOR.labels.onChangeAlert) && TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm() };';
 				} else {
-					$alertMsgOnChange = '';
+					$alertMsgOnChange = 'if (TBE_EDITOR.checkSubmit(-1)){ TBE_EDITOR.submitForm() };';
 				}
+			} else {
+				$alertMsgOnChange = '';
+			}
 
-					// Render as a hidden field?
-				// TODO: use "hidden" flag instead (don't even create this object, so check hidden in the form)
-				if (in_array($this->field,$this->hiddenFieldListArr))	{
-					// TODO: use context object here
-					$this->TCEformsObject->addHiddenFieldHTMLCode($this->itemFormElName, '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />');
-				} else { // Render as a normal field:
+				// Render as a hidden field?
+			// TODO: use "hidden" flag instead (don't even create this object, so check hidden in the form)
+			if (in_array($this->field,$this->hiddenFieldListArr)) {
+				$this->contextObject->addHtmlForHiddenField($this->itemFormElName, '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />');
+			} else { // Render as a normal field:
 
-						// If the field is NOT a palette field, then we might create an icon which links to a palette for the field, if one exists.
-					// TODO: move palette rendering to own method
-					if ($this->hasPalette) {
-						$paletteFields = $this->paletteObject->render();
+					// If the field is NOT a palette field, then we might create an icon which links to a palette for the field, if one exists.
+				// TODO: move palette rendering to own method
+				if ($this->hasPalette) {
+					$paletteFields = $this->paletteObject->render();
 
-						//$paletteFields = $this->TCEformsObject->loadPaletteElements($this->table, $this->record, $this->pal);
-						if ($this->paletteObject->isCollapsed() && count($paletteFields))	{
-							list($thePalIcon,$palJSfunc) = $this->paletteObject->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->getLL('l_moreOptions')).'" alt="" />', TRUE);
-						} else {
-							$thePalIcon = '';
-							$palJSfunc = '';
-						}
-					}
-						// onFocus attribute to add to the field:
-					$onFocus = ($palJSfunc && !$BE_USER->uc['dontShowPalettesOnFocusInAB']) ? ' onfocus="'.htmlspecialchars($palJSfunc).'"' : '';
-
-						// Find item
-					$item='';
-					// TODO: move to init()
-					$this->label = ($this->alternativeName ? $this->alternativeName : $this->fieldConfig['label']);
-					$this->label = ($fieldTSconfig['label'] ? $fieldTSconfig['label'] : $this->label);
-					$this->label = ($fieldTSconfig['label.'][$GLOBALS['LANG']->lang] ? $fieldTSconfig['label.'][$GLOBALS['LANG']->lang] : $this->label);
-					$this->label = $this->sL($this->label);
-						// JavaScript code for event handlers:
-					$this->fieldChangeFunc=array();
-					$this->fieldChangeFunc['TBE_EDITOR_fieldChanged'] = "TBE_EDITOR.fieldChanged('".$this->table."','".$this->record['uid']."','".$this->field."','".$this->itemFormElName."');";
-					$this->fieldChangeFunc['alert']=$alertMsgOnChange;
-						// if this is the child of an inline type and it is the field creating the label
-					// disabled while IRRE is not supported -- andreaswolf, 23.07.2008
-					// TODO: move this to IRRE
-					/*if ($this->inline->isInlineChildAndLabelField($this->table, $this->field)) {
-						$this->fieldChangeFunc['inline'] = "inline.handleChangedField('".$this->itemFormElName."','".$this->inline->inlineNames['object']."[$this->table][".$this->record['uid']."]');";
-					}*/
-
-					$item = $this->renderField();
-
-						// Add language + diff
-					if ($this->fieldConfig['l10n_display'] && (t3lib_div::inList($this->fieldConfig['l10n_display'], 'hideDiff') || t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly'))) {
-						$renderLanguageDiff = false;
+					//$paletteFields = $this->TCEformsObject->loadPaletteElements($this->table, $this->record, $this->pal);
+					if ($this->paletteObject->isCollapsed() && count($paletteFields))	{
+						list($thePalIcon,$palJSfunc) = $this->paletteObject->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->getLL('l_moreOptions')).'" alt="" />', TRUE);
 					} else {
-						$renderLanguageDiff = true;
-					}
-
-					if ($renderLanguageDiff) {
-						$item = $this->renderDefaultLanguageContent($item);
-						$item = $this->renderDefaultLanguageDiff($item);
-					}
-
-					// TODO: check what this means and if it works
-						// If the record has been saved and the "linkTitleToSelf" is set, we make the field name into a link, which will load ONLY this field in alt_doc.php
-					$this->label = t3lib_div::deHSCentities(htmlspecialchars($this->label));
-					if (t3lib_div::testInt($this->record['uid']) && $fieldTSconfig['linkTitleToSelf'] && !t3lib_div::_GP('columnsOnly'))	{
-						$lTTS_url = $this->TCEformsObject->backPath.'alt_doc.php?edit['.$this->table.']['.$this->record['uid'].']=edit&columnsOnly='.$this->field.'&returnUrl='.rawurlencode($this->thisReturnUrl());
-						$this->label = '<a href="'.htmlspecialchars($lTTS_url).'">'.$this->label.'</a>';
-					}
-
-						// Create output value:
-					// TODO: refactor this
-					// - new methods in Element_Abstract:
-					//      getLabel
-					//      renderHelpIcon
-					//      renderHelpText
-					//      renderPaletteIcon
-					//      renderPaletteContents
-					// putting it all together will happen in container
-
-					if ($this->fieldConfig['config']['form_type']=='user' && $this->fieldConfig['config']['noTableWrapping'])	{
-						$out = $item;
-					} elseif ($this->isInPalette) {
-						$out=array(
-							'NAME'=>$this->label,
-							'ID'=>$this->record['uid'],
-							'FIELD'=>$this->field,
-							'TABLE'=>$this->table,
-							'ITEM'=>$item,
-							'HELP_ICON' => $this->helpTextIcon(TRUE)
-						);
-					} else {
-						$out=array(
-							'NAME'=>$this->label,
-							'ITEM'=>$item,
-							'TABLE'=>$this->table,
-							'ID'=>$this->record['uid'],
-							'HELP_ICON'=>$this->helpTextIcon(),
-							'HELP_TEXT'=>$this->helpText(),
-							'PAL_LINK_ICON'=>$thePalIcon,
-							'FIELD'=>$this->field
-						);
-						$out = $this->intoTemplate($out);
+						$thePalIcon = '';
+						$palJSfunc = '';
 					}
 				}
-			} else $this->commentMessages[]=$this->prependFormFieldNames.'['.$this->table.']['.$this->record['uid'].']['.$this->field.']: Disabled by TSconfig';
+					// onFocus attribute to add to the field:
+				$onFocus = ($palJSfunc && !$BE_USER->uc['dontShowPalettesOnFocusInAB']) ? ' onfocus="'.htmlspecialchars($palJSfunc).'"' : '';
+
+					// Find item
+				$item='';
+				// TODO: move to init()
+				$this->label = ($this->alternativeName ? $this->alternativeName : $this->fieldConfig['label']);
+				$this->label = ($fieldTSconfig['label'] ? $fieldTSconfig['label'] : $this->label);
+				$this->label = ($fieldTSconfig['label.'][$GLOBALS['LANG']->lang] ? $fieldTSconfig['label.'][$GLOBALS['LANG']->lang] : $this->label);
+				$this->label = $this->sL($this->label);
+					// JavaScript code for event handlers:
+				$this->fieldChangeFunc=array();
+				$this->fieldChangeFunc['TBE_EDITOR_fieldChanged'] = "TBE_EDITOR.fieldChanged('".$this->table."','".$this->record['uid']."','".$this->field."','".$this->itemFormElName."');";
+				$this->fieldChangeFunc['alert']=$alertMsgOnChange;
+					// if this is the child of an inline type and it is the field creating the label
+				// disabled while IRRE is not supported -- andreaswolf, 23.07.2008
+				// TODO: move this to IRRE
+				/*if ($this->inline->isInlineChildAndLabelField($this->table, $this->field)) {
+					$this->fieldChangeFunc['inline'] = "inline.handleChangedField('".$this->itemFormElName."','".$this->inline->inlineNames['object']."[$this->table][".$this->record['uid']."]');";
+				}*/
+
+				$item = $this->renderField();
+
+					// Add language + diff
+				if ($this->fieldConfig['l10n_display'] && (t3lib_div::inList($this->fieldConfig['l10n_display'], 'hideDiff') || t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly'))) {
+					$renderLanguageDiff = false;
+				} else {
+					$renderLanguageDiff = true;
+				}
+
+				if ($renderLanguageDiff) {
+					$item = $this->renderDefaultLanguageContent($item);
+					$item = $this->renderDefaultLanguageDiff($item);
+				}
+
+				// TODO: check what this means and if it works
+					// If the record has been saved and the "linkTitleToSelf" is set, we make the field name into a link, which will load ONLY this field in alt_doc.php
+				$this->label = t3lib_div::deHSCentities(htmlspecialchars($this->label));
+				if (t3lib_div::testInt($this->record['uid']) && $fieldTSconfig['linkTitleToSelf'] && !t3lib_div::_GP('columnsOnly'))	{
+					$lTTS_url = $this->TCEformsObject->backPath.'alt_doc.php?edit['.$this->table.']['.$this->record['uid'].']=edit&columnsOnly='.$this->field.'&returnUrl='.rawurlencode($this->thisReturnUrl());
+					$this->label = '<a href="'.htmlspecialchars($lTTS_url).'">'.$this->label.'</a>';
+				}
+
+					// Create output value:
+				// TODO: refactor this
+				// - new methods in Element_Abstract:
+				//      getLabel
+				//      renderHelpIcon
+				//      renderHelpText
+				//      renderPaletteIcon
+				//      renderPaletteContents
+				// putting it all together will happen in container
+
+				if ($this->fieldConfig['config']['form_type']=='user' && $this->fieldConfig['config']['noTableWrapping'])	{
+					$out = $item;
+				} elseif ($this->isInPalette) {
+					$out=array(
+						'NAME'=>$this->label,
+						'ID'=>$this->record['uid'],
+						'FIELD'=>$this->field,
+						'TABLE'=>$this->table,
+						'ITEM'=>$item,
+						'HELP_ICON' => $this->helpTextIcon(TRUE)
+					);
+				} else {
+					$out=array(
+						'NAME'=>$this->label,
+						'ITEM'=>$item,
+						'TABLE'=>$this->table,
+						'ID'=>$this->record['uid'],
+						'HELP_ICON'=>$this->helpTextIcon(),
+						'HELP_TEXT'=>$this->helpText(),
+						'PAL_LINK_ICON'=>$thePalIcon,
+						'FIELD'=>$this->field
+					);
+					$out = $this->intoTemplate($out);
+				}
+			}
 		}
 
 			// Hook: getSingleField_postProcess

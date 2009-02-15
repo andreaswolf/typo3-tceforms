@@ -107,6 +107,13 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 */
 	protected $contextObject;
 
+	/**
+	 * Code to render into the form for hidden fields.
+	 *
+	 * @var array
+	 */
+	protected $hiddenFieldsHtmlCode = array();
+
 
 	// TODO implement variable defaultStyle + getter/setter (replacement for defStyle of old tceforms)
 
@@ -419,8 +426,13 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		return $this;
 	}
 
-	protected function getHiddenFields_HTMLcode() {
-		return array();
+	public function addHtmlForHiddenField($elementName, $code) {
+		// TODO: handle already set keys here
+		$this->hiddenFieldsHtmlCode[$elementName] = $code;
+	}
+
+	protected function getHtmlForHiddenFields() {
+		return $this->hiddenFieldsHtmlCode;
 	}
 
 
@@ -487,7 +499,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	protected function wrapTotal($content) {
 		$wrap = t3lib_parsehtml::getSubpart($this->templateContent, '###TOTAL_WRAP###');
 		$content = $this->replaceTableWrap($wrap, $content);
-		return $content . implode('', $this->getHiddenFields_HTMLcode());
+		return $content . implode('', $this->getHtmlForHiddenFields());
 	}
 
 	/**
