@@ -180,12 +180,12 @@ class t3lib_TCEforms_Record {
 
 		$c = 0;
 		foreach ($this->sheetObjects as $sheetObject) {
-			++$c;
 			$tabContents[$c] = array(
 				'newline' => $sheetObject->isStartingNewRowInTabmenu(),
 				'label' => $sheetObject->getHeader(),
 				'content' => $sheetObject->render()
 			);
+			++$c;
 		}
 		if (count($tabContents) > 1) {
 			$content = $this->formBuilder->getDynTabMenu($tabContents, $this->sheetIdentString);
@@ -526,13 +526,13 @@ class t3lib_TCEforms_Record {
 
 	protected function createNewSheetObject($header) {
 		if ($this->sheetIdentString == '') {
-			$this->sheetIdentString = $this->getSheetIdentString;
-			$this->sheetIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($sheetIdentString);
+			$this->sheetIdentString = $this->getSheetIdentString();
+			$this->sheetIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($this->getSheetIdentString());
 		}
 
 		++$this->sheetCounter;
 
-		$sheetObject = $this->formBuilder->createSheetObject($sheetIdentStringMD5.'-'.$this->sheetCounter, $header);
+		$sheetObject = $this->formBuilder->createSheetObject($this->sheetIdentStringMD5.'-'.$this->sheetCounter, $header);
 		$sheetObject->setContextObject($this->contextObject);
 
 		$this->sheetObjects[] = $sheetObject;
