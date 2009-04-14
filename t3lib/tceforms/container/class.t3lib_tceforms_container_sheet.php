@@ -136,9 +136,10 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 	 * @param	string		$name: The name of the form field
 	 * @param	mixed		$value: For type 'field' string, for type 'range' array
 	 * @return	void
+	 * @deprecated  Remove before merging new TCEforms to core
 	 */
-	// TODO: make this interact with the form object or move it there
 	public function registerRequiredProperty($type, $name, $value) {
+		throw new RuntimeException('Call to ' . __CLASS__ . '::' . __METHOD__ . ', which is deprecated. Please fix! Call came from ' . t3lib_div::debug_trail());
 		if ($type == 'field' && is_string($value)) {
 			$this->requiredFields[$name] = $value;
 				// requiredFields have name/value swapped! For backward compatibility we keep this:
