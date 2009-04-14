@@ -53,17 +53,7 @@ class t3lib_TCEforms_Formbuilder {
 		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
 
 		$elementClassname = $this->createElementObject($fieldConf['config']['form_type']);
-		//$this->table, $this->record
-		$elementObject = new $elementClassname($theField, $fieldConf, $altName, $extra, $this);
-		/*$elementObject->setTable($this->table)
-		              ->setRecord($this->record);*/
-			// don't set the container here because we can't be sure if this item
-			// will be attached to $this->currentSheet or another sheet
-		//              ->setTCEformsObject($this->TCEformsObject)
-		//              ->set_TCEformsObject($this);
-
-		// TODO: don't call init here, call it in the container after the element has been added to it
-		//$elementObject->init();
+		$elementObject = new $elementClassname($theField, $fieldConf, $altName, $extra);
 
 		return $elementObject;
 	}

@@ -120,7 +120,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 
 
-	public function __construct($field, $fieldConfig, $alternativeName='', $extra='', $parentObject = NULL) {
+	public function __construct($field, $fieldConfig, $alternativeName='', $extra='') {
 		global $TYPO3_CONF_VARS;
 
 			// Field config is the same as $PA['fieldConf'] below
@@ -128,8 +128,6 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$this->field = $field;
 		$this->extra = $extra;
 		$this->alternativeName = $alternativeName;
-
-		$this->parentObject = $parentObject;
 
 		if (count(self::$hookObjects) == 0) {
 				// Prepare user defined objects (if any) for hooks which extend this function:
