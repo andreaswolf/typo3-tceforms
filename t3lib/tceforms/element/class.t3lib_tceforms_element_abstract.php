@@ -478,10 +478,10 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 *
 	 * Uses central caching functionality in AbstractForm
 	 *
-	 * @see t3lib_TCEForms_AbstractForm::getTSconfig()
+	 * @see t3lib_TCEForms_Form::getTSconfig()
 	 */
 	protected function getTSconfig($useField = TRUE) {
-		return t3lib_TCEForms_AbstractForm::getTSconfig($this->table, $this->record, ($useField ? $this->field : ''));
+		return t3lib_TCEForms_Form::getTSconfig($this->table, $this->record, ($useField ? $this->field : ''));
 	}
 
 	public function getFieldname() {

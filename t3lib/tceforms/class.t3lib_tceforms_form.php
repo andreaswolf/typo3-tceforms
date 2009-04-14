@@ -114,6 +114,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 */
 	protected $hiddenFieldsHtmlCode = array();
 
+	protected static $cachedTSconfig;
+
 
 	// TODO implement variable defaultStyle + getter/setter (replacement for defStyle of old tceforms)
 
@@ -832,6 +834,28 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			if ($onlyIsoCoded && !$output[$row['uid']]['ISOcode']) unset($output[$row['uid']]);
 		}
 		return $output;
+	}
+
+	/**
+	 * Returns TSconfig for table/row
+	 * Multiple requests to this function will return cached content so there is no performance loss in calling this many times since the information is looked up only once.
+	 *
+	 * @param   string  The table name
+	 * @param   array   The table row (Should at least contain the "uid" value, even if "NEW..." string. The "pid" field is important as well, and negative values will be intepreted as pointing to a record from the same table.)
+	 * @param   string  Optionally you can specify the field name as well. In that case the TSconfig for the field is returned.
+	 * @return  mixed   The TSconfig values (probably in an array)
+	 * @see t3lib_BEfunc::getTCEFORM_TSconfig()
+	 */
+	public static function getTSconfig($table, $row, $field='') {
+		$mainKey = $table.':'.$row['uid'];
+		if (!isset(self::$cachedTSconfig[$mainKey])) {
+			self::$cachedTSconfig[$mainKey] = t3lib_BEfunc::getTCEFORM_TSconfig($table, $row);
+		}
+		if ($field) {
+			return self::$cachedTSconfig[$mainKey][$field];
+		} else {
+			return self::$cachedTSconfig[$mainKey];
+		}
 	}
 }
 
