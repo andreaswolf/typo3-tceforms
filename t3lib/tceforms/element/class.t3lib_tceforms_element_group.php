@@ -65,9 +65,9 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 
 						$fI = pathinfo($imgPath);
 						$fileIcon = t3lib_BEfunc::getFileIcon(strtolower($fI['extension']));
-						$fileIcon = '<img'.t3lib_iconWorks::skinImg($this->_TCEformsObject->backPath,'gfx/fileicons/'.$fileIcon,'width="18" height="16"').' class="absmiddle" title="'.htmlspecialchars($fI['basename'].($absFilePath && @is_file($absFilePath) ? ' ('.t3lib_div::formatSize(filesize($absFilePath)).'bytes)' : ' - FILE NOT FOUND!')).'" alt="" />';
+						$fileIcon = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/fileicons/'.$fileIcon,'width="18" height="16"').' class="absmiddle" title="'.htmlspecialchars($fI['basename'].($absFilePath && @is_file($absFilePath) ? ' ('.t3lib_div::formatSize(filesize($absFilePath)).'bytes)' : ' - FILE NOT FOUND!')).'" alt="" />';
 
-						$imgs[] = '<span class="nobr">'.t3lib_BEfunc::thumbCode($rowCopy,$table,$field,$this->_TCEformsObject->backPath,'thumbs.php',$config['uploadfolder'],0,' align="middle"').
+						$imgs[] = '<span class="nobr">'.t3lib_BEfunc::thumbCode($rowCopy,$table,$field,$this->backPath,'thumbs.php',$config['uploadfolder'],0,' align="middle"').
 									($absFilePath ? $this->getClickMenu($fileIcon, $absFilePath) : $fileIcon).
 									$imgPath.
 									'</span>';
@@ -114,7 +114,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					'readOnly'          => $disabled
 				);
 
-				$item.= $this->TCEformsObject->dbFileIcons(
+				$item.= $this->dbFileIcons(
 					$this->itemFormElName,
 					'folder',
 					'',
@@ -136,7 +136,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					while(list(,$theT)=each($tempFT))	{
 						if ($theT)	{
 							$info.='<span class="nobr">&nbsp;&nbsp;&nbsp;&nbsp;'.
-									t3lib_iconWorks::getIconImage($theT,array(),$this->_TCEformsObject->backPath,'align="top"').
+									t3lib_iconWorks::getIconImage($theT,array(),$this->backPath,'align="top"').
 									htmlspecialchars($this->sL($GLOBALS['TCA'][$theT]['ctrl']['title'])).
 									'</span><br />';
 						}
@@ -151,14 +151,14 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 				$temp_itemArray = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
 				foreach($temp_itemArray as $dbRead)	{
 					$recordParts = explode('|',$dbRead);
-					list($this->TCEformsObject_table,$this->TCEformsObject_uid) = t3lib_BEfunc::splitTable_Uid($recordParts[0]);
-					$itemArray[] = array('table'=>$this->TCEformsObject_table, 'id'=>$this->TCEformsObject_uid);
+					list($this_table,$this->_uid) = t3lib_BEfunc::splitTable_Uid($recordParts[0]);
+					$itemArray[] = array('table'=>$this_table, 'id'=>$this_uid);
 					if (!$disabled && $show_thumbs)	{
-						$rr = t3lib_BEfunc::getRecordWSOL($this->TCEformsObject_table,$this->TCEformsObject_uid);
+						$rr = t3lib_BEfunc::getRecordWSOL($this_table,$this_uid);
 						$imgs[] = '<span class="nobr">'.
-								$this->getClickMenu(t3lib_iconWorks::getIconImage($this->TCEformsObject_table,$rr,$this->_TCEformsObject->backPath,'align="top" title="'.htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'],$perms_clause,15)).' [UID: '.$rr['uid'].']"'),$this->TCEformsObject_table, $this->TCEformsObject_uid).
+								$this->getClickMenu(t3lib_iconWorks::getIconImage($this_table,$rr,$this->backPath,'align="top" title="'.htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'],$perms_clause,15)).' [UID: '.$rr['uid'].']"'),$this_table, $this_uid).
 								'&nbsp;'.
-								t3lib_BEfunc::getRecordTitle($this->TCEformsObject_table,$rr,TRUE).' <span class="typo3-dimmed"><em>['.$rr['uid'].']</em></span>'.
+								t3lib_BEfunc::getRecordTitle($this_table,$rr,TRUE).' <span class="typo3-dimmed"><em>['.$rr['uid'].']</em></span>'.
 								'</span>';
 					}
 				}

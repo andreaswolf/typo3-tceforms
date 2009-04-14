@@ -155,9 +155,9 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
 		// TODO: rename this to formFieldNamePrefix/formFieldFileNamePrefix
-		$this->prependFormFieldNames = $this->parentRecordObject->getFormFieldNamePrefix();//'data';//$this->TCEformsObject->prependFormFieldNames;
-		$this->prependFormFieldNames_file = $this->parentRecordObject->getFormFieldNamePrefix();//$this->TCEformsObject->prependFormFieldNames_file;
-		$this->formFieldIdPrefix = $this->parentRecordObject->getFormFieldIdPrefix();;
+		$this->prependFormFieldNames = $this->parentRecordObject->getFormFieldNamePrefix();
+		$this->prependFormFieldNames_file = $this->parentRecordObject->getFormFieldNamePrefix();
+		$this->formFieldIdPrefix = $this->parentRecordObject->getFormFieldIdPrefix();
 
 			// Init variables:
 		$this->itemFormElName = $this->prependFormFieldNames.'['.$this->field.']'; // Form field name
@@ -456,19 +456,6 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	}
 
 	//abstract public function render();
-
-	public function setTCEformsObject(t3lib_TCEforms $TCEformsObject) {
-		$this->TCEformsObject = $TCEformsObject;
-
-		return $this;
-	}
-
-	// TODO: remove this once the transition to the new TCEforms object structure is done
-	public function set_TCEformsObject(t3lib_TCEforms_AbstractForm $_TCEformsObject) {
-		$this->_TCEformsObject = $_TCEformsObject;
-
-		return $this;
-	}
 
 	public function setContainingTab(t3lib_TCEforms_Tab $tabObject) {
 		$this->setContainer($tabObject);

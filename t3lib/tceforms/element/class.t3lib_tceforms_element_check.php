@@ -19,7 +19,7 @@ class t3lib_TCEforms_Element_Check extends t3lib_TCEforms_Element_Abstract {
 		if (!count($selItems)) {
 			$selItems[]=array('', '');
 		}
-		$this->TCEformsObjectValue = intval($this->itemFormElValue);
+		$value = intval($this->itemFormElValue);
 
 		$cols = intval($this->config['cols']);
 		if ($cols > 1) {
@@ -27,7 +27,7 @@ class t3lib_TCEforms_Element_Check extends t3lib_TCEforms_Element_Abstract {
 			for ($c=0;$c<count($selItems);$c++) {
 				$p = $selItems[$c];
 				if(!($c%$cols))	{ $item.='<tr>'; }
-				$cBP = $this->checkBoxParams($this->itemFormElName,$this->TCEformsObjectValue,$c,count($selItems),implode('',$this->fieldChangeFunc));
+				$cBP = $this->checkBoxParams($this->itemFormElName,$value,$c,count($selItems),implode('',$this->fieldChangeFunc));
 				$cBName = $this->itemFormElName.'_'.$c;
 				$cBID = $this->itemFormElID.'_'.$c;
 				$item.= '<td nowrap="nowrap">'.
@@ -49,7 +49,7 @@ class t3lib_TCEforms_Element_Check extends t3lib_TCEforms_Element_Abstract {
 		} else {
 			for ($c = 0; $c < count($selItems); $c++) {
 				$p = $selItems[$c];
-				$cBP = $this->checkBoxParams($this->itemFormElName, $this->TCEformsObjectValue, $c, count($selItems), implode('', $this->fieldChangeFunc));
+				$cBP = $this->checkBoxParams($this->itemFormElName, $value, $c, count($selItems), implode('', $this->fieldChangeFunc));
 				$cBName = $this->itemFormElName . '_' . $c;
 				$cBID = $this->itemFormElID . '_' . $c;
 				$item .= ($c > 0 ? '<br />' : '').
@@ -58,7 +58,7 @@ class t3lib_TCEforms_Element_Check extends t3lib_TCEforms_Element_Abstract {
 			}
 		}
 		if (!$disabled) {
-			$item.= '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->TCEformsObjectValue).'" />';
+			$item.= '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($value).'" />';
 		}
 
 		return $item;

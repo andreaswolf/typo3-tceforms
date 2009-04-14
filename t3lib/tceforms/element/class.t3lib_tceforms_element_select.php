@@ -29,7 +29,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		$this->selectItems = $this->addSelectOptionsToItemArray($this->initItemArray($this->fieldConfig), $this->getTSconfig(FALSE));
 		$this->selectItems = $this->addItems($this->selectItems, $this->fieldTSConfig['addItems.']);
 		if ($this->fieldConfig['config']['itemsProcFunc']) {
-			$this->selectItems = $this->TCEformsObject->procItems($this->selectItems, $this->fieldTSConfig['itemsProcFunc.'], $this->fieldConfig['config'], $this->table, $this->record, $this->field);
+			$this->selectItems = $this->procItems($this->selectItems, $this->fieldTSConfig['itemsProcFunc.'], $this->fieldConfig['config'], $this->table, $this->record, $this->field);
 		}
 
 			// Possibly remove some items:
@@ -300,7 +300,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 					$help = $hasHelp ? '<span class="typo3-csh-inline show-right"><span class="header">' . $label . '</span>' .
 						'<span class="paragraph">' . $GLOBALS['LANG']->hscAndCharConv(nl2br(trim(htmlspecialchars($p[3]))), false) . '</span></span>' : '';
 
-					if ($hasHelp && $this->TCEformsObject->edit_showFieldHelp == 'icon') {
+					if ($hasHelp && $this->contextObject->getEditFieldHelpMode == 'icon') {
 						$helpIcon  = '<a class="typo3-csh-link" href="#">';
 						$helpIcon .= '<img' . t3lib_iconWorks::skinImg($this->contextObject->getBackPath(), 'gfx/helpbubble.gif', 'width="14" height="14"');
 						$helpIcon .= ' hspace="2" border="0" class="absmiddle"' . ($GLOBALS['CLIENT']['FORMSTYLE'] ? ' style="cursor:help;"' : '') . ' alt="" />' . $help;
@@ -401,7 +401,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 
 				// Icon style for option tag:
 			if ($this->fieldConfig['config']['iconsInOptionTags']) {
-				$styleAttrValue = $this->TCEformsObject->optionTagStyle($p[2]);
+				$styleAttrValue = $this->optionTagStyle($p[2]);
 			}
 
 				// Compile <option> tag:
@@ -456,7 +456,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 					</td>
 					<td valign="top">
 					<a href="#" onclick="'.htmlspecialchars($this->contextObject->elName($this->itemFormElName.'[]').'.selectedIndex=-1;'.implode('',$restoreCmd).' return false;').'">'.
-						'<img'.t3lib_iconWorks::skinImg($this->contextObject->getBackPath(),'gfx/undo.gif','width="13" height="12"').' title="'.htmlspecialchars($this->TCEformsObject->getLL('l_revertSelection')).'" alt="" />'.
+						'<img'.t3lib_iconWorks::skinImg($this->contextObject->getBackPath(),'gfx/undo.gif','width="13" height="12"').' title="'.htmlspecialchars($this->getLL('l_revertSelection')).'" alt="" />'.
 						'</a>
 					</td>
 				</tr>
@@ -500,7 +500,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 			if ($isRemoved && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$this->fieldConfig['config']['disableNoMatchingValueElement'])	{
 				$tvP[1] = rawurlencode(@sprintf($nMV_label, $evalValue));
 			} elseif (isset($this->fieldTSConfig['altLabels.'][$evalValue])) {
-				$tvP[1] = rawurlencode($this->TCEformsObject->sL($this->fieldTSConfig['altLabels.'][$evalValue]));
+				$tvP[1] = rawurlencode($this->sL($this->fieldTSConfig['altLabels.'][$evalValue]));
 			}
 			$itemArray[$tk] = implode('|',$tvP);
 		}
@@ -512,7 +512,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 			$styleAttrValue = '';
 			foreach($this->selectItems as $p)	{
 				if ($this->fieldConfig['config']['iconsInOptionTags'])	{
-					$styleAttrValue = $this->TCEformsObject->optionTagStyle($p[2]);
+					$styleAttrValue = $this->optionTagStyle($p[2]);
 				}
 				$opt[]= '<option value="'.htmlspecialchars($p[1]).'"'.
 								($styleAttrValue ? ' style="'.htmlspecialchars($styleAttrValue).'"' : '').
