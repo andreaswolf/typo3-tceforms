@@ -520,14 +520,14 @@ class t3lib_TCEforms	{
 				$itemList = $TCA[$table]['types'][$typeNum]['showitem'];
 				if ($itemList)	{	// If such a list existed...
 						// Explode the field list and possibly rearrange the order of the fields, if configured for
-					$fields = t3lib_div::trimExplode(',', $itemList, 1);
+					$fields = t3lib_div::trimExplode(',',$itemList,1);
 					if ($this->fieldOrder)	{
 						$fields = $this->rearrange($fields);
 					}
 
 						// Get excluded fields, added fiels and put it together:
-					$excludeElements = $this->excludeElements = $this->getExcludeElements($table, $row, $typeNum);
-					$fields = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd($table, $row, $typeNum));
+					$excludeElements = $this->excludeElements = $this->getExcludeElements($table,$row,$typeNum);
+					$fields = $this->mergeFieldsWithAddedFields($fields,$this->getFieldsToAdd($table,$row,$typeNum));
 
 						// If TCEforms will render a tab menu in the next step, push the name to the tab stack:
 					$tabIdentString = '';
@@ -542,30 +542,26 @@ class t3lib_TCEforms	{
 					}
 
 						// Traverse the fields to render:
-					$cc = 0;
+					$cc=0;
 					foreach($fields as $fieldInfo)	{
 						++$cc;
 
 							// Exploding subparts of the field configuration:
-						$parts = explode(';', $fieldInfo);
+						$parts = explode(';',$fieldInfo);
 
 							// Getting the style information out:
 						$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
-						if (strcmp($color_style_parts[0], ''))	{
+						if (strcmp($color_style_parts[0],''))	{
 							$this->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
 						}
-						if (strcmp($color_style_parts[1], ''))	{
+						if (strcmp($color_style_parts[1],''))	{
 							$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])];
-							if (!isset($this->fieldStyle)) {
-								$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
-							}
+							if (!isset($this->fieldStyle))	$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
 						}
-						if (strcmp($color_style_parts[2], ''))	{
+						if (strcmp($color_style_parts[2],''))	{
 							$this->wrapBorder($out_array[$out_sheet],$out_pointer);
 							$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])];
-							if (!isset($this->borderStyle)) {
-								$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
-							}
+							if (!isset($this->borderStyle))	$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
 						}
 
 							// Render the field:

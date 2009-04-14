@@ -87,7 +87,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 *
 	 * @var boolean
 	 */
-	protected $RTEEnabled;
+	protected $RteEnabled;
 
 	/**
 	 * Counter of all RTE elements on this form
@@ -724,14 +724,14 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		return $this->editFieldHelpMode;
 	}
 
-	public function setRTEEnabled($enabled) {
-		$this->RTEEnabled = $enabled;
+	public function setRteEnabled($enabled) {
+		$this->RteEnabled = $enabled;
 
 		return $this;
 	}
 
-	public function isRTEEnabled() {
-		return $this->RTEEnabled;
+	public function isRteEnabled() {
+		return $this->RteEnabled;
 	}
 
 	public function addToAdditionalCodePreForm($key, $code) {

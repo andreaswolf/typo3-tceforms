@@ -1419,7 +1419,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 			// traverse wizards:
 		if (is_array($wizConf) && !$this->disableWizards) {
-			foreach($wizConf as $wid => $wConf)	{
+			foreach($wizConf as $wid => $wConf) {
 				if (substr($wid,0,1)!='_'
 						&& (!$wConf['enableByTypeConfig'] || @in_array($wid,$specConf['wizards']['parameters']))
 						&& ($RTE || !$wConf['RTEonly'])
@@ -1602,11 +1602,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @param	boolean		If this is for a text area.
 	 * @return	string		Either a "style" attribute string or "cols"/"size" attribute string.
 	 */
-	function formWidth($size=48,$textarea=0) {
+	function formWidth($size = 48, $textarea = 0) {
 
 			// Input or text-field attribute (size or cols)
 		if ($this->docLarge) {
-			$size = round($size*$this->form_largeComp);
+			$size = round($size * $this->form_largeComp);
 		}
 		$wAttrib = $textarea ? 'cols' : 'size';
 		if (!$GLOBALS['CLIENT']['FORMSTYLE']) {	// If not setting the width by style-attribute
@@ -1617,7 +1617,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$theStyle = 'width:' . $pixels . 'px;' . $this->defStyle . $this->formElStyle($textarea ? 'text' : 'input');
 			$retVal = ' style="'.htmlspecialchars($theStyle).'"';
 
-			$class = $this->formElClass($textarea?'text':'input');
+			$class = $this->formElClass($textarea ? 'text' : 'input');
 			if ($class) {
 				$retVal.= ' class="'.htmlspecialchars($class).'"';
 			}
@@ -1636,8 +1636,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	function formWidthText($size=48, $wrap='') {
 		$wTags = $this->formWidth($size, 1);
 			// Netscape 6+ seems to have this ODD problem where there WILL ALWAYS be wrapping with the cols-attribute set and NEVER without the col-attribute...
-		if (strtolower(trim($wrap)) != 'off' && $GLOBALS['CLIENT']['BROWSER']=='net' && $GLOBALS['CLIENT']['VERSION']>=5)	{
-			$wTags.= ' cols="'.$size.'"';
+		if (strtolower(trim($wrap)) != 'off' && $GLOBALS['CLIENT']['BROWSER'] == 'net' && $GLOBALS['CLIENT']['VERSION'] >= 5) {
+			$wTags .= ' cols="' . $size . '"';
 		}
 		return $wTags;
 	}
@@ -1663,9 +1663,9 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @return	string		HTML
 	 */
 	function getClickMenu($str,$table,$uid='')	{
-		if ($this->enableClickMenu)	{
-			$onClick = $GLOBALS['SOBE']->doc->wrapClickMenuOnIcon($str,$table,$uid,1,'','+copy,info,edit,view', TRUE);
-			return '<a href="#" onclick="'.htmlspecialchars($onClick).'">'.$str.'</a>';
+		if ($this->enableClickMenu) {
+			$onClick = $GLOBALS['SOBE']->doc->wrapClickMenuOnIcon($str, $table, $uid, 1, '', '+copy,info,edit,view', TRUE);
+			return '<a href="#" onclick="' . htmlspecialchars($onClick) . '">' . $str . '</a>';
 		}
 	}
 
@@ -1676,15 +1676,15 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @return	string		CSS attributes
 	 */
 	// copied from t3lib_tceforms::insertDefStyle
-	public function insertDefaultElementStyle($type)	{
+	public function insertDefaultElementStyle($type) {
 		$out = '';
 
 		// TODO: replace $this->defStyle by access to defaultStyle in contextObject/formObject
-		$style = trim($this->defStyle.$this->formElStyle($type));
-		$out.= $style?' style="'.htmlspecialchars($style).'"':'';
+		$style = trim($this->defStyle . $this->formElStyle($type));
+		$out .= $style ? ' style="' . htmlspecialchars($style) . '"' : '';
 
 		$class = $this->formElClass($type);
-		$out.= $class?' class="'.htmlspecialchars($class).'"':'';
+		$out .= $class ? ' class="' . htmlspecialchars($class) . '"' : '';
 
 		return $out;
 	}

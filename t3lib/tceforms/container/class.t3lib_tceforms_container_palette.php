@@ -142,7 +142,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		$ccAttr4.= $this->classScheme[4] ? ' class="'.$this->classScheme[4].'"' : '';
 
 			// Traverse palette fields and render them into table rows:
-		foreach($palArr as $content)	{
+		foreach($palArr as $content) {
 			$hRow[]='<td'.$ccAttr2.'>&nbsp;</td>
 					<td nowrap="nowrap"'.$ccAttr2.'>'.
 						'<span'.$ccAttr4.'>'.
