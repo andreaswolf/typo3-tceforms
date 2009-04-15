@@ -163,8 +163,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		$GLOBALS['LANG']->loadSingleTableDescription($table);
 
 		$recordObject = new t3lib_TCEforms_Record($table, $record, $GLOBALS['TCA'][$table]);
-		$recordObject->injectFormBuilder($this->formBuilder)
-		             ->setParentFormObject($this)
+		$recordObject->setParentFormObject($this)
 		             ->setContextObject($this->contextObject ? $this->contextObject : $this);
 
 		$recordObject->init();

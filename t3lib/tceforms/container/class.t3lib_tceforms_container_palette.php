@@ -59,7 +59,11 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		return $this;
 	}
 
-	// TODO: move this to AbstractForm
+	public function init() {
+		$this->recordObject->setPaletteCreated($this->paletteNumber);
+	}
+
+	// TODO: move this to FormBuilder
 	protected function loadElements() {
 		$parts = array();
 

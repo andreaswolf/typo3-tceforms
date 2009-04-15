@@ -625,14 +625,14 @@ class SC_alt_doc {
 		$editForm='';
 
 		$newTCEforms = new t3lib_TCEforms_Form();
-		$newTCEforms->injectFormBuilder(new t3lib_TCEforms_Formbuilder())
-		            ->setFieldList($this->columnsOnly)
+		$newTCEforms->setFieldList($this->columnsOnly)
 		            ->setPalettesCollapsed(!$this->MOD_SETTINGS['showPalettes'])
 		            ->setTemplateFile(PATH_typo3 . 'templates/tceforms.html')
 		            ->setEditFieldHelpMode($BE_USER->uc['edit_showFieldHelp'])
 		            ->setBackpath($BACK_PATH)
 		            ->setRTEEnabled($BE_USER->isRTE())
-		            ->setDoSaveFieldName('doSave');
+		            ->setDoSaveFieldName('doSave')
+		            ->init();
 
 			// Traverse the GPvar edit array
 		foreach($this->editconf as $table => $conf)	{	// Tables:

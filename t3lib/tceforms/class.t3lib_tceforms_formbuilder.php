@@ -13,6 +13,105 @@ class t3lib_TCEforms_Formbuilder {
 
 	protected $formFieldNamePrefix;
 
+	protected function __construct(t3lib_TCEforms_Record $recordObject) {
+		$this->recordObject = $recordObject;
+		$this->contextObject = $recordObject->getContextObject();
+		$this->TCAdefinition = $recordObject->getTCAdefinitionForTable();
+	}
+
+	public static function createInstanceForRecordObject(t3lib_TCEforms_Record $recordObject) {
+		return new t3lib_TCEforms_Formbuilder($recordObject);
+	}
+
+	/**
+	 * Takes a record object and builds the TCEforms object structure for it.
+	 *
+	 * @return void
+	 */
+	public function buildObjectStructure(t3lib_TCEforms_Record $recordObject) {
+		$fieldList = $recordObject->getFieldList();
+
+		if (isset($fieldList[0]) && strpos($fieldList[0], '--div--') !== 0) {
+			$this->currentSheet = $this->createSheetObject($sheetIdentString, $this->getLL('l_generalTab'));
+			$recordObject->addSheetObject($this->currentSheet);
+		}
+
+		foreach ($fieldList as $fieldInfo) {
+			// Exploding subparts of the field configuration:
+			$parts = explode(';', $fieldInfo);
+
+			$theField = $parts[0];
+			if ($recordObject->isExcludeElement($theField)) {
+				continue;
+			}
+
+			if ($theField == '--div--') {
+				++$sheetCounter;
+
+				$this->currentSheet = $this->createSheetObject($sheetIdentString, $this->sL($parts[1]));
+				$recordObject->addSheetObject($this->currentSheet);
+			} else {
+				if ($theField !== '') {
+					if ($this->TCAdefinition['columns'][$theField]) {
+						// TODO: Handle field configuration here.
+						$formFieldObject = $this->getSingleField($theField, $this->TCAdefinition['columns'][$theField], $parts[1], $parts[3]);
+
+					} elseif ($theField == '--palette--') {
+						// TODO: add top-level palette handling! (--palette--, see TYPO3 Core API, section 4.2)
+						//       steps: create a new element type "palette" as a dumb wrapper for a palette
+						//       for testing see tt_content, type text w/image, image dimensions and links
+						$formFieldObject = $this->createPaletteElement($parts[2], $this->sL($parts[1]));
+					}
+
+					$this->currentSheet->addChildObject($formFieldObject);
+
+					$formFieldObject->setContextObject($this->contextObject)
+					                ->setParentRecordObject($this->recordObject)
+					                ->setTable($this->recordObject->getTable())
+					                ->setRecord($this->recordObject->getRecordData())
+					                ->injectFormBuilder($this)
+					                ->init();
+
+					if (isset($parts[2]) && t3lib_div::testInt($parts[2])) {
+						$formFieldObject->initializePalette($parts[2]);
+					}
+				}
+
+				// Getting the style information out:
+				// TODO: Make this really object oriented
+				if (isset($parts[4])) {
+					$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
+				} else {
+					$color_style_parts = array();
+				}
+				if (strcmp($color_style_parts[0], '')) {
+					$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
+					if (!isset($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])])) {
+						$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][0]);
+					}
+				}
+				// TODO: add getter and setter for _wrapBorder
+				if (strcmp($color_style_parts[1], '')) {
+					$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])]);
+					// TODO check if this check is still neccessary
+					if (!isset($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])])) {
+						$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][0]);
+					}
+				}
+				if (strcmp($color_style_parts[2], '')) {
+					if (isset($parts[4])) $formFieldObject->_wrapBorder = true;
+					$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])]);
+					// TODO check if this check is still neccessary
+					if (!isset($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])])) {
+						$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][0]);
+					}
+				}
+			}
+		}
+
+		$this->resolveMainPalettes($recordObject);
+	}
+
 	public function getFormFieldNamePrefix() {
 		return $this->formFieldNamePrefix;
 	}
@@ -45,10 +144,6 @@ class t3lib_TCEforms_Formbuilder {
 	 * @return  t3lib_TCEforms_AbstractElement
 	 */
 	public function getSingleField($theField, $fieldConf, $altName='', $extra='', $formFieldName = '') {
-		if (!$this->contextObject) {
-			throw new RuntimeException('No context object defined. Can\'t build new form element objects.', 1234711129);
-		}
-
 		// Using "form_type" locally in this script
 		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
 
@@ -58,9 +153,9 @@ class t3lib_TCEforms_Formbuilder {
 		return $elementObject;
 	}
 
-	public function createPaletteElement($fieldConf, $altName = '', $extra = '') {
+	public function createPaletteElement($paletteNumber, $label) {
 		$classname = $this->createElementObject('palette');
-		return new $classname($fieldConf, $altName, $extra, $this);
+		return new $classname($paletteNumber, $label);
 	}
 
 	/**
@@ -125,6 +220,77 @@ class t3lib_TCEforms_Formbuilder {
 
 			return '<div class="typo3-dyntabmenu-divs">' . $output . '</div>';
 		}
+	}
+
+	/**
+	 * Creates objects for all main palettes (palettes existing side-by-side with normal elements,
+	 * in contrast to palettes that are tied to an element). These palettes are defined in the control
+	 * section of TCA, key "mainpalette". Multiple palettes are separated by commas.
+	 *
+	 * @return void
+	 */
+	protected function resolveMainPalettes() {
+		$mainPalettesArray = t3lib_div::trimExplode(',', $this->TCAdefinition['ctrl']['mainpalette']);
+
+		$i = 0;
+		foreach ($mainPalettesArray as $paletteNumber) {
+			++$i;
+
+			if ($this->recordObject->isPaletteCreated($paletteNumber)) {
+				t3lib_div::devLog("Palette no $paletteNumber in record from table " . $this->recordObject->getTable() . ' has already been created, so it won\'t be created a second time. Please check the TCA definition for any wrong/double palette assignments.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_WARNING);
+
+				continue;
+			}
+			$label = $i==1 ? $this->getLL('l_generalOptions') : $this->getLL('l_generalOptions_more');
+
+			$paletteFieldObject = $this->createPaletteElement($paletteNumber, $label);
+
+			$paletteFieldObject->setContextObject($this->contextObject)
+			                   ->setParentRecordObject($this->recordObject)
+			                   ->setTable($this->recordObject->getTable())
+			                   ->setRecord($this->recordObject->getRecordData())
+			                   ->injectFormBuilder($this)
+			                   ->init();
+
+			$this->currentSheet->addChildObject($paletteFieldObject);
+			/*$this->wrapBorder($out_array[$out_sheet],$out_pointer);
+			if ($this->renderDepth)	{
+				$this->renderDepth--;
+			}*/
+		}
+	}
+
+	/**
+	 * Fetches language label for key
+	 *
+	 * @param   string  Language label reference, eg. 'LLL:EXT:lang/locallang_core.php:labels.blablabla'
+	 * @return  string  The value of the label, fetched for the current backend language.
+	 */
+	protected function sL($str) {
+		return $GLOBALS['LANG']->sL($str);
+	}
+
+	/**
+	 * Returns language label from locallang_core.php
+	 * Labels must be prefixed with either "l_" or "m_".
+	 * The prefix "l_" maps to the prefix "labels." inside locallang_core.php
+	 * The prefix "m_" maps to the prefix "mess." inside locallang_core.php
+	 *
+	 * @param   string  The label key
+	 * @return  string  The value of the label, fetched for the current backend language.
+	 */
+	protected function getLL($str) {
+		$content = '';
+
+		switch(substr($str, 0, 2)) {
+			case 'l_':
+				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.' . substr($str,2));
+			break;
+			case 'm_':
+				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:mess.' . substr($str,2));
+			break;
+		}
+		return $content;
 	}
 }
 
