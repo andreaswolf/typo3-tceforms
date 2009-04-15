@@ -284,6 +284,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	public function render() {
 		global $BE_USER, $TCA;
 
+		t3lib_div::devLog('Started rendering element ' . $this->field . ' in record ' . $this->parentRecordObject->getIdentifier() . '.', 't3lib_TCEforms_Element_Abstract', t3lib_div::SYSLOG_SEVERITY_INFO);
+
 		// Now, check if this field is configured and editable (according to excludefields + other configuration)
 		if (	$this->hasFieldConfig()
 				&& !$skipThisField // TODO: check this before calling render(), i.e. in the record object -- AW

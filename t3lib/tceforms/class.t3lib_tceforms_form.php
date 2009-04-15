@@ -121,6 +121,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 
 	public function __construct() {
+		t3lib_div::devLog('Instantiated new TCEforms form.', 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
+
 			// TODO: make this adjustable!
 		$this->formName = 'editform';
 
@@ -132,6 +134,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	}
 
 	public function render() {
+		t3lib_div::devLog('Started rendering TCEforms form.', 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
+
 		foreach ($this->recordObjects as $recordObject) {
 			$content .= $this->wrapTotal($recordObject->render());
 		}
@@ -155,6 +159,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 
 	public function addRecord($table, $record) {
+		t3lib_div::devLog('Added record ' . $table . ':' . $record['uid'] . ' to TCEforms form.', 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
+
 		if (!isset($GLOBALS['TCA'][$table])) {
 			t3lib_div::loadTCA($table);
 		}

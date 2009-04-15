@@ -460,6 +460,8 @@ class t3lib_TCEforms_Record {
 	public function addSheetObject(t3lib_TCEforms_Container_Sheet $sheetObject) {
 		$sheetObject->setContextObject($this->contextObject);
 		$this->sheetObjects[] = $sheetObject;
+
+		t3lib_div::devLog('Added sheet no. ' . count($this->sheetObjects) . ' to record ' . $this->getIdentifier() , '.', t3lib_div::SYSLOG_SEVERITY_INFO);
 	}
 
 	protected function createNewSheetObject($header) {

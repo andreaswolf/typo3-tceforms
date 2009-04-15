@@ -14,6 +14,8 @@ class t3lib_TCEforms_Formbuilder {
 	protected $formFieldNamePrefix;
 
 	protected function __construct(t3lib_TCEforms_Record $recordObject) {
+		t3lib_div::devLog('Created new formbuilder object for record ' . $recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
+
 		$this->recordObject = $recordObject;
 		$this->contextObject = $recordObject->getContextObject();
 		$this->TCAdefinition = $recordObject->getTCAdefinitionForTable();
@@ -29,6 +31,8 @@ class t3lib_TCEforms_Formbuilder {
 	 * @return void
 	 */
 	public function buildObjectStructure(t3lib_TCEforms_Record $recordObject) {
+		t3lib_div::devLog('Started building object tree for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
+
 		$fieldList = $recordObject->getFieldList();
 
 		if (isset($fieldList[0]) && strpos($fieldList[0], '--div--') !== 0) {
@@ -53,13 +57,14 @@ class t3lib_TCEforms_Formbuilder {
 			} else {
 				if ($theField !== '') {
 					if ($this->TCAdefinition['columns'][$theField]) {
+						t3lib_div::devLog('Adding standard element for field "' . $theField . '" in record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
+
 						// TODO: Handle field configuration here.
 						$formFieldObject = $this->getSingleField($theField, $this->TCAdefinition['columns'][$theField], $parts[1], $parts[3]);
 
 					} elseif ($theField == '--palette--') {
-						// TODO: add top-level palette handling! (--palette--, see TYPO3 Core API, section 4.2)
-						//       steps: create a new element type "palette" as a dumb wrapper for a palette
-						//       for testing see tt_content, type text w/image, image dimensions and links
+						t3lib_div::devLog('Adding palette element for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
+
 						$formFieldObject = $this->createPaletteElement($parts[2], $this->sL($parts[1]));
 					}
 
