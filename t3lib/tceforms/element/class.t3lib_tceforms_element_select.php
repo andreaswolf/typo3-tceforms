@@ -108,8 +108,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		$selectedStyle = ''; // Style set on <select/>
 
 		$disabled = '';
-		// TODO: replace TCEformsObject
-		if($this->contextObject->isReadOnly() || $this->fieldConfig['config']['readOnly'])  {
+		if ($this->isReadonly()) {
 			$disabled = ' disabled="disabled"';
 			$onlySelectedIconShown = 1;
 		}
@@ -469,7 +468,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 	protected function initSubtypeMultiple() {
 
 		$disabled = '';
-		if($this->contextObject->isReadOnly() || $this->fieldConfig['config']['readOnly'])  {
+		if ($this->isReadOnly())  {
 			$disabled = ' disabled="disabled"';
 		}
 
@@ -484,9 +483,9 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		$minitems = t3lib_div::intInRange($this->fieldConfig['config']['minitems'],0);
 
 			// Register the required number of elements:
-		// TODO: solve the problem that we don't have container set here (it does not get set in AbstractForm::getSingleField()!)
-		/*$this->container->registerRequiredProperty('range', $this->itemFormElName,
-			array($minitems, $maxitems, 'imgName' => $this->table.'_'.$this->record['uid'].'_'.$this->field));*/
+		// TODO: check if this works
+		$this->contextObject->registerRequiredFieldRange($this->itemFormElName,
+			array($minitems, $maxitems, 'imgName' => $this->table.'_'.$this->record['uid'].'_'.$this->field));
 
 			// Get "removeItems":
 		$removeItems = t3lib_div::trimExplode(',',$this->fieldTSConfig['removeItems'],1);

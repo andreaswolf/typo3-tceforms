@@ -783,6 +783,7 @@ class SC_alt_doc {
 									if (is_array($this->overrideVals[$table]))	{
 										$this->tceforms->hiddenFieldListArr = array_keys($this->overrideVals[$table]);
 									}
+									$newTCEforms->registerHiddenFields($table, array_keys((array)$this->overrideVals[$table]));
 
 										// Register default language labels, if any:
 									$this->tceforms->registerDefaultLanguageData($table,$rec);

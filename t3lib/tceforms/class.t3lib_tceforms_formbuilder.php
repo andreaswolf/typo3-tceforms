@@ -2,7 +2,7 @@
 
 require_once(PATH_t3lib.'tceforms/container/class.t3lib_tceforms_container_sheet.php');
 
-class t3lib_TCEforms_Formbuilder {
+class t3lib_TCEforms_FormBuilder {
 
 	/**
 	 * The context object this builder builds elements for.
@@ -235,6 +235,8 @@ class t3lib_TCEforms_Formbuilder {
 	 * @return void
 	 */
 	protected function resolveMainPalettes() {
+		t3lib_div::devLog('Building top-level palette elements for ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
+
 		$mainPalettesArray = t3lib_div::trimExplode(',', $this->TCAdefinition['ctrl']['mainpalette']);
 
 		$i = 0;

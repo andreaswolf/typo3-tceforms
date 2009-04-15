@@ -108,6 +108,14 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	protected $contextObject;
 
 	/**
+	 * The fields to hide on this form. This is a two-dimensional array, the first level are table
+	 * names, the second are the field names on this table.
+	 *
+	 * @var array
+	 */
+	protected $hiddenFields = array();
+
+	/**
 	 * Code to render into the form for hidden fields.
 	 *
 	 * @var array
@@ -201,6 +209,34 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 	public function setFormFieldIdPrefix($prefix) {
 		$this->formFieldIdPrefix = $prefix;
+	}
+
+	/**
+	 * Registers fields from a table to be hidden in the form. Their values will be passed via
+	 * hidden form fields.
+	 *
+	 * @param string $table
+	 * @param array $fields
+	 * @return void
+	 */
+	public function registerHiddenFields($table, array $fields) {
+		$this->hiddenFields[$table] = t3lib_div::array_merge((array)$this->hiddenFields[$table], $fields);
+	}
+
+	/**
+	 * Returns TRUE if the specified field will be hidden on the form. The field value will be passed
+	 * via a hidden HTML field.
+	 *
+	 * @param string $table
+	 * @param string $fieldName
+	 * @return boolean
+	 */
+	public function isFieldHidden($table, $fieldName) {
+		if (!isset($this->hiddenFields[$table])) {
+			return FALSE;
+		}
+
+		return in_array($fieldName, $this->hiddenFields[$table]);
 	}
 
 	/**

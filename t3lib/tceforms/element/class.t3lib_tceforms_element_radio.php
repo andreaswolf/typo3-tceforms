@@ -8,7 +8,7 @@ class t3lib_TCEforms_Element_Radio extends t3lib_TCEforms_Element_Abstract {
 		$config = $this->fieldConfig['config'];
 
 		$disabled = '';
-		if($this->TCEformsObject->renderReadonly || $config['readOnly'])  {
+		if ($this->isReadOnly()) {
 			$disabled = ' disabled="disabled"';
 		}
 
