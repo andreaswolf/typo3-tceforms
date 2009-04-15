@@ -66,6 +66,9 @@ class t3lib_TCEforms_FormBuilder {
 						t3lib_div::devLog('Adding palette element for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
 						$formFieldObject = $this->createPaletteElement($parts[2], $this->sL($parts[1]));
+					} else {
+						// if this is no field, just continue with the next entry in the field list.
+						continue;
 					}
 
 					$this->currentSheet->addChildObject($formFieldObject);

@@ -191,7 +191,7 @@ class t3lib_TCEforms_Record {
 		if (count($tabContents) > 1) {
 			$content = $this->formBuilder->getDynTabMenu($tabContents, $this->sheetIdentString);
 		} else {
-			$content = $tabContents[1]['content'];
+			$content = $tabContents[0]['content'];
 		}
 
 		return $content;
@@ -204,6 +204,10 @@ class t3lib_TCEforms_Record {
 	 * This function is mainly copied from t3lib_TCEforms::getMainFields()
 	 */
 	protected function createFieldsList() {
+		if (count($this->fieldList) > 0) {
+			return;
+		}
+
 		$itemList = $this->TCAdefinition['types'][$this->typeNumber]['showitem'];
 
 		$fields = t3lib_div::trimExplode(',', $itemList, 1);
@@ -217,6 +221,16 @@ class t3lib_TCEforms_Record {
 
 	public function getFieldList() {
 		return $this->fieldList;
+	}
+
+	public function setFieldList($fieldList) {
+		if (!is_array($fieldList)) {
+			$fieldList = t3lib_div::trimExplode(',', $fieldList, 1);
+		}
+
+		$this->fieldList = $fieldList;
+
+		return $this;
 	}
 
 	public function getFormFieldNamePrefix() {

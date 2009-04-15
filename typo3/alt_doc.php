@@ -763,7 +763,7 @@ class SC_alt_doc {
 									$localTCEforms->backPath = $BACK_PATH;*/
 
 									//$editForm .= $localTCEforms->printNeededJSFunctions_top();
-									$editForm .= $newTCEforms->render();
+									// TODO make this work again $editForm .= $newTCEforms->render();
 									//$editForm .= $localTCEforms->render();
 
 									//$editForm .= $localTCEforms->getBottomJavascript();
@@ -839,7 +839,7 @@ class SC_alt_doc {
 		}
 
 
-		$editForm = $newTCEforms->renderJavascriptBeforeForm() . $editForm .
+		$editForm = $newTCEforms->renderJavascriptBeforeForm() . $newTCEforms->render() .
 		  $newTCEforms->renderJavascriptAfterForm();
 
 		return $editForm;
