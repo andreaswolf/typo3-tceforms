@@ -45,8 +45,6 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	protected $paletteObject;
 
-	protected $parentRecordObject;
-
 	protected $pal = NULL;
 
 	protected $hasPalette = false;
