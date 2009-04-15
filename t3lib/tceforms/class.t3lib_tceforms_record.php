@@ -235,17 +235,6 @@ class t3lib_TCEforms_Record {
 	public function getIdentifier() {
 		return $this->getTable() . ':' . $this->recordData['uid'];
 	}
-
-	/**
-	 * Returns a unique identifier of the form <table>:<uid> for the record
-	 *
-	 * @return string
-	 */
-	public function getIdentifier() {
-		return $this->getTable() . ':' . $this->recordData['uid'];
-	}
-
-	/**
 	 * Returns the context object this form is in.
 	 *
 	 * @return t3lib_TCEforms_ContextInterface
