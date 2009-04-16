@@ -145,7 +145,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		t3lib_div::devLog('Started rendering TCEforms form.', 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
 
 		foreach ($this->recordObjects as $recordObject) {
-			$content .= $this->wrapTotal($recordObject->render());
+			$content .= $this->renderRecordObject($recordObject);
 		}
 
 		return $content;
@@ -536,58 +536,55 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	}
 
 	/**
-	 * Wraps all the table rows into a single table.
-	 * Used externally from scripts like alt_doc.php and db_layout.php (which uses TCEforms...)
+	 * Renders a record object into a HTML form.
 	 *
-	 * @param   string   Code to output between table-parts; table rows
-	 * @return  string
+	 * @param t3lib_TCEforms_Record $recordObject
+	 * @return string The rendered record form, ready to be put on a page
 	 */
-	// TODO: refactorthe next two methods
-	protected function wrapTotal($content) {
+	protected function renderRecordObject(t3lib_TCEforms_Record $recordObject) {
+		global $TCA;
+
+		$recordContent = $recordObject->render();
+
 		$wrap = t3lib_parsehtml::getSubpart($this->templateContent, '###TOTAL_WRAP###');
-		$content = $this->replaceTableWrap($wrap, $content);
+
+		list($rLabel, $newLabel) = $this->getRecordLabels($recordObject);
+
+		$markerArray = array(
+			'###ID_NEW_INDICATOR###' => $newLabel,
+			'###RECORD_LABEL###' => $rLabel,
+			'###TABLE_TITLE###' => htmlspecialchars($this->sL($TCA[$recordObject->getTable()]['ctrl']['title'])),
+
+			'###RECORD_ICON###' => t3lib_iconWorks::getIconImage($recordObject->getTable(), $recordObject->getRecordData(), $this->getBackpath(), 'class="absmiddle"' . $titleA),
+			'###WRAP_CONTENT###' => $recordContent
+		);
+
+		$content = t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
+
 		return $content . implode('', $this->getHtmlForHiddenFields());
 	}
 
 	/**
-	 * This replaces markers in the total wrap
+	 * Returns the label and a special label for new records or the wrapped uid for existing records
 	 *
-	 * @param   array    An array of template parts containing some markers.
-	 * @param   array    The record
-	 * @param   string   The table name
-	 * @return  string
+	 * @param t3lib_TCEforms_Record $recordObject
+	 * @return array the record label and the "new" label
 	 */
-	protected function replaceTableWrap($wrap, $content) {
-		global $TCA;
-
-			// Make "new"-label
-		if (strstr($this->record['uid'],'NEW')) {
+	protected function getRecordLabels(t3lib_TCEforms_Record $recordObject) {
+		if (strstr($recordObject->getValue('uid'), 'NEW')) {
 			$newLabel = ' <span class="typo3-TCEforms-newToken">'.
 			  $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.new', 1).
 			  '</span>';
 
 			#t3lib_BEfunc::fixVersioningPid($this->table,$this->record);	// Kasper: Should not be used here because NEW records are not offline workspace versions...
-			$truePid = t3lib_BEfunc::getTSconfig_pidValue($this->table, $this->record['uid'], $this->record['pid']);
-			$prec = t3lib_BEfunc::getRecordWSOL('pages',$truePid,'title');
+			$truePid = t3lib_BEfunc::getTSconfig_pidValue($recordObject->getTable(), $recordObject->getValue('uid'), $recordObject->getValue('pid'));
+			$prec = t3lib_BEfunc::getRecordWSOL('pages', $truePid, 'title');
 			$rLabel = '<em>[PID: ' . $truePid . '] ' . htmlspecialchars(trim(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle('pages', $prec), 40))) . '</em>';
 		} else {
-			$newLabel = ' <span class="typo3-TCEforms-recUid">[' . $this->record['uid'] . ']</span>';
-			$rLabel  = htmlspecialchars(trim(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle($this->table, $this->record), 40)));
+			$newLabel = ' <span class="typo3-TCEforms-recUid">[' . $recordObject->getValue('uid') . ']</span>';
+			$rLabel  = htmlspecialchars(trim(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle($recordObject->getTable(), $recordObject->getRecordData()), 40)));
 		}
-
-		//$titleA = t3lib_BEfunc::titleAltAttrib($this->TCEformsObject->getRecordPath($this->table,$this->record));
-
-		$markerArray = array(
-			'###ID_NEW_INDICATOR###' => $newLabel,
-			'###RECORD_LABEL###' => $rLabel,
-			'###TABLE_TITLE###' => htmlspecialchars($this->sL($TCA[$this->table]['ctrl']['title'])),
-
-			'###RECORD_ICON###' => t3lib_iconWorks::getIconImage($this->table, $this->record, $this->backPath, 'class="absmiddle"' . $titleA),
-			'###WRAP_CONTENT###' => $content
-		);
-
-		$wrap = t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
-		return $wrap;
+		return array($rLabel, $newLabel);
 	}
 
 	/**
