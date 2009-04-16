@@ -240,7 +240,7 @@ class t3lib_TCEforms_FormBuilder {
 	protected function resolveMainPalettes() {
 		t3lib_div::devLog('Building top-level palette elements for ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		$mainPalettesArray = t3lib_div::trimExplode(',', $this->TCAdefinition['ctrl']['mainpalette']);
+		$mainPalettesArray = t3lib_div::trimExplode(',', $this->TCAdefinition['ctrl']['mainpalette'], TRUE);
 
 		$i = 0;
 		foreach ($mainPalettesArray as $paletteNumber) {
