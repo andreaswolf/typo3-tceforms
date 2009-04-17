@@ -143,26 +143,22 @@ class t3lib_TCEforms_FormBuilder {
 	/**
 	 * Returns the object representation for a database table field.
 	 *
-	 * @param   string   $field    The field name
-	 * @param   string   $altName  Alternative field name label to show.
-	 * @param   boolean  $palette  Set this if the field is on a palette (in top frame), otherwise not. (if set, field will render as a hidden field).
-	 * @param   string   $extra    The "extra" options from "Part 4" of the field configurations found in the "types" "showitem" list. Typically parsed by $this->getSpecConfFromString() in order to get the options as an associative array.
-	 * @param   integer  $pal      The palette pointer.
-	 * @param   string   $formFieldName  The name of the field on the form
+	 * @param   string   $theField  The field name
+	 * @param   string   $fieldConf The field configuration
+	 * @param   string   $altName   Alternative field name label to show.
 	 * @return  t3lib_TCEforms_AbstractElement
 	 */
-	public function getSingleField($theField, $fieldConf, $altName='', $extra='', $formFieldName = '') {
+	public function getSingleField($theField, $fieldConf, $altName='') {
 		// Using "form_type" locally in this script
 		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
 
-		$elementClassname = $this->createElementObject($fieldConf['config']['form_type']);
-		$elementObject = new $elementClassname($theField, $fieldConf, $altName, $extra);
+		$elementObject = $this->createElementObject($fieldConf['config']['form_type'], $theField, $fieldConf, $altName, $extra);
 
 		return $elementObject;
 	}
 
 	public function createPaletteElement($paletteNumber, $label) {
-		$classname = $this->createElementObject('palette');
+		$classname = $this->createElementObject('palette', array());
 		return new $classname($paletteNumber, $label);
 	}
 
@@ -174,7 +170,7 @@ class t3lib_TCEforms_FormBuilder {
 	 * @return t3lib_TCEforms_AbstractElement  The element object
 	 */
 	// TODO: refactor this as soon as the autoloader is available in core
-	protected function createElementObject($type) {
+	protected function createElementObject($type, $theField = '', $fieldConf = array()) {
 		switch ($type) {
 			default:
 				$className = 't3lib_TCEforms_Element_'.$type;
@@ -184,12 +180,12 @@ class t3lib_TCEforms_FormBuilder {
 		if (!class_exists($className)) {
 				// if class(file) does not exist, resolve to type "unknown"
 			if (!@file_exists(PATH_t3lib.'tceforms/element/class.'.strtolower($className).'.php')) {
-				return $this->createElementObject('unknown');
+				return $this->createElementObject('unknown', $theField, $fieldConf);
 			}
 			include_once PATH_t3lib.'tceforms/element/class.'.strtolower($className).'.php';
 		}
 
-		return t3lib_div::makeInstanceClassName($className);
+		return t3lib_div::makeInstance($className, $theField, $fieldConf);
 	}
 
 	/**

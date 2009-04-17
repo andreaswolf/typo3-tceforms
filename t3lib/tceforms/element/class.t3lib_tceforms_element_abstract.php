@@ -242,9 +242,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	}
 
 	public function initializePalette($paletteNumber) {
-		$paletteClassName = t3lib_div::makeInstanceClassName('t3lib_TCEforms_Container_Palette');
-
-		$this->paletteObject = new $paletteClassName($paletteNumber);
+		$this->paletteObject = t3lib_div::makeInstance('t3lib_TCEforms_Container_Palette', $paletteNumber);
 		$this->paletteObject->setContainingObject($this)
 		                    ->setContextObject($this->contextObject)
 		                    ->setRecordObject($this->parentRecordObject)
