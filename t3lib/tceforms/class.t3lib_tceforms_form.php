@@ -136,6 +136,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 		$this->setFormFieldNamePrefix('data');//$this->TCEformsObject->prependFormFieldNames;
 		$this->setFormFieldIdPrefix('data');
+
+		$this->contextObject = $this;
 	}
 
 	public function init() {
@@ -183,7 +185,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		}
 
 		$recordObject->setParentFormObject($this)
-		             ->setContextObject($this->contextObject ? $this->contextObject : $this)
+		             ->setContextObject($this->contextObject)
 		             ->init();
 
 		$this->recordObjects[] = $recordObject;
