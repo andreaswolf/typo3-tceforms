@@ -859,6 +859,25 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		}
 		return $items;
 	}
+
+	/**
+	 * Extracting values from a value/label list (as made by transferData class)
+	 *
+	 * @param	string		Value string where values are comma separated, intermixed with labels and rawurlencoded (this is what is delivered to TCEforms normally!)
+	 * @param	array		Values in an array
+	 * @return	array		Input string exploded with comma and for each value only the label part is set in the array. Keys are numeric
+	 */
+	function extractValuesOnlyFromValueLabelList($itemFormElValue)	{
+			// Get values of selected items:
+		$itemArray = t3lib_div::trimExplode(',',$itemFormElValue,1);
+		foreach($itemArray as $tk => $tv) {
+			$tvP = explode('|',$tv,2);
+			$tvP[0] = rawurldecode($tvP[0]);
+
+			$itemArray[$tk] = $tvP[0];
+		}
+		return $itemArray;
+	}
 }
 
 ?>
