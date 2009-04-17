@@ -251,6 +251,15 @@ class t3lib_TCEforms_Record {
 	}
 
 	/**
+	 * Returns the title of the record.
+	 *
+	 * @return string
+	 */
+	public function getTitle() {
+		return t3lib_BEfunc::getRecordTitle($this->table, $this->recordData);
+	}
+
+	/**
 	 * Returns the context object this form is in.
 	 *
 	 * @return t3lib_TCEforms_ContextInterface

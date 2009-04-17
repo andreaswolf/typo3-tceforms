@@ -791,6 +791,10 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return $this->fieldStyle;
 	}
 
+	public function getClassScheme() {
+		return $this->classScheme;
+	}
+
 	/**
 	 * Reset element styles to default values.
 	 *

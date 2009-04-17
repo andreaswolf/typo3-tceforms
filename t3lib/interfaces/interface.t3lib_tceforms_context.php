@@ -27,6 +27,14 @@ interface t3lib_TCEforms_Context {
 	 * @return boolean
 	 */
 	public function isFieldHidden($table, $fieldName);
+
+	/**
+	 * Registers an IRRE object with the context object
+	 *
+	 * @param t3lib_TCEforms_Element_Inline $inlineElementObject
+	 * @return void
+	 */
+	public function registerInlineElement(t3lib_TCEforms_Element_Inline $inlineElementObject);
 }
 
 ?>

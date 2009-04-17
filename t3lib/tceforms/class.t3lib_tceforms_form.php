@@ -124,6 +124,13 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 	protected static $cachedTSconfig;
 
+	/**
+	 * The inline elements used in this form (and all subforms)
+	 *
+	 * @var array
+	 */
+	protected $inlineElementObjects = array();
+
 
 	// TODO implement variable defaultStyle + getter/setter (replacement for defStyle of old tceforms)
 
@@ -243,6 +250,10 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		}
 
 		return in_array($fieldName, $this->hiddenFields[$table]);
+	}
+
+	public function registerInlineElement(t3lib_TCEforms_Element_Inline $inlineElementObject) {
+		$this->inlineElementObjects[] = $inlineElementObject;
 	}
 
 	/**
@@ -548,7 +559,10 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 		$recordContent = $recordObject->render();
 
-		$wrap = t3lib_parsehtml::getSubpart($this->templateContent, '###TOTAL_WRAP###');
+		$wrap = t3lib_parsehtml::getSubpart($this->getTemplateContent(), '###TOTAL_WRAP###');
+		if ($wrap == '') {
+			throw new RuntimeException('No template wrap for record found.');
+		}
 
 		list($rLabel, $newLabel) = $this->getRecordLabels($recordObject);
 
