@@ -35,6 +35,13 @@ interface t3lib_TCEforms_Context {
 	 * @return void
 	 */
 	public function registerInlineElement(t3lib_TCEforms_Element_Inline $inlineElementObject);
+
+	/**
+	 * Returns TRUE if any IRRE elements have been registered for the form.
+	 *
+	 * @return boolean
+	 */
+	public function hasInlineElements();
 }
 
 ?>

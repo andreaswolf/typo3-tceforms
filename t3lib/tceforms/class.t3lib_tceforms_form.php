@@ -252,8 +252,23 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		return in_array($fieldName, $this->hiddenFields[$table]);
 	}
 
+	/**
+	 * Registers an IRRE object with the context object
+	 *
+	 * @param t3lib_TCEforms_Element_Inline $inlineElementObject
+	 * @return void
+	 */
 	public function registerInlineElement(t3lib_TCEforms_Element_Inline $inlineElementObject) {
 		$this->inlineElementObjects[] = $inlineElementObject;
+	}
+
+	/**
+	 * Returns TRUE if any IRRE elements have been registered for the form.
+	 *
+	 * @return boolean
+	 */
+	public function hasInlineElements() {
+		return (count($this->inlineElementObjects) > 0);
 	}
 
 	/**
@@ -452,7 +467,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		$jsFile[] = '<script type="text/javascript" src="' . $this->backPath . 'js/tceforms.js"></script>';
 
 			// if IRRE fields were processed, add the JavaScript functions:
-		if ($this->inline->inlineCount) {
+		if ($this->hasInlineElements()) {
 			$jsFile[] = '<script src="' . $this->backPath . 'contrib/scriptaculous/scriptaculous.js" type="text/javascript"></script>';
 			$jsFile[] = '<script src="' . $this->backPath . '../t3lib/jsfunc.inline.js" type="text/javascript"></script>';
 		}
