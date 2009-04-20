@@ -100,6 +100,13 @@ class t3lib_TCEforms_Record {
 	protected $contextObject;
 
 	/**
+	 * The record object on the top level, right below the context form. Only used in IRRE context.
+	 *
+	 * @var t3lib_TCEforms_Record
+	 */
+	protected $contextRecordObject;
+
+	/**
 	 * The form object this record belongs to.
 	 *
 	 * @var t3lib_TCEforms_Form
@@ -144,6 +151,7 @@ class t3lib_TCEforms_Record {
 		$this->table = $table;
 		$this->recordData = $recordData;
 		$this->TCAdefinition = $TCAdefinition;
+		$this->contextRecordObject = $this;
 
 		$this->setRecordTypeNumber();
 	}
@@ -471,6 +479,16 @@ class t3lib_TCEforms_Record {
 
 	public function getValue($key) {
 		return $this->recordData[$key];
+	}
+
+	public function setContextRecordObject(t3lib_TCEforms_Record $contextRecordObject) {
+		$this->contextRecordObject = $contextRecordObject;
+
+		return $this;
+	}
+
+	public function getContextRecordObject() {
+		return $this->contextRecordObject;
 	}
 
 

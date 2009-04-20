@@ -30,14 +30,14 @@ class t3lib_TCEforms_FormBuilder {
 	 *
 	 * @return void
 	 */
-	public function buildObjectStructure(t3lib_TCEforms_Record $recordObject) {
+	public function buildObjectStructure() {
 		t3lib_div::devLog('Started building object tree for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		$fieldList = $recordObject->getFieldList();
+		$fieldList = $this->recordObject->getFieldList();
 
 		if (isset($fieldList[0]) && strpos($fieldList[0], '--div--') !== 0) {
 			$this->currentSheet = $this->createSheetObject($sheetIdentString, $this->getLL('l_generalTab'));
-			$recordObject->addSheetObject($this->currentSheet);
+			$this->recordObject->addSheetObject($this->currentSheet);
 		}
 
 		foreach ($fieldList as $fieldInfo) {
@@ -45,7 +45,7 @@ class t3lib_TCEforms_FormBuilder {
 			$parts = explode(';', $fieldInfo);
 
 			$theField = $parts[0];
-			if ($recordObject->isExcludeElement($theField)) {
+			if ($this->recordObject->isExcludeElement($theField)) {
 				continue;
 			}
 
@@ -53,7 +53,7 @@ class t3lib_TCEforms_FormBuilder {
 				++$sheetCounter;
 
 				$this->currentSheet = $this->createSheetObject($sheetIdentString, $this->sL($parts[1]));
-				$recordObject->addSheetObject($this->currentSheet);
+				$this->recordObject->addSheetObject($this->currentSheet);
 			} else {
 				if ($theField !== '') {
 					if ($this->TCAdefinition['columns'][$theField]) {
@@ -74,7 +74,9 @@ class t3lib_TCEforms_FormBuilder {
 					$this->currentSheet->addChildObject($formFieldObject);
 
 					$formFieldObject->setContextObject($this->contextObject)
-					                ->setParentRecordObject($this->recordObject)
+					                ->setContextRecordObject($this->recordObject->getContextRecordObject())
+					                ->setRecordObject($this->recordObject)
+					                ->setParentFormObject($this->recordObject->getParentFormObject())
 					                ->setTable($this->recordObject->getTable())
 					                ->setRecord($this->recordObject->getRecordData())
 					                ->injectFormBuilder($this)
@@ -117,7 +119,7 @@ class t3lib_TCEforms_FormBuilder {
 			}
 		}
 
-		$this->resolveMainPalettes($recordObject);
+		$this->resolveMainPalettes();
 	}
 
 	public function getFormFieldNamePrefix() {
@@ -252,7 +254,9 @@ class t3lib_TCEforms_FormBuilder {
 			$paletteFieldObject = $this->createPaletteElement($paletteNumber, $label);
 
 			$paletteFieldObject->setContextObject($this->contextObject)
-			                   ->setParentRecordObject($this->recordObject)
+			                   ->setRecordObject($this->recordObject)
+			                   ->setParentRecordObject($this->recordObject->getParentRecordObject())
+			                   ->setParentFormObject($this->recordObject->getParentFormObject())
 			                   ->setTable($this->recordObject->getTable())
 			                   ->setRecord($this->recordObject->getRecordData())
 			                   ->injectFormBuilder($this)

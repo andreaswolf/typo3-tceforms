@@ -89,7 +89,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 						$elem = $this->formBuilder->getSingleField($theField, $this->recordObject->getTCAdefinitionForField($theField), $fieldParts[1], $fieldParts[3]);
 
 						$elem->setContextObject($this->contextObject)
-						     ->setParentRecordObject($this->recordObject)
+						     ->setRecordObject($this->recordObject)
 						     ->setTable($this->recordObject->getTable())
 						     ->setRecord($this->recordObject->getRecordData())
 						     ->injectFormBuilder($this->formBuilder)

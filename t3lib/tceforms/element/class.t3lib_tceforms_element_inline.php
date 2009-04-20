@@ -30,10 +30,10 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		}
 
 		$this->formObject->setContextObject($this->contextObject)
-		                 ->setContainer($this);
+		                 ->setContainingElement($this);
 
-		$this->formObject->setFormFieldNamePrefix($this->itemFormElName);
-		$this->formObject->setFormFieldIdPrefix($this->itemFormElID);
+		//$this->formObject->setFormFieldNamePrefix($this->formObject->getFormFieldNamePrefix());
+		//$this->formObject->setFormFieldIdPrefix($this->formObject->getFormFieldIdPrefix());
 
 			// Register this element with the context
 		$this->contextObject->registerInlineElement($this);
@@ -43,7 +43,8 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		t3lib_div::loadTCA($foreign_table);
 
 		if (t3lib_BEfunc::isTableLocalizable($this->table)) {
-			$language = intval($this->recordData[$TCA[$this->table]['ctrl']['languageField']]);
+			$languageField = $TCA[$this->table]['ctrl']['languageField'];
+			$language = intval($this->recordData[$languageField]);
 		}
 		$minitems = t3lib_div::intInRange($this->fieldConfig['config']['minitems'],0);
 		$maxitems = t3lib_div::intInRange($this->fieldConfig['config']['maxitems'],0);
@@ -415,6 +416,24 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Returns true if expanding a record in the TCEforms view should collapse all other records.
+	 * This setting is configured via [appearance][expandSingle] in this columns TCA-config section
+	 *
+	 * @return boolean
+	 */
+	public function expandOnlyOneRecordAtATime() {
+		return $this->fieldConfig['config']['appearance']['expandSingle'];
+	}
+
+	public function getValue($key) {
+		return $this->record[$key];
+	}
+
+	public function getTable() {
+		return $this->table;
 	}
 }
 

@@ -52,11 +52,18 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	protected $isInPalette = false;
 
 	/**
-	 *
+	 * The record object this element belongs to
 	 *
 	 * @var t3lib_TCEforms_Record
 	 */
-	protected $parentRecordObject;
+	protected $recordObject;
+
+	/**
+	 * The outermost record object (only relevant for elements in IRRE records)
+	 *
+	 * @var t3lib_TCEforms_Record
+	 */
+	protected $contextRecordObject;
 
 	/**
 	 * The context this element is in (i.e., the top-level form)
@@ -64,6 +71,12 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @var t3lib_TCEforms_Context
 	 */
 	protected $contextObject;
+
+	/**
+	 * The form object this element belongs to.
+	 * @var t3lib_TCEforms_Form
+	 */
+	protected $parentFormObject;
 
 	/*
 	 * Form field width compensation: Factor from NN4 form field widths to style-aware browsers
@@ -120,7 +133,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 *
 	 * @var t3lib_TCEforms_FormBuilder
 	 */
-	protected $injectFormBuilder;
+	protected $formBuilder;
 
 	/**
 	 * TRUE if the field should not be rendered at all. render() will return an empty string then.
@@ -167,9 +180,9 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
 		// TODO: rename this to formFieldNamePrefix/formFieldFileNamePrefix
-		$this->prependFormFieldNames = $this->parentRecordObject->getFormFieldNamePrefix();
-		$this->prependFormFieldNames_file = $this->parentRecordObject->getFormFieldNamePrefix();
-		$this->formFieldIdPrefix = $this->parentRecordObject->getFormFieldIdPrefix();
+		$this->prependFormFieldNames = $this->recordObject->getFormFieldNamePrefix();
+		$this->prependFormFieldNames_file = $this->recordObject->getFormFieldNamePrefix();
+		$this->formFieldIdPrefix = $this->recordObject->getFormFieldIdPrefix();
 
 			// Init variables:
 		$this->itemFormElName = $this->prependFormFieldNames.'['.$this->field.']'; // Form field name
@@ -184,7 +197,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			}
 		}
 
-		$this->defaultLanguageValue = $this->parentRecordObject->getDefaultLanguageValue($this->field);
+		$this->defaultLanguageValue = $this->recordObject->getDefaultLanguageValue($this->field);
 
 
 		// TODO move this to FormBuilder
@@ -245,7 +258,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$this->paletteObject = t3lib_div::makeInstance('t3lib_TCEforms_Container_Palette', $paletteNumber);
 		$this->paletteObject->setContainingObject($this)
 		                    ->setContextObject($this->contextObject)
-		                    ->setRecordObject($this->parentRecordObject)
+		                    ->setRecordObject($this->recordObject)
 		                    ->injectFormBuilder($this->formBuilder);
 
 		$this->hasPalette = TRUE;
@@ -263,10 +276,33 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return $this;
 	}
 
-	public function setParentRecordObject($parentRecordObject) {
-		$this->parentRecordObject = $parentRecordObject;
+	public function setContextRecordObject(t3lib_TCEforms_Record $contextRecordObject) {
+		$this->contextRecordObject = $contextRecordObject;
 
 		return $this;
+	}
+
+	public function getContextRecordObject() {
+		return $this->contextRecordObject;
+	}
+
+	public function setRecordObject($recordObject) {
+		$this->recordObject = $recordObject;
+
+		return $this;
+	}
+
+	public function getRecordObject() {
+		return $this->recordObject;
+	}
+
+	public function setParentFormObject(t3lib_TCEforms_Form $parentFormObject) {
+		$this->parentFormObject = $parentFormObject;
+		return $this;
+	}
+
+	public function getParentFormObject() {
+		return $this->parentFormObject;
 	}
 
 	public function setContextObject(t3lib_TCEforms_Context $contextObject) {
@@ -361,7 +397,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	public function render() {
 		global $BE_USER, $TCA;
 
-		t3lib_div::devLog('Started rendering element ' . $this->field . ' in record ' . $this->parentRecordObject->getIdentifier() . '.', 't3lib_TCEforms_Element_Abstract', t3lib_div::SYSLOG_SEVERITY_INFO);
+		t3lib_div::devLog('Started rendering element ' . $this->field . ' in record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_Element_Abstract', t3lib_div::SYSLOG_SEVERITY_INFO);
 
 		if ($this->doNotRender) {
 			return '';
@@ -856,15 +892,15 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 				// Don't show content if it's for IRRE child records:
 			if ($this->fieldConfig['type'] != 'inline') {
 				if (strcmp($dLVal, '')) {
-					$item.='<div class="typo3-TCEforms-originalLanguageValue">'.$this->parentRecordObject->getLanguageIcon(0).$this->previewFieldValue($dLVal).'&nbsp;</div>';
+					$item.='<div class="typo3-TCEforms-originalLanguageValue">'.$this->recordObject->getLanguageIcon(0).$this->previewFieldValue($dLVal).'&nbsp;</div>';
 				}
 
-				$prLang = $this->parentRecordObject->getAdditionalPreviewLanguages();
+				$prLang = $this->recordObject->getAdditionalPreviewLanguages();
 				foreach ($prLang as $prL) {
 					$dlVal = t3lib_BEfunc::getProcessedValue($this->table,$this->field,$this->additionalPreviewLanguageValue[$prL['uid']][$this->field],0,1);
 
 					if (strcmp($dlVal, '')) {
-						$item .= '<div class="typo3-TCEforms-originalLanguageValue">'.$this->parentRecordObject->getLanguageIcon('v'.$prL['ISOcode']).$this->previewFieldValue($dlVal).'&nbsp;</div>';
+						$item .= '<div class="typo3-TCEforms-originalLanguageValue">'.$this->recordObject->getLanguageIcon('v'.$prL['ISOcode']).$this->previewFieldValue($dlVal).'&nbsp;</div>';
 					}
 				}
 			}
