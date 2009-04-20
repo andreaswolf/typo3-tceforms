@@ -167,6 +167,10 @@ class t3lib_TCEforms_Record {
 
 		return $this;
 	}
+	
+	public function getParentFormObject() {
+		return $this->parentFormObject;
+	}
 
 	public function init() {
 		$this->formBuilder = t3lib_TCEforms_Formbuilder::createInstanceForRecordObject($this);

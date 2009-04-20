@@ -10,7 +10,13 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	 * @var t3lib_TCEforms_IRREForm
 	 */
 	protected $formObject;
-	
+
+	/**
+	 * A list of all relations
+	 * @var array
+	 */
+	protected $relationList = array();
+
 	public function __construct($field, $fieldConfig, $alternativeName='', $extra='') {
 		parent::__construct($field, $fieldConfig, $alternativeName, $extra);
 
@@ -30,7 +36,9 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		}
 
 		$this->formObject->setContextObject($this->contextObject)
-		                 ->setContainingElement($this);
+		                 ->setContainingElement($this)
+		                 ->injectFormBuilder($this->formBuilder)
+		                 ->init();
 
 		//$this->formObject->setFormFieldNamePrefix($this->formObject->getFormFieldNamePrefix());
 		//$this->formObject->setFormFieldIdPrefix($this->formObject->getFormFieldIdPrefix());
@@ -39,8 +47,8 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		$this->contextObject->registerInlineElement($this);
 
 			// Init:
-		$foreign_table = $this->fieldConfig['config']['foreign_table'];
-		t3lib_div::loadTCA($foreign_table);
+		$this->foreignTable = $this->fieldConfig['config']['foreign_table'];
+		t3lib_div::loadTCA($this->foreignTable);
 
 		if (t3lib_BEfunc::isTableLocalizable($this->table)) {
 			$languageField = $TCA[$this->table]['ctrl']['languageField'];
@@ -89,22 +97,25 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		$this->fieldConfig['config']['inline']['last'] = end($relatedRecordsUids);
 
 		foreach ($relatedRecords['records'] as $record) {
-			$this->formObject->addRecord($foreign_table, $record);
+			$this->formObject->addRecord($this->foreignTable, $record);
+			if (!isset($record['__virtual']) || !$record['__virtual']) {
+				$this->relationList[] = $record['uid'];
+			}
 		}
 
 			// Tell the browser what we have (using JSON later):
 		$top = $this->getStructureLevel(0);
 		$this->inlineData['config'][$nameObject] = array(
-			'table' => $foreign_table,
+			'table' => $this->foreignTable,
 			'md5' => md5($nameObject),
 		);
-		$this->inlineData['config'][$nameObject.'['.$foreign_table.']'] = array(
+		$this->inlineData['config'][$this->getIrreIdentifier() . '[' . $this->foreignTable . ']'] = array(
 			'min' => $minitems,
 			'max' => $maxitems,
 			'sortable' => $config['appearance']['useSortable'],
 			'top' => array(
 				'table' => $top['table'],
-				'uid'	=> $top['uid'],
+				'uid'   => $top['uid'],
 			),
 		);
 			// Set a hint for nested IRRE and tab elements:
@@ -118,7 +129,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 			$uniqueIds = $this->getUniqueIds($relatedRecords['records'], $config, $selConfig['type']=='groupdb');
 			$possibleRecords = $this->getPossibleRecords($this->table,$field,$row,$config,'foreign_unique');
 			$uniqueMax = $config['appearance']['useCombination'] || $possibleRecords === false ? -1	: count($possibleRecords);
-			$this->inlineData['unique'][$nameObject.'['.$foreign_table.']'] = array(
+			$this->inlineData['unique'][$nameObject.'['.$this->foreignTable.']'] = array(
 				'max' => $uniqueMax,
 				'used' => $uniqueIds,
 				'type' => $selConfig['type'],
@@ -151,15 +162,15 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 
 			// Render the level links (create new record, localize all, synchronize):
 		if ($config['appearance']['levelLinksPosition']!='none') {
-			$levelLinks = $this->getLevelInteractionLink('newRecord', $nameObject.'['.$foreign_table.']', $config);
+			$levelLinks = $this->getLevelInteractionLink('newRecord', $nameObject.'['.$this->foreignTable.']', $config);
 			if ($language>0) {
 					// Add the "Localize all records" link before all child records:
 				if (isset($config['appearance']['showAllLocalizationLink']) && $config['appearance']['showAllLocalizationLink']) {
-					$levelLinks.= $this->getLevelInteractionLink('localize', $nameObject.'['.$foreign_table.']', $config);
+					$levelLinks.= $this->getLevelInteractionLink('localize', $nameObject.'['.$this->foreignTable.']', $config);
 				}
 					// Add the "Synchronize with default language" link before all child records:
 				if (isset($config['appearance']['showSynchronizationLink']) && $config['appearance']['showSynchronizationLink']) {
-					$levelLinks.= $this->getLevelInteractionLink('synchronize', $nameObject.'['.$foreign_table.']', $config);
+					$levelLinks.= $this->getLevelInteractionLink('synchronize', $nameObject.'['.$this->foreignTable.']', $config);
 				}
 			}
 		}
@@ -168,30 +179,10 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 			$item.= $levelLinks;
 		}
 
-		$item .= '<div id="'.$nameObject.'_records">';
-		$relationList = array();
-		if (count($relatedRecords['records'])) {
-			foreach ($relatedRecords['records'] as $rec) {
-				$item .= $this->renderForeignRecord($row['uid'],$rec,$config);
-				if (!isset($rec['__virtual']) || !$rec['__virtual']) {
-					$relationList[] = $rec['uid'];
-				}
-			}
-		}
-		$item .= '</div>';
-
 			// Add the level links after all child records:
 		if (in_array($config['appearance']['levelLinksPosition'], array('both', 'bottom'))) {
 			$item.= $levelLinks;
 		}
-
-			// add Drag&Drop functions for sorting to TCEforms::$additionalJS_post
-		if (count($relationList) > 1 && $config['appearance']['useSortable'])
-			$this->addJavaScriptSortable($nameObject.'_records');
-			// publish the uids of the child records in the given order to the browser
-		$item .= '<input type="hidden" name="'.$nameForm.'" value="'.implode(',', $relationList).'" class="inlineRecord" />';
-			// close the wrap for all inline fields (container)
-		$item .= '</div>';
 
 			// on finishing this section, remove the last item from the structure stack
 		$this->popStructure();
@@ -200,6 +191,10 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		if (!$this->getStructureDepth()) {
 			unset($this->inlineFirstPid);
 		}*/
+	}
+
+	public function getTemplateContent() {
+		return $this->contextObject->getTemplateContent();
 	}
 
 	/**
@@ -348,7 +343,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	 * @param	integer		$level: Which level to return
 	 * @return	array		The item of the stack at the requested level
 	 */
-	function getStructureLevel($level) {
+	protected function getStructureLevel($level) {
 		$inlineStructureCount = count($this->inlineStructure['stable']);
 		if ($level < 0) $level = $inlineStructureCount+$level;
 		if ($level >= 0 && $level < $inlineStructureCount)
@@ -358,8 +353,65 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	}
 
 	public function renderField() {
+		$wrap = t3lib_parsehtml::getSubpart($this->getTemplateContent(), '###TOTAL_WRAP_IRRE###');
 
-		return $this->formObject->render();
+		$levelLinks = $this->renderLevelLinks();
+
+		$markerArray = array(
+			'###IRREFIELDNAMES###' => $this->formObject->getFormFieldNamePrefix() . $this->getIrreIdentifier(),
+			'###LEVELLINKS_TOP###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'top')) ? $levelLinks : ''),
+			'###LEVELLINKS_BOTTOM###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'bottom')) ? $levelLinks : ''),
+			'###FORM_CONTENT###' => $this->formObject->render()
+		);
+
+			// add Drag&Drop functions for sorting to TCEforms::$additionalJS_post
+		if (count($this->relationList) > 1 && $this->fieldConfig['config']['appearance']['useSortable']) {
+			$this->addJavaScriptSortable($this->getIrreIdentifier() . '_records');
+			// publish the uids of the child records in the given order to the browser
+		}
+		$item .= '<input type="hidden" name="' . $this->getIrreFormIdentifier() . '" value="' . implode(',', $this->relationList) . '" class="inlineRecord" />';
+
+		return t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
+	}
+
+	protected function renderLevelLinks() {
+		//if ($this->fieldConfig['appearance']['levelLinksPosition']!='none') {
+			$levelLinks = $this->getLevelInteractionLink('newRecord', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldConfig['config']);
+			if ($language > 0) { // TODO fix this
+					// Add the "Localize all records" link before all child records:
+				if (isset($config['appearance']['showAllLocalizationLink']) && $config['appearance']['showAllLocalizationLink']) {
+					$levelLinks .= $this->getLevelInteractionLink('localize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $config);
+				}
+					// Add the "Synchronize with default language" link before all child records:
+				if (isset($config['appearance']['showSynchronizationLink']) && $config['appearance']['showSynchronizationLink']) {
+					$levelLinks .= $this->getLevelInteractionLink('synchronize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $config);
+				}
+			}
+		//}
+
+		return $levelLinks;
+	}
+
+	public function getIrreIdentifier() {
+		$identifierParts[] = $this->getFieldname();
+		$identifierParts[] = $this->getValue('uid');
+		$identifierParts[] = $this->getTable();
+
+		return '[' . implode('][', array_reverse($identifierParts)) . ']' . $this->getIrreFormIdentifier();
+	}
+
+	protected function getIrreFormIdentifier() {
+		$elementObject = $this;
+		while ($elementObject->getParentFormObject() instanceof t3lib_TCEforms_NestableForm) {
+			$identifierParts[] = $elementObject->getFieldname();
+			$identifierParts[] = $elementObject->getValue('uid');
+			$identifierParts[] = $elementObject->getTable();
+			$elementObject = $elementObject->getParentFormObject()->getContainingElement();
+			t3lib_div::devLog('Loop ' . ++$i, 't3lib_TCEforms_IrreForm');
+		};
+		$identifierParts[] = $this->contextRecordObject->getValue('pid');
+
+		return '[' . implode('][', array_reverse($identifierParts)) . ']';
 	}
 
 
@@ -379,14 +431,14 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	 * @return	boolean		If critical configuration errors were found, false is returned
 	 */
 	function checkConfiguration() {
-		$foreign_table = $this->fieldConfig['config']['foreign_table'];
+		$this->foreignTable = $this->fieldConfig['config']['foreign_table'];
 
 			// An inline field must have a foreign_table, if not, stop all further inline actions for this field:
-		if (!$foreign_table || !is_array($GLOBALS['TCA'][$foreign_table])) {
+		if (!$this->foreignTable || !is_array($GLOBALS['TCA'][$this->foreignTable])) {
 			return false;
 		}
 			// Init appearance if not set:
-		if (!isset($this->fieldConfig['config']['appearance']) || !is_array($config['appearance'])) {
+		if (!isset($this->fieldConfig['config']['appearance']) || !is_array($this->fieldConfig['config']['appearance'])) {
 			$this->fieldConfig['config']['appearance'] = array();
 		}
 			// 'newRecordLinkPosition' is deprecated since TYPO3 4.2.0-beta1, this is for backward compatibility:
@@ -435,7 +487,87 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	public function getTable() {
 		return $this->table;
 	}
-}
 
+	/**
+	 * Creates the HTML code of a general link to be used on a level of inline children.
+	 * The possible keys for the parameter $type are 'newRecord', 'localize' and 'synchronize'.
+	 *
+	 * @param	string		$type: The link type, values are 'newRecord', 'localize' and 'synchronize'.
+	 * @param	string		$objectPrefix: The "path" to the child record to create (e.g. 'data[parten_table][parent_uid][parent_field][child_table]')
+	 * @param	array		$conf: TCA configuration of the parent(!) field
+	 * @return	string		The HTML code of the new link, wrapped in a div
+	 */
+	protected function getLevelInteractionLink($type, $objectPrefix, $conf=array()) {
+		$nameObject = $this->inlineNames['object'];
+		$attributes = array();
+		switch($type) {
+			case 'newRecord':
+				$title = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:cm.createnew', 1);
+				$iconFile = 'gfx/new_el.gif';
+				// $iconAddon = 'width="11" height="12"';
+				$className = 'typo3-newRecordLink';
+				$attributes['class'] = 'inlineNewButton '.$this->inlineData['config'][$nameObject]['md5'];
+				$attributes['onclick'] = "return inline.createNewRecord('$objectPrefix')";
+				if (isset($conf['inline']['inlineNewButtonStyle']) && $conf['inline']['inlineNewButtonStyle']) {
+					$attributes['style'] = $conf['inline']['inlineNewButtonStyle'];
+				}
+				if (isset($conf['appearance']['newRecordLinkAddTitle']) && $conf['appearance']['newRecordLinkAddTitle']) {
+					$titleAddon = ' '.$GLOBALS['LANG']->sL($GLOBALS['TCA'][$conf['foreign_table']]['ctrl']['title'], 1);
+				}
+				break;
+			case 'localize':
+				$title = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_misc.xml:localizeAllRecords', 1);
+				$iconFile = 'gfx/localize_el.gif';
+				$className = 'typo3-localizationLink';
+				$attributes['onclick'] = "return inline.synchronizeLocalizeRecords('$objectPrefix', 'localize')";
+				break;
+			case 'synchronize':
+				$title = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_misc.xml:synchronizeWithOriginalLanguage', 1);
+				$iconFile = 'gfx/synchronize_el.gif';
+				$className = 'typo3-synchronizationLink';
+				$attributes['class'] = 'inlineNewButton '.$this->inlineData['config'][$nameObject]['md5'];
+				$attributes['onclick'] = "return inline.synchronizeLocalizeRecords('$objectPrefix', 'synchronize')";
+				break;
+		}
+			// Create the link:
+		$icon = ($iconFile ? '<img'.t3lib_iconWorks::skinImg($this->backPath, $iconFile, $iconAddon).' alt="'.htmlspecialchars($title.$titleAddon).'" />' : '');
+		$link = $this->wrapWithAnchor($icon.$title.$titleAddon, '#', $attributes);
+		return '<div'.($className ? ' class="'.$className.'"' : '').'>'.$link.'</div>';
+	}
+
+	/**
+	 * Wraps a text with an anchor and returns the HTML representation.
+	 *
+	 * @param	string		$text: The text to be wrapped by an anchor
+	 * @param	string		$link: The link to be used in the anchor
+	 * @param	array		$attributes: Array of attributes to be used in the anchor
+	 * @return	string		The wrapped texted as HTML representation
+	 */
+	protected function wrapWithAnchor($text, $link, $attributes=array()) {
+		$link = trim($link);
+		$result = '<a href="'.($link ? $link : '#').'"';
+		foreach ($attributes as $key => $value) {
+			$result.= ' '.$key.'="'.htmlspecialchars(trim($value)).'"';
+		}
+		$result.= '>'.$text.'</a>';
+		return $result;
+	}
+
+	public function getForeignTable() {
+		return $this->foreignTable;
+	}
+
+	/**
+	 * Add Sortable functionality using script.acolo.us "Sortable".
+	 *
+	 * @param	string		$objectId: The container id of the object - elements inside will be sortable
+	 * @return	void
+	 */
+	protected function addJavaScriptSortable($objectId) {
+		$this->contextObject->addToAdditionalJSPostForm('
+			inline.createDragAndDropSorting("'.$objectId.'");
+		');
+	}
+}
 
 ?>
