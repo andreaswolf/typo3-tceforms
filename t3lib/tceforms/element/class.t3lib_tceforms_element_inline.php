@@ -397,7 +397,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		$identifierParts[] = $this->getValue('uid');
 		$identifierParts[] = $this->getTable();
 
-		return '[' . implode('][', array_reverse($identifierParts)) . ']' . $this->getIrreFormIdentifier();
+		return $this->getIrreFormIdentifier() . '[' . implode('][', array_reverse($identifierParts)) . ']';
 	}
 
 	protected function getIrreFormIdentifier() {

@@ -108,11 +108,11 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	protected function getIrreIdentifierForRecord(t3lib_TCEforms_Record $recordObject) {
 		$identifierParts[] = $recordObject->getValue('uid');
 		$identifierParts[] = $recordObject->getTable();
-		return '[' . implode('][', array_reverse($identifierParts)) . ']' . $this->containingElement->getIrreIdentifier();
+		return $this->containingElement->getIrreIdentifier() . '[' . implode('][', array_reverse($identifierParts)) . ']';
 	}
 
 	protected function getFieldIdentifier(t3lib_TCEforms_Record $recordObject) {
-		
+
 	}
 
 	/**
