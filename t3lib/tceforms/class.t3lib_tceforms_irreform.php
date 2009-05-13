@@ -85,7 +85,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		$formFieldNames = $this->getFormFieldNamePrefix() . $this->getFieldIdentifier($recordObject);
 		t3lib_div::devLog('pid: ' . $this->containingElement->getValue('pid'), __CLASS__);
 
-		$fieldsStyle = ($this->getExpandedCollapsedState($recordObject) ? 'display:none;' : '');
+		$fieldsStyle = (!$this->getExpandedCollapsedState($recordObject) ? 'display:none;' : '');
 
 		$markerArray = array(
 			'###TITLE###' => htmlspecialchars($recordObject->getTitle()),
@@ -124,6 +124,12 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		if ($this->inlineViewState == NULL) {
 			$inlineView = unserialize($GLOBALS['BE_USER']->uc['inlineView']);
 			$this->inlineViewState = (array)$inlineView[$this->containingElement->getTable()][$this->containingElement->getValue('uid')];
+			t3lib_div::devLog('inlineViewState for ' . $this->containingElement->getTable() . ':' . $this->containingElement->getValue('uid') . ': ' . serialize($this->inlineViewState), __CLASS__);
+		}
+
+		$collapseAll = (isset($config['appearance']['collapseAll']) && $config['appearance']['collapseAll']);
+		if ($collapseAll) {
+			return false;
 		}
 
 		$table = $recordObject->getTable();
