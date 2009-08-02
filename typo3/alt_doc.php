@@ -803,14 +803,14 @@ class SC_alt_doc {
 									// what about wrapTotal in new TCEforms-classes? -- AW, 25.07.2008
 
 										// Setting the pid value for new records:
-									if ($cmd=='new')	{
-										$panel.= '<input type="hidden" name="data['.$table.']['.$rec['uid'].'][pid]" value="'.$rec['pid'].'" />';
-										$this->newC++;
+									if ($cmd == 'new') {
+										$newItemPidFields .= '<input type="hidden" name="data['.$table.']['.$rec['uid'].'][pid]" value="'.$rec['pid'].'" />';
+										$this->newElementCounter++;
 									}
 
 										// Display "is-locked" message:
 									if ($lockInfo = t3lib_BEfunc::isRecordLocked($table,$rec['uid']))	{
-										$lockIcon = '
+										$recordLockMessages .= '
 
 											<!-- Warning box: -->
 											<table border="0" cellpadding="0" cellspacing="0" class="warningbox">
@@ -820,10 +820,7 @@ class SC_alt_doc {
 												</tr>
 											</table>
 										';
-									} else $lockIcon = '';
-
-										// Combine it all:
-									$editForm.= $lockIcon.$panel;
+									}
 								}
 
 								$thePrevUid = $rec['uid'];
@@ -839,8 +836,11 @@ class SC_alt_doc {
 		}
 
 
-		$editForm = $newTCEforms->renderJavascriptBeforeForm() . $newTCEforms->render() .
-		  $newTCEforms->renderJavascriptAfterForm();
+		$editForm = $newTCEforms->renderJavascriptBeforeForm()
+			. $recordLockMessages
+			. $newTCEforms->render()
+			. $newTCEforms->renderJavascriptAfterForm()
+			. $newItemPidFields;
 
 		return $editForm;
 	}
