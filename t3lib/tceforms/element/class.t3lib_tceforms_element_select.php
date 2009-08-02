@@ -34,7 +34,6 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 
 			// Possibly remove some items:
 		$removeItems = t3lib_div::trimExplode(',',$this->fieldTSConfig['removeItems'],1);
-		foreach($selItems as $tk => $p)	{
 
 		foreach ($this->selectItems as $tk => $p)	{
 
