@@ -101,6 +101,12 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	protected $doSaveFieldName = '';
 
 	/**
+	 * Triggers loading the Javascript file with the md5 hash algorithm implementation
+	 * @boolean
+	 */
+	protected $loadMd5Javascript = TRUE;
+
+	/**
 	 * This objects top-level context (i.e., the root of the object tree this form belongs to
 	 *
 	 * @var t3lib_TCEforms_Context
@@ -456,7 +462,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	}
 
 	protected function includeJavascriptFiles() {
-		if ($this->loadMD5_JS) {
+		if ($this->loadMd5Javascript) {
 			$jsFile[] =	'<script type="text/javascript" src="' . $this->backPath . 'md5.js"></script>';
 		}
 
