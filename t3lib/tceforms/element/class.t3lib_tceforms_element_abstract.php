@@ -419,7 +419,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		if ($this->hasPalette) {
 			$paletteFields = $this->paletteObject->render();
 
-			if ($this->paletteObject->isCollapsed() && count($paletteFields))	{
+			if ($this->paletteObject->isCollapsed() && $paletteFields != '') {
 				list($thePalIcon,$palJSfunc) = $this->paletteObject->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->getLL('l_moreOptions')).'" alt="" />', TRUE);
 			} else {
 				$thePalIcon = '';
