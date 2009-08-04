@@ -164,9 +164,9 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		$isOnSymmetricSide = t3lib_loadDBGroup::isOnSymmetricSide($this->record['uid'], $config, $recordObject->getValue('uid'));
 		$enableManualSorting = $tcaTableCtrl['sortby'] || $config['MM'] || (!$isOnSymmetricSide && $config['foreign_sortby']) || ($isOnSymmetricSide && $config['symmetric_sortby']) ? true : false;
 
-		$nameObject = $this->getIrreIdentifierForRecord($recordObject);
+		$nameObject = $this->getFormFieldNamePrefix() . $this->getIrreIdentifierForRecord($recordObject);
 		$nameObjectFt = $nameObject . '[' . $this->foreignTable . ']';
-		$nameObjectFtId = $nameObjectFt . '[' . $recordObject->getValue('uid') . ']';
+		$nameObjectFtId = $this->getFormFieldNamePrefix() . $this->getIrreIdentifierForRecord($recordObject); //$nameObjectFt . '[' . $recordObject->getValue('uid') . ']';
 
 		$calcPerms = $GLOBALS['BE_USER']->calcPerms(
 			t3lib_BEfunc::readPageAccess($recordObject->getValue('pid'), $GLOBALS['BE_USER']->getPagePermsClause(1))

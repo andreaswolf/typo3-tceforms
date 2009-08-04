@@ -357,19 +357,21 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 
 		$levelLinks = $this->renderLevelLinks();
 
-		$markerArray = array(
-			'###IRREFIELDNAMES###' => $this->formObject->getFormFieldNamePrefix() . $this->getIrreIdentifier(),
-			'###LEVELLINKS_TOP###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'top')) ? $levelLinks : ''),
-			'###LEVELLINKS_BOTTOM###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'bottom')) ? $levelLinks : ''),
-			'###FORM_CONTENT###' => $this->formObject->render()
-		);
+		$formContent = $this->formObject->render();
 
 			// add Drag&Drop functions for sorting to TCEforms::$additionalJS_post
 		if (count($this->relationList) > 1 && $this->fieldConfig['config']['appearance']['useSortable']) {
 			$this->addJavaScriptSortable($this->getIrreIdentifier() . '_records');
 			// publish the uids of the child records in the given order to the browser
 		}
-		$item .= '<input type="hidden" name="' . $this->getIrreFormIdentifier() . '" value="' . implode(',', $this->relationList) . '" class="inlineRecord" />';
+		$formContent .= '<input type="hidden" name="' . $this->formObject->getFormFieldNamePrefix() . $this->getIrreCurrentLevelIdentifier() . '" value="' . implode(',', $this->relationList) . '" class="inlineRecord" />';
+
+		$markerArray = array(
+			'###IRREFIELDNAMES###' => $this->formObject->getFormFieldNamePrefix() . $this->getIrreIdentifier(),
+			'###LEVELLINKS_TOP###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'top')) ? $levelLinks : ''),
+			'###LEVELLINKS_BOTTOM###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'bottom')) ? $levelLinks : ''),
+			'###FORM_CONTENT###' => $formContent
+		);
 
 		return t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
 	}
@@ -392,16 +394,21 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		return $levelLinks;
 	}
 
-	public function getIrreIdentifier() {
+	public function getIrreIdentifier($includePid = TRUE) {
+		return $this->getIrreFormIdentifier($includePid) . $this->getIrreCurrentLevelIdentifier();
+	}
+
+	public function getIrreCurrentLevelIdentifier() {
 		$identifierParts[] = $this->getFieldname();
 		$identifierParts[] = $this->getValue('uid');
 		$identifierParts[] = $this->getTable();
 
-		return $this->getIrreFormIdentifier() . '[' . implode('][', array_reverse($identifierParts)) . ']';
+		return '[' . implode('][', array_reverse($identifierParts)) . ']';
 	}
 
-	protected function getIrreFormIdentifier() {
+	protected function getIrreFormIdentifier($includePid = TRUE) {
 		$elementObject = $this;
+		$identifierParts = array();
 		while ($elementObject->getParentFormObject() instanceof t3lib_TCEforms_NestableForm) {
 			$identifierParts[] = $elementObject->getFieldname();
 			$identifierParts[] = $elementObject->getValue('uid');
@@ -409,7 +416,9 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 			$elementObject = $elementObject->getParentFormObject()->getContainingElement();
 			t3lib_div::devLog('Loop ' . ++$i, 't3lib_TCEforms_IrreForm');
 		};
-		$identifierParts[] = $this->contextRecordObject->getValue('pid');
+		if ($includePid) {
+			$identifierParts[] = $this->contextRecordObject->getValue('pid');
+		}
 
 		return '[' . implode('][', array_reverse($identifierParts)) . ']';
 	}
