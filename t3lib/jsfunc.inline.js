@@ -505,14 +505,14 @@ var inline = {
 			if (!records[i].length) continue;
 
 			headerObj = $(objectPrefix+'['+records[i]+']_header');
-			sortingObj[0] = Element.select(headerObj, '.sortingUp');
-			sortingObj[1] = Element.select(headerObj, '.sortingDown');
+			sortingObj[0] = headerObj.querySelector('.sortingUp');
+			sortingObj[1] = headerObj.querySelector('.sortingDown');
 
-			if (sortingObj[0].length) {
-				sortingObj[0][0].style.visibility = (i == 0 ? 'hidden' : 'visible');
+			if (sortingObj[0]) {
+				sortingObj[0].style.visibility = (i == 0 ? 'hidden' : 'visible');
 			}
-			if (sortingObj[1].length) {
-				sortingObj[1][0].style.visibility = (i == records.length-1 ? 'hidden' : 'visible');
+			if (sortingObj[1]) {
+				sortingObj[1].style.visibility = (i == records.length-1 ? 'hidden' : 'visible');
 			}
 		}
 	},
