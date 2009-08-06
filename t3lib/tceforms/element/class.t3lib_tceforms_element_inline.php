@@ -409,15 +409,16 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	protected function getIrreFormIdentifier($includePid = TRUE) {
 		$elementObject = $this;
 		$identifierParts = array();
-		while ($elementObject->getParentFormObject() instanceof t3lib_TCEforms_NestableForm) {
-			$identifierParts[] = $elementObject->getFieldname();
-			$identifierParts[] = $elementObject->getValue('uid');
-			$identifierParts[] = $elementObject->getTable();
-			$elementObject = $elementObject->getParentFormObject()->getContainingElement();
-			t3lib_div::devLog('Loop ' . ++$i, 't3lib_TCEforms_IrreForm');
-		};
+		while ($elementObject->getParentFormObject() instanceof t3lib_TCEforms_NestableForm
+			&& $elementObject->getParentFormObject() != $this->contextObject) {
+				$elementObject = $elementObject->getParentFormObject()->getContainingElement();
+				$identifierParts[] = $elementObject->getFieldname();
+				$identifierParts[] = $elementObject->getValue('uid');
+				$identifierParts[] = $elementObject->getTable();
+				t3lib_div::devLog('Loop ' . ++$i, 't3lib_TCEforms_IrreForm');
+		}
 		if ($includePid) {
-			$identifierParts[] = $this->contextRecordObject->getValue('pid');
+			$identifierParts[] = $this->inlineFirstPid;
 		}
 
 		return $this->formObject->getFormFieldNamePrefix() . '[' . implode('][', array_reverse($identifierParts)) . ']';
