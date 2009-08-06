@@ -88,7 +88,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 			// e.g. inline[<table>][<uid>][<field>]
 		$nameForm = $this->inlineNames['form'];
 			// e.g. inline[<pid>][<table1>][<uid1>][<field1>][<table2>][<uid2>][<field2>]
-		$nameObject = $this->inlineNames['object'];
+		$nameObject = $this->getIrreIdentifier();//$this->inlineNames['object'];
 			// get the records related to this inline record
 		$relatedRecords = $this->getRelatedRecords();
 			// set the first and last record to the config array
@@ -367,7 +367,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		$formContent .= '<input type="hidden" name="' . $this->formObject->getFormFieldNamePrefix() . $this->getIrreCurrentLevelIdentifier() . '" value="' . implode(',', $this->relationList) . '" class="inlineRecord" />';
 
 		$markerArray = array(
-			'###IRREFIELDNAMES###' => $this->formObject->getFormFieldNamePrefix() . $this->getIrreIdentifier(),
+			'###IRREFIELDNAMES###' => $this->getIrreIdentifier(),
 			'###LEVELLINKS_TOP###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'top')) ? $levelLinks : ''),
 			'###LEVELLINKS_BOTTOM###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'bottom')) ? $levelLinks : ''),
 			'###FORM_CONTENT###' => $formContent
@@ -420,7 +420,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 			$identifierParts[] = $this->contextRecordObject->getValue('pid');
 		}
 
-		return '[' . implode('][', array_reverse($identifierParts)) . ']';
+		return $this->formObject->getFormFieldNamePrefix() . '[' . implode('][', array_reverse($identifierParts)) . ']';
 	}
 
 

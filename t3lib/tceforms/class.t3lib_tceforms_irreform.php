@@ -81,8 +81,8 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		}
 
 		$appendFormFieldNames = '['.$recordObject->getTable().']['.$recordObject->getValue('uid').']';
-		$irreFieldNames = $this->getFormFieldNamePrefix() . $this->getIrreIdentifierForRecord($recordObject);
-		$formFieldNames = $this->getFormFieldNamePrefix() . $this->getFieldIdentifier($recordObject);
+		$irreFieldNames = $this->getIrreIdentifierForRecord($recordObject);
+		$formFieldNames = $this->getFieldIdentifier($recordObject);
 		t3lib_div::devLog('pid: ' . $this->containingElement->getValue('pid'), __CLASS__);
 
 		$fieldsStyle = (!$this->getExpandedCollapsedState($recordObject) ? 'display:none;' : '');
@@ -164,9 +164,9 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		$isOnSymmetricSide = t3lib_loadDBGroup::isOnSymmetricSide($this->record['uid'], $config, $recordObject->getValue('uid'));
 		$enableManualSorting = $tcaTableCtrl['sortby'] || $config['MM'] || (!$isOnSymmetricSide && $config['foreign_sortby']) || ($isOnSymmetricSide && $config['symmetric_sortby']) ? true : false;
 
-		$nameObject = $this->getFormFieldNamePrefix() . $this->getIrreIdentifierForRecord($recordObject);
-		$nameObjectFt = $nameObject . '[' . $this->foreignTable . ']';
-		$nameObjectFtId = $this->getFormFieldNamePrefix() . $this->getIrreIdentifierForRecord($recordObject); //$nameObjectFt . '[' . $recordObject->getValue('uid') . ']';
+		$nameObject = $this->getIrreIdentifierForRecord($recordObject);
+		$nameObjectFt = $nameObject . '[' . $foreignTable . ']';
+		$nameObjectFtId = $this->getIrreIdentifierForRecord($recordObject); //$nameObjectFt . '[' . $recordObject->getValue('uid') . ']';
 
 		$calcPerms = $GLOBALS['BE_USER']->calcPerms(
 			t3lib_BEfunc::readPageAccess($recordObject->getValue('pid'), $GLOBALS['BE_USER']->getPagePermsClause(1))
