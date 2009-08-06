@@ -503,30 +503,11 @@ class t3lib_TCEforms_Record {
 	 ********************************************/
 
 	public function addSheetObject(t3lib_TCEforms_Container_Sheet $sheetObject) {
-		$sheetObject->setContextObject($this->contextObject);
+		$sheetObject->setContextObject($this->contextObject)
+		            ->setFormObject($this->parentFormObject);
 		$this->sheetObjects[] = $sheetObject;
 
 		t3lib_div::devLog('Added sheet no. ' . count($this->sheetObjects) . ' to record ' . $this->getIdentifier() . '.', 't3lib_TCEforms_Record', t3lib_div::SYSLOG_SEVERITY_INFO);
-	}
-
-	protected function createNewSheetObject($header) {
-		if ($this->sheetIdentString == '') {
-			$this->sheetIdentString = $this->getSheetIdentString();
-			$this->sheetIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($this->getSheetIdentString());
-		}
-
-		++$this->sheetCounter;
-
-		$sheetObject = $this->formBuilder->createSheetObject($this->sheetIdentStringMD5.'-'.$this->sheetCounter, $header);
-		$sheetObject->setContextObject($this->contextObject);
-
-		$this->sheetObjects[] = $sheetObject;
-
-		return $sheetObject;
-	}
-
-	public function getSheetIdentString() {
-		return 'TCEforms:'.$this->table.':'.$this->recordData['uid'];
 	}
 
 

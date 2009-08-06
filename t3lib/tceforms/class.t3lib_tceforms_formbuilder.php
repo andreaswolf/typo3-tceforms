@@ -35,8 +35,11 @@ class t3lib_TCEforms_FormBuilder {
 
 		$fieldList = $this->recordObject->getFieldList();
 
+		$sheetCounter = 0;
+
 		if (isset($fieldList[0]) && strpos($fieldList[0], '--div--') !== 0) {
-			$this->currentSheet = $this->createSheetObject($sheetIdentString, $this->getLL('l_generalTab'));
+			++$sheetCounter;
+			$this->currentSheet = $this->createSheetObject($sheetCounter, $this->getLL('l_generalTab'));
 			$this->recordObject->addSheetObject($this->currentSheet);
 		}
 
@@ -52,7 +55,7 @@ class t3lib_TCEforms_FormBuilder {
 			if ($theField == '--div--') {
 				++$sheetCounter;
 
-				$this->currentSheet = $this->createSheetObject($sheetIdentString, $this->sL($parts[1]));
+				$this->currentSheet = $this->createSheetObject($sheetCounter, $this->sL($parts[1]));
 				$this->recordObject->addSheetObject($this->currentSheet);
 			} else {
 				if ($theField !== '') {
@@ -198,10 +201,21 @@ class t3lib_TCEforms_FormBuilder {
 	 * @param   string  $header  The name of the sheet (e.g. displayed as the title in tabs
 	 * @return  t3lib_TCEforms_Sheet
 	 */
-	public function createSheetObject($sheetIdentString, $header) {
+	public function createSheetObject($number, $header) {
+		if ($this->sheetIdentString == '') {
+			$this->sheetIdentString = $this->getSheetIdentString();
+			$this->sheetIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($this->getSheetIdentString());
+		}
+
+		$sheetIdentString = $this->sheetIdentStringMD5 . '-' . $number;
+
 		$sheetObject = new t3lib_TCEforms_Container_Sheet($sheetIdentString, $header);
 
 		return $sheetObject;
+	}
+
+	protected function getSheetIdentString() {
+		return 'TCEforms:'.$this->recordObject->getTable().':'.$this->recordObject->getValue('uid');
 	}
 
 	/**
