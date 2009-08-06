@@ -178,6 +178,13 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 	public function isStartingNewRowInTabmenu() {
 		return $this->startNewRowInTabmenu;
 	}
+
+	public function getNestedStackEntry() {
+		return array(
+			'tab',
+			$this->identString
+		);
+	}
 }
 
 ?>

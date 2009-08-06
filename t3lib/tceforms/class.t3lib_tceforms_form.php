@@ -936,6 +936,10 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			return self::$cachedTSconfig[$mainKey];
 		}
 	}
+
+	public function getNestedStackEntry() {
+		return false;
+	}
 }
 
 ?>

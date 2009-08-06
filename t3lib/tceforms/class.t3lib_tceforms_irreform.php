@@ -300,4 +300,53 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 											<!-- CONTROL PANEL: ' . $this->foreignTable . ':' . $recordObject->getValue('uid') . ' -->
 											<div class="typo3-DBctrl">' . implode('', $cells) . '</div>';
 	}
+
+	public function getNestedStackEntry() {
+		return array(
+			'inline',
+			$this->getIrreIdentifierForRecord($this->containingElement->getRecordObject())
+		);
+	}
+
+	/**
+	 * Builds the current nesting stack of forms, sheets and element objects.
+	 *
+	 * @param boolean $json: Return a JSON string instead of an array - default: false
+	 * @param boolean $skipFirst: Skip the first element in the dynNestedStack - default: false
+	 * @return mixed Returns an associative array by default. If $json is true, it will be returned as JSON string.
+	 */
+	protected function getNestedStack($json=false, $skipFirst=false) {
+		if (!is_array($this->nestedStack)) {
+			$currentLevelObject = $this->containingElement;
+			while (is_object($currentLevelObject)) {
+				if ($currentStackLevel = $currentLevelObject->getNestedStackEntry()) {
+					$stack[] = $currentStackLevel;
+				}
+
+				if ($currentLevelObject instanceof t3lib_TCEforms_Element) {
+					$currentLevelObject = $currentLevelObject->getContainer();
+				} elseif ($currentLevelObject instanceof t3lib_TCEforms_Container_Sheet) {
+					$currentLevelObject = $currentLevelObject->getFormObject();
+				} elseif ($currentLevelObject instanceof t3lib_TCEforms_Form) {
+						// We have reached the top of the object tree
+					if ($currentLevelObject == $this->contextObject) {
+						break;
+					} elseif ($currentLevelObject instanceof t3lib_TCEforms_NestableForm) {
+						$currentLevelObject = $currentLevelObject->getContainingElement();
+					}
+				} else {
+					throw new RuntimeException('Whoops. Ran into a dead end while traversing the object tree to get the nested stack of elements.');
+				}
+			}
+			$stack = array_reverse($stack);
+
+			$this->nestedStack = $stack;
+		}
+
+		$result = $this->nestedStack;
+		if ($skipFirst) {
+			array_shift($result);
+		}
+		return ($json ? json_encode($result) : $result);
+	}
 }
