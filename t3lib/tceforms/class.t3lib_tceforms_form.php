@@ -261,10 +261,10 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	/**
 	 * Registers an IRRE object with the context object
 	 *
-	 * @param t3lib_TCEforms_Element_Inline $inlineElementObject
+	 * @param t3lib_TCEforms_IrreForm $inlineElementObject
 	 * @return void
 	 */
-	public function registerInlineElement(t3lib_TCEforms_Element_Inline $inlineElementObject) {
+	public function registerInlineElement(t3lib_TCEforms_IrreForm $inlineElementObject) {
 		$this->inlineElementObjects[] = $inlineElementObject;
 	}
 

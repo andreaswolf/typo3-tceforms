@@ -36,31 +36,11 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		}
 
 		$this->formObject->setContextObject($this->contextObject)
+		                 ->setContextRecordObject($this->contextRecordObject)
 		                 ->setContainingElement($this)
 		                 ->injectFormBuilder($this->formBuilder)
+		                 ->setFieldConfig($this->fieldConfig)
 		                 ->init();
-
-		//$this->formObject->setFormFieldNamePrefix($this->formObject->getFormFieldNamePrefix());
-		//$this->formObject->setFormFieldIdPrefix($this->formObject->getFormFieldIdPrefix());
-
-			// Register this element with the context
-		$this->contextObject->registerInlineElement($this);
-
-			// Init:
-		$this->foreignTable = $this->fieldConfig['config']['foreign_table'];
-		t3lib_div::loadTCA($this->foreignTable);
-
-		if (t3lib_BEfunc::isTableLocalizable($this->table)) {
-			$languageField = $TCA[$this->table]['ctrl']['languageField'];
-			$language = intval($this->recordData[$languageField]);
-		}
-		$minitems = t3lib_div::intInRange($this->fieldConfig['config']['minitems'],0);
-		$maxitems = t3lib_div::intInRange($this->fieldConfig['config']['maxitems'],0);
-		if (!$maxitems) $maxitems=100000;
-
-			// Register the required number of elements:
-		//$this->fObj->requiredElements[$PA['itemFormElName']] = array($minitems,$maxitems,'imgName'=>$this->table.'_'.$row['uid'].'_'.$field);
-		//$this->contextObject->registerRequiredFieldRange($this->itemFormElName, array($minitems, $maxitems, 'imgName' => $this->table . '_' . $this->record['uid'] . '_' . $this->field));
 
 			// remember the page id (pid of record) where inline editing started first
 			// we need that pid for ajax calls, so that they would know where the action takes place on the page structure
@@ -83,12 +63,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 				$this->inlineFirstPid = $this->record['pid'];
 			}
 		}
-			// add the current inline job to the structure stack
-		//$this->pushStructure($this->table, $this->record['uid'], $this->field, $this->fieldConfig['config']);
-			// e.g. inline[<table>][<uid>][<field>]
-		$nameForm = $this->inlineNames['form'];
-			// e.g. inline[<pid>][<table1>][<uid1>][<field1>][<table2>][<uid2>][<field2>]
-		$nameObject = $this->getIrreIdentifier();//$this->inlineNames['object'];
+
 			// get the records related to this inline record
 		$relatedRecords = $this->getRelatedRecords();
 			// set the first and last record to the config array
@@ -102,95 +77,6 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 				$this->relationList[] = $record['uid'];
 			}
 		}
-
-			// Tell the browser what we have (using JSON later):
-		$top = $this->getStructureLevel(0);
-		$this->inlineData['config'][$nameObject] = array(
-			'table' => $this->foreignTable,
-			'md5' => md5($nameObject),
-		);
-		$this->inlineData['config'][$this->getIrreIdentifier() . '[' . $this->foreignTable . ']'] = array(
-			'min' => $minitems,
-			'max' => $maxitems,
-			'sortable' => $config['appearance']['useSortable'],
-			'top' => array(
-				'table' => $top['table'],
-				'uid'   => $top['uid'],
-			),
-		);
-			// Set a hint for nested IRRE and tab elements:
-		/*$this->inlineData['nested'][$nameObject] = $this->getDynNestedStack(false, $this->isAjaxCall);
-
-			// if relations are required to be unique, get the uids that have already been used on the foreign side of the relation
-		if ($this->fieldConfig['config']['foreign_unique']) {
-				// If uniqueness *and* selector are set, they should point to the same field - so, get the configuration of one:
-			$selConfig = $this->getPossibleRecordsSelectorConfig($config, $config['foreign_unique']);
-				// Get the used unique ids:
-			$uniqueIds = $this->getUniqueIds($relatedRecords['records'], $config, $selConfig['type']=='groupdb');
-			$possibleRecords = $this->getPossibleRecords($this->table,$field,$row,$config,'foreign_unique');
-			$uniqueMax = $config['appearance']['useCombination'] || $possibleRecords === false ? -1	: count($possibleRecords);
-			$this->inlineData['unique'][$nameObject.'['.$this->foreignTable.']'] = array(
-				'max' => $uniqueMax,
-				'used' => $uniqueIds,
-				'type' => $selConfig['type'],
-				'table' => $config['foreign_table'],
-				'elTable' => $selConfig['table'], // element/record table (one step down in hierarchy)
-				'field' => $config['foreign_unique'],
-				'selector' => $selConfig['selector'],
-				'possible' => $this->getPossibleRecordsFlat($possibleRecords),
-			);
-		}
-
-			// if it's required to select from possible child records (reusable children), add a selector box
-		if ($config['foreign_selector']) {
-				// if not already set by the foreign_unique, set the possibleRecords here and the uniqueIds to an empty array
-			if (!$config['foreign_unique']) {
-				$possibleRecords = $this->getPossibleRecords($this->table,$field,$row,$config);
-				$uniqueIds = array();
-			}
-			$selectorBox = $this->renderPossibleRecordsSelector($possibleRecords,$config,$uniqueIds);
-			$item .= $selectorBox;
-		}
-
-			// wrap all inline fields of a record with a <div> (like a container)
-		$item .= '<div id="'.$nameObject.'">';
-
-			// define how to show the "Create new record" link - if there are more than maxitems, hide it
-		if ($relatedRecords['count'] >= $maxitems || ($uniqueMax > 0 && $relatedRecords['count'] >= $uniqueMax)) {
-			$config['inline']['inlineNewButtonStyle'] = 'display: none;';
-		}
-
-			// Render the level links (create new record, localize all, synchronize):
-		if ($config['appearance']['levelLinksPosition']!='none') {
-			$levelLinks = $this->getLevelInteractionLink('newRecord', $nameObject.'['.$this->foreignTable.']', $config);
-			if ($language>0) {
-					// Add the "Localize all records" link before all child records:
-				if (isset($config['appearance']['showAllLocalizationLink']) && $config['appearance']['showAllLocalizationLink']) {
-					$levelLinks.= $this->getLevelInteractionLink('localize', $nameObject.'['.$this->foreignTable.']', $config);
-				}
-					// Add the "Synchronize with default language" link before all child records:
-				if (isset($config['appearance']['showSynchronizationLink']) && $config['appearance']['showSynchronizationLink']) {
-					$levelLinks.= $this->getLevelInteractionLink('synchronize', $nameObject.'['.$this->foreignTable.']', $config);
-				}
-			}
-		}
-			// Add the level links before all child records:
-		if (in_array($config['appearance']['levelLinksPosition'], array('both', 'top'))) {
-			$item.= $levelLinks;
-		}
-
-			// Add the level links after all child records:
-		if (in_array($config['appearance']['levelLinksPosition'], array('both', 'bottom'))) {
-			$item.= $levelLinks;
-		}
-
-			// on finishing this section, remove the last item from the structure stack
-		$this->popStructure();
-
-			// if this was the first call to the inline type, restore the values
-		if (!$this->getStructureDepth()) {
-			unset($this->inlineFirstPid);
-		}*/
 	}
 
 	public function getTemplateContent() {
@@ -478,16 +364,6 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Returns true if expanding a record in the TCEforms view should collapse all other records.
-	 * This setting is configured via [appearance][expandSingle] in this columns TCA-config section
-	 *
-	 * @return boolean
-	 */
-	public function expandOnlyOneRecordAtATime() {
-		return $this->fieldConfig['config']['appearance']['expandSingle'];
 	}
 
 	public function getValue($key) {

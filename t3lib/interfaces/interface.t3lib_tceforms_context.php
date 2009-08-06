@@ -31,10 +31,10 @@ interface t3lib_TCEforms_Context {
 	/**
 	 * Registers an IRRE object with the context object
 	 *
-	 * @param t3lib_TCEforms_Element_Inline $inlineElementObject
+	 * @param t3lib_TCEforms_IrreForm $inlineElementObject
 	 * @return void
 	 */
-	public function registerInlineElement(t3lib_TCEforms_Element_Inline $inlineElementObject);
+	public function registerInlineElement(t3lib_TCEforms_IrreForm $inlineElementObject);
 
 	/**
 	 * Returns TRUE if any IRRE elements have been registered for the form.
