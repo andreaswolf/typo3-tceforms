@@ -10,6 +10,13 @@ class t3lib_TCEforms_IrreAjax {
 
 	protected $inlineStructure = array();
 
+	/**
+	 * The TCEforms form object
+	 *
+	 * @var t3lib_TCEforms_IrreAjaxForm
+	 */
+	protected $TCEforms;
+
 	protected function init() {
 
 	}
@@ -35,9 +42,9 @@ class t3lib_TCEforms_IrreAjax {
 				case 'synchronizeLocalizeRecords':
 					$this->isAjaxCall = true;
 						// Construct runtime environment for Inline Relational Record Editing:
-					$this->processAjaxRequestConstruct($ajaxArguments);
+					$this->constructFormContext($ajaxArguments);
 						// Parse the DOM identifier (string), add the levels to the structure stack (array) and load the TCA config:
-					$this->parseStructureString($ajaxArguments[0], true);
+					$this->parseStructureString($ajaxArguments[1], true);
 						// Render content:
 					$ajaxObj->setContentFormat('jsonbody');
 					$ajaxObj->setContent(
@@ -49,6 +56,52 @@ class t3lib_TCEforms_IrreAjax {
 					call_user_func_array(array(&$this, $ajaxMethod), $ajaxArguments);
 					break;
 			}
+		}
+	}
+
+	/**
+	 *
+	 */
+	protected function constructFormContext(&$ajaxArguments) {
+		global $SOBE, $BE_USER, $TYPO3_CONF_VARS;
+
+		require_once(PATH_typo3.'template.php');
+
+		$GLOBALS['LANG']->includeLLFile('EXT:lang/locallang_alt_doc.xml');
+
+			// Create a new anonymous object:
+		$SOBE = new stdClass();
+		$SOBE->MOD_MENU = array(
+			'showPalettes' => '',
+			'showDescriptions' => '',
+			'disableRTE' => ''
+		);
+			// Setting virtual document name
+		$SOBE->MCONF['name']='xMOD_alt_doc.php';
+			// CLEANSE SETTINGS
+		$SOBE->MOD_SETTINGS = t3lib_BEfunc::getModuleData(
+			$SOBE->MOD_MENU,
+			t3lib_div::_GP('SET'),
+			$SOBE->MCONF['name']
+		);
+			// Create an instance of the document template object
+		$SOBE->doc = t3lib_div::makeInstance('template');
+		$SOBE->doc->backPath = $GLOBALS['BACK_PATH'];
+			// Initialize TCEforms (rendering the forms)
+		$this->TCEforms = new t3lib_TCEforms_IrreAjaxForm();
+		//$SOBE->tceforms->inline =& $this;
+		//$SOBE->tceforms->setRTEcounter(intval($ajaxArguments[0]));
+		//$SOBE->tceforms->initDefaultBEMode();
+		$this->TCEforms->setPalettesCollapsed(!$SOBE->MOD_SETTINGS['showPalettes']);
+		$this->TCEforms->setRteEnabled($SOBE->MOD_SETTINGS['disableRTE']);
+		//$SOBE->tceforms->enableClickMenu = TRUE;
+		//$SOBE->tceforms->enableTabMenu = TRUE;
+			// Clipboard is initialized:
+		//$SOBE->tceforms->clipObj = t3lib_div::makeInstance('t3lib_clipboard');		// Start clipboard
+		//$SOBE->tceforms->clipObj->initializeClipboard();	// Initialize - reads the clipboard content from the user session
+			// Setting external variables:
+		if ($BE_USER->uc['edit_showFieldHelp']!='text' && $SOBE->MOD_SETTINGS['showDescriptions']) {
+			$SOBE->tceforms->edit_showFieldHelp = 'text';
 		}
 	}
 
@@ -128,14 +181,14 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 						t3lib_div::loadTCA($unstable['table']);
 						$unstable['config'] = $GLOBALS['TCA'][$unstable['table']]['columns'][$unstable['field']]['config'];
 							// Fetch TSconfig:
-						$TSconfig = $this->fObj->setTSconfig(
+						$TSconfig = t3lib_TCEforms_Form::getTSconfig(
 							$unstable['table'],
 							array('uid' => $unstable['uid'], 'pid' => $this->inlineFirstPid),
 							$unstable['field']
 						);
 							// Override TCA field config by TSconfig:
 						if (!$TSconfig['disabled']) {
-							$unstable['config'] = $this->fObj->overrideFieldConf($unstable['config'], $TSconfig);
+							$unstable['config'] = $this->TCEforms->overrideFieldConf($unstable['config'], $TSconfig);
 						}
 						$unstable['localizationMode'] = t3lib_BEfunc::getInlineLocalizationMode($unstable['table'], $unstable['config']);
 					}
@@ -202,6 +255,230 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 		} else {
 			$this->inlineNames = array();
 		}
+	}
+
+	/**
+	 * Handle AJAX calls to show a new inline-record of the given table.
+	 * Normally this method is never called from inside TYPO3. Always from outside by AJAX.
+	 *
+	 * @param	string		$domObjectId: The calling object in hierarchy, that requested a new record.
+	 * @param	string		$foreignUid: If set, the new record should be inserted after that one.
+	 * @return	array		An array to be used for JSON
+	 */
+	function createNewRecord($domObjectId, $foreignUid = 0) {
+			// the current table - for this table we should add/import records
+		$current = $this->inlineStructure['unstable'];
+			// the parent table - this table embeds the current table
+		$parent = $this->getStructureLevel(-1);
+			// get TCA 'config' of the parent table
+		/* TODO: reenable this
+		if (!$this->checkConfiguration($parent['config'])) {
+			return $this->getErrorMessageForAJAX('Wrong configuration in table ' . $parent['table']);
+		}*/
+		$config = $parent['config'];
+t3lib_div::devLog('current: ' . serialize($current), 't3lib_TCEforms_IrreAjax');
+t3lib_div::devLog('parent: ' . serialize($parent), 't3lib_TCEforms_IrreAjax');
+
+		$collapseAll = (isset($config['appearance']['collapseAll']) && $config['appearance']['collapseAll']);
+		$expandSingle = (isset($config['appearance']['expandSingle']) && $config['appearance']['expandSingle']);
+
+			// Put the current level also to the dynNestedStack of TCEforms:
+		//$this->fObj->pushToDynNestedStack('inline', $this->inlineNames['object']);
+
+			// dynamically create a new record using t3lib_transferData
+		if (!$foreignUid || !t3lib_div::testInt($foreignUid) || $config['foreign_selector']) {
+			$record = $this->getNewRecord($this->inlineFirstPid, $current['table']);
+				// Set language of new child record to the language of the parent record:
+			if ($config['localizationMode'] == 'select') {
+				$parentRecord = $this->getRecord(0, $parent['table'], $parent['uid']);
+				$parentLanguageField = $GLOBALS['TCA'][$parent['table']]['ctrl']['languageField'];
+				$childLanguageField = $GLOBALS['TCA'][$current['table']]['ctrl']['languageField'];
+				if ($parentRecord[$languageField]>0) {
+					$record[$childLanguageField] = $parentRecord[$languageField];
+				}
+			}
+
+			// dynamically import an existing record (this could be a call from a select box)
+		} else {
+			$record = $this->getRecord($this->inlineFirstPid, $current['table'], $foreignUid);
+		}
+
+			// now there is a foreign_selector, so there is a new record on the intermediate table, but
+			// this intermediate table holds a field, which is responsible for the foreign_selector, so
+			// we have to set this field to the uid we get - or if none, to a new uid
+		if ($config['foreign_selector'] && $foreignUid) {
+			$selConfig = $this->getPossibleRecordsSelectorConfig($config, $config['foreign_selector']);
+				// For a selector of type group/db, prepend the tablename (<tablename>_<uid>):
+			$record[$config['foreign_selector']] = $selConfig['type'] != 'groupdb' ? '' : $selConfig['table'].'_';
+			$record[$config['foreign_selector']] .= $foreignUid;
+		}
+
+			// the HTML-object-id's prefix of the dynamically created record
+		$objectPrefix = $this->inlineNames['object'].'['.$current['table'].']';
+		$objectId = $objectPrefix.'['.$record['uid'].']';
+
+			// render the foreign record that should passed back to browser
+		$item = $this->TCEforms->render();//$this->renderForeignRecord($parent['uid'], $record, $config);
+		if ($item === false) {
+			return $this->getErrorMessageForAJAX('Access denied');
+		}
+
+			// Encode TCEforms AJAX response with utf-8:
+		$item = $GLOBALS['LANG']->csConvObj->utf8_encode($item, $GLOBALS['LANG']->charSet);
+
+		if (!$current['uid']) {
+			$jsonArray = array(
+				'data'	=> $item,
+				'scriptCall' => array(
+					"inline.domAddNewRecord('bottom','".$this->inlineNames['object']."_records','$objectPrefix',json.data);",
+					"inline.memorizeAddRecord('$objectPrefix','".$record['uid']."',null,'$foreignUid');"
+				)
+			);
+
+			// append the HTML data after an existing record in the container
+		} else {
+			$jsonArray = array(
+				'data'	=> $item,
+				'scriptCall' => array(
+					"inline.domAddNewRecord('after','".$domObjectId.'_div'."','$objectPrefix',json.data);",
+					"inline.memorizeAddRecord('$objectPrefix','".$record['uid']."','".$current['uid']."','$foreignUid');"
+				)
+			);
+		}
+		$this->getCommonScriptCalls($jsonArray, $config);
+			// Collapse all other records if requested:
+		if (!$collapseAll && $expandSingle) {
+			$jsonArray['scriptCall'][] = "inline.collapseAllRecords('$objectId', '$objectPrefix', '".$record['uid']."');";
+		}
+			// tell the browser to scroll to the newly created record
+		$jsonArray['scriptCall'][] = "Element.scrollTo('".$objectId."_div');";
+			// fade out and fade in the new record in the browser view to catch the user's eye
+		$jsonArray['scriptCall'][] = "inline.fadeOutFadeIn('".$objectId."_div');";
+
+			// Remove the current level also from the dynNestedStack of TCEforms:
+		//$this->fObj->popFromDynNestedStack();
+
+			// Return the JSON array:
+		return $jsonArray;
+	}
+
+
+	/**
+	 * Determines the corrected pid to be used for a new record.
+	 * The pid to be used can be defined by a Page TSconfig.
+	 *
+	 * @param	string		$table: The table name
+	 * @param	integer		$parentPid: The pid of the parent record
+	 * @return	integer		The corrected pid to be used for a new record
+	 */
+	protected function getNewRecordPid($table, $parentPid=null) {
+		$newRecordPid = $this->inlineFirstPid;
+		$pageTS = t3lib_beFunc::getPagesTSconfig($parentPid, true);
+		if (isset($pageTS['TCAdefaults.'][$table.'.']['pid']) && t3lib_div::testInt($pageTS['TCAdefaults.'][$table.'.']['pid'])) {
+			$newRecordPid = $pageTS['TCAdefaults.'][$table.'.']['pid'];
+		} elseif (isset($parentPid) && t3lib_div::testInt($parentPid)) {
+			$newRecordPid = $parentPid;
+		}
+		return $newRecordPid;
+	}
+
+
+	/**
+	 * Get a single record row for a TCA table from the database.
+	 * t3lib_transferData is used for "upgrading" the values, especially the relations.
+	 *
+	 * @param	integer		$pid: The pid of the page the record should be stored (only relevant for NEW records)
+	 * @param	string		$table: The table to fetch data from (= foreign_table)
+	 * @param	string		$uid: The uid of the record to fetch, or the pid if a new record should be created
+	 * @param	string		$cmd: The command to perform, empty or 'new'
+	 * @return	array		A record row from the database post-processed by t3lib_transferData
+	 */
+	protected function getRecord($pid, $table, $uid, $cmd='') {
+		$trData = t3lib_div::makeInstance('t3lib_transferData');
+		$trData->addRawData = TRUE;
+		$trData->lockRecords=1;
+		$trData->disableRTE = $GLOBALS['SOBE']->MOD_SETTINGS['disableRTE'];
+			// if a new record should be created
+		$trData->fetchRecord($table, $uid, ($cmd === 'new' ? 'new' : ''));
+		reset($trData->regTableItems_data);
+		$rec = current($trData->regTableItems_data);
+
+		return $rec;
+	}
+
+
+	/**
+	 * Wrapper. Calls getRecord in case of a new record should be created.
+	 *
+	 * @param	integer		$pid: The pid of the page the record should be stored (only relevant for NEW records)
+	 * @param	string		$table: The table to fetch data from (= foreign_table)
+	 * @return	array		A record row from the database post-processed by t3lib_transferData
+	 */
+	protected function getNewRecord($pid, $table) {
+		$rec = $this->getRecord($pid, $table, $pid, 'new');
+		$rec['uid'] = uniqid('NEW');
+		$rec['pid'] = $this->getNewRecordPid($table, $pid);
+		return $rec;
+	}
+
+
+	/**
+	 * Determines and sets several script calls to a JSON array, that would have been executed if processed in non-AJAX mode.
+	 *
+	 * @param	array		&$jsonArray: Reference of the array to be used for JSON
+	 * @param	array		$config: The configuration of the IRRE field of the parent record
+	 * @return	void
+	 */
+	protected function getCommonScriptCalls(&$jsonArray, $config) {
+			// Add data that would have been added at the top of a regular TCEforms call:
+		if ($headTags = $this->getHeadTags()) {
+			$jsonArray['headData'] = $headTags;
+		}
+			// Add the JavaScript data that would have been added at the bottom of a regular TCEforms call:
+		$jsonArray['scriptCall'][] = $this->TCEforms->renderJavascriptAfterForm($this->TCEforms->getFormName(), true);
+			// If script.aculo.us Sortable is used, update the Observer to know the record:
+		if ($config['appearance']['useSortable']) {
+			$jsonArray['scriptCall'][] = "inline.createDragAndDropSorting('".$this->inlineNames['object']."_records');";
+		}
+			// if TCEforms has some JavaScript code to be executed, just do it
+		if ($this->fObj->extJSCODE) {
+			$jsonArray['scriptCall'][] = $this->fObj->extJSCODE;
+		}
+	}
+
+	/**
+	 * Parses the HTML tags that would have been inserted to the <head> of a HTML document and returns the found tags as multidimensional array.
+	 *
+	 * @return	array		The parsed tags with their attributes and innerHTML parts
+	 */
+	protected function getHeadTags() {
+		$headTags = array();
+		$headDataRaw = $this->TCEforms->renderJavascriptBeforeForm();
+
+		if ($headDataRaw) {
+				// Create instance of the HTML parser:
+			$parseObj = t3lib_div::makeInstance('t3lib_parsehtml');
+				// Removes script wraps:
+			$headDataRaw = str_replace(array('/*<![CDATA[*/', '/*]]>*/'), '', $headDataRaw);
+				// Removes leading spaces of a multiline string:
+			$headDataRaw = trim(preg_replace('/(^|\r|\n)( |\t)+/', '$1', $headDataRaw));
+				// Get script and link tags:
+			$tags = array_merge(
+				$parseObj->getAllParts($parseObj->splitTags('link', $headDataRaw)),
+				$parseObj->getAllParts($parseObj->splitIntoBlock('script', $headDataRaw))
+			);
+
+			foreach ($tags as $tagData) {
+				$tagAttributes = $parseObj->get_tag_attributes($parseObj->getFirstTag($tagData), true);
+				$headTags[] = array(
+					'name' => $parseObj->getFirstTagName($tagData),
+					'attributes' => $tagAttributes[0],
+					'innerHTML'	=> $parseObj->removeFirstAndLastTag($tagData),
+				);
+			}
+		}
+
+		return $headTags;
 	}
 }
 
