@@ -719,12 +719,21 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 ********************************************/
 	// TODO: move to context class/interface
 	/**
-	 * Adds JavaScript code for form field evaluation. Used to be the global var <extJSCode in old t3lib_TCEforms
+	 * Adds JavaScript code for form field evaluation. Used to be the global var extJSCode in old t3lib_TCEforms
 	 *
 	 * @param  string  $JScode
 	 */
 	public function addToEvaluationJS($JScode) {
 		$this->JScode['evaluation'] .= $JScode;
+	}
+
+	/**
+	 * Returns the Javascript code used for form evaluation
+	 *
+	 * @return string
+	 */
+	public function getEvaluationJS() {
+		return $this->JScode['evaluation'];
 	}
 
 	public function addToValidationJavascriptCode($JScode) {
