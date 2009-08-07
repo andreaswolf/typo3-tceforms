@@ -356,9 +356,13 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		$this->addToTBE_EDITOR_fieldChanged_func('TBE_EDITOR.fieldChanged_fName(fName,formObj[fName+"_list"]);');
 
 			// add JS required for inline fields
-		if (count($this->inline->inlineData)) {
+		if (count($this->inlineElementObjects)) {
+			$inlineData = array();
+			foreach ($this->inlineElementObjects as $inlineElement) {
+				$inlineData = t3lib_div::array_merge_recursive_overrule($inlineData, $inlineElement->getInlineData());
+			}
 			$out .= '
-			inline.addToDataArray(' . json_encode($this->inline->inlineData) . ');
+			inline.addToDataArray(' . json_encode($inlineData) . ');
 			';
 		}
 			// Registered nested elements for tabs or inline levels:
