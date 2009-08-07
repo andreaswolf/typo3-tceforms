@@ -545,17 +545,15 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 	//abstract public function render();
 
-	public function setContainingTab(t3lib_TCEforms_Tab $tabObject) {
-		$this->setContainer($tabObject);
-
-		return $this;
-	}
-
 	// TODO: rename to setParentContainer
 	public function setContainer(t3lib_TCEforms_Container $container) {
 		$this->container = $container;
 
 		return $this;
+	}
+
+	public function getContainer() {
+		return $this->container;
 	}
 
 	/**
