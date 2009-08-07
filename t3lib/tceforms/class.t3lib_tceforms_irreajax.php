@@ -1,11 +1,17 @@
 <?php
 
 class t3lib_TCEforms_IrreAjax {
-	
+
+	/**
+	 * The prefix for form field names
+	 * @var string
+	 */
+	protected $formFieldNamePrefix = 'data';
+
 	protected $inlineStructure = array();
 
 	protected function init() {
-		
+
 	}
 
 	/**
@@ -109,11 +115,11 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 		$unstable = array();
 		t3lib_div::devLog('string: ' . $string, __CLASS__);
 		$vector = array('table', 'uid', 'field');
-		$pattern = '/^'.$this->prependNaming.'\[(.+?)\]\[(.+)\]$/';
+		$pattern = '/^(.+?)\[(.+?)\]\[(.+)\]$/';
 		if (preg_match($pattern, $string, $match)) {
-			$this->inlineFirstPid = $match[1];
-			$parts = explode('][', $match[2]);
-			t3lib_div::devLog('match[2]: ' . $match[2], __CLASS__);
+			$this->formFieldNamePrefix = $match[1];
+			$this->inlineFirstPid = $match[2];
+			$parts = explode('][', $match[3]);
 			$partsCnt = count($parts);
 			for ($i = 0; $i < $partsCnt; $i++) {
 				if ($i > 0 && $i % 3 == 0) {
@@ -189,8 +195,8 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 		if ($current !== false) {
 			$lastItemName = $this->getStructureItemName($current);
 			$this->inlineNames = array(
-				'form' => $this->prependFormFieldNames.$lastItemName,
-				'object' => $this->prependNaming.'['.$this->inlineFirstPid.']'.$this->getStructurePath(),
+				'form' => $this->prependFormFieldNames . $lastItemName,
+				'object' => $this->formFieldNamePrefix.'['.$this->inlineFirstPid.']'.$this->getStructurePath(),
 			);
 			// if there are no more inline levels available
 		} else {
