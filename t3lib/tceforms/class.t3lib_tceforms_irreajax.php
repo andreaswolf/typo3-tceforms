@@ -1,6 +1,6 @@
 <?php
 
-class t3lib_TCEforms_IrreAjax {
+class t3lib_TCEforms_IrreAjax implements t3lib_TCEforms_Element {
 
 	/**
 	 * The prefix for form field names

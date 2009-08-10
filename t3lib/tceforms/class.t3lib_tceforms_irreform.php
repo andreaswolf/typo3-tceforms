@@ -11,7 +11,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	/**
 	 * The element object containing this form.
 	 *
-	 * @var t3lib_TCEforms_Element_Inline
+	 * @var t3lib_TCEforms_Element
 	 */
 	protected $containingElement;
 
@@ -161,7 +161,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	 * @param t3lib_TCEforms_Element $elementObject
 	 * @return t3lib_TCEforms_NestableForm A reference to $this, for easier use
 	 */
-	public function setContainingElement(t3lib_TCEforms_Element_Abstract $elementObject) {
+	public function setContainingElement(t3lib_TCEforms_Element $elementObject) {
 		$this->containingElement = $elementObject;
 		return $this;
 	}
