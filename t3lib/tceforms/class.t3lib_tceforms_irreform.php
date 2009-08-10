@@ -152,6 +152,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		if (!$this->firstRecordUid) {
 			$this->firstRecordUid = $record['uid'];
 		}
+		t3lib_div::devLog('Adding record for table ' . $table, __CLASS__);
 		parent::addRecord($table, $record);
 	}
 
@@ -198,8 +199,8 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	 * @param $fieldConfig
 	 * @return t3lib_TCEforms_IRREForm $this
 	 */
-	public function setFieldConfig($fieldConfig) {
-		$this->fieldConfig = $fieldConfig;
+	public function setFieldConfig(&$fieldConfig) {
+		$this->fieldConfig =& $fieldConfig;
 		return $this;
 	}
 
@@ -521,5 +522,54 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 			array_shift($result);
 		}
 		return ($json ? json_encode($result) : $result);
+	}
+
+	/**
+	 * Does some checks on the TCA configuration of the inline field to render.
+	 *
+	 * @param	array		$config: Reference to the TCA field configuration
+	 * @param	string		$table: The table name of the record
+	 * @param	string		$field: The field name which this element is supposed to edit
+	 * @param	array		$row: The record data array of the parent
+	 * @return	boolean		If critical configuration errors were found, false is returned
+	 */
+	public function checkConfiguration(&$config) {
+		$foreign_table = $config['foreign_table'];
+
+			// An inline field must have a foreign_table, if not, stop all further inline actions for this field:
+		if (!$foreign_table || !is_array($GLOBALS['TCA'][$foreign_table])) {
+			return false;
+		}
+			// Init appearance if not set:
+		if (!isset($config['appearance']) || !is_array($config['appearance'])) {
+			$config['appearance'] = array();
+		}
+			// 'newRecordLinkPosition' is deprecated since TYPO3 4.2.0-beta1, this is for backward compatibility:
+		if (!isset($config['appearance']['levelLinksPosition']) && isset($config['appearance']['newRecordLinkPosition']) && $config['appearance']['newRecordLinkPosition']) {
+			$config['appearance']['levelLinksPosition'] = $config['appearance']['newRecordLinkPosition'];
+		}
+			// Set the position/appearance of the "Create new record" link:
+		if (isset($config['foreign_selector']) && $config['foreign_selector'] && (!isset($config['appearance']['useCombination']) || !$config['appearance']['useCombination'])) {
+			$config['appearance']['levelLinksPosition'] = 'none';
+		} elseif (!isset($config['appearance']['levelLinksPosition']) || !in_array($config['appearance']['levelLinksPosition'], array('top', 'bottom', 'both', 'none'))) {
+			$config['appearance']['levelLinksPosition'] = 'top';
+		}
+			// Defines which controls should be shown in header of each record:
+		$enabledControls = array(
+			'info'		=> true,
+			'new'		=> true,
+			'dragdrop'	=> true,
+			'sort'		=> true,
+			'hide'		=> true,
+			'delete'	=> true,
+			'localize'	=> true,
+		);
+		if (isset($config['appearance']['enabledControls']) && is_array($config['appearance']['enabledControls'])) {
+			$config['appearance']['enabledControls'] = array_merge($enabledControls, $config['appearance']['enabledControls']);
+		} else {
+			$config['appearance']['enabledControls'] = $enabledControls;
+		}
+
+		return true;
 	}
 }

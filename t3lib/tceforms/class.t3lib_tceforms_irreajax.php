@@ -271,13 +271,13 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 			// the parent table - this table embeds the current table
 		$parent = $this->getStructureLevel(-1);
 			// get TCA 'config' of the parent table
-		/* TODO: reenable this
-		if (!$this->checkConfiguration($parent['config'])) {
+		if (!$this->TCEforms->checkConfiguration($parent['config'])) {
 			return $this->getErrorMessageForAJAX('Wrong configuration in table ' . $parent['table']);
-		}*/
+		}
 		$config = $parent['config'];
 t3lib_div::devLog('current: ' . serialize($current), 't3lib_TCEforms_IrreAjax');
 t3lib_div::devLog('parent: ' . serialize($parent), 't3lib_TCEforms_IrreAjax');
+t3lib_div::devLog('foreignUid: ' . $foreignUid, 't3lib_TCEforms_IrreAjax');
 
 		$collapseAll = (isset($config['appearance']['collapseAll']) && $config['appearance']['collapseAll']);
 		$expandSingle = (isset($config['appearance']['expandSingle']) && $config['appearance']['expandSingle']);
@@ -302,6 +302,8 @@ t3lib_div::devLog('parent: ' . serialize($parent), 't3lib_TCEforms_IrreAjax');
 		} else {
 			$record = $this->getRecord($this->inlineFirstPid, $current['table'], $foreignUid);
 		}
+
+		$this->TCEforms->addRecord($current['table'], $record);
 
 			// now there is a foreign_selector, so there is a new record on the intermediate table, but
 			// this intermediate table holds a field, which is responsible for the foreign_selector, so
@@ -479,6 +481,22 @@ t3lib_div::devLog('parent: ' . serialize($parent), 't3lib_TCEforms_IrreAjax');
 		}
 
 		return $headTags;
+	}
+
+	/**
+	 * Generates an error message that transferred as JSON for AJAX calls
+	 *
+	 * @param	string		$message: The error message to be shown
+	 * @return	array		The error message in a JSON array
+	 */
+	protected function getErrorMessageForAJAX($message) {
+		$jsonArray = array(
+			'data'	=> $message,
+			'scriptCall' => array(
+				'alert("' . $message . '");'
+			)
+		);
+		return $jsonArray;
 	}
 }
 

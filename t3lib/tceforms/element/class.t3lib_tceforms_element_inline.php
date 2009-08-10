@@ -30,17 +30,21 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 
 		parent::init();
 
-			// check the TCA configuration - if false is returned, something was wrong
-		if ($this->checkConfiguration() === false) {
-			return false;
-		}
-
 		$this->formObject->setContextObject($this->contextObject)
 		                 ->setContextRecordObject($this->contextRecordObject)
 		                 ->setContainingElement($this)
 		                 ->injectFormBuilder($this->formBuilder)
 		                 ->setFieldConfig($this->fieldConfig)
 		                 ->init();
+
+		$this->foreignTable = $this->fieldConfig['config']['foreign_table'];
+		t3lib_div::loadTCA($this->foreignTable);
+
+			// check the TCA configuration - if false is returned, something was wrong
+		if ($this->formObject->checkConfiguration($this->fieldConfig['config']) === false) {
+			unset($this->formObject); // TODO: do proper garbage collection here
+			return false;
+		}
 
 			// remember the page id (pid of record) where inline editing started first
 			// we need that pid for ajax calls, so that they would know where the action takes place on the page structure
@@ -66,6 +70,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 
 			// get the records related to this inline record
 		$relatedRecords = $this->getRelatedRecords();
+
 			// set the first and last record to the config array
 		$relatedRecordsUids = array_keys($relatedRecords['records']);
 		$this->fieldConfig['config']['inline']['first'] = reset($relatedRecordsUids);
@@ -267,12 +272,12 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 			$levelLinks = $this->getLevelInteractionLink('newRecord', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldConfig['config']);
 			if ($language > 0) { // TODO fix this
 					// Add the "Localize all records" link before all child records:
-				if (isset($config['appearance']['showAllLocalizationLink']) && $config['appearance']['showAllLocalizationLink']) {
-					$levelLinks .= $this->getLevelInteractionLink('localize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $config);
+				if (isset($this->fieldConfig['appearance']['showAllLocalizationLink']) && $this->fieldConfig['appearance']['showAllLocalizationLink']) {
+					$levelLinks .= $this->getLevelInteractionLink('localize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldConfig);
 				}
 					// Add the "Synchronize with default language" link before all child records:
 				if (isset($config['appearance']['showSynchronizationLink']) && $config['appearance']['showSynchronizationLink']) {
-					$levelLinks .= $this->getLevelInteractionLink('synchronize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $config);
+					$levelLinks .= $this->getLevelInteractionLink('synchronize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldConfig);
 				}
 			}
 		//}
@@ -316,55 +321,6 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	 * Helper functions
 	 *
 	 *******************************************************/
-
-	/**
-	 * Does some checks on the TCA configuration of the inline field to render.
-	 *
-	 * @param	array		$config: Reference to the TCA field configuration
-	 * @param	string		$table: The table name of the record
-	 * @param	string		$field: The field name which this element is supposed to edit
-	 * @param	array		$row: The record data array of the parent
-	 * @return	boolean		If critical configuration errors were found, false is returned
-	 */
-	function checkConfiguration() {
-		$this->foreignTable = $this->fieldConfig['config']['foreign_table'];
-
-			// An inline field must have a foreign_table, if not, stop all further inline actions for this field:
-		if (!$this->foreignTable || !is_array($GLOBALS['TCA'][$this->foreignTable])) {
-			return false;
-		}
-			// Init appearance if not set:
-		if (!isset($this->fieldConfig['config']['appearance']) || !is_array($this->fieldConfig['config']['appearance'])) {
-			$this->fieldConfig['config']['appearance'] = array();
-		}
-			// 'newRecordLinkPosition' is deprecated since TYPO3 4.2.0-beta1, this is for backward compatibility:
-		if (!isset($this->fieldConfig['config']['appearance']['levelLinksPosition']) && isset($this->fieldConfig['config']['appearance']['newRecordLinkPosition']) && $this->fieldConfig['config']['appearance']['newRecordLinkPosition']) {
-			$this->fieldConfig['config']['appearance']['levelLinksPosition'] = $this->fieldConfig['config']['appearance']['newRecordLinkPosition'];
-		}
-			// Set the position/appearance of the "Create new record" link:
-		if (isset($this->fieldConfig['config']['foreign_selector']) && $this->fieldConfig['config']['foreign_selector'] && (!isset($this->fieldConfig['config']['appearance']['useCombination']) || !$this->fieldConfig['config']['appearance']['useCombination'])) {
-			$this->fieldConfig['config']['appearance']['levelLinksPosition'] = 'none';
-		} elseif (!isset($this->fieldConfig['config']['appearance']['levelLinksPosition']) || !in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('top', 'bottom', 'both', 'none'))) {
-			$this->fieldConfig['config']['appearance']['levelLinksPosition'] = 'top';
-		}
-			// Defines which controls should be shown in header of each record:
-		$enabledControls = array(
-			'info'		=> true,
-			'new'		=> true,
-			'dragdrop'	=> true,
-			'sort'		=> true,
-			'hide'		=> true,
-			'delete'	=> true,
-			'localize'	=> true,
-		);
-		if (isset($this->fieldConfig['config']['appearance']['enabledControls']) && is_array($this->fieldConfig['config']['appearance']['enabledControls'])) {
-			$this->fieldConfig['config']['appearance']['enabledControls'] = array_merge($enabledControls, $this->fieldConfig['config']['appearance']['enabledControls']);
-		} else {
-			$this->fieldConfig['config']['appearance']['enabledControls'] = $enabledControls;
-		}
-
-		return true;
-	}
 
 	public function getValue($key) {
 		return $this->record[$key];
