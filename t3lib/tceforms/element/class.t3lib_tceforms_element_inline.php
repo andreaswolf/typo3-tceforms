@@ -138,12 +138,12 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 				} elseif ($localizationMode=='select') {
 					$transOrigRec = $this->getRecord(0, $table, $transOrigPointer);
 					$pid = $transOrigRec['pid'];
-					$recordsOriginal = $this->getRelatedRecordsArray($pid, $foreignTable, $transOrigRec[$field]);
+					$recordsOriginal = $this->getRelatedRecordsArray($pid, $this->foreignTable, $transOrigRec[$field]);
 				}
 			}
 		}*/
 
-		$records = $this->getRelatedRecordsArray($pid, $foreignTable, $elements);
+		$records = $this->getRelatedRecordsArray($pid, $this->foreignTable, $elements);
 		$relatedRecords = array('records' => $records, 'count' => count($records));
 
 			// Merge original language with current localization and show differences:
@@ -153,7 +153,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 				'showRemoved' => (isset($config['appearance']['showRemovedLocalizationRecords']) && $config['appearance']['showRemovedLocalizationRecords']),
 			);
 			if ($options['showPossible'] || $options['showRemoved']) {
-				$relatedRecords['records'] = $this->getLocalizationDifferences($foreignTable, $options, $recordsOriginal, $records);
+				$relatedRecords['records'] = $this->getLocalizationDifferences($this->foreignTable, $options, $recordsOriginal, $records);
 			}
 		}
 

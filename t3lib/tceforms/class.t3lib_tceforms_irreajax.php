@@ -44,6 +44,13 @@ class t3lib_TCEforms_IrreAjax implements t3lib_TCEforms_Element {
 					$this->constructFormContext($ajaxArguments);
 						// Parse the DOM identifier (string), add the levels to the structure stack (array) and load the TCA config:
 					$this->parseStructureString($ajaxArguments[1], true);
+
+					$this->TCEforms->setFormFieldNamePrefix($this->formFieldNamePrefix);
+					$this->TCEforms->setFormFieldIdPrefix($this->formFieldNamePrefix);
+
+					$this->loadContextRecord();
+
+					array_shift($ajaxArguments);
 						// Render content:
 					$ajaxObj->setContentFormat('jsonbody');
 					$ajaxObj->setContent(
@@ -56,6 +63,22 @@ class t3lib_TCEforms_IrreAjax implements t3lib_TCEforms_Element {
 					break;
 			}
 		}
+	}
+
+	/**
+	 * Loads the record the currently edited form is located in. This means the outermost
+	 * record, not neccessarily the direct parent, if multiple inline elements are nested.
+	 *
+	 * @return void
+	 */
+	protected function loadContextRecord() {
+			// Get the outermost level of the IRRE tree - this is where the currently
+			// edited record is contained in, perhaps within other inline elements
+		$contextLevel = $this->getStructureLevel(0);
+		$contextRecord = t3lib_BEfunc::getRecord($contextLevel['table'], $contextLevel['uid']);
+		$contextRecordObject = new t3lib_TCEforms_Record($contextLevel['table'], $contextRecord, $GLOBALS['TCA'][$contextLevel['table']]);
+
+		$this->TCEforms->setContextRecordObject($contextRecordObject);
 	}
 
 	/**
@@ -88,6 +111,8 @@ class t3lib_TCEforms_IrreAjax implements t3lib_TCEforms_Element {
 		$SOBE->doc->backPath = $GLOBALS['BACK_PATH'];
 			// Initialize TCEforms (rendering the forms)
 		$this->TCEforms = new t3lib_TCEforms_IrreAjaxForm();
+		$this->TCEforms->setTemplateFile(PATH_typo3 . 'templates/tceforms.html')
+		               ->setContainingElement($this);
 		//$SOBE->tceforms->inline =& $this;
 		//$SOBE->tceforms->setRTEcounter(intval($ajaxArguments[0]));
 		//$SOBE->tceforms->initDefaultBEMode();
@@ -187,7 +212,7 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 						);
 							// Override TCA field config by TSconfig:
 						if (!$TSconfig['disabled']) {
-							$unstable['config'] = $this->TCEforms->overrideFieldConf($unstable['config'], $TSconfig);
+							$unstable['config'] = self::overrideFieldConf($unstable['config'], $TSconfig);
 						}
 						$unstable['localizationMode'] = t3lib_BEfunc::getInlineLocalizationMode($unstable['table'], $unstable['config']);
 					}
@@ -199,6 +224,40 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 			$this->updateStructureNames();
 			if (count($unstable)) $this->inlineStructure['unstable'] = $unstable;
 		}
+	}
+
+	/**
+	 * Overrides the TCA field configuration by TSconfig settings.
+	 *
+	 * Example TSconfig: TCEform.<table>.<field>.config.appearance.useSortable = 1
+	 * This overrides the setting in $TCA[<table>]['columns'][<field>]['config']['appearance']['useSortable'].
+	 *
+	 * @param	array		$fieldConfig: TCA field configuration
+	 * @param	array		$TSconfig: TSconfig
+	 * @return	array		Changed TCA field configuration
+	 *
+	 * TODO Remove duplication (this function also exists in Element_Abstract, but it is non-static and directly
+	 *      changes $this->fieldConfig)
+	 */
+	protected static function overrideFieldConf($fieldConfig, $TSconfig) {
+		if (is_array($TSconfig)) {
+			$TSconfig = t3lib_div::removeDotsFromTS($TSconfig);
+			$type = $fieldConfig['type'];
+			if (is_array($TSconfig['config']) && is_array($this->allowOverrideMatrix[$type])) {
+					// Check if the keys in TSconfig['config'] are allowed to override TCA field config:
+				foreach (array_keys($TSconfig['config']) as $key) {
+					if (!in_array($key, $this->allowOverrideMatrix[$type], true)) {
+						unset($TSconfig['config'][$key]);
+					}
+				}
+					// Override TCA field config by remaining TSconfig['config']:
+				if (count($TSconfig['config'])) {
+					$fieldConfig = t3lib_div::array_merge_recursive_overrule($fieldConfig, $TSconfig['config']);
+				}
+			}
+		}
+
+		return $fieldConfig;
 	}
 
 	/**
@@ -241,7 +300,7 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 	 *
 	 * @return	void
 	 */
-	function updateStructureNames() {
+	protected function updateStructureNames() {
 		$current = $this->getStructureLevel(-1);
 			// if there are still more inline levels available
 		if ($current !== false) {
@@ -254,6 +313,41 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 		} else {
 			$this->inlineNames = array();
 		}
+	}
+
+
+	/**
+	 * Get the identifiers of a given depth of level, from the top of the stack to the bottom.
+	 * An identifier consists looks like [<table>][<uid>][<field>].
+	 *
+	 * @param	integer		$structureDepth: How much levels to output, beginning from the top of the stack
+	 * @return	string		The path of identifiers
+	 */
+	public function getStructurePath($structureDepth = -1) {
+		$structureCount = count($this->inlineStructure['stable']);
+		if ($structureDepth < 0 || $structureDepth > $structureCount) $structureDepth = $structureCount;
+
+		for ($i = 1; $i <= $structureDepth; $i++) {
+			$current = $this->getStructureLevel(-$i);
+			$string = $this->getStructureItemName($current).$string;
+		}
+
+		return $string;
+	}
+
+	/**
+	 * Create a name/id for usage in HTML output of a level of the structure stack.
+	 *
+	 * @param	array		$levelData: Array of a level of the structure stack (containing the keys table, uid and field)
+	 * @return	string		The name/id of that level, to be used for HTML output
+	 */
+	protected function getStructureItemName($levelData) {
+		if (is_array($levelData)) {
+			$name =	'['.$levelData['table'].']' .
+					'['.$levelData['uid'].']' .
+					(isset($levelData['field']) ? '['.$levelData['field'].']' : '');
+		}
+		return $name;
 	}
 
 	/**
@@ -319,7 +413,7 @@ t3lib_div::devLog('foreignUid: ' . $foreignUid, 't3lib_TCEforms_IrreAjax');
 		$objectId = $objectPrefix.'['.$record['uid'].']';
 
 			// render the foreign record that should passed back to browser
-		$item = $this->TCEforms->render();//$this->renderForeignRecord($parent['uid'], $record, $config);
+		$item = $this->TCEforms->render();
 		if ($item === false) {
 			return $this->getErrorMessageForAJAX('Access denied');
 		}
@@ -442,8 +536,8 @@ t3lib_div::devLog('foreignUid: ' . $foreignUid, 't3lib_TCEforms_IrreAjax');
 			$jsonArray['scriptCall'][] = "inline.createDragAndDropSorting('".$this->inlineNames['object']."_records');";
 		}
 			// if TCEforms has some JavaScript code to be executed, just do it
-		if ($this->fObj->extJSCODE) {
-			$jsonArray['scriptCall'][] = $this->fObj->extJSCODE;
+		if ($this->TCEforms->getEvaluationJS()) {
+			$jsonArray['scriptCall'][] = $this->TCEforms->getEvaluationJS();
 		}
 	}
 
@@ -480,6 +574,18 @@ t3lib_div::devLog('foreignUid: ' . $foreignUid, 't3lib_TCEforms_IrreAjax');
 		}
 
 		return $headTags;
+	}
+
+	public function getIrreIdentifier($includePid = TRUE) {
+		return $this->getStructurePath();
+	}
+
+	/**
+	 * neccessary for this element to behave like an inline element, so it can act
+	 * as a container for an IRRE form object (i.e., an IrreAjaxForm object)
+	 */
+	public function render() {
+
 	}
 
 	/**

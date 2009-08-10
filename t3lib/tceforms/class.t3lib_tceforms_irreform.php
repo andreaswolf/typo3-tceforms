@@ -183,7 +183,11 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	}
 
 	public function getTemplateContent() {
-		return $this->contextObject->getTemplateContent();
+		if ($this->templateContent != '') {
+			return $this->templateContent;
+		} else {
+			return $this->contextObject->getTemplateContent();
+		}
 	}
 
 	/**
@@ -252,7 +256,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 			'###CLASS###' => 'wrapperTable',//htmlspecialchars($this->containingElement->getClassScheme())
 			'###ONCLICK###' => " onClick=\"return inline.expandCollapseRecord('" . htmlspecialchars($irreFieldNames) . "', " . ($this->expandOnlyOneRecordAtATime() ? '1' : '0') . ");\"",
 			'###FIELDS_STYLE###' => $fieldsStyle,
-			'###CONTROL_BUTTONS###' => $this->renderForeignRecordHeaderControl($recordObject)
+			'###CONTROL_BUTTONS###' => $this->renderForeignRecordHeaderControl($this->foreignTable, $recordObject)
 		);
 
 		$content = t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
@@ -278,8 +282,8 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	function getExpandedCollapsedState(t3lib_TCEforms_Record $recordObject) {
 		if ($this->inlineViewState == NULL) {
 			$inlineView = unserialize($GLOBALS['BE_USER']->uc['inlineView']);
-			$this->inlineViewState = (array)$inlineView[$this->containingElement->getTable()][$this->containingElement->getValue('uid')];
-			t3lib_div::devLog('inlineViewState for ' . $this->containingElement->getTable() . ':' . $this->containingElement->getValue('uid') . ': ' . serialize($this->inlineViewState), __CLASS__);
+			$this->inlineViewState = (array)$inlineView[$this->getContainerTable()][$this->getContainingRecordValue('uid')];
+			t3lib_div::devLog('inlineViewState for ' . $this->getContainerTable() . ':' . $this->getContainingRecordValue('uid') . ': ' . serialize($this->inlineViewState), __CLASS__);
 		}
 
 		$collapseAll = (isset($config['appearance']['collapseAll']) && $config['appearance']['collapseAll']);
@@ -524,6 +528,25 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 			array_shift($result);
 		}
 		return ($json ? json_encode($result) : $result);
+	}
+
+	/**
+	 * Proxy function for accessing the table of the record this form is placed on.
+	 *
+	 * @return string
+	 */
+	protected function getContainerTable() {
+		return $this->containingElement->getTable();
+	}
+
+	/**
+	 * Proxy function for accessing data from the record this form is placed on.
+	 *
+	 * @param string $key The key of the value to get
+	 * @return mixed
+	 */
+	protected function getContainingRecordValue($key) {
+		return $this->containingElement->getValue($key);
 	}
 
 	/**
