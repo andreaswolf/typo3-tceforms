@@ -52,6 +52,10 @@ class t3lib_TCEforms_IrreAjaxForm extends t3lib_TCEforms_IrreForm {
 		$this->fieldConfig['config'] = $fieldConfig;
 	}
 
+	public function getNestedStackEntry() {
+		return false;
+	}
+
 	/**
 	 *
 	 *
