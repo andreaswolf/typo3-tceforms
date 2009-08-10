@@ -40,7 +40,6 @@ class t3lib_TCEforms_IrreAjax implements t3lib_TCEforms_Element {
 			switch ($ajaxMethod) {
 				case 'createNewRecord':
 				case 'synchronizeLocalizeRecords':
-					$this->isAjaxCall = true;
 						// Construct runtime environment for Inline Relational Record Editing:
 					$this->constructFormContext($ajaxArguments);
 						// Parse the DOM identifier (string), add the levels to the structure stack (array) and load the TCA config:

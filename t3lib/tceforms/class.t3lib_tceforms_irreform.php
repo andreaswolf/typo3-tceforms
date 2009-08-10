@@ -23,6 +23,8 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 
 	protected $foreignTable;
 
+	protected $isAjaxCall = FALSE;
+
 	public function __construct() {
 		parent::__construct();
 	}

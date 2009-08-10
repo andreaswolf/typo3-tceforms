@@ -1,6 +1,9 @@
 <?php
 
 class t3lib_TCEforms_IrreAjaxForm extends t3lib_TCEforms_IrreForm {
+
+	protected $isAjaxCall = TRUE;
+
 	/**
 	 * Overrides the TCA field configuration by TSconfig settings.
 	 *
