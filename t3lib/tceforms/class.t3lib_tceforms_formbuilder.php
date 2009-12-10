@@ -269,7 +269,6 @@ class t3lib_TCEforms_FormBuilder {
 
 			$paletteFieldObject->setContextObject($this->contextObject)
 			                   ->setRecordObject($this->recordObject)
-			                   ->setParentRecordObject($this->recordObject->getParentRecordObject())
 			                   ->setParentFormObject($this->recordObject->getParentFormObject())
 			                   ->setTable($this->recordObject->getTable())
 			                   ->setRecord($this->recordObject->getRecordData())
