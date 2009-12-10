@@ -256,7 +256,8 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 			'###CLASS###' => 'wrapperTable',//htmlspecialchars($this->containingElement->getClassScheme())
 			'###ONCLICK###' => " onClick=\"return inline.expandCollapseRecord('" . htmlspecialchars($irreFieldNames) . "', " . ($this->expandOnlyOneRecordAtATime() ? '1' : '0') . ");\"",
 			'###FIELDS_STYLE###' => $fieldsStyle,
-			'###CONTROL_BUTTONS###' => $this->renderForeignRecordHeaderControl($this->foreignTable, $recordObject)
+				// TODO use isVirtualRecord as parameter
+			'###CONTROL_BUTTONS###' => $this->renderForeignRecordHeaderControl($recordObject)
 		);
 
 		$content = t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
@@ -316,6 +317,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		$cells = array();
 		$isNewItem = substr($recordObject->getValue('uid'), 0, 3) == 'NEW';
 
+		$config = $this->fieldConfig['config'];
 		$tcaTableCtrl =& $GLOBALS['TCA'][$this->foreignTable]['ctrl'];
 		$tcaTableCols =& $GLOBALS['TCA'][$this->foreignTable]['columns'];
 
