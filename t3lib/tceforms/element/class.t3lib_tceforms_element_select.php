@@ -26,9 +26,19 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
 
 		// Getting the selector box items from the system
-		$this->selectItems = $this->addSelectOptionsToItemArray($this->initItemArray($this->fieldConfig), $this->getTSconfig(FALSE));
+		$this->selectItems = $this->addSelectOptionsToItemArray(
+			$this->initItemArray($this->fieldConfig),
+			$this->getTSconfig(FALSE)
+		);
 		$this->selectItems = $this->addItems($this->selectItems, $this->fieldTSConfig['addItems.']);
 		if ($this->fieldConfig['config']['itemsProcFunc']) {
+			$this->selectItems = $this->procItems($this->selectItems, $this->fieldTSConfig['itemsProcFunc.'], $this->fieldConfig['config'], $this->table, $this->record, $this->field);
+		}
+			// Possibly filter some items:
+		$keepItemsFunc = create_function('$value', 'return $value[1];');
+		$this->selectItems = t3lib_div::keepItemsInArray($this->selectItems, $this->fieldTSConfig['keepItems'], $keepItemsFunc);
+			// Process items by a user function:
+		if (isset($this->fieldConfig['config']['itemsProcFunc']) && $this->fieldConfig['config']['itemsProcFunc']) {
 			$this->selectItems = $this->procItems($this->selectItems, $this->fieldTSConfig['itemsProcFunc.'], $this->fieldConfig['config'], $this->table, $this->record, $this->field);
 		}
 
@@ -488,6 +498,13 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 
 			// Get "removeItems":
 		$removeItems = t3lib_div::trimExplode(',',$this->fieldTSConfig['removeItems'],1);
+
+			// Get the array with selected items:
+		$itemArray = t3lib_div::trimExplode(',', $this->itemFormElValue, 1);
+
+			// Possibly filter some items:
+		$keepItemsFunc = create_function('$value', '$parts=explode(\'|\',$value,2); return rawurldecode($parts[0]);');
+		$itemArray = t3lib_div::keepItemsInArray($itemArray, $this->fieldTSConfig['keepItems'], $keepItemsFunc);
 
 			// Perform modification of the selected items array:
 		$itemArray = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
