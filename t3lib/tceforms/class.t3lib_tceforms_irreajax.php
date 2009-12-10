@@ -366,7 +366,7 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 		$parent = $this->getStructureLevel(-1);
 			// get TCA 'config' of the parent table
 		if (!$this->TCEforms->checkConfiguration($parent['config'])) {
-			return $this->getErrorMessageForAJAX('Wrong configuration in table ' . $parent['table']);
+			return t3lib_TCEforms_Irre::getErrorMessageForAJAX('Wrong configuration in table ' . $parent['table']);
 		}
 		$config = $parent['config'];
 t3lib_div::devLog('current: ' . serialize($current), 't3lib_TCEforms_IrreAjax');
@@ -416,7 +416,7 @@ t3lib_div::devLog('foreignUid: ' . $foreignUid, 't3lib_TCEforms_IrreAjax');
 			// render the foreign record that should passed back to browser
 		$item = $this->TCEforms->render();
 		if ($item === false) {
-			return $this->getErrorMessageForAJAX('Access denied');
+			return t3lib_TCEforms_Irre::getErrorMessageForAJAX('Access denied');
 		}
 
 			// Encode TCEforms AJAX response with utf-8:
@@ -587,22 +587,6 @@ t3lib_div::devLog('foreignUid: ' . $foreignUid, 't3lib_TCEforms_IrreAjax');
 	 */
 	public function render() {
 
-	}
-
-	/**
-	 * Generates an error message that transferred as JSON for AJAX calls
-	 *
-	 * @param	string		$message: The error message to be shown
-	 * @return	array		The error message in a JSON array
-	 */
-	protected function getErrorMessageForAJAX($message) {
-		$jsonArray = array(
-			'data'	=> $message,
-			'scriptCall' => array(
-				'alert("' . $message . '");'
-			)
-		);
-		return $jsonArray;
 	}
 }
 

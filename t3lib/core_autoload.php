@@ -128,6 +128,7 @@ return array(
 	't3lib_tceforms_flexform' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_flexform.php',
 	't3lib_tceforms_form' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_form.php',
 	't3lib_tceforms_formbuilder' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_formbuilder.php',
+	't3lib_tceforms_irre' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_irre.php',
 	't3lib_tceforms_irreajax' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_irreajax.php',
 	't3lib_tceforms_irreajaxform' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_irreajaxform.php',
 	't3lib_tceforms_irreform' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_irreform.php',
