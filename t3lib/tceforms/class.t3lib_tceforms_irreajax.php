@@ -66,8 +66,9 @@ class t3lib_TCEforms_IrreAjax implements t3lib_TCEforms_Element {
 	}
 
 	/**
-	 * Loads the record the currently edited form is located in. This means the outermost
-	 * record, not neccessarily the direct parent, if multiple inline elements are nested.
+	 * Loads the top-most record on the current form that has a direct relation to the record
+	 * this script was called from (caller). This is not neccessarily the direct parent of the caller,
+	 * as multiple IRRE forms may be nested inside each other.
 	 *
 	 * @return void
 	 */
