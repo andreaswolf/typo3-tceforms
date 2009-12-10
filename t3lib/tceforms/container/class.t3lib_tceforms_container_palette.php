@@ -154,8 +154,8 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 						'</span>'.
 					'</td>';
 			$iRow[]='<td valign="top">'.
-						'<img name="req_'.$content['TABLE'].'_'.$content['ID'].'_'.$content['FIELD'].'" src="clear.gif" width="10" height="10" vspace="4" alt="" />'.
-						'<img name="cm_'.$content['TABLE'].'_'.$content['ID'].'_'.$content['FIELD'].'" src="clear.gif" width="7" height="10" vspace="4" alt="" />'.
+						'<img name="req_'.$content['TABLE'].'_'.$content['ID'].'_'.$content['FIELD'].'" src="clear.gif" class="t3-TCEforms-reqPaletteImg" alt="" />'.
+						'<img name="cm_'.$content['TABLE'].'_'.$content['ID'].'_'.$content['FIELD'].'" src="clear.gif" class="t3-TCEforms-contentchangedPaletteImg" alt="" />'.
 					'</td>
 					<td nowrap="nowrap" valign="top">'.
 						$content['ITEM'].
