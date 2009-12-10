@@ -136,6 +136,9 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 		'disableCMlayers' => 0,
 		'navFrameWidth' => '',	// Default is 245 pixels
 		'navFrameResizable' => 0,
+		'resizeTextareas' => 1,
+		'resizeTextareas_MaxHeight' => 300,
+		'resizeTextareas_Flexible' => 1,
 	);
 
 
@@ -157,13 +160,15 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 	 *
 	 * @param	boolean		Activate insertion of the URL.
 	 * @return	void
-	 * @deprecated since TYPO3 3.6
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5.
 	 */
 	function trackBeUser($flag)	{
+		t3lib_div::logDeprecatedFunction();
+
 		if ($flag && t3lib_extMgm::isLoaded('beuser_tracking'))	{
 			$insertFields = array(
 				'userid' => intval($this->user['uid']),
-				'tstamp' => time(),
+				'tstamp' => $GLOBALS['EXEC_TIME'],
 				'script' => t3lib_div::getIndpEnv('REQUEST_URI')
 			);
 
@@ -200,8 +205,7 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 	function backendCheckLogin()	{
 		if (!$this->user['uid'])	{
 			if (!defined('TYPO3_PROCEED_IF_NO_USER') || !TYPO3_PROCEED_IF_NO_USER)	{
-				t3lib_BEfunc::typo3PrintError ('Login-error or session timed-out', 'No user logged in! Sorry, I can\'t proceed then!<br /><br />(You must have cookies enabled!)<br /><br />If your session has just timed-out, you may<br /><a href="'.t3lib_div::locationHeaderUrl(t3lib_div::getIndpEnv('TYPO3_SITE_URL').TYPO3_mainDir.'index.php'.'" target="_top">click here to re-login</a>.',0));
-				exit;
+				t3lib_utility_Http::redirect($GLOBALS['BACK_PATH']);
 			}
 		} else {	// ...and if that's the case, call these functions
 			$this->fetchGroupData();	//	The groups are fetched and ready for permission checking in this initialization.	Tables.php must be read before this because stuff like the modules has impact in this
@@ -259,7 +263,11 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 		}
 			// Setting defaults if uc is empty
 		if (!is_array($this->uc))	{
-			$this->uc = array_merge($this->uc_default, (array)$TYPO3_CONF_VARS['BE']['defaultUC'], (array)$this->getTSConfigProp('setup.default'));	// Candidate for t3lib_div::array_merge() if integer-keys will some day make trouble...
+			$this->uc = array_merge(
+				$this->uc_default,
+				(array) $TYPO3_CONF_VARS['BE']['defaultUC'],
+				t3lib_div::removeDotsFromTS((array) $this->getTSConfigProp('setup.default'))
+			);
 			$this->overrideUC();
 			$U=1;
 		}

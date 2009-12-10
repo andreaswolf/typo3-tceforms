@@ -105,7 +105,7 @@ class SC_wizard_add {
 			// Init GPvars:
 		$this->P = t3lib_div::_GP('P');
 		$this->returnEditConf = t3lib_div::_GP('returnEditConf');
-		
+
 			// Get this record
 		$origRow = t3lib_BEfunc::getRecord($this->P['table'],$this->P['uid']);
 
@@ -113,7 +113,7 @@ class SC_wizard_add {
 		$this->table = $this->P['params']['table'];
 
 			// Get TSconfig for it.
-		$TSconfig = t3lib_BEfunc::getTCEFORM_TSconfig($this->table,is_array($origRow)?$origRow:array('pid'=>$this->P['pid']));
+		$TSconfig = t3lib_BEfunc::getTCEFORM_TSconfig($this->P['table'],is_array($origRow)?$origRow:array('pid'=>$this->P['pid']));
 
 			// Set [params][pid]
 		if (substr($this->P['params']['pid'],0,3)=='###' && substr($this->P['params']['pid'],-3)=='###')	{
@@ -122,8 +122,7 @@ class SC_wizard_add {
 
 			// Return if new record as parent (not possibly/allowed)
 		if (!strcmp($this->pid,''))	{
-			header('Location: '.t3lib_div::locationHeaderUrl($this->P['returnUrl']));
-			exit;
+			t3lib_utility_Http::redirect($this->P['returnUrl']);
 		}
 
 			// Else proceed:
@@ -138,6 +137,10 @@ class SC_wizard_add {
 
 					// ... and if everything seems OK we will register some classes for inclusion and instruct the object to perform processing later.
 				if ($this->P['params']['setValue'] && $cmd=='edit' && $this->id && $this->P['table'] && $this->P['field'] && $this->P['uid'])	{
+
+					if ($LiveRec=t3lib_BEfunc::getLiveVersionOfRecord($this->table, $this->id, 'uid'))	{ $this->id=$LiveRec['uid'];}
+
+
 					$this->include_once[]=PATH_t3lib.'class.t3lib_loaddbgroup.php';
 					$this->include_once[]=PATH_t3lib.'class.t3lib_transferdata.php';
 					$this->include_once[]=PATH_t3lib.'class.t3lib_tcemain.php';
@@ -173,7 +176,7 @@ class SC_wizard_add {
 
 						// Setting the new field data:
 					if ($this->P['flexFormPath'])	{	// If the field is a flexform field, work with the XML structure instead:
-						
+
 						$currentFlexFormData = t3lib_div::xml2array($current[$this->P['field']]); // Current value of flexform path:
 						$flexToolObj = t3lib_div::makeInstance('t3lib_flexformtools');
 						$curValueOfFlexform = $flexToolObj->getArrayValueByPath($this->P['flexFormPath'], $currentFlexFormData);
@@ -215,10 +218,12 @@ class SC_wizard_add {
 				}
 			}
 				// Return to the parent alt_doc.php record editing session:
-			header('Location: '.t3lib_div::locationHeaderUrl($this->P['returnUrl']));
+			t3lib_utility_Http::redirect($this->P['returnUrl']);
 		} else {
-				// Redirecting to alt_doc.php with instructions to create a new record AND when closing to return back with information about that records ID etc.
-			header('Location: '.t3lib_div::locationHeaderUrl('alt_doc.php?returnUrl='.rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')).'&returnEditConf=1&edit['.$this->P['params']['table'].']['.$this->pid.']=new'));
+				// Redirecting to alt_doc.php with instructions to create a new record
+				// AND when closing to return back with information about that records ID etc.
+			$redirectUrl = 'alt_doc.php?returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')) . '&returnEditConf=1&edit[' . $this->P['params']['table'] . '][' . $this->pid . ']=new';
+			t3lib_utility_Http::redirect($redirectUrl);
 		}
 	}
 }

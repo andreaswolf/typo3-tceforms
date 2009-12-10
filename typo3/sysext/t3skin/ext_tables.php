@@ -1,7 +1,8 @@
 <?php
 if (!defined ('TYPO3_MODE')) 	die ('Access denied.');
 
-if (TYPO3_MODE=='BE')	{
+if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $GLOBALS['BE_USER']->isFrontendEditingActive())) {
+	global $TBE_STYLES;
 
 		// Support for other extensions to add own icons...
 	$presetSkinImgs = is_array($TBE_STYLES['skinImg']) ?
@@ -161,8 +162,11 @@ if (TYPO3_MODE=='BE')	{
 
 		// extJS theme
 	$TBE_STYLES['extJS']['theme'] =  $temp_eP . 'extjs/xtheme-t3skin.css';
-	
+
 	//print_a($TBE_STYLES,2);
+
+	// Adding HTML template for login screen
+	$TBE_STYLES['htmlTemplates']['templates/login.html'] = 'sysext/t3skin/templates/login.html';
 
 	$GLOBALS['TYPO3_CONF_VARS']['typo3/backend.php']['additionalBackendItems'][] = t3lib_extMgm::extPath('t3skin').'registerIe6Stylesheet.php';
 

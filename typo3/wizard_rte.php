@@ -157,7 +157,7 @@ class SC_wizard_rte {
 			$tceforms->colorScheme[0]=$this->doc->bgColor;	// SPECIAL: Setting background color of the RTE to ordinary background
 
 				// Initialize style for RTE object:
-			$RTEobj = &t3lib_BEfunc::RTEgetObj();	// Getting reference to the RTE object used to render the field!
+			$RTEobj = t3lib_BEfunc::RTEgetObj();	// Getting reference to the RTE object used to render the field!
 			if ($RTEobj->ID == 'rte')	{
 				$RTEobj->RTEdivStyle = 'position:relative; left:0px; top:0px; height:100%; width:100%; border:solid 0px;';	// SPECIAL: Setting style for the RTE <DIV> layer containing the IFRAME
 			}
@@ -282,7 +282,7 @@ class SC_wizard_rte {
 			// Undo/Revert:
 			if ($undoButton)	{
 				$buttons['undo'] = '<a href="#" onclick="' . htmlspecialchars('window.location.href=\'show_rechis.php?element=' . rawurlencode($this->P['table'] . ':' . $this->P['uid']) . '&revert=' . rawurlencode('field:' . $this->P['field']) . '&sumUp=-1&returnUrl=' . rawurlencode($this->R_URI) . '\'; return false;') . '">' .
-					'<img' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/undo.gif') . ' class="c-inputButton" title="' . htmlspecialchars(sprintf($GLOBALS['LANG']->getLL('rte_undoLastChange'), t3lib_BEfunc::calcAge(time() - $undoButtonR['tstamp'], $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears')))) . '" alt="" />' .
+					'<img' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/undo.gif') . ' class="c-inputButton" title="' . htmlspecialchars(sprintf($GLOBALS['LANG']->getLL('rte_undoLastChange'), t3lib_BEfunc::calcAge($GLOBALS['EXEC_TIME'] - $undoButtonR['tstamp'], $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears')))) . '" alt="" />' .
 					'</a>';
 			}
 

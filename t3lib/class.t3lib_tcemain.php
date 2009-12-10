@@ -249,6 +249,7 @@ class t3lib_TCEmain	{
 	var $dontProcessTransformations = FALSE;	// Boolean: If set, then transformations are NOT performed on the input.
 	var $clear_flexFormData_vDEFbase = FALSE;	// Boolean: If set, .vDEFbase values are unset in flexforms.
 	var $updateModeL10NdiffData = TRUE;		// Boolean/Mixed: TRUE: (traditional) Updates when record is saved. For flexforms, updates if change is made to the localized value. FALSE: Will not update anything. "FORCE_FFUPD" (string): Like TRUE, but will force update to the FlexForm Field
+	var $updateModeL10NdiffDataClear = FALSE;	// Boolean: If true, the translation diff. fields will in fact be reset so that they indicate that all needs to change again! It's meant as the opposite of declaring the record translated.
 	var $bypassWorkspaceRestrictions = FALSE;	// Boolean: If true, workspace restrictions are bypassed on edit an create actions (process_datamap()). YOU MUST KNOW what you do if you use this feature!
 	var $bypassFileHandling = FALSE;			// Boolean: If true, file handling of attached files (addition, deletion etc) is bypassed - the value is saved straight away. YOU MUST KNOW what you are doing with this feature!
 	var $bypassAccessCheckForRecords = FALSE;	// Boolean: If true, access check, check for deleted etc. for records is bypassed. YOU MUST KNOW what you are doing if you use this feature!
@@ -261,7 +262,7 @@ class t3lib_TCEmain	{
 	var $defaultValues = array();			// Array [table][fields]=value: New records are created with default values and you can set this array on the form $defaultValues[$table][$field] = $value to override the default values fetched from TCA. If ->setDefaultsFromUserTS is called UserTSconfig default values will overrule existing values in this array (thus UserTSconfig overrules externally set defaults which overrules TCA defaults)
 	var $overrideValues = array();			// Array [table][fields]=value: You can set this array on the form $overrideValues[$table][$field] = $value to override the incoming data. You must set this externally. You must make sure the fields in this array are also found in the table, because it's not checked. All columns can be set by this array!
 	var $alternativeFileName = array();		// Array [filename]=alternative_filename: Use this array to force another name onto a file. Eg. if you set ['/tmp/blablabal'] = 'my_file.txt' and '/tmp/blablabal' is set for a certain file-field, then 'my_file.txt' will be used as the name instead.
-	var $alternativeFilePath = array();		// Array [filename]=alternative_filepath: Same as alternativeFileName but with relative path to the file 
+	var $alternativeFilePath = array();		// Array [filename]=alternative_filepath: Same as alternativeFileName but with relative path to the file
 	var $data_disableFields=array();		// If entries are set in this array corresponding to fields for update, they are ignored and thus NOT updated. You could set this array from a series of checkboxes with value=0 and hidden fields before the checkbox with 1. Then an empty checkbox will disable the field.
 	var $suggestedInsertUids=array();		// Use this array to validate suggested uids for tables by setting [table]:[uid]. This is a dangerous option since it will force the inserted record to have a certain UID. The value just have to be true, but if you set it to "DELETE" it will make sure any record with that UID will be deleted first (raw delete). The option is used for import of T3D files when synchronizing between two mirrored servers. As a security measure this feature is available only for Admin Users (for now)
 
@@ -353,6 +354,7 @@ class t3lib_TCEmain	{
 	var $autoVersioningUpdate = FALSE;			// A signal flag used to tell file processing that autoversioning has happend and hence certain action should be applied.
 
 	protected $disableDeleteClause = false;		// Disable delete clause
+	protected $checkModifyAccessListHookObjects;
 
 
 
@@ -564,6 +566,31 @@ class t3lib_TCEmain	{
 		}
 	}
 
+	/**
+	 * Gets the 'checkModifyAccessList' hook objects.
+	 * The first call initializes the accordant objects.
+	 *
+	 * @return	array		The 'checkModifyAccessList' hook objects (if any)
+	 */
+	protected function getCheckModifyAccessListHookObjects() {
+		if (!isset($this->checkModifyAccessListHookObjects)) {
+			$this->checkModifyAccessListHookObjects = array();
+
+			if(is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['checkModifyAccessList'])) {
+				foreach($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['checkModifyAccessList'] as $classData) {
+					$hookObject = t3lib_div::getUserObj($classData);
+
+					if(!($hookObject instanceof t3lib_TCEmain_checkModifyAccessListHook)) {
+						throw new UnexpectedValueException('$hookObject must implement interface t3lib_TCEmain_checkModifyAccessListHook', 1251892472);
+					}
+
+					$this->checkModifyAccessListHookObjects[] = $hookObject;
+				}
+			}
+		}
+
+		return $this->checkModifyAccessListHookObjects;
+	}
 
 
 
@@ -604,7 +631,7 @@ class t3lib_TCEmain	{
 		$hookObjectsArr = array();
 		if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'])) {
 			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'] as $classRef) {
-				$hookObjectsArr[] = &t3lib_div::getUserObj($classRef);
+				$hookObjectsArr[] = t3lib_div::getUserObj($classRef);
 			}
 		}
 
@@ -652,7 +679,6 @@ class t3lib_TCEmain	{
 						$createNewVersion = FALSE;
 						$recordAccess = FALSE;
 						$old_pid_value = '';
-						$resetRejected = FALSE;
 						$this->autoVersioningUpdate = FALSE;
 
 						if (!t3lib_div::testInt($id)) {               // Is it a new record? (Then Id is a string)
@@ -744,11 +770,6 @@ class t3lib_TCEmain	{
 									$tempdata = $this->recordInfo($table,$id,'pid'.($TCA[$table]['ctrl']['versioningWS']?',t3ver_wsid,t3ver_stage':''));
 									$theRealPid = $tempdata['pid'];
 
-										// Prepare the reset of the rejected flag if set:
-									if ($TCA[$table]['ctrl']['versioningWS'] && $tempdata['t3ver_stage']<0)	{
-										$resetRejected = TRUE;
-									}
-
 									// Use the new id of the versionized record we're trying to write to:
 										// (This record is a child record of a parent and has already been versionized.)
 									if ($this->autoVersionIdMap[$table][$id]) {
@@ -836,8 +857,10 @@ class t3lib_TCEmain	{
 								// Setting system fields
 							if ($status=='new')	{
 								if ($TCA[$table]['ctrl']['crdate'])	{
-									$fieldArray[$TCA[$table]['ctrl']['crdate']]=time();
-									if ($createNewVersion)	$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['crdate']]=time();
+									$fieldArray[$TCA[$table]['ctrl']['crdate']] = $GLOBALS['EXEC_TIME'];
+									if ($createNewVersion) {
+										$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['crdate']] = $GLOBALS['EXEC_TIME'];
+									}
 								}
 								if ($TCA[$table]['ctrl']['cruser_id'])	{
 									$fieldArray[$TCA[$table]['ctrl']['cruser_id']]=$this->userid;
@@ -847,10 +870,12 @@ class t3lib_TCEmain	{
 								$fieldArray = $this->compareFieldArrayWithCurrentAndUnset($table,$id,$fieldArray);
 							}
 							if ($TCA[$table]['ctrl']['tstamp'] && count($fieldArray))	{
-								$fieldArray[$TCA[$table]['ctrl']['tstamp']]=time();
-								if ($createNewVersion)	$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['tstamp']]=time();
+								$fieldArray[$TCA[$table]['ctrl']['tstamp']] = $GLOBALS['EXEC_TIME'];
+								if ($createNewVersion) {
+									$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['tstamp']] = $GLOBALS['EXEC_TIME'];
+								}
 							}
-							if ($resetRejected)	{
+							if ($TCA[$table]['ctrl']['versioningWS']) {
 								$fieldArray['t3ver_stage'] = 0;
 							}
 
@@ -1090,7 +1115,7 @@ class t3lib_TCEmain	{
 
 									// Add the value of the original record to the diff-storage content:
 								if ($this->updateModeL10NdiffData && $TCA[$table]['ctrl']['transOrigDiffSourceField'])	{
-									$originalLanguage_diffStorage[$field] = $originalLanguageRecord[$field];
+									$originalLanguage_diffStorage[$field] = $this->updateModeL10NdiffDataClear ? '' : $originalLanguageRecord[$field];
 									$diffStorageFlag = TRUE;
 								}
 
@@ -1140,7 +1165,7 @@ class t3lib_TCEmain	{
 								$RTErelPath = is_array($eFile) ? dirname($eFile['relEditFile']) : '';
 
 									// Get RTE object, draw form and set flag:
-								$RTEobj = &t3lib_BEfunc::RTEgetObj();
+								$RTEobj = t3lib_BEfunc::RTEgetObj();
 								if (is_object($RTEobj))	{
 									$fieldArray[$vconf['field']] = $RTEobj->transformContent('db',$fieldArray[$vconf['field']],$table,$vconf['field'],$currentRecord,$vconf['spec'],$thisConfig,$RTErelPath,$currentRecord['pid']);
 								} else {
@@ -1706,7 +1731,7 @@ class t3lib_TCEmain	{
 			if (count($valueArray)){
 				if (!$this->bypassFileHandling) {	// If filehandling should NOT be bypassed, do processing:
 					$propArr = $this->getRecordProperties($table, $id); // For logging..
-					foreach($valueArray as &$theFile){ 
+					foreach($valueArray as &$theFile){
 
 							// if alernative File Path is set for the file, then it was an import
 						if ($this->alternativeFilePath[$theFile]){
@@ -2363,7 +2388,7 @@ class t3lib_TCEmain	{
 										$thisConfig = t3lib_BEfunc::RTEsetup($RTEsetup['properties'],$CVtable,$recFieldName,$theTypeString);
 
 											// Get RTE object, draw form and set flag:
-										$RTEobj = &t3lib_BEfunc::RTEgetObj();
+										$RTEobj = t3lib_BEfunc::RTEgetObj();
 										if (is_object($RTEobj))	{
 											$res['value'] = $RTEobj->transformContent('db',$res['value'],$CVtable,$recFieldName,$this->checkValue_currentRecord,$specConf,$thisConfig,'',$CVrealPid);
 										} else {
@@ -2391,7 +2416,7 @@ class t3lib_TCEmain	{
 										$diffValue = $dataValues_current[$key]['vDEF'];
 									}
 										// Setting the reference value for vDEF for this translation. This will be used for translation tools to make a diff between the vDEF and vDEFbase to see if an update would be fitting.
-									$dataValues[$key][$vKey.'.vDEFbase'] = $diffValue;
+									$dataValues[$key][$vKey.'.vDEFbase'] = $this->updateModeL10NdiffDataClear ? '' : $diffValue;
 								}
 							}
 						}
@@ -2501,7 +2526,7 @@ class t3lib_TCEmain	{
 		$hookObjectsArr = array();
 		if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processCmdmapClass'])) {
 			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processCmdmapClass'] as $classRef) {
-				$hookObjectsArr[] = &t3lib_div::getUserObj($classRef);
+				$hookObjectsArr[] = t3lib_div::getUserObj($classRef);
 			}
 		}
 #debug($this->cmdmap);
@@ -2708,99 +2733,106 @@ class t3lib_TCEmain	{
 				// Now, the $uid is the actual record we will copy while $origUid is the record we asked to get copied - but that could be a live version.
 */
 			if ($this->doesRecordExist($table,$uid,'show'))	{		// This checks if the record can be selected which is all that a copy action requires.
-				$data = Array();
+				if ($this->BE_USER->recordEditAccessInternals($table,$uid, false, false, true)) { //Used to check language and general editing rights
+					$data = Array();
 
-				$nonFields = array_unique(t3lib_div::trimExplode(',','uid,perms_userid,perms_groupid,perms_user,perms_group,perms_everybody,t3ver_oid,t3ver_wsid,t3ver_id,t3ver_label,t3ver_state,t3ver_swapmode,t3ver_count,t3ver_stage,t3ver_tstamp,'.$excludeFields,1));
+					$nonFields = array_unique(t3lib_div::trimExplode(',','uid,perms_userid,perms_groupid,perms_user,perms_group,perms_everybody,t3ver_oid,t3ver_wsid,t3ver_id,t3ver_label,t3ver_state,t3ver_swapmode,t3ver_count,t3ver_stage,t3ver_tstamp,'.$excludeFields,1));
 
-				// $row = $this->recordInfo($table,$uid,'*');
-				$row = t3lib_BEfunc::getRecordWSOL($table,$uid);	// So it copies (and localized) content from workspace...
-				if (is_array($row))	{
+					// $row = $this->recordInfo($table,$uid,'*');
+					$row = t3lib_BEfunc::getRecordWSOL($table,$uid);	// So it copies (and localized) content from workspace...
+					if (is_array($row))	{
 
-						// Initializing:
-					$theNewID = uniqid('NEW');
-					$enableField = isset($TCA[$table]['ctrl']['enablecolumns']) ? $TCA[$table]['ctrl']['enablecolumns']['disabled'] : '';
-					$headerField = $TCA[$table]['ctrl']['label'];
+							// Initializing:
+						$theNewID = uniqid('NEW');
+						$enableField = isset($TCA[$table]['ctrl']['enablecolumns']) ? $TCA[$table]['ctrl']['enablecolumns']['disabled'] : '';
+						$headerField = $TCA[$table]['ctrl']['label'];
 
-						// Getting default data:
-					$defaultData = $this->newFieldArray($table);
+							// Getting default data:
+						$defaultData = $this->newFieldArray($table);
 
-						// Getting "copy-after" fields if applicable:
-					$copyAfterFields = $destPid<0 ? $this->fixCopyAfterDuplFields($table,$uid,abs($destPid),0) : array();
+							// Getting "copy-after" fields if applicable:
+						$copyAfterFields = $destPid<0 ? $this->fixCopyAfterDuplFields($table,$uid,abs($destPid),0) : array();
 
-						// Page TSconfig related:
-					$tscPID = t3lib_BEfunc::getTSconfig_pidValue($table,$uid,$destPid);	// NOT using t3lib_BEfunc::getTSCpid() because we need the real pid - not the ID of a page, if the input is a page...
-					$TSConfig = $this->getTCEMAIN_TSconfig($tscPID);
-					$tE = $this->getTableEntries($table,$TSConfig);
+							// Page TSconfig related:
+						$tscPID = t3lib_BEfunc::getTSconfig_pidValue($table,$uid,$destPid);	// NOT using t3lib_BEfunc::getTSCpid() because we need the real pid - not the ID of a page, if the input is a page...
+						$TSConfig = $this->getTCEMAIN_TSconfig($tscPID);
+						$tE = $this->getTableEntries($table,$TSConfig);
 
-						// Traverse ALL fields of the selected record:
-					foreach($row as $field => $value)	{
-						if (!in_array($field,$nonFields))	{
+							// Traverse ALL fields of the selected record:
+						foreach($row as $field => $value)	{
+							if (!in_array($field,$nonFields))	{
 
-								// Get TCA configuration for the field:
-							$conf = $TCA[$table]['columns'][$field]['config'];
+									// Get TCA configuration for the field:
+								$conf = $TCA[$table]['columns'][$field]['config'];
 
-								// Preparation/Processing of the value:
-							if ($field=='pid')	{	// "pid" is hardcoded of course:
-								$value = $destPid;
-							} elseif (isset($overrideValues[$field]))	{	// Override value...
-								$value = $overrideValues[$field];
-							} elseif (isset($copyAfterFields[$field]))	{	// Copy-after value if available:
-								$value = $copyAfterFields[$field];
-							} elseif ($TCA[$table]['ctrl']['setToDefaultOnCopy'] && t3lib_div::inList($TCA[$table]['ctrl']['setToDefaultOnCopy'],$field))	{	// Revert to default for some fields:
-								$value = $defaultData[$field];
-							} else {
-									// Hide at copy may override:
-								if ($first && $field==$enableField && $TCA[$table]['ctrl']['hideAtCopy'] && !$this->neverHideAtCopy && !$tE['disableHideAtCopy'])	{
-									$value=1;
+									// Preparation/Processing of the value:
+								if ($field=='pid')	{	// "pid" is hardcoded of course:
+									$value = $destPid;
+								} elseif (isset($overrideValues[$field]))	{	// Override value...
+									$value = $overrideValues[$field];
+								} elseif (isset($copyAfterFields[$field]))	{	// Copy-after value if available:
+									$value = $copyAfterFields[$field];
+								} elseif ($TCA[$table]['ctrl']['setToDefaultOnCopy'] && t3lib_div::inList($TCA[$table]['ctrl']['setToDefaultOnCopy'],$field))	{	// Revert to default for some fields:
+									$value = $defaultData[$field];
+								} else {
+										// Hide at copy may override:
+									if ($first && $field == $enableField && $TCA[$table]['ctrl']['hideAtCopy'] && !$this->neverHideAtCopy && !$tE['disableHideAtCopy']) {
+										$value = 1;
+									}
+										// Prepend label on copy:
+									if ($first && $field == $headerField && $TCA[$table]['ctrl']['prependAtCopy'] && !$tE['disablePrependAtCopy']) {
+										$value = $this->getCopyHeader($table,$this->resolvePid($table,$destPid),$field,$this->clearPrefixFromValue($table,$value),0);
+									}
+										// Processing based on the TCA config field type (files, references, flexforms...)
+									$value = $this->copyRecord_procBasedOnFieldType($table, $uid, $field, $value, $row, $conf, $tscPID, $language);
 								}
-									// Prepend label on copy:
-								if ($first && $field==$headerField && $TCA[$table]['ctrl']['prependAtCopy'] && !$tE['disablePrependAtCopy'])	{
-									$value = $this->getCopyHeader($table,$this->resolvePid($table,$destPid),$field,$this->clearPrefixFromValue($table,$value),0);
-								}
-									// Processing based on the TCA config field type (files, references, flexforms...)
-								$value = $this->copyRecord_procBasedOnFieldType($table, $uid, $field, $value, $row, $conf, $tscPID, $language);
+
+									// Add value to array.
+								$data[$table][$theNewID][$field] = $value;
 							}
-
-								// Add value to array.
-							$data[$table][$theNewID][$field] = $value;
 						}
-					}
+							// Overriding values:
+						if ($TCA[$table]['ctrl']['editlock']) {
+							$data[$table][$theNewID][$TCA[$table]['ctrl']['editlock']] = 0;
+						}
 
-						// Overriding values:
-					if ($TCA[$table]['ctrl']['editlock'])	{
-						$data[$table][$theNewID][$TCA[$table]['ctrl']['editlock']] = 0;
-					}
+							// Setting original UID:
+						if ($TCA[$table]['ctrl']['origUid']) {
+							$data[$table][$theNewID][$TCA[$table]['ctrl']['origUid']] = $uid;
+						}
 
-						// Setting original UID:
-					if ($TCA[$table]['ctrl']['origUid'])	{
-						$data[$table][$theNewID][$TCA[$table]['ctrl']['origUid']] = $uid;
-					}
+							// Do the copy by simply submitting the array through TCEmain:
+						$copyTCE = t3lib_div::makeInstance('t3lib_TCEmain');
+						/* @var $copyTCE t3lib_TCEmain  */
+						$copyTCE->stripslashes_values = 0;
+						$copyTCE->copyTree = $this->copyTree;
+						$copyTCE->cachedTSconfig = $this->cachedTSconfig;	// Copy forth the cached TSconfig
+						$copyTCE->dontProcessTransformations=1;		// Transformations should NOT be carried out during copy
 
-						// Do the copy by simply submitting the array through TCEmain:
-					$copyTCE = t3lib_div::makeInstance('t3lib_TCEmain');
-					/* @var $copyTCE t3lib_TCEmain  */
-					$copyTCE->stripslashes_values = 0;
-					$copyTCE->copyTree = $this->copyTree;
-					$copyTCE->cachedTSconfig = $this->cachedTSconfig;	// Copy forth the cached TSconfig
-					$copyTCE->dontProcessTransformations=1;		// Transformations should NOT be carried out during copy
+						$copyTCE->start($data,'',$this->BE_USER);
+						$copyTCE->process_datamap();
 
-					$copyTCE->start($data,'',$this->BE_USER);
-					$copyTCE->process_datamap();
+							// Getting the new UID:
+						$theNewSQLID = $copyTCE->substNEWwithIDs[$theNewID];
+						if ($theNewSQLID) {
+							$this->copyRecord_fixRTEmagicImages($table, t3lib_BEfunc::wsMapId($table, $theNewSQLID));
+							$this->copyMappingArray[$table][$origUid] = $theNewSQLID;
+						}
 
-						// Getting the new UID:
-					$theNewSQLID = $copyTCE->substNEWwithIDs[$theNewID];
-					if ($theNewSQLID)	{
-						$this->copyRecord_fixRTEmagicImages($table,t3lib_BEfunc::wsMapId($table,$theNewSQLID));
-						$this->copyMappingArray[$table][$origUid] = $theNewSQLID;
-					}
+							// Copy back the cached TSconfig
+						$this->cachedTSconfig = $copyTCE->cachedTSconfig;
+						$this->errorLog = array_merge($this->errorLog, $copyTCE->errorLog);
+						unset($copyTCE);
 
-						// Copy back the cached TSconfig
-					$this->cachedTSconfig = $copyTCE->cachedTSconfig;
-					$this->errorLog = array_merge($this->errorLog,$copyTCE->errorLog);
-					unset($copyTCE);
+						if($language == 0) {
+								//repointing the new translation records to the parent record we just created
+							$overrideValues[$GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField']] = $theNewSQLID;
+							$this->copyL10nOverlayRecords($table, $uid, $destPid<0 ? $tscPID : $destPid , $first, $overrideValues, $excludeFields);
+						}
 
-					return $theNewSQLID;
-				} else $this->log($table,$uid,3,0,1,'Attempt to copy record that did not exist!');
+						return $theNewSQLID;
+					} else $this->log($table,$uid,3,0,1,'Attempt to copy record that did not exist!');
+				}  else $this->log($table,$uid,3,0,1,'Attempt to copy record without having permissions to do so. ['.$this->BE_USER->errorMsg.'].');
 			} else $this->log($table,$uid,3,0,1,'Attempt to copy record without permission');
 		}
 	}
@@ -3023,13 +3055,13 @@ class t3lib_TCEmain	{
 
 			// System fields being set:
 		if ($TCA[$table]['ctrl']['crdate'])	{
-			$fieldArray[$TCA[$table]['ctrl']['crdate']]=time();
+			$fieldArray[$TCA[$table]['ctrl']['crdate']] = $GLOBALS['EXEC_TIME'];
 		}
 		if ($TCA[$table]['ctrl']['cruser_id'])	{
 			$fieldArray[$TCA[$table]['ctrl']['cruser_id']]=$this->userid;
 		}
 		if ($TCA[$table]['ctrl']['tstamp'])	{
-			$fieldArray[$TCA[$table]['ctrl']['tstamp']]=time();
+			$fieldArray[$TCA[$table]['ctrl']['tstamp']] = $GLOBALS['EXEC_TIME'];
 		}
 
 			// Finally, insert record:
@@ -3343,7 +3375,32 @@ class t3lib_TCEmain	{
 
 
 
+	/**
+	 * Find l10n-overlay records and perform the requested move action for these records.
+	 *
+	 * @param	string		$table: Record Table
+	 * @param	string		$uid: Record UID
+	 * @param	string		$destPid: Position to move to
+	 * @return	void
+	 */
+	function copyL10nOverlayRecords($table, $uid, $destPid, $first=0, $overrideValues=array(), $excludeFields='') {
+			//there's no need to perform this for page-records
+		if (!t3lib_BEfunc::isTableLocalizable($table) || !empty($GLOBALS['TCA'][$table]['ctrl']['transForeignTable'])) {
+			return;
+		}
 
+		$where = '';
+		if (isset($GLOBALS['TCA'][$table]['ctrl']['versioningWS'])) {
+			$where = ' AND t3ver_oid=0';
+		}
+
+		$l10nRecords = t3lib_BEfunc::getRecordsByField($table, $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'], $uid, $where);
+		if (is_array($l10nRecords)) {
+			foreach ($l10nRecords as $record) {
+				$this->copyRecord($table, $record['uid'], $destPid, $first, $overrideValues, $excludeFields, $record[$GLOBALS['TCA'][$table]['ctrl']['languageField']]);
+			}
+		}
+	}
 
 
 
@@ -3400,7 +3457,7 @@ class t3lib_TCEmain	{
 			}
 
 				// Checking if there is anything else disallowing moving the record by checking if editing is allowed
-			$mayEditAccess = $this->BE_USER->recordEditAccessInternals($table,$uid);
+			$mayEditAccess = $this->BE_USER->recordEditAccessInternals($table, $uid, false, false, true);
 
 				// If moving is allowed, begin the processing:
 			if ($mayEditAccess)	{
@@ -3488,13 +3545,13 @@ class t3lib_TCEmain	{
 				// First, we create a placeholder record in the Live workspace that represents the position to where the record is eventually moved to.
 			$newVersion_placeholderFieldArray = array();
 			if ($TCA[$table]['ctrl']['crdate'])	{
-				$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['crdate']] = time();
+				$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['crdate']] = $GLOBALS['EXEC_TIME'];
 			}
 			if ($TCA[$table]['ctrl']['cruser_id'])	{
 				$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['cruser_id']] = $this->userid;
 			}
 			if ($TCA[$table]['ctrl']['tstamp'] && count($fieldArray))	{
-				$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['tstamp']] = time();
+				$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['tstamp']] = $GLOBALS['EXEC_TIME'];
 			}
 
 			if ($table == 'pages') {
@@ -3515,6 +3572,14 @@ class t3lib_TCEmain	{
 			$newVersion_placeholderFieldArray['t3ver_wsid'] = $this->BE_USER->workspace;	// Setting workspace - only so display of place holders can filter out those from other workspaces.
 			$newVersion_placeholderFieldArray[$TCA[$table]['ctrl']['label']] = '[MOVE-TO PLACEHOLDER for #'.$uid.', WS#'.$this->BE_USER->workspace.']';
 
+				// moving localized records requires to keep localization-settings for the placeholder too
+			if (array_key_exists('languageField', $GLOBALS['TCA'][$table]['ctrl']) && array_key_exists('transOrigPointerField', $GLOBALS['TCA'][$table]['ctrl'])) {
+				$l10nParentRec = t3lib_BEfunc::getRecord($table, $uid);
+				$newVersion_placeholderFieldArray[$GLOBALS['TCA'][$table]['ctrl']['languageField']] = $l10nParentRec[$GLOBALS['TCA'][$table]['ctrl']['languageField']];
+				$newVersion_placeholderFieldArray[$GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField']] = $l10nParentRec[$GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField']];
+				unset($l10nParentRec);
+			}
+
 			$newVersion_placeholderFieldArray['pid'] = 0;	// Initially, create at root level.
 			$id = 'NEW_MOVE_PLH';
 			$this->insertDB($table,$id,$newVersion_placeholderFieldArray,FALSE);	// Saving placeholder as 'original'
@@ -3527,6 +3592,9 @@ class t3lib_TCEmain	{
 			$updateFields['t3ver_state'] = 4;	// Setting placeholder state value for version (so it can know it is currently a new version...)
 			$GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, 'uid='.intval($wsUid), $updateFields);
 		}
+
+			//check for the localizations of that element and move them as well
+		$this->moveL10nOverlayRecords($table, $uid, $destPid);
 	}
 
 	/**
@@ -3558,14 +3626,14 @@ class t3lib_TCEmain	{
 		$hookObjectsArr = array();
 		if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['moveRecordClass'])) {
 			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['moveRecordClass'] as $classRef) {
-				$hookObjectsArr[] = &t3lib_div::getUserObj($classRef);
+				$hookObjectsArr[] = t3lib_div::getUserObj($classRef);
 			}
 		}
 
 			// Timestamp field:
 		$updateFields = array();
 		if ($TCA[$table]['ctrl']['tstamp'])	{
-			$updateFields[$TCA[$table]['ctrl']['tstamp']] = time();
+			$updateFields[$TCA[$table]['ctrl']['tstamp']] = $GLOBALS['EXEC_TIME'];
 		}
 
 		if ($destPid>=0)	{	// insert as first element on page (where uid = $destPid)
@@ -3584,6 +3652,8 @@ class t3lib_TCEmain	{
 				$this->moveRecord_procFields($table,$uid,$destPid);
 					// Create query for update:
 				$GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, 'uid='.intval($uid), $updateFields);
+					// check for the localizations of that element
+				$this->moveL10nOverlayRecords($table, $uid, $destPid);
 
 					// Call post processing hooks:
 				foreach($hookObjectsArr as $hookObj) {
@@ -3627,6 +3697,8 @@ class t3lib_TCEmain	{
 						$this->moveRecord_procFields($table,$uid,$destPid);
 							// Create query for update:
 						$GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, 'uid='.intval($uid), $updateFields);
+							// check for the localizations of that element
+						$this->moveL10nOverlayRecords($table, $uid, $destPid);
 
 							// Call post processing hooks:
 						foreach($hookObjectsArr as $hookObj) {
@@ -3720,6 +3792,32 @@ class t3lib_TCEmain	{
 				// record at the beginning, thus the order is reversed here:
 			foreach (array_reverse($dbAnalysis->itemArray) as $v) {
 				$this->moveRecord($v['table'],$v['id'],$destPid);
+			}
+		}
+	}
+
+	/**
+	 * Find l10n-overlay records and perform the requested move action for these records.
+	 *
+	 * @param	string		$table: Record Table
+	 * @param	string		$uid: Record UID
+	 * @param	string		$destPid: Position to move to
+	 * @return	void
+	 */
+	function moveL10nOverlayRecords($table, $uid, $destPid) {
+			//there's no need to perform this for page-records or not localizeable tables
+		if (!t3lib_BEfunc::isTableLocalizable($table) || !empty($GLOBALS['TCA'][$table]['ctrl']['transForeignTable'])) {
+			return;
+		}
+
+		$where = '';
+		if (isset($GLOBALS['TCA'][$table]['ctrl']['versioningWS'])) {
+			$where = ' AND t3ver_oid=0';
+		}
+		$l10nRecords = t3lib_BEfunc::getRecordsByField($table, $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'], $uid, $where);
+		if (is_array($l10nRecords)) {
+			foreach ($l10nRecords as $record) {
+				$this->moveRecord($table, $record['uid'], $destPid);
 			}
 		}
 	}
@@ -3989,6 +4087,7 @@ class t3lib_TCEmain	{
 			} else {
 				// Otherwise, try to delete by versioning:
 				$this->versionizeRecord($table,$id,'DELETED!',TRUE);
+				$this->deleteL10nOverlayRecords($table, $id);
 			}
 		}
 	}
@@ -4060,11 +4159,11 @@ class t3lib_TCEmain	{
 	 * @param	boolean		If TRUE, the "deleted" flag is set to 0 again and thus, the item is undeleted.
 	 * @return	void
 	 */
-	function deleteRecord($table,$uid, $noRecordCheck=FALSE, $forceHardDelete=FALSE,$undeleteRecord=FALSE)	{
+	function deleteRecord($table,$uid, $noRecordCheck = FALSE, $forceHardDelete = FALSE, $undeleteRecord = FALSE) {
 		global $TCA;
 
 			// Checking if there is anything else disallowing deleting the record by checking if editing is allowed
-		$mayEditAccess = $this->BE_USER->recordEditAccessInternals($table,$uid);
+		$mayEditAccess = $this->BE_USER->recordEditAccessInternals($table, $uid, FALSE, $undeleteRecord, TRUE);
 
 		$uid = intval($uid);
 		if ($TCA[$table] && $uid)	{
@@ -4083,7 +4182,7 @@ class t3lib_TCEmain	{
 						);
 
 						if ($TCA[$table]['ctrl']['tstamp']) {
-							$updateFields[$TCA[$table]['ctrl']['tstamp']] = time();
+							$updateFields[$TCA[$table]['ctrl']['tstamp']] = $GLOBALS['EXEC_TIME'];
 						}
 
 							// If the table is sorted, then the sorting number is set very high
@@ -4094,6 +4193,11 @@ class t3lib_TCEmain	{
 							// before (un-)deleting this record, check for child records or references
 						$this->deleteRecord_procFields($table, $uid, $undeleteRecord);
 						$GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, 'uid='.intval($uid), $updateFields);
+
+							 // delete all l10n records aswell, impossible during undelete because it might bring too many records back to life
+						if (!$undeleteRecord) {
+							$this->deleteL10nOverlayRecords($table, $uid);
+						}
 					} else {
 
 							// Fetches all fields with flexforms and look for files to delete:
@@ -4125,6 +4229,8 @@ class t3lib_TCEmain	{
 
 							// Delete the hard way...:
 						$GLOBALS['TYPO3_DB']->exec_DELETEquery($table, 'uid='.intval($uid));
+
+						$this->deleteL10nOverlayRecords($table, $uid);
 					}
 
 					$state = $undeleteRecord ? 1 : 3;	// 1 means insert, 3 means delete
@@ -4178,7 +4284,7 @@ class t3lib_TCEmain	{
 	 * @param	[type]		$pObj: ...
 	 * @return	[type]		...
 	 */
-	function deleteRecord_flexFormCallBack($dsArr, $dataValue, $PA, $structurePath, &$pObj)	{
+	function deleteRecord_flexFormCallBack($dsArr, $dataValue, $PA, $structurePath, $pObj) {
 
 			// Use reference index object to find files in fields:
 		$refIndexObj = t3lib_div::makeInstance('t3lib_refindex');
@@ -4389,7 +4495,31 @@ class t3lib_TCEmain	{
 		}
 	}
 
+	/**
+	 * Find l10n-overlay records and perform the requested delete action for these records.
+	 *
+	 * @param	string		$table: Record Table
+	 * @param	string		$uid: Record UID
+	 * @return	void
+	 */
+	function deleteL10nOverlayRecords($table, $uid) {
+			// Check whether table can be localized or has a different table defined to store localizations:
+		if (!t3lib_BEfunc::isTableLocalizable($table) || !empty($GLOBALS['TCA'][$table]['ctrl']['transForeignTable'])) {
+			return;
+		}
 
+		$where = '';
+		if (isset($GLOBALS['TCA'][$table]['ctrl']['versioningWS'])) {
+			$where = ' AND t3ver_oid=0';
+		}
+
+		$l10nRecords = t3lib_BEfunc::getRecordsByField($table, $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'], $uid, $where);
+		if (is_array($l10nRecords)) {
+			foreach($l10nRecords as $record) {
+				$this->deleteAction($table, intval($record['t3ver_oid']) > 0 ? intval($record['t3ver_oid']) : intval($record['uid']));
+			}
+		}
+	}
 
 
 
@@ -4585,7 +4715,7 @@ class t3lib_TCEmain	{
 
 											// Write lock-file:
 										t3lib_div::writeFileToTypo3tempDir($lockFileName,serialize(array(
-											'tstamp'=>time(),
+											'tstamp' => $GLOBALS['EXEC_TIME'],
 											'user'=>$GLOBALS['BE_USER']->user['username'],
 											'curVersion'=>$curVersion,
 											'swapVersion'=>$swapVersion
@@ -4595,6 +4725,10 @@ class t3lib_TCEmain	{
 										$keepFields = $this->getUniqueFields($table);
 										if ($TCA[$table]['ctrl']['sortby'])	{
 											$keepFields[] = $TCA[$table]['ctrl']['sortby'];
+										}
+											// l10n-fields must be kept otherwise the localization will be lost during the publishing
+										if ($TCA[$table]['ctrl']['transOrigPointerField']) {
+											$keepFields[] = $TCA[$table]['ctrl']['transOrigPointerField'];
 										}
 
 											// Swap "keepfields"
@@ -4614,7 +4748,7 @@ class t3lib_TCEmain	{
 										$swapVersion['pid'] = intval($curVersion['pid']);	// Set pid for ONLINE
 										$swapVersion['t3ver_oid'] = 0;	// We clear this because t3ver_oid only make sense for offline versions and we want to prevent unintentional misuse of this value for online records.
 										$swapVersion['t3ver_wsid'] = $swapIntoWS ? ($t3ver_state['swapVersion']>0 ? $this->BE_USER->workspace : intval($curVersion['t3ver_wsid'])) : 0;	// In case of swapping and the offline record has a state (like 2 or 4 for deleting or move-pointer) we set the current workspace ID so the record is not deselected in the interface by t3lib_BEfunc::versioningPlaceholderClause()
-										$swapVersion['t3ver_tstamp'] = time();
+										$swapVersion['t3ver_tstamp'] = $GLOBALS['EXEC_TIME'];
 										$swapVersion['t3ver_stage'] = 0;
 										if (!$swapIntoWS)	$swapVersion['t3ver_state'] = 0;
 
@@ -4650,7 +4784,7 @@ class t3lib_TCEmain	{
 										$curVersion['pid'] = -1;	// Set pid for OFFLINE
 										$curVersion['t3ver_oid'] = intval($id);
 										$curVersion['t3ver_wsid'] = $swapIntoWS ? intval($tmp_wsid) : 0;
-										$curVersion['t3ver_tstamp'] = time();
+										$curVersion['t3ver_tstamp'] = $GLOBALS['EXEC_TIME'];
 										$curVersion['t3ver_count'] = $curVersion['t3ver_count']+1;	// Increment lifecycle counter
 										$curVersion['t3ver_stage'] = 0;
 										if (!$swapIntoWS)	$curVersion['t3ver_state'] = 0;
@@ -4661,6 +4795,10 @@ class t3lib_TCEmain	{
 
 											// Registering and swapping MM relations in current and swap records:
 										$this->version_remapMMForVersionSwap($table,$id,$swapWith);
+
+											// Generating proper history data to prepare logging
+										$this->compareFieldArrayWithCurrentAndUnset($table, $id, $swapVersion);
+										$this->compareFieldArrayWithCurrentAndUnset($table, $swapWith, $curVersion);
 
 											// Execute swapping:
 										$sqlErrors = array();
@@ -4695,9 +4833,29 @@ class t3lib_TCEmain	{
 
 											$this->newlog2(($swapIntoWS ? 'Swapping' : 'Publishing').' successful for table "'.$table.'" uid '.$id.'=>'.$swapWith, $table, $id, $swapVersion['pid']);
 
-												// Update reference index:
+												// Update reference index of the live record:
 											$this->updateRefIndex($table,$id);
+												// Set log entry for live record:
+											$propArr = $this->getRecordPropertiesFromRow($table, $swapVersion);
+											if ( $propArr['_ORIG_pid'] == -1) {
+												$label = $GLOBALS['LANG']->sL ('LLL:EXT:lang/locallang_tcemain.xml:version_swap.offline_record_updated');
+											} else {
+												$label = $GLOBALS['LANG']->sL ('LLL:EXT:lang/locallang_tcemain.xml:version_swap.online_record_updated');
+											}
+											$theLogId = $this->log($table, $id, 2, $propArr['pid'], 0, $label , 10, array($propArr['header'], $table . ':' . $id), $propArr['event_pid']);
+											$this->setHistory($table, $id, $theLogId);
+
+												// Update reference index of the offline record:
 											$this->updateRefIndex($table,$swapWith);
+												// Set log entry for offline record:
+											$propArr = $this->getRecordPropertiesFromRow($table, $curVersion);
+											if ( $propArr['_ORIG_pid'] == -1) {
+												$label = $GLOBALS['LANG']->sL ('LLL:EXT:lang/locallang_tcemain.xml:version_swap.offline_record_updated');
+											} else {
+												$label = $GLOBALS['LANG']->sL ('LLL:EXT:lang/locallang_tcemain.xml:version_swap.online_record_updated');
+											}
+											$theLogId = $this->log($table, $swapWith, 2, $propArr['pid'], 0, $label , 10, array($propArr['header'], $table . ':'. $swapWith), $propArr['event_pid']);
+											$this->setHistory($table, $swapWith, $theLogId);
 
 												// SWAPPING pids for subrecords:
 											if ($table=='pages' && $swapVersion['t3ver_swapmode']>=0)	{
@@ -5343,6 +5501,13 @@ $this->log($table,$id,6,0,0,'Stage raised...',30,array('comment'=>$comment,'stag
 	 */
 	function checkModifyAccessList($table)	{
 		$res = ($this->admin || (!$this->tableAdminOnly($table) && t3lib_div::inList($this->BE_USER->groupData['tables_modify'],$table)));
+
+			// Hook 'checkModifyAccessList': Post-processing of the state of access
+		foreach($this->getCheckModifyAccessListHookObjects() as $hookObject) {
+			/* @var $hookObject t3lib_TCEmain_checkModifyAccessListHook */
+			$hookObject->checkModifyAccessList($res, $table, $this);
+		}
+
 		return $res;
 	}
 
@@ -6015,7 +6180,7 @@ $this->log($table,$id,6,0,0,'Stage raised...',30,array('comment'=>$comment,'stag
 			$fields_values = array();
 			$fields_values['history_data'] = serialize($this->historyRecords[$table.':'.$id]);
 			$fields_values['fieldlist'] = implode(',',array_keys($this->historyRecords[$table.':'.$id]['newRecord']));
-			$fields_values['tstamp'] = time();
+			$fields_values['tstamp'] = $GLOBALS['EXEC_TIME'];
 			$fields_values['tablename'] = $table;
 			$fields_values['recuid'] = $id;
 			$fields_values['sys_log_uid'] = $logId;
@@ -6032,7 +6197,7 @@ $this->log($table,$id,6,0,0,'Stage raised...',30,array('comment'=>$comment,'stag
 	 * @return	void
 	 */
 	function clearHistory($maxAgeSeconds=604800,$table)	{
-		$tstampLimit = $maxAgeSeconds ? time()-$maxAgeSeconds : 0;
+		$tstampLimit = $maxAgeSeconds ? $GLOBALS['EXEC_TIME'] - $maxAgeSeconds : 0;
 
 		$GLOBALS['TYPO3_DB']->exec_DELETEquery('sys_history', 'tstamp<'.intval($tstampLimit).' AND tablename='.$GLOBALS['TYPO3_DB']->fullQuoteStr($table, 'sys_history'));
 		}
@@ -6864,8 +7029,8 @@ $this->log($table,$id,6,0,0,'Stage raised...',30,array('comment'=>$comment,'stag
 								foreach($rows as $dat)	{
 									$data = unserialize($dat['log_data']);
 
-									debug($dat['userid'],'Adds user at stage: '.$data['stage']);
-									$emails = array_merge($emails,$this->notifyStageChange_getEmails($dat['userid']));
+									//debug($dat['userid'],'Adds user at stage: '.$data['stage']);
+									$emails = array_merge($emails,$this->notifyStageChange_getEmails($dat['userid'],TRUE));
 
 									if ($data['stage']==1)	{
 										break;
@@ -6936,6 +7101,8 @@ State was change by %s (username: %s)
 					sprintf($subject,$elementName),
 					trim($message)
 				);
+
+				$this->newlog2('Notification email for stage change was sent to "'.implode(', ',$emails).'"',$table,$id);
 			}
 		}
 	}
@@ -7092,18 +7259,23 @@ State was change by %s (username: %s)
 
 						// Delete cache for selected pages:
 					if (is_array($list_cache))	{
+						if (TYPO3_UseCachingFramework) {
+							$pageCache = $GLOBALS['typo3CacheManager']->getCache(
+								'cache_pages'
+							);
+							$pageSectionCache = $GLOBALS['typo3CacheManager']->getCache(
+								'cache_pagesection'
+							);
 
-						$pageCache = $GLOBALS['typo3CacheManager']->getCache(
-							'cache_pages'
-						);
-						$pageSectionCache = $GLOBALS['typo3CacheManager']->getCache(
-							'cache_pagesection'
-						);
+							$pageIds = $GLOBALS['TYPO3_DB']->cleanIntArray($list_cache);
+							foreach ($pageIds as $pageId) {
+								$pageCache->flushByTag('pageId_' . $pageId);
+								$pageSectionCache->flushByTag('pageId_' . $pageId);
+							}
+						} else {
+							$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pages','page_id IN ('.implode(',',$GLOBALS['TYPO3_DB']->cleanIntArray($list_cache)).')');
+							$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pagesection', 'page_id IN ('.implode(',',$GLOBALS['TYPO3_DB']->cleanIntArray($list_cache)).')');
 
-						$pageIds = $GLOBALS['TYPO3_DB']->cleanIntArray($list_cache);
-						foreach ($pageIds as $pageId) {
-							$pageCache->flushByTag('pageId_' . $pageId);
-							$pageSectionCache->flushByTag('pageId_' . $pageId);
 						}
 					}
 				}
@@ -7173,11 +7345,23 @@ State was change by %s (username: %s)
 			case 'all':
 				if ($this->admin || $this->BE_USER->getTSConfigVal('options.clearCache.all'))	{
 
-						// clear all caches that use the t3lib_cache framework
-					$GLOBALS['typo3CacheManager']->flushCaches();
+						// Clear all caching framework caches if it is initialized:
+						// (it could be disabled by initialized by an extension)
+					if (t3lib_cache::isCachingFrameworkInitialized()) {
+						$GLOBALS['typo3CacheManager']->flushCaches();
+					}
 
-					if (t3lib_extMgm::isLoaded('cms'))	{
-						$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_treelist', '');
+					if (TYPO3_UseCachingFramework) {
+						if (t3lib_extMgm::isLoaded('cms'))	{
+							$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_treelist', '');
+						}
+					} else {
+						if (t3lib_extMgm::isLoaded('cms'))	{
+							$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_treelist', '');
+							$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pagesection','');
+						}
+						$this->internal_clearPageCache();
+						$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_hash','');
 					}
 
 						// Clearing additional cache tables:
@@ -7219,16 +7403,23 @@ State was change by %s (username: %s)
 
 					// Delete cache for selected pages:
 				if (is_array($list_cache)) {
-					$pageCache = $GLOBALS['typo3CacheManager']->getCache(
-						'cache_pages'
-					);
-					$pageSectionCache = $GLOBALS['typo3CacheManager']->getCache(
-						'cache_pagesection'
-					);
 
-					foreach ($list_cache as $pageId) {
-						$pageCache->flushByTag('pageId_' . (int) $pageId);
-						$pageSectionCache->flushByTag('pageId_' . (int) $pageId);
+					if (TYPO3_UseCachingFramework) {
+						$pageCache = $GLOBALS['typo3CacheManager']->getCache(
+							'cache_pages'
+						);
+						$pageSectionCache = $GLOBALS['typo3CacheManager']->getCache(
+							'cache_pagesection'
+						);
+
+						foreach ($list_cache as $pageId) {
+							$pageCache->flushByTag('pageId_' . (int) $pageId);
+							$pageSectionCache->flushByTag('pageId_' . (int) $pageId);
+						}
+					} else {
+						$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pages','page_id IN ('.implode(',',$GLOBALS['TYPO3_DB']->cleanIntArray($list_cache)).')');
+						$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pagesection', 'page_id IN ('.implode(',',$GLOBALS['TYPO3_DB']->cleanIntArray($list_cache)).')');	// Originally, cache_pagesection was not cleared with cache_pages!
+
 					}
 				}
 			}
@@ -7332,49 +7523,19 @@ State was change by %s (username: %s)
 					'sys_log',
 					'type=1 AND userid='.intval($this->BE_USER->user['uid']).' AND tstamp='.intval($GLOBALS['EXEC_TIME']).'	AND error!=0'
 				);
-		$errorJS = array();
 		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res_log)) {
 			$log_data = unserialize($row['log_data']);
-			$errorJS[] = $row['error'].': '.sprintf($row['details'], $log_data[0],$log_data[1],$log_data[2],$log_data[3],$log_data[4]);
+			$msg = $row['error'] . ': ' . sprintf($row['details'], $log_data[0], $log_data[1], $log_data[2], $log_data[3], $log_data[4]);
+			$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						$msg,
+						'',
+						t3lib_FlashMessage::ERROR,
+						TRUE
+				);
+			t3lib_FlashMessageQueue::addMessage($flashMessage);
 		}
 		$GLOBALS['TYPO3_DB']->sql_free_result($res_log);
-
-		if (count($errorJS))	{
-			$error_doc = t3lib_div::makeInstance('template');
-			$error_doc->backPath = $GLOBALS['BACK_PATH'];
-
-			$content.= $error_doc->startPage('tce_db.php Error output');
-
-			$lines[] = '
-					<tr class="bgColor5">
-						<td colspan="2" align="center"><strong>Errors:</strong></td>
-					</tr>';
-
-			foreach($errorJS as $line)	{
-				$lines[] = '
-					<tr class="bgColor4">
-						<td valign="top"><img'.t3lib_iconWorks::skinImg($error_doc->backPath,'gfx/icon_fatalerror.gif','width="18" height="16"').' alt="" /></td>
-						<td>'.htmlspecialchars($line).'</td>
-					</tr>';
-			}
-
-			$lines[] = '
-					<tr>
-						<td colspan="2" align="center"><br />'.
-						'<form action=""><input type="submit" value="Continue" onclick="'.htmlspecialchars('window.location.href=\''.$redirect.'\';return false;').'"></form>'.
-						'</td>
-					</tr>';
-
-			$content.= '
-				<br/><br/>
-				<table border="0" cellpadding="1" cellspacing="1" width="300" align="center">
-					'.implode('',$lines).'
-				</table>';
-
-			$content.= $error_doc->endPage();
-			echo $content;
-			exit;
-		}
 	}
 
 	/*****************************
@@ -7389,8 +7550,21 @@ State was change by %s (username: %s)
 	 * @return	void
 	 */
 	function internal_clearPageCache() {
-		if (t3lib_extMgm::isLoaded('cms')) {
-			$GLOBALS['typo3CacheManager']->getCache('cache_pages')->flush();
+		if (TYPO3_UseCachingFramework) {
+			if (t3lib_extMgm::isLoaded('cms')) {
+				$GLOBALS['typo3CacheManager']->getCache('cache_pages')->flush();
+			}
+		} else {
+			if (t3lib_extMgm::isLoaded('cms'))	{
+				if ($GLOBALS['TYPO3_CONF_VARS']['FE']['pageCacheToExternalFiles']) {
+					$cacheDir = PATH_site.'typo3temp/cache_pages';
+					$retVal = t3lib_div::rmdir($cacheDir,true);
+					if (!$retVal) {
+						t3lib_div::sysLog('Could not remove page cache files in "'.$cacheDir.'"','Core/t3lib_tcemain',2);
+					}
+				}
+				$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pages','');
+			}
 		}
 	}
 

@@ -33,6 +33,7 @@ div {
 	font-size: 10px;
 	margin: 0px;
 	color: black;
+	line-height: 14px;
 }
 
 form {
@@ -46,7 +47,7 @@ h4 {
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size: 10px;
 	font-weight: bold;
-	margin: 3px 0px 3px 0px;
+	margin: 6px 0;
 }
 
 /* Occasionally used, eg. in About Modules: */
@@ -187,6 +188,7 @@ body#typo3-alt-palette-php {
 }
 
 body#typo3-alt-doc-php,
+body#typo3-alt-file-navframe-php,
 body#typo3-db-list-php,
 body#typo3-mod-web-perm-index-php,
 body#typo3-mod-web-info-index-php,
@@ -213,6 +215,7 @@ body#ext-indexed-search-mod-index-php,
 body#ext-cms-layout-db-new-content-el-php,
 body#ext-beuser-mod-index-php,
 body#ext-belog-mod-index-php,
+body#ext-recycler-mod1-index-php, 
 body#imp-exp-mod {
 	padding: 0;
 	margin: 0;
@@ -597,6 +600,73 @@ div.typo3-dyntabmenu-divs-foldout div.tabact_over a {
 
 /* - - - - - - - - - - - - - - - - - - - - -
 
+Flash Messages (template.php)
+
+- - - - - - - - - - - - - - - - - - - - - */
+
+#typo3-messages {
+	margin-bottom: 10px;
+}
+
+.typo3-message {
+	padding: 6px;
+	padding-left: 26px;
+	margin-bottom: 4px;
+	background-repeat: no-repeat;
+	background-position: 4px 4px;
+	border: 1px solid;
+}
+
+.typo3-message a {
+	text-decoration: underline;
+}
+
+.typo3-message ul,
+.typo3-message ol {
+	padding-left: 16px;
+}
+
+.typo3-message .message-header {
+	display: block;
+	margin-bottom: 5px;
+	margin-top: -1px;
+	font-size: 11px;
+	font-weight: bold;
+}
+
+.message-notice {
+	background-image: url(gfx/notice.png);
+	background-color: #f6f7fa;
+	border-color: #c2cbcf;
+}
+
+.message-information {
+	background-image: url(gfx/information.png);
+	background-color: #ddeef9;
+	border-color: #8aafc4;
+}
+
+.message-ok {
+	background-image: url(gfx/ok.png);
+	background-color: #cdeaca;
+	border-color: #58b548;
+}
+
+.message-warning {
+	background-image: url(gfx/warning.png);
+	background-color: #fbffb3;
+	border-color: #c4b70d;
+}
+
+.message-error {
+	background-image: url(gfx/error.png);
+	background-color: #fbb19b;
+	border-color: #dc4c42;
+}
+
+
+/* - - - - - - - - - - - - - - - - - - - - -
+
 User settings
 
 - - - - - - - - - - - - - - - - - - - - - */
@@ -604,11 +674,19 @@ User settings
 table.typo3-usersettings td {
 	width: 300px;
 }
-
-table.typo3-usersettings a.typo3-csh-link {
-	display: block;
+table.typo3-usersettings td.td-label label {
 	float: left;
-	margin-right: 5px;
+	margin-left: 3px;
+	width: 275px;
+}
+table.typo3-usersettings a.typo3-csh-link {
+	float: left;
+}
+
+table.typo3-usersettings img.csh-dummy {
+	float: left;
+	vertical-align:middle;
+	margin-right: 4px;
 }
 
 table.typo3-usersettings td.td-label-right {
@@ -799,7 +877,7 @@ body#ext-lowlevel-config-index-php #lowlevel-config-var {
 }
 
 
-/* dbint module */ 
+/* dbint module */
 body#ext-lowlevel-dbint-index-php table.qg-make-query td input {
 	margin: 0 2px;
 	vertical-align: middle;
@@ -860,6 +938,11 @@ body#typo3-pagetree,
 body#typo3-alt-file-navframe-php {
 	margin: 0;
 	padding: 0;
+}
+
+body#typo3-pagetree #typo3-inner-docbody,
+body#typo3-alt-file-navframe-php #typo3-inner-docbody {
+	padding-right: 0px;
 }
 
 ul.tree {
@@ -971,7 +1054,37 @@ ul.tree li.active ul, ul.tree ul li.active ul {
 TCEforms
 
 - - - - - - - - - - - - - - - - - - - - - */
+img.t3-TCEforms-reqImg {
+	display:inline-block;
+	margin-right:3px;
+	margin-top:4px;
+	margin-left:3px;
+	width:16px;
+	height:16px;
 
+}
+img.t3-TCEforms-reqTabImg {
+	margin-left:4px;
+	margin-bottom:-3px;
+	width:16px;
+	height:16px;
+
+}
+img.t3-TCEforms-contentchangedImg {
+	display:inline-block;
+	margin-bottom:2px;
+	width: 7px;
+}
+img.t3-TCEforms-reqPaletteImg {
+	display:inline-block;
+	margin-right:2px;
+	width:16px;
+	height:16px;
+
+}
+img.t3-TCEforms-contentchangedPaletteImg {
+	width: 7px;
+}
 table.typo3-TCEforms {
 	width: 93%;
 	border-collapse: collapse;
@@ -986,6 +1099,7 @@ table.typo3-TCEforms tr.typo3-TCEforms-recHeaderRow,
 table.typo3-TCEforms tr.typo3-TCEforms-recHeaderRow td {
 	border: 0;
 }
+
 
 table.typo3-TCEforms span.typo3-TCEforms-newToken {
 	font-weight: bold;
@@ -1076,6 +1190,88 @@ table.typo3-TCEforms div.typo3-TCEforms-diffBox-header {
 
 table.typo3-TCEforms div.typo3-dyntabmenu-tabs {
 	margin-top: 10px;
+}
+
+div.typo3-TCEforms-suggest-position-right {
+	margin-left: 10px;
+	margin-top: 5px;
+}
+
+div.typo3-TCEforms-suggest label {
+	margin-right: 5px;
+}
+
+input.typo3-TCEforms-suggest-search {
+	width: 200px;
+	background-image: url(gfx/zoom.gif);
+	background-position: 2px center;
+	background-repeat: no-repeat;
+	padding: 1px 1px 1px 16px;
+	margin: 1px 10px 0 0;
+}
+
+div.typo3-TCEforms-suggest-indicator {
+	position: relative;
+	left: 230px;
+	top: -18px;
+}
+
+div.typo3-TCEforms-suggest-choices {
+	position: absolute;
+	width: 250px;
+	background-color: white;
+	border: 1px solid #888;
+}
+
+div.typo3-TCEforms-suggest-choices ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+div.typo3-TCEforms-suggest-choices li.selected {
+	background-color: #ffb !important;
+}
+
+div.typo3-TCEforms-suggest-choices li {
+	list-style-type: none;
+	display: block;
+	margin: 0;
+	padding: 4px 2px 4px 24px;
+	cursor: pointer;
+	background-color: #EFEFF4;
+	background-repeat: no-repeat;
+	background-position: 4px center;
+}
+
+div.typo3-TCEforms-suggest-choices li.suggest-noresults {
+	height: auto;
+}
+
+div.typo3-TCEforms-suggest-choices li.pages {
+	background-color:#FCC;
+}
+
+div.typo3-TCEforms-suggest-choices span.suggest-label {
+	font-weight:bold;
+}
+
+div.typo3-TCEforms-suggest-choices span.suggest-uid {
+	font-size:0.9em;
+	margin-left:0.3em;
+}
+
+div.typo3-TCEforms-suggest-choices span.suggest-path {
+	font-size:0.9em;
+	margin-top:0.3em;
+}
+
+div.typo3-TCEforms-suggest-choices span.suggest-path abbr {
+	border-bottom: none;
+}
+
+div.typo3-TCEforms-suggest-choises a {
+	cursor: pointer;
 }
 
 
@@ -1357,6 +1553,7 @@ div#typo3-docheader div.buttonsright {
 div#typo3-docheader img, div#typo3-docheader input {
 	margin: 2px 3px 0;
 	vertical-align: top;
+	cursor: pointer;
 }
 
 div#typo3-docheader img.typo3-csh-icon {
@@ -1395,7 +1592,7 @@ div#typo3-docbody {
 }
 
 div#typo3-inner-docbody {
-	padding: 10px 0 10px 10px;
+	padding: 10px;
 }
 
 /* Fix for IE 6 */
@@ -1492,11 +1689,11 @@ table#logintable {
 	position: absolute;
 	left: 35%;
 	top: 78px;
-	margin: 5px 20px 5px 20px;
+	margin: 5px 20px;
 }
 
 table#logintable tr td {
-	padding: 1px 1px 1px 1px;
+	padding: 1px;
 }
 
 table#logintable H2 {
@@ -1522,8 +1719,8 @@ table#logintable P.c-wrong {
 	font-size: 10px;
 	width: 300px;
 	border: #858585 solid 1px;
-	margin: 5px 0px 5px 0px;
-	padding: 5px 15px 5px 15px;
+	margin: 5px 0px;
+	padding: 5px 15px;
 }
 
 table#logintable input.c-username,
@@ -1847,11 +2044,18 @@ table.typo3-dblist tr:hover td {
 }
 
 table.typo3-dblist tr td.col-icon {
-	width: 40px;
+	width: 20px;
+	padding-right: 0px;
+	padding-left: 4px;
+	vertical-align: middle;
+}
+
+table.typo3-dblist tr.c-headLineTable td.col-icon {
+	padding-left: 3px;
 }
 
 table.typo3-dblist tr td.col-icon a {
-	width: 40px;
+	width: 20px;
 	display: block;
 }
 
@@ -1862,6 +2066,11 @@ table.typo3-dblist tr td.col-icon a img.collapseIcon {
 table.typo3-dblist tr td.col-title {
 	width: 240px;
 	overflow: hidden;
+	vertical-align: middle;
+}
+
+table.typo3-dblist tr td.col-title.localization {
+	padding-left: 18px;
 }
 
 table.typo3-dblist tr.c-headLine td.col-title a {
@@ -2824,13 +3033,3 @@ div {
 	border: 1px dotted #666;
 }
 */
-
-
-
-
-
-
-
-
-
-

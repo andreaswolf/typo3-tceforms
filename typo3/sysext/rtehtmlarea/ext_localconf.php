@@ -111,7 +111,7 @@ if ($_EXTCONF['enableInlineElements']) {
 	t3lib_extMgm::addPageTSConfig('<INCLUDE_TYPOSCRIPT: source="FILE:EXT:' . $_EXTKEY . '/extensions/InlineElements/res/pageTSConfig.txt">');
 }
 	// Block Elements configuration
-	// Set compatibility warnings in the Update Wizard of the Install Tool
+	// Set compatibility warnings in the Update Wizard of the Install Tool for indentation and alignment
 $TYPO3_CONF_VARS['SC_OPTIONS']['ext/install']['compat_version']['tx_rtehtmlarea_indent'] = array(
 	'title' => 'htmlArea RTE: Using CSS classes for indentation and alignment',
 	'version' => 4002000,
@@ -127,6 +127,14 @@ if (!t3lib_div::compat_version('4.2.0')) {
 $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['BlockElements'] = array();
 $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['BlockElements']['objectReference'] = 'EXT:'.$_EXTKEY.'/extensions/BlockElements/class.tx_rtehtmlarea_blockelements.php:&tx_rtehtmlarea_blockelements';
 $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['BlockElements']['addIconsToSkin'] = 0;
+	// Set compatibility warning in the Update Wizard of the Install Tool for definition lists
+if (t3lib_extMgm::isLoaded('rtehtmlarea_definitionlist')) {
+	$TYPO3_CONF_VARS['SC_OPTIONS']['ext/install']['compat_version']['tx_rtehtmlarea_definitionlist'] = array(
+		'title' => 'htmlArea RTE: Integration of Definition List feature',
+		'version' => 4003000,
+		'description' => 'Support for definition lists has been integrated into htmlArea RTE.<br />You should uninstall extension "Definition Lists for htmlArea RTE" (key: rtehtmlarea_definitionlist)'
+	);
+}
 $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['DefinitionList'] = array();
 $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['DefinitionList']['objectReference'] = 'EXT:'.$_EXTKEY.'/extensions/DefinitionList/class.tx_rtehtmlarea_definitionlist.php:&tx_rtehtmlarea_definitionlist';
 $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['DefinitionList']['addIconsToSkin'] = 0;
@@ -254,6 +262,6 @@ $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['CopyPaste'] = array();
 $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['CopyPaste']['objectReference'] = 'EXT:'.$_EXTKEY.'/extensions/CopyPaste/class.tx_rtehtmlarea_copypaste.php:&tx_rtehtmlarea_copypaste';
 $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['CopyPaste']['addIconsToSkin'] = 0;
 $TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['CopyPaste']['disableInFE'] =  0;
-$TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['CopyPaste']['mozillaAllowClipboardURL'] =  'http://typo3.org/fileadmin/allowclipboardhelper-0.6.xpi';
+$TYPO3_CONF_VARS['EXTCONF'][$_EXTKEY]['plugins']['CopyPaste']['mozillaAllowClipboardURL'] = 'https://addons.mozilla.org/firefox/downloads/latest/852/addon-852-latest.xpi';
 
 ?>

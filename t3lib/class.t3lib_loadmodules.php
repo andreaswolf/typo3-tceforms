@@ -88,7 +88,7 @@ class t3lib_loadModules {
 	 *
 	 * @var t3lib_beUserAuth
 	 */
-	var $BE_USER = '';
+	var $BE_USER;
 	var $observeWorkspaces = FALSE;		// If set true, workspace "permissions" will be observed so non-allowed modules will not be included in the array of modules.
 
 
@@ -384,7 +384,19 @@ class t3lib_loadModules {
 	 * @return	mixed		See description of function
 	 */
 	function checkMod($name, $fullpath)	{
-		$modconf=Array();
+		if ($name == 'user_ws' && !t3lib_extMgm::isLoaded('version')) {
+			return FALSE;
+		}
+
+			// Check for own way of configuring module
+		if (is_array($GLOBALS['TBE_MODULES'][$name]['configureModuleFunction'])) {
+			$obj = $GLOBALS['TBE_MODULES'][$name]['configureModuleFunction'];
+			if (is_callable($obj)) {
+				return call_user_func($obj, $name, $fullpath);
+			}
+		}
+
+ 		$modconf = array();
 		$path = preg_replace('/\/[^\/.]+\/\.\.\//', '/', $fullpath); // because 'path/../path' does not work
 		if (@is_dir($path) && file_exists($path.'/conf.php')) 	{
 			$MCONF = array();
@@ -433,7 +445,11 @@ class t3lib_loadModules {
 
 					// Default script setup
 				if ($MCONF['script']==='_DISPATCH')	{
-					$modconf['script'] = 'mod.php?M='.rawurlencode($name);
+					if ($MCONF['extbase']) {
+						$modconf['script'] = 'mod.php?M=Tx_' . rawurlencode($name);
+					} else {
+						$modconf['script'] = 'mod.php?M=' . rawurlencode($name);
+					}
 				} elseif ($MCONF['script'] && file_exists($path.'/'.$MCONF['script']))	{
 					$modconf['script'] = $this->getRelativePath(PATH_typo3,$fullpath.'/'.$MCONF['script']);
 				} else {

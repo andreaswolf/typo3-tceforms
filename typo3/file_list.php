@@ -165,7 +165,7 @@ class SC_file_list {
 		$this->doc = t3lib_div::makeInstance('template');
 		$this->doc->backPath = $BACK_PATH;
 		$this->doc->setModuleTemplate('templates/file_list.html');
-		$this->doc->loadPrototype();
+		$this->doc->getPageRenderer()->loadPrototype();
 
 			// Validating the input "id" (the path, directory!) and checking it against the mounts of the user.
 		$this->id = $this->basicFF->is_directory($this->id);
@@ -332,7 +332,7 @@ class SC_file_list {
 					<div id="typo3-listOptions">
 				';
 
-			   		// Add "display bigControlPanel" checkbox:	
+			   		// Add "display bigControlPanel" checkbox:
 				$pageContent.=t3lib_BEfunc::getFuncCheck($this->id, 'SET[bigControlPanel]', $this->MOD_SETTINGS['bigControlPanel'], 'file_list.php', '', 'id="bigControlPanel"') . '<label for="bigControlPanel"> ' .$LANG->getLL('bigControlPanel', 1) . '</label><br />';
 
 					// Add "display thumbnails" checkbox:

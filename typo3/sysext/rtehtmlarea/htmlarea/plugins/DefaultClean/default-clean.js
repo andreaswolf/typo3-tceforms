@@ -164,6 +164,9 @@ DefaultClean = HTMLArea.Plugin.extend({
 			}
 		}
 		parseTree(this.editor._doc.body);
+		if (HTMLArea.is_safari) {
+			this.editor.cleanAppleStyleSpans(this.editor._doc.body);
+		}
 	}
 });
 
@@ -172,7 +175,7 @@ DefaultClean = HTMLArea.Plugin.extend({
  */
 DefaultClean.cleanLater = function (editorNumber) {
 	var editor = RTEarea[editorNumber].editor;
-	editor.getPluginInstance("Default").clean();
+	editor.getPluginInstance("DefaultClean").clean();
 };
 
 /*

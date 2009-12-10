@@ -38,80 +38,99 @@ class AjaxLogin {
 	 * a BE user and reset the timer and hide the login window.
 	 * If it was unsuccessful, we display that and show the login box again.
 	 *
-	 * @param string $params 	Always empty.
-	 * @param string $ajaxObj	The Ajax object used to return content and set content types
-	 * @return void
+	 * @param	array		$parameters: Parameters (not used)
+	 * @param	TYPO3AJAX	$ajaxObj: The calling parent AJAX object
+	 * @return	void
 	 */
-	public function login($params = array(), TYPO3AJAX &$ajaxObj = null) {
+	public function login(array $parameters, TYPO3AJAX $ajaxObj) {
 		if ($GLOBALS['BE_USER']->user['uid']) {
-			$json = '{success: true}';
+			$json = array('success' => TRUE);
 		} else {
-			$json = '{success: false}';
+			$json = array('success' => FALSE);
 		}
 		$ajaxObj->addContent('login', $json);
+		$ajaxObj->setContentFormat('json');
 	}
 
 	/**
 	 * Logs out the current BE user
 	 *
-	 * @param string $params 		Always empty.
-	 * @param string $TYPO3AJAX     The Ajax object used to return content and set content types
-	 * @return void
+	 * @param	array		$parameters: Parameters (not used)
+	 * @param	TYPO3AJAX	$ajaxObj: The calling parent AJAX object
+	 * @return	void
 	 */
-	public function logout($params = array(), TYPO3AJAX &$ajaxObj = null) {
+	public function logout(array $parameters, TYPO3AJAX $ajaxObj) {
 		$GLOBALS['BE_USER']->logoff();
 		if($GLOBALS['BE_USER']->user['uid']) {
-			$ajaxObj->addContent('logout', '{sucess: false}');
+			$ajaxObj->addContent('logout', array('success' => FALSE));
 		} else {
-			$ajaxObj->addContent('logout', '{sucess: true}');
+			$ajaxObj->addContent('logout', array('success' => TRUE));
 		}
+		$ajaxObj->setContentFormat('json');
 	}
 
 	/**
 	 * Refreshes the login without needing login information. We just refresh the session.
 	 *
 	 *
-	 * @param string $params		Always empty.
-	 * @param string $ajaxObj       The Ajax object used to return content and set content types
-	 * @return void
+	 * @param	array		$parameters: Parameters (not used)
+	 * @param	TYPO3AJAX	$ajaxObj: The calling parent AJAX object
+	 * @return	void
 	 */
-	public function refreshLogin($params = array(), TYPO3AJAX &$ajaxObj = null) {
+	public function refreshLogin(array $parameters, TYPO3AJAX $ajaxObj) {
 		$GLOBALS['BE_USER']->checkAuthentication();
-		$ajaxObj->addContent('refresh', '{sucess: true}');
+		$ajaxObj->addContent('refresh', array('success' => TRUE));
+		$ajaxObj->setContentFormat('json');
 	}
 
 
 	/**
 	 * Checks if the user session is expired yet
 	 *
-	 * @param string $params 		Always empty.
-	 * @param string $TYPO3AJAX     The Ajax object used to return content and set content types
-	 * @return void
+	 * @param	array		$parameters: Parameters (not used)
+	 * @param	TYPO3AJAX	$ajaxObj: The calling parent AJAX object
+	 * @return	void
 	 */
-	function isTimedOut($params = array(), TYPO3AJAX &$ajaxObj = null) {
+	function isTimedOut(array $parameters, TYPO3AJAX $ajaxObj) {
 		if(is_object($GLOBALS['BE_USER'])) {
-
+			$ajaxObj->setContentFormat('json');
 			if (@is_file(PATH_typo3conf.'LOCK_BACKEND')) {
-			 	$ajaxObj->addContent('login', '{timed_out: false,locked:true}');
+			 	$ajaxObj->addContent('login', array('timed_out' => FALSE, 'locked' => TRUE));
 				$ajaxObj->setContentFormat('json');
 			} else {
-				$GLOBALS['BE_USER']->fetchUserSession(true);
+				$GLOBALS['BE_USER']->fetchUserSession(TRUE);
 				$ses_tstamp = $GLOBALS['BE_USER']->user['ses_tstamp'];
 				$timeout = $GLOBALS['BE_USER']->auth_timeout_field;
 
 				// if 120 seconds from now is later than the session timeout, we need to show the refresh dialog.
 				// 120 is somewhat arbitrary to allow for a little room during the countdown and load times, etc.
-				if($GLOBALS['EXEC_TIME'] >= $ses_tstamp+$timeout-120) {
-					$ajaxObj->addContent('login', '{timed_out: true}');
-					$ajaxObj->setContentFormat('json');
+				if ($GLOBALS['EXEC_TIME'] >= $ses_tstamp + $timeout - 120) {
+					$ajaxObj->addContent('login', array('timed_out' => TRUE));
 				} else {
-					$ajaxObj->addContent('login', '{timed_out: false}');
-					$ajaxObj->setContentFormat('json');
+					$ajaxObj->addContent('login', array('timed_out' => FALSE));
 				}
 			}
 		} else {
-			$ajaxObj->addContent('login', '{success: false, error: "No BE_USER object"}');
+			$ajaxObj->addContent('login', array('success' => FALSE, 'error' => 'No BE_USER object'));
 		}
+	}
+
+	/**
+	 * Gets a MD5 challenge.
+	 *
+	 * @param	array		$parameters: Parameters (not used)
+	 * @param	TYPO3AJAX	$parent: The calling parent AJAX object
+	 * @return	void
+	 */
+	public function getChallenge(array $parameters, TYPO3AJAX $parent) {
+		session_start();
+
+		$_SESSION['login_challenge'] = md5(uniqid('') . getmypid());
+
+		session_commit();
+
+		$parent->addContent('challenge', $_SESSION['login_challenge']);
+		$parent->setContentFormat('json');
 	}
 }
 

@@ -274,8 +274,9 @@ $TCA['fe_users'] = array(
 			'config' => array(
 				'type' => 'input',
 				'readOnly' => '1',
-				'size' => '8',
-				'eval' => 'date'
+				'size' => '12',
+				'eval' => 'datetime',
+				'default' => 0,
 			)
 		)
 	),
@@ -453,10 +454,18 @@ $TCA['sys_domain'] = array(
 				'type' => 'check',
 				'default' => '0'
 			)
+		),
+		'forced' => array(
+			'label' => 'LLL:EXT:cms/locallang_tca.php:sys_domain.forced',
+			'exclude' => 1,
+			'config' => array(
+				'type' => 'check',
+				'default' => '1'
+			)
 		)
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;;;1-1-1,domainName;;1;;3-3-3,prepend_params')
+		'1' => array('showitem' => 'hidden;;;;1-1-1,domainName;;1;;3-3-3,prepend_params,forced;;;;4-4-4')
 	),
 	'palettes' => array(
 		'1' => array('showitem' => 'redirectTo, redirectHttpStatusCode')
@@ -636,8 +645,13 @@ $TCA['pages_language_overlay'] = array(
 				'size' => '3',
 				'maxitems' => '1',
 				'minitems' => '0',
-				'show_thumbs' => '1'
-			)
+				'show_thumbs' => '1',
+				'wizards' => array(
+					'suggest' => array(
+						'type' => 'suggest',
+					),
+				),
+			),
 		),
 		'shortcut_mode' => array (
 			'exclude' => 1,
@@ -812,7 +826,12 @@ $TCA['sys_template'] = array(
 				'size' => '1',
 				'maxitems' => '1',
 				'minitems' => '0',
-				'default' => ''
+				'default' => '',
+				'wizards' => array(
+					'suggest' => array(
+						'type' => 'suggest',
+					),
+				),
 			)
 		),
 		'include_static' => array(
@@ -852,6 +871,9 @@ $TCA['sys_template'] = array(
 				'wizards' => array(
 					'_PADDING' => 4,
 					'_VERTICAL' => 1,
+					'suggest' => array(
+						'type' => 'suggest',
+					),
 					'edit' => array(
 						'type' => 'popup',
 						'title' => 'Edit template',
@@ -926,9 +948,9 @@ $TCA['sys_template'] = array(
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
-					array('Default (Include before if Root-flag is set)', '0'),
-					array('Always include before this template record', '1'),
-					array('Never include before this template record', '2'),
+					array('LLL:EXT:cms/locallang_tca.xml:sys_template.static_file_mode.0', '0'),
+					array('LLL:EXT:cms/locallang_tca.xml:sys_template.static_file_mode.1', '1'),
+					array('LLL:EXT:cms/locallang_tca.xml:sys_template.static_file_mode.2', '2'),
 				),
 				'default' => '0'
 			)

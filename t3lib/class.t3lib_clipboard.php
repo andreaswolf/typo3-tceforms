@@ -466,6 +466,12 @@ class t3lib_clipboard {
 									'<a href="'.htmlspecialchars($this->removeUrl($table,$uid)).'#clip_head"><img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/close_12h.gif','width="11" height="12"').' border="0" title="'.$this->clLabel('removeItem').'" alt="" /></a>'.
 									'</td>
 								</tr>';
+
+							$localizationData = $this->getLocalizations($table, $rec, $bgColClass, $pad);
+							if ($localizationData) {
+								$lines[] = $localizationData;
+							}
+
 						} else {
 							unset($this->clipData[$pad]['el'][$k]);
 							$this->changed=1;
@@ -485,6 +491,58 @@ class t3lib_clipboard {
 		$this->endClipboard();
 		return $lines;
 	}
+
+
+	/**
+	 * Gets all localizations of the current record.
+	 *
+	 * @param	string		the table
+	 * @param	array		the current record
+	 * @return	string		HTML table rows
+	 */
+	function getLocalizations($table, $parentRec, $bgColClass, $pad) {
+		$lines = array();
+		$tcaCtrl = $GLOBALS['TCA'][$table]['ctrl'];
+
+		if ($table != 'pages' && t3lib_BEfunc::isTableLocalizable($table) && !$tcaCtrl['transOrigPointerTable']) {
+			$where = array();
+			$where[] = $tcaCtrl['transOrigPointerField'] . '=' . intval($parentRec['uid']);
+			$where[] = $tcaCtrl['languageField'] . '!=0';
+
+			if (isset($tcaCtrl['delete']) && $tcaCtrl['delete']) {
+				$where[] = $tcaCtrl['delete'] . '=0';
+			}
+
+			if (isset($tcaCtrl['versioningWS']) && $tcaCtrl['versioningWS']) {
+				$where[] = 't3ver_wsid=' . $parentRec['t3ver_wsid'];
+			}
+
+			$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', $table, implode(' AND ', $where));
+
+			if (is_array($rows)) {
+				$modeData = '';
+				if ($pad == 'normal') {
+					$mode = ($this->clipData['normal']['mode'] == 'copy' ? 'copy' : 'cut');
+					$modeData = ' <strong>(' . $this->clLabel($mode, 'cm') . ')</strong>';
+				}
+
+				foreach ($rows as $rec) {
+					$lines[]='
+					<tr>
+						<td class="' . $bgColClass . '">' .
+							t3lib_iconWorks::getIconImage($table, $rec, $this->backPath,' style="margin-left: 38px;"') . '</td>
+						<td class="' . $bgColClass . '" nowrap="nowrap" width="95%">&nbsp;' . htmlspecialchars(
+								t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle($table, $rec), $GLOBALS['BE_USER']->uc['titleLen'])) .
+								$modeData . '&nbsp;</td>
+						<td class="' . $bgColClass . '" align="center" nowrap="nowrap">&nbsp;</td>
+					</tr>';
+				}
+			}
+		}
+		return implode('',$lines);
+	}
+
+
 
 	/**
 	 * Wraps title of pad in bold-tags and maybe the number of elements if any.

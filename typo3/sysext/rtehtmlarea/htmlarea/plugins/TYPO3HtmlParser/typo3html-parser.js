@@ -94,17 +94,22 @@ TYPO3HtmlParser = HTMLArea.Plugin.extend({
 	
 	clean : function() {
 		var editor = this.editor;
+		if (HTMLArea.is_safari) {
+			editor.cleanAppleStyleSpans(editor._doc.body);
+		}
 		var bookmark = editor.getBookmark(editor._createRange(editor._getSelection()));
 		var content = {
 			editorNo : this.editorNumber,
 			content	 : this.getPluginInstance("EditorMode").getInnerHTML()
 		};
+			// Server-based synchronous pasted content cleaning
 		this.postData(	this.parseHtmlModulePath,
 				content,
 				function(response) {
 					editor.getPluginInstance("EditorMode").setHTML(response);
 					editor.selectRange(editor.moveToBookmark(bookmark));
-				}
+				},
+				false
 		);
 	}
 });

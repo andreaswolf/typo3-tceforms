@@ -124,6 +124,7 @@ class SC_alt_file_navframe {
 		$this->doc = t3lib_div::makeInstance('template');
 		$this->doc->backPath = $BACK_PATH;
 		$this->doc->setModuleTemplate('templates/alt_file_navframe.html');
+		$this->doc->showFlashMessages = FALSE;
 
 			// Adding javascript code for AJAX (prototype), drag&drop and the filetree as well as the click menu code
 		$this->doc->getDragDropCode('folders');
@@ -169,7 +170,7 @@ class SC_alt_file_navframe {
 
 				// do a reload of this frame once all uploads are done
 			flashUploader.on("totalcomplete", function() {
-				jumpTo(path, "", "", "");
+				jumpTo (top.rawurlencode(path), "", "", "");
 			});
 
 				// this is the callback function that delivers the additional post parameter to the flash application
@@ -233,7 +234,7 @@ class SC_alt_file_navframe {
 			// Setting up the buttons and markers for docheader
 		$docHeaderButtons = $this->getButtons();
 		$markers = array(
-			'IMG_RESET' => '<img' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/close_gray.gif', ' width="16" height="16"') . 
+			'IMG_RESET' => '<img' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/close_gray.gif', ' width="16" height="16"') .
 			' id="treeFilterReset" alt="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.resetFilter') . '" ' .
 			'title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.resetFilter') . '" />',
 			'CONTENT' => $this->content
@@ -292,10 +293,10 @@ class SC_alt_file_navframe {
 	 * Called by typo3/ajax.php
 	 *
 	 * @param	array		$params: additional parameters (not used here)
-	 * @param	TYPO3AJAX	&$ajaxObj: reference of the TYPO3AJAX object of this request
+	 * @param	TYPO3AJAX	$ajaxObj: The TYPO3AJAX object of this request
 	 * @return	void
 	 */
-	public function ajaxExpandCollapse($params, &$ajaxObj)	{
+	public function ajaxExpandCollapse($params, $ajaxObj) {
 		global $LANG;
 
 		$this->init();

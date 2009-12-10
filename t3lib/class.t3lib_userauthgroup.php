@@ -422,7 +422,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 
 
 			// Acquire RTE object:
-		$RTE = &t3lib_BEfunc::RTEgetObj();
+		$RTE = t3lib_BEfunc::RTEgetObj();
 		if (!is_object($RTE))	{
 			$this->RTE_errors = array_merge($this->RTE_errors, $RTE);
 		}
@@ -538,6 +538,42 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	}
 
 	/**
+	 * Check if user has access to all existing localizations for a certain record
+	 *
+	 * @param string 	the table
+	 * @param array 	the current record
+	 * @return boolean
+	 */
+	function checkFullLanguagesAccess($table, $record) {
+		$recordLocalizationAccess = $this->checkLanguageAccess(0);
+		if ($recordLocalizationAccess && t3lib_BEfunc::isTableLocalizable($table)) {
+
+			$pointerField = $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'];
+
+			$recordLocalizations = t3lib_BEfunc::getRecordsByField(
+				$table,
+				$pointerField,
+				$record[$pointerField] > 0 ? $record[$pointerField] : $record['uid'],
+				'',
+				'',
+				'',
+				'1'
+			);
+
+			if (is_array($recordLocalizations)) {
+				foreach($recordLocalizations as $localization) {
+					$recordLocalizationAccess = $recordLocalizationAccess && $this->checkLanguageAccess($localization[$GLOBALS['TCA'][$table]['ctrl']['languageField']]);
+					if (!$recordLocalizationAccess) {
+						break;
+					}
+				}
+			}
+
+		}
+		return $recordLocalizationAccess;
+	}
+
+	/**
 	 * Checking if a user has editing access to a record from a $TCA table.
 	 * The checks does not take page permissions and other "environmental" things into account. It only deal with record internals; If any values in the record fields disallows it.
 	 * For instance languages settings, authMode selector boxes are evaluated (and maybe more in the future).
@@ -547,9 +583,11 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	 * @param	string		Table name
 	 * @param	mixed		If integer, then this is the ID of the record. If Array this just represents fields in the record.
 	 * @param	boolean		Set, if testing a new (non-existing) record array. Will disable certain checks that doesn't make much sense in that context.
+	 * @param	boolean		Set, if testing a deleted record array.
+	 * @param	boolean		Set, whenever access to all translations of the record is required
 	 * @return	boolean		True if OK, otherwise false
 	 */
-	function recordEditAccessInternals($table,$idOrRow,$newRecord=FALSE)	{
+	function recordEditAccessInternals($table, $idOrRow, $newRecord = FALSE, $deletedRecord = FALSE, $checkFullLanguageAccess = FALSE) {
 		global $TCA;
 
 		if (isset($TCA[$table]))	{
@@ -560,7 +598,11 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 
 				// Fetching the record if the $idOrRow variable was not an array on input:
 			if (!is_array($idOrRow))	{
-				$idOrRow = t3lib_BEfunc::getRecord($table, $idOrRow);
+				if ($deletedRecord) {
+					$idOrRow = t3lib_BEfunc::getRecord($table, $idOrRow, '*', '', FALSE);
+				} else {
+					$idOrRow = t3lib_BEfunc::getRecord($table, $idOrRow);
+				}
 				if (!is_array($idOrRow))	{
 					$this->errorMsg = 'ERROR: Record could not be fetched.';
 					return FALSE;
@@ -572,6 +614,9 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 				if (isset($idOrRow[$TCA[$table]['ctrl']['languageField']]))	{	// Language field must be found in input row - otherwise it does not make sense.
 					if (!$this->checkLanguageAccess($idOrRow[$TCA[$table]['ctrl']['languageField']]))	{
 						$this->errorMsg = 'ERROR: Language was not allowed.';
+						return FALSE;
+					} elseif ($checkFullLanguageAccess && !$this->checkFullLanguagesAccess($table, $idOrRow)) {
+						$this->errorMsg = 'ERROR: Related/affected language was not allowed.';
 						return FALSE;
 					}
 				} else {
@@ -656,7 +701,19 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	 * @return	boolean
 	 */
 	function mayMakeShortcut()	{
-		return $this->getTSConfigVal('options.shortcutFrame') && !$this->getTSConfigVal('options.mayNotCreateEditShortcuts');
+			// If the old BE is used (maybe with some parameters),
+			// check for options.enableShortcuts and options.shortcutFrame being set.
+		if (substr($this->getTSConfigVal('auth.BE.redirectToURL'), 0, 12) == 'alt_main.php') {
+			return $this->getTSConfigVal('options.enableShortcuts') &&
+				$this->getTSConfigVal('options.shortcutFrame') &&
+				!$this->getTSConfigVal('options.mayNotCreateEditShortcuts');
+		}
+			// If the new BE is used, don't check options.shortcutFrame,
+			// because this is not used there anymore.
+		else {
+			return $this->getTSConfigVal('options.enableShortcuts') &&
+				!$this->getTSConfigVal('options.mayNotCreateEditShortcuts');
+		}
 	}
 
 	/**
@@ -1143,19 +1200,30 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 				// Check include lines.
 			$this->TSdataArray = t3lib_TSparser::checkIncludeLines_array($this->TSdataArray);
 
-				// Parsing the user TSconfig (or getting from cache)
 			$this->userTS_text = implode(chr(10).'[GLOBAL]'.chr(10),$this->TSdataArray);	// Imploding with "[global]" will make sure that non-ended confinements with braces are ignored.
-			$hash = md5('userTS:'.$this->userTS_text);
-			$cachedContent = t3lib_BEfunc::getHash($hash);
-			if (isset($cachedContent) && !$this->userTS_dontGetCached)	{
-				$this->userTS = unserialize($cachedContent);
+
+			if ($GLOBALS['TYPO3_CONF_VARS']['BE']['TSconfigConditions'] && !$this->userTS_dontGetCached) {
+					// Perform TS-Config parsing with condition matching
+				$parseObj = t3lib_div::makeInstance('t3lib_TSparser_TSconfig');
+				$res = $parseObj->parseTSconfig($this->userTS_text, 'userTS');
+				if ($res) {
+					$this->userTS = $res['TSconfig'];
+					$this->userTSUpdated = ($res['cached'] ? 0 : 1);
+				}
 			} else {
-				$parseObj = t3lib_div::makeInstance('t3lib_TSparser');
-				$parseObj->parse($this->userTS_text);
-				$this->userTS = $parseObj->setup;
-				t3lib_BEfunc::storeHash($hash,serialize($this->userTS),'BE_USER_TSconfig');
-					// Update UC:
-				$this->userTSUpdated=1;
+					// Parsing the user TSconfig (or getting from cache)
+				$hash = md5('userTS:' . $this->userTS_text);
+				$cachedContent = t3lib_BEfunc::getHash($hash);
+				if (isset($cachedContent) && !$this->userTS_dontGetCached) {
+					$this->userTS = unserialize($cachedContent);
+				} else {
+					$parseObj = t3lib_div::makeInstance('t3lib_TSparser');
+					$parseObj->parse($this->userTS_text);
+					$this->userTS = $parseObj->setup;
+					t3lib_BEfunc::storeHash($hash, serialize($this->userTS), 'BE_USER_TSconfig');
+						// Update UC:
+					$this->userTSUpdated=1;
+				}
 			}
 
 				// Processing webmounts
@@ -1228,7 +1296,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			// Hook for manipulation of the WHERE sql sentence which controls which BE-groups are included
 		if (is_array ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_userauthgroup.php']['fetchGroupQuery'])) {
 			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_userauthgroup.php']['fetchGroupQuery'] as $classRef) {
-			$hookObj = &t3lib_div::getUserObj($classRef);
+			$hookObj = t3lib_div::getUserObj($classRef);
 			if(method_exists($hookObj,'fetchGroupQuery_processQuery')){
 				$whereSQL = $hookObj->fetchGroupQuery_processQuery($this, $grList, $idList, $whereSQL);
 			}
@@ -1454,6 +1522,11 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
 				$this->addFileMount($row['title'], $row['path'], $row['path'], $row['base']?1:0, '');
 			}
+		}
+
+		if ($allowed_languages = $this->getTSConfigVal('options.workspaces.allowed_languages.'.$this->workspace))	{
+			$this->groupData['allowed_languages'] = $allowed_languages;
+			$this->groupData['allowed_languages'] = t3lib_div::uniqueList($this->groupData['allowed_languages']);
 		}
 	}
 
@@ -1699,7 +1772,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 		if ($email)	{
 
 				// get last flag set in the log for sending
-			$theTimeBack = time()-$secondsBack;
+			$theTimeBack = $GLOBALS['EXEC_TIME'] - $secondsBack;
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 							'tstamp',
 							'sys_log',

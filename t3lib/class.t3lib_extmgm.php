@@ -220,6 +220,15 @@ final class t3lib_extMgm {
 		return $result;
 	}
 
+	/**
+	 * Clears the extension key map.
+	 *
+	 * @return	void
+	 */
+	public static function clearExtensionKeyMap() {
+		self::$extensionKeyMap = NULL;
+	}
+
 
 
 
@@ -308,6 +317,7 @@ final class t3lib_extMgm {
 	 */
 	public static function addFieldsToAllPalettesOfField($table, $field, $addFields, $insertionPosition = '') {
 		$generatedPalette = '';
+		$processedPalettes = array();
 		t3lib_div::loadTCA($table);
 
 		if (isset($GLOBALS['TCA'][$table]['columns'][$field])) {
@@ -320,7 +330,10 @@ final class t3lib_extMgm {
 							// If the field already has a palette, extend it:
 						if ($items[$field]['details']['palette']) {
 							$palette = $items[$field]['details']['palette'];
-							self::addFieldsToPalette($table, $palette, $addFields, $insertionPosition);
+							if (!isset($processedPalettes[$palette])) {
+								self::addFieldsToPalette($table, $palette, $addFields, $insertionPosition);
+								$processedPalettes[$palette] = true;
+							}
 							// If there's not palette yet, create one:
 						} else {
 							if ($generatedPalette) {
@@ -366,9 +379,28 @@ final class t3lib_extMgm {
 				);
 				// If it's a new palette, just set the data:
 			} else {
-				$paletteData['showitem'] = $addFields;
+				$paletteData['showitem'] = self::removeDuplicatesForInsertion($addFields);
 			}
 		}
+	}
+
+	/**
+	 * Adds a list of new fields to the TYPO3 USER SETTINGS configuration "showitem" list, the array with
+	 * the new fields itself needs to be added additionally to show up in the user setup, like
+	 * $GLOBALS['TYPO3_USER_SETTINGS']['columns'] += $tempColumns
+	 *
+	 * @param	string	$addFields: List of fields to be added to the user settings
+	 * @param	string	$insertionPosition: Insert fields before (default) or after one
+	 * 					of this fields (commalist with "before:" or "after:" commands).
+	 * 					Example: "before:password,after:email".
+	 * @return void
+	 */
+	public function addFieldsToUserSettings($addFields, $insertionPosition = '') {
+		$GLOBALS['TYPO3_USER_SETTINGS']['showitem'] = self::executePositionedStringInsertion(
+			$GLOBALS['TYPO3_USER_SETTINGS']['showitem'],
+			$addFields,
+			$insertionPosition
+		);
 	}
 
 	/**
@@ -386,46 +418,48 @@ final class t3lib_extMgm {
 	 */
 	protected static function executePositionedStringInsertion($list, $insertionList, $insertionPosition = '') {
 		$list = trim($list);
-		$insertionList = self::removeDuplicatesForInsertion($list, $insertionList);
+		$insertionList = self::removeDuplicatesForInsertion($insertionList, $list);
 
-			// Append data to the end (default):
-		if ($insertionPosition === '') {
-			$list.= ($list ? ', ' : '') . $insertionList;
-			// Insert data before or after insertion points:
-		} else {
-			$positions = t3lib_div::trimExplode(',', $insertionPosition, true);
-			$items = self::explodeItemList($list);
-			$isInserted = false;
-				// Iterate through all fields an check whether it's possible to inserte there:
-			foreach ($items as $item => &$itemDetails) {
-				$needles = self::getInsertionNeedles($item, $itemDetails['details']);
-					// Insert data before:
-				foreach ($needles['before'] as $needle) {
-					if (in_array($needle, $positions)) {
-						$itemDetails['rawData'] = $insertionList . ', '  . $itemDetails['rawData'];
-						$isInserted = true;
-						break;
-					}
-				}
-					// Insert data after:
-				foreach ($needles['after'] as $needle) {
-					if (in_array($needle, $positions)) {
-						$itemDetails['rawData'] .= ', ' . $insertionList;
-						$isInserted = true;
-						break;
-					}
-				}
-					// Break if insertion was already done:
-				if ($isInserted) {
-					break;
-				}
-			}
-				// If insertion point could not be determined, append the data:
-			if (!$isInserted) {
+		if ($insertionList) {
+				// Append data to the end (default):
+			if ($insertionPosition === '') {
 				$list.= ($list ? ', ' : '') . $insertionList;
-				// If data was correctly inserted before or after existing items, recreate the list:
+				// Insert data before or after insertion points:
 			} else {
-				$list = self::generateItemList($items, true);
+				$positions = t3lib_div::trimExplode(',', $insertionPosition, true);
+				$items = self::explodeItemList($list);
+				$isInserted = false;
+					// Iterate through all fields an check whether it's possible to inserte there:
+				foreach ($items as $item => &$itemDetails) {
+					$needles = self::getInsertionNeedles($item, $itemDetails['details']);
+						// Insert data before:
+					foreach ($needles['before'] as $needle) {
+						if (in_array($needle, $positions)) {
+							$itemDetails['rawData'] = $insertionList . ', '  . $itemDetails['rawData'];
+							$isInserted = true;
+							break;
+						}
+					}
+						// Insert data after:
+					foreach ($needles['after'] as $needle) {
+						if (in_array($needle, $positions)) {
+							$itemDetails['rawData'] .= ', ' . $insertionList;
+							$isInserted = true;
+							break;
+						}
+					}
+						// Break if insertion was already done:
+					if ($isInserted) {
+						break;
+					}
+				}
+					// If insertion point could not be determined, append the data:
+				if (!$isInserted) {
+					$list.= ($list ? ', ' : '') . $insertionList;
+					// If data was correctly inserted before or after existing items, recreate the list:
+				} else {
+					$list = self::generateItemList($items, true);
+				}
 			}
 		}
 
@@ -441,26 +475,33 @@ final class t3lib_extMgm {
 	 *  + insertion: 'field_b, field_d, field_c;;;4-4-4'
 	 * -> new insertion: 'field_d'
 	 *
-	 * @param	string		$list: The list of items to be extended
 	 * @param	string		$insertionList: The list of items to inserted
+	 * @param	string		$list: The list of items to be extended (default: '')
 	 * @return	string		Duplicate-free list of items to be inserted
 	 */
-	protected static function removeDuplicatesForInsertion($list, $insertionList) {
+	protected static function removeDuplicatesForInsertion($insertionList, $list = '') {
 		$pattern = '/(^|,)\s*\b([^;,]+)\b[^,]*/';
+		$listItems = array();
 
 		if ($list && preg_match_all($pattern, $list, $listMatches)) {
-			if ($insertionList && preg_match_all($pattern, $insertionList, $insertionListMatches)) {
-				$duplicates = array_intersect($listMatches[2], $insertionListMatches[2]);
-				if ($duplicates) {
-					foreach ($duplicates as &$duplicate) {
-						$duplicate = preg_quote($duplicate, '/');
-					}
-					$insertionList = preg_replace(
-						array('/(^|,)\s*\b(' . implode('|', $duplicates) . ')\b[^,]*(,|$)/', '/,$/'),
-						array('\3', ''),
-						$insertionList
-					);
+			$listItems = $listMatches[2];
+		}
+
+		if ($insertionList && preg_match_all($pattern, $insertionList, $insertionListMatches)) {
+			$insertionItems = array();
+			$insertionDuplicates = false;
+
+			foreach ($insertionListMatches[2] as $insertionIndex => $insertionItem) {
+				if (!isset($insertionItems[$insertionItem]) && !in_array($insertionItem, $listItems)) {
+					$insertionItems[$insertionItem] = true;
+				} else {
+					unset($insertionListMatches[0][$insertionIndex]);
+					$insertionDuplicates = true;
 				}
+			}
+
+			if ($insertionDuplicates) {
+				$insertionList = implode('', $insertionListMatches[0]);
 			}
 		}
 
@@ -1202,8 +1243,20 @@ tt_content.'.$key.$prefix.' {
 	public static function typo3_loadExtensions() {
 		global $TYPO3_CONF_VARS;
 
+			// Select mode how to load extensions in order to speed up the FE
+		if (TYPO3_MODE == 'FE') {
+			if (!($extLoadInContext = $TYPO3_CONF_VARS['EXT']['extList_FE'])) {
+					// fall back to standard 'extList' if 'extList_FE' is not (yet) set
+				$extLoadInContext = $TYPO3_CONF_VARS['EXT']['extList'];
+			}
+			$cacheFileSuffix = '_FE';
+		} else {
+			$extLoadInContext = $TYPO3_CONF_VARS['EXT']['extList'];
+				// Works as before
+			$cacheFileSuffix = '';
+		}
 			// Full list of extensions includes both required and extList:
-		$rawExtList = $TYPO3_CONF_VARS['EXT']['requiredExt'].','.$TYPO3_CONF_VARS['EXT']['extList'];
+		$rawExtList = $TYPO3_CONF_VARS['EXT']['requiredExt'] . ',' . $extLoadInContext;
 
 			// Empty array as a start.
 		$extensions = array();
@@ -1211,7 +1264,7 @@ tt_content.'.$key.$prefix.' {
 			//
 		if ($rawExtList) {
 				// The cached File prefix.
-			$cacheFilePrefix = 'temp_CACHED';
+			$cacheFilePrefix = 'temp_CACHED' . $cacheFileSuffix;
 				// Setting the name for the cache files:
 			if (intval($TYPO3_CONF_VARS['EXT']['extCache'])==1)	$cacheFilePrefix.= '_ps'.substr(t3lib_div::shortMD5(PATH_site.'|'.$GLOBALS['TYPO_VERSION']), 0, 4);
 			if (intval($TYPO3_CONF_VARS['EXT']['extCache'])==2)	$cacheFilePrefix.= '_'.t3lib_div::shortMD5($rawExtList);
@@ -1223,8 +1276,7 @@ tt_content.'.$key.$prefix.' {
 			} else {	// ... but if not, configure...
 
 					// Prepare reserved filenames:
-				$files = t3lib_div::trimExplode(',', 'ext_localconf.php,ext_tables.php,ext_tables.sql,ext_tables_static+adt.sql,ext_typoscript_constants.txt,ext_typoscript_editorcfg.txt,ext_typoscript_setup.txt', 1);
-
+				$files = array('ext_localconf.php','ext_tables.php','ext_tables.sql','ext_tables_static+adt.sql','ext_typoscript_constants.txt','ext_typoscript_editorcfg.txt','ext_typoscript_setup.txt');
 					// Traverse extensions and check their existence:
 				clearstatcache();	// Clear file state cache to make sure we get good results from is_dir()
 				$temp_extensions = array_unique(t3lib_div::trimExplode(',', $rawExtList, 1));
@@ -1348,14 +1400,19 @@ $_EXTCONF = $TYPO3_CONF_VARS[\'EXT\'][\'extConf\'][$_EXTKEY];
 	 * @internal
 	 */
 	public static function currentCacheFiles() {
-		global $TYPO3_LOADED_EXT;
-
-		if ($TYPO3_LOADED_EXT['_CACHEFILE']) {
-			if (t3lib_extMgm::isCacheFilesAvailable($TYPO3_LOADED_EXT['_CACHEFILE'])) {
-				return array(
-					PATH_typo3conf.$TYPO3_LOADED_EXT['_CACHEFILE'].'_ext_localconf.php',
-					PATH_typo3conf.$TYPO3_LOADED_EXT['_CACHEFILE'].'_ext_tables.php'
-				);
+		if (($cacheFilePrefix = $GLOBALS['TYPO3_LOADED_EXT']['_CACHEFILE'])) {
+			$cacheFilePrefixFE = str_replace('temp_CACHED','temp_CACHED_FE',$cacheFilePrefix);
+			$files = array();
+			if (t3lib_extMgm::isCacheFilesAvailable($cacheFilePrefix)) {
+				$files[] = PATH_typo3conf.$cacheFilePrefix.'_ext_localconf.php';
+				$files[] = PATH_typo3conf.$cacheFilePrefix.'_ext_tables.php';
+			}
+			if (t3lib_extMgm::isCacheFilesAvailable($cacheFilePrefixFE)) {
+				$files[] = PATH_typo3conf.$cacheFilePrefixFE.'_ext_localconf.php';
+				$files[] = PATH_typo3conf.$cacheFilePrefixFE.'_ext_tables.php';
+			}
+			if (!empty($files)) {
+				return $files;
 			}
 		}
 	}

@@ -150,6 +150,7 @@ class SC_alt_db_navframe {
 		$this->doc = t3lib_div::makeInstance('template');
 		$this->doc->backPath = $BACK_PATH;
 		$this->doc->setModuleTemplate('templates/alt_db_navframe.html');
+		$this->doc->showFlashMessages = FALSE;
 
 			// get HTML-Template
 
@@ -157,7 +158,7 @@ class SC_alt_db_navframe {
 			// Adding javascript code for AJAX (prototype), drag&drop and the pagetree as well as the click menu code
 		$this->doc->getDragDropCode('pages');
 		$this->doc->getContextMenuCode();
-		$this->doc->loadScriptaculous('effects');
+		$this->doc->getPageRenderer()->loadScriptaculous('effects');
 
 		$this->doc->JScode .= $this->doc->wrapScriptTags(
 		($this->currentSubScript?'top.currentSubScript=unescape("'.rawurlencode($this->currentSubScript).'");':'').'
@@ -382,10 +383,10 @@ class SC_alt_db_navframe {
 	 * Called by typo3/ajax.php
 	 *
 	 * @param	array		$params: additional parameters (not used here)
-	 * @param	TYPO3AJAX	&$ajaxObj: reference of the TYPO3AJAX object of this request
+	 * @param	TYPO3AJAX	$ajaxObj: The TYPO3AJAX object of this request
 	 * @return	void
 	 */
-	public function ajaxExpandCollapse($params, &$ajaxObj) {
+	public function ajaxExpandCollapse($params, $ajaxObj) {
 		global $LANG;
 
 		$this->init();

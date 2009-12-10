@@ -126,7 +126,7 @@ class t3lib_sqlparser {
 	 * @return	array		Result array with all the parts in - or error message string
 	 * @see compileSQL(), debug_testSQL()
 	 */
-	function parseSQL($parseString)	{
+	public function parseSQL($parseString) {
 			// Prepare variables:
 		$parseString = $this->trimSQL($parseString);
 		$this->parse_error = '';
@@ -189,7 +189,7 @@ class t3lib_sqlparser {
 	 * @return	mixed		Returns array with components of SELECT query on success, otherwise an error message string.
 	 * @see compileSELECT()
 	 */
-	function parseSELECT($parseString)	{
+	protected function parseSELECT($parseString) {
 
 			// Removing SELECT:
 		$parseString = $this->trimSQL($parseString);
@@ -247,6 +247,9 @@ class t3lib_sqlparser {
 			}
 		} else return $this->parseError('No table to select from!',$parseString);
 
+			// Store current parseString in the result array for possible further processing (e.g., subquery support by DBAL)
+		$result['parseString'] = $parseString;
+
 			// Return result:
 		return $result;
 	}
@@ -258,7 +261,7 @@ class t3lib_sqlparser {
 	 * @return	mixed		Returns array with components of UPDATE query on success, otherwise an error message string.
 	 * @see compileUPDATE()
 	 */
-	function parseUPDATE($parseString)	{
+	protected function parseUPDATE($parseString) {
 
 			// Removing UPDATE
 		$parseString = $this->trimSQL($parseString);
@@ -312,7 +315,7 @@ class t3lib_sqlparser {
 	 * @return	mixed		Returns array with components of INSERT query on success, otherwise an error message string.
 	 * @see compileINSERT()
 	 */
-	function parseINSERT($parseString)	{
+	protected function parseINSERT($parseString) {
 
 			// Removing INSERT
 		$parseString = $this->trimSQL($parseString);
@@ -372,7 +375,7 @@ class t3lib_sqlparser {
 	 * @return	mixed		Returns array with components of DELETE query on success, otherwise an error message string.
 	 * @see compileDELETE()
 	 */
-	function parseDELETE($parseString)	{
+	protected function parseDELETE($parseString) {
 
 			// Removing DELETE
 		$parseString = $this->trimSQL($parseString);
@@ -410,7 +413,7 @@ class t3lib_sqlparser {
 	 * @return	mixed		Returns array with components of EXPLAIN query on success, otherwise an error message string.
 	 * @see parseSELECT()
 	 */
-	function parseEXPLAIN($parseString)	{
+	protected function parseEXPLAIN($parseString) {
 
 			// Removing EXPLAIN
 		$parseString = $this->trimSQL($parseString);
@@ -432,7 +435,7 @@ class t3lib_sqlparser {
 	 * @return	mixed		Returns array with components of CREATE TABLE query on success, otherwise an error message string.
 	 * @see compileCREATETABLE()
 	 */
-	function parseCREATETABLE($parseString)	{
+	protected function parseCREATETABLE($parseString) {
 
 			// Removing CREATE TABLE
 		$parseString = $this->trimSQL($parseString);
@@ -466,7 +469,7 @@ class t3lib_sqlparser {
 						break;
 						case 'KEY':
 							if ($keyName = $this->nextPart($parseString, '^([[:alnum:]_]+)([[:space:]]+|\()'))	{
-								$result['KEYS'][$keyName] = $this->getValue($parseString,'_LIST');
+								$result['KEYS'][$keyName] = $this->getValue($parseString, '_LIST', 'INDEX');
 								if ($this->parse_error)	{ return $this->parse_error; }
 							} else return $this->parseError('No keyname found',$parseString);
 						break;
@@ -511,7 +514,7 @@ class t3lib_sqlparser {
 	 * @return	mixed		Returns array with components of ALTER TABLE query on success, otherwise an error message string.
 	 * @see compileALTERTABLE()
 	 */
-	function parseALTERTABLE($parseString)	{
+	protected function parseALTERTABLE($parseString) {
 
 			// Removing ALTER TABLE
 		$parseString = $this->trimSQL($parseString);
@@ -580,7 +583,7 @@ class t3lib_sqlparser {
 	 * @param	string		SQL string starting with DROP TABLE
 	 * @return	mixed		Returns array with components of DROP TABLE query on success, otherwise an error message string.
 	 */
-	function parseDROPTABLE($parseString)	{
+	protected function parseDROPTABLE($parseString) {
 
 			// Removing DROP TABLE
 		$parseString = $this->trimSQL($parseString);
@@ -613,7 +616,7 @@ class t3lib_sqlparser {
 	 * @param	string		SQL string starting with CREATE DATABASE
 	 * @return	mixed		Returns array with components of CREATE DATABASE query on success, otherwise an error message string.
 	 */
-	function parseCREATEDATABASE($parseString)	{
+	protected function parseCREATEDATABASE($parseString) {
 
 			// Removing CREATE DATABASE
 		$parseString = $this->trimSQL($parseString);
@@ -667,7 +670,7 @@ class t3lib_sqlparser {
 	 * @return	array		If successful parsing, returns an array, otherwise an error string.
 	 * @see compileFieldList()
 	 */
-	function parseFieldList(&$parseString, $stopRegex='')	{
+	public function parseFieldList(&$parseString, $stopRegex = '') {
 
 		$stack = array();	// Contains the parsed content
 
@@ -787,8 +790,10 @@ class t3lib_sqlparser {
 	 * @param	string		Regular expressing to STOP parsing, eg. '^(WHERE)([[:space:]]*)'
 	 * @return	array		If successful parsing, returns an array, otherwise an error string.
 	 * @see compileFromTables()
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, this is a DBAL-only method that was moved to ux_t3lib_sqlparser.
 	 */
-	function parseFromTables(&$parseString, $stopRegex='')	{
+	public function parseFromTables(&$parseString, $stopRegex = '') {
+		t3lib_div::logDeprecatedFunction();
 
 			// Prepare variables:
 		$parseString = $this->trimSQL($parseString);
@@ -817,7 +822,14 @@ class t3lib_sqlparser {
 				// Looking for JOIN
 			if ($join = $this->nextPart($parseString,'^(LEFT[[:space:]]+JOIN|LEFT[[:space:]]+OUTER[[:space:]]+JOIN|JOIN)[[:space:]]+'))	{
 				$stack[$pnt]['JOIN']['type'] = $join;
-				if ($stack[$pnt]['JOIN']['withTable'] = $this->nextPart($parseString,'^([[:alnum:]_]+)[[:space:]]+ON[[:space:]]+',1))	{
+				if ($stack[$pnt]['JOIN']['withTable'] = $this->nextPart($parseString, '^([[:alnum:]_]+)[[:space:]]+', 1)) {
+					if (!preg_match('/^ON[[:space:]]+/i', $parseString)) {
+						$stack[$pnt]['JOIN']['as_keyword'] = $this->nextPart($parseString, '^(AS[[:space:]]+)');
+						$stack[$pnt]['JOIN']['as'] = $this->nextPart($parseString, '^([[:alnum:]_]+)[[:space:]]+');
+					}
+					if (!$this->nextPart($parseString, '^(ON[[:space:]]+)')) {
+						return $this->parseError('No join condition found in parseFromTables()!', $parseString);
+					}
 					$field1 = $this->nextPart($parseString,'^([[:alnum:]_.]+)[[:space:]]*=[[:space:]]*',1);
 					$field2 = $this->nextPart($parseString,'^([[:alnum:]_.]+)[[:space:]]+');
 					if ($field1 && $field2)	{
@@ -878,8 +890,10 @@ class t3lib_sqlparser {
 	 * @param	string		WHERE clause to parse. NOTICE: passed by reference!
 	 * @param	string		Regular expressing to STOP parsing, eg. '^(GROUP BY|ORDER BY|LIMIT)([[:space:]]*)'
 	 * @return	mixed		If successful parsing, returns an array, otherwise an error string.
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, this is a DBAL-only method that was moved to ux_t3lib_sqlparser.
 	 */
-	function parseWhereClause(&$parseString, $stopRegex='')	{
+	public function parseWhereClause(&$parseString, $stopRegex = '') {
+		t3lib_div::logDeprecatedFunction();
 
 			// Prepare variables:
 		$parseString = $this->trimSQL($parseString);
@@ -998,7 +1012,7 @@ class t3lib_sqlparser {
 	 * @param	string		Regular expressing to STOP parsing, eg. '^(GROUP BY|ORDER BY|LIMIT)([[:space:]]*)'
 	 * @return	mixed		If successful parsing, returns an array, otherwise an error string.
 	 */
-	function parseFieldDef(&$parseString, $stopRegex='')	{
+	public function parseFieldDef(&$parseString, $stopRegex = '') {
 			// Prepare variables:
 		$parseString = $this->trimSQL($parseString);
 		$this->lastStopKeyWord = '';
@@ -1061,7 +1075,7 @@ class t3lib_sqlparser {
 	 * @param	boolean		If set the full match of the regex is stripped of the beginning of the string!
 	 * @return	string		The value of the first parenthesis level of the REGEX.
 	 */
-	function nextPart(&$parseString,$regex,$trimAll=FALSE)	{
+	protected function nextPart(&$parseString, $regex, $trimAll = FALSE) {
 		$reg = array();
 		if (preg_match('/'.$regex.'/i',$parseString.' ', $reg))	{	// Adding space char because [[:space:]]+ is often a requirement in regex's
 			$parseString = ltrim(substr($parseString,strlen($reg[$trimAll?0:1])));
@@ -1074,9 +1088,10 @@ class t3lib_sqlparser {
 	 *
 	 * @param	string		The parseString, eg. "(0,1,2,3) ..." or "('asdf','qwer') ..." or "1234 ..." or "'My string value here' ..."
 	 * @param	string		The comparator used before. If "NOT IN" or "IN" then the value is expected to be a list of values. Otherwise just an integer (un-quoted) or string (quoted)
+	 * @param	string		The mode, eg. "INDEX"
 	 * @return	mixed		The value (string/integer). Otherwise an array with error message in first key (0)
 	 */
-	function getValue(&$parseString,$comparator='')	{
+	protected function getValue(&$parseString, $comparator = '', $mode = '') {
 		$value = '';
 
 		if (t3lib_div::inList('NOTIN,IN,_LIST',strtoupper(str_replace(array(' ',"\n","\r","\t"),'',$comparator))))	{	// List of values:
@@ -1086,6 +1101,10 @@ class t3lib_sqlparser {
 
 				while($comma==',')	{
 					$listValues[] = $this->getValue($parseString);
+					if ($mode === 'INDEX') {
+							// Remove any length restriction on INDEX definition
+						$this->nextPart($parseString, '^([(]\d+[)])');
+					}
 					$comma = $this->nextPart($parseString,'^([,])');
 				}
 
@@ -1134,7 +1153,7 @@ class t3lib_sqlparser {
 	 * @param	string		The quote used; input either " or '
 	 * @return	string		The value, passed through stripslashes() !
 	 */
-	function getValueInQuotes(&$parseString,$quote)	{
+	protected function getValueInQuotes(&$parseString, $quote) {
 
 		$parts = explode($quote,substr($parseString,1));
 		$buffer = '';
@@ -1159,7 +1178,7 @@ class t3lib_sqlparser {
 	 * @param	string		Input string
 	 * @return	string		Output string
 	 */
-	function parseStripslashes($str)	{
+	protected function parseStripslashes($str) {
 		$search = array('\\\\', '\\\'', '\\"', '\0', '\n', '\r', '\Z');
 		$replace = array('\\', '\'', '"', "\x00", "\x0a", "\x0d", "\x1a");
 
@@ -1173,7 +1192,7 @@ class t3lib_sqlparser {
 	 * @param	string		Input string
 	 * @return	string		Output string
 	 */
-	function compileAddslashes($str)	{
+	protected function compileAddslashes($str) {
 return $str;
 		$search = array('\\', '\'', '"', "\x00", "\x0a", "\x0d", "\x1a");
 		$replace = array('\\\\', '\\\'', '\\"', '\0', '\n', '\r', '\Z');
@@ -1188,7 +1207,7 @@ return $str;
 	 * @param	string		Remaining query to parse.
 	 * @return	string		Error message.
 	 */
-	function parseError($msg,$restQuery)	{
+	protected function parseError($msg, $restQuery) {
 		$this->parse_error = 'SQL engine parse ERROR: '.$msg.': near "'.substr($restQuery,0,50).'"';
 		return $this->parse_error;
 	}
@@ -1202,7 +1221,7 @@ return $str;
 	 * @param	string		Input string
 	 * @return	string		Output string
 	 */
-	function trimSQL($str)	{
+	protected function trimSQL($str) {
 		return trim(rtrim($str, "; \r\n\t")).' ';
 	}
 
@@ -1230,7 +1249,7 @@ return $str;
 	 * @return	string		SQL query
 	 * @see parseSQL()
 	 */
-	function compileSQL($components)	{
+	public function compileSQL($components) {
 		switch($components['type'])	{
 			case 'SELECT':
 				$query = $this->compileSELECT($components);
@@ -1268,7 +1287,7 @@ return $str;
 	 * @return	string		SQL SELECT query
 	 * @see parseSELECT()
 	 */
-	function compileSELECT($components)	{
+	protected function compileSELECT($components) {
 
 			// Initialize:
 		$where = $this->compileWhereClause($components['WHERE']);
@@ -1299,7 +1318,7 @@ return $str;
 	 * @return	string		SQL UPDATE query
 	 * @see parseUPDATE()
 	 */
-	function compileUPDATE($components)	{
+	protected function compileUPDATE($components) {
 
 			// Where clause:
 		$where = $this->compileWhereClause($components['WHERE']);
@@ -1327,7 +1346,7 @@ return $str;
 	 * @return	string		SQL INSERT query
 	 * @see parseINSERT()
 	 */
-	function compileINSERT($components)	{
+	protected function compileINSERT($components) {
 
 		if ($components['VALUES_ONLY'])	{
 				// Initialize:
@@ -1367,7 +1386,7 @@ return $str;
 	 * @return	string		SQL DELETE query
 	 * @see parseDELETE()
 	 */
-	function compileDELETE($components)	{
+	protected function compileDELETE($components) {
 
 			// Where clause:
 		$where = $this->compileWhereClause($components['WHERE']);
@@ -1387,7 +1406,7 @@ return $str;
 	 * @return	string		SQL CREATE TABLE query
 	 * @see parseCREATETABLE()
 	 */
-	function compileCREATETABLE($components)	{
+	protected function compileCREATETABLE($components) {
 
 			// Create fields and keys:
 		$fieldsKeys = array();
@@ -1420,7 +1439,7 @@ return $str;
 	 * @return	string		SQL ALTER TABLE query
 	 * @see parseALTERTABLE()
 	 */
-	function compileALTERTABLE($components)	{
+	protected function compileALTERTABLE($components) {
 
 			// Make query:
 		$query = 'ALTER TABLE '.$components['TABLE'].' '.$components['action'].' '.($components['FIELD']?$components['FIELD']:$components['KEY']);
@@ -1473,7 +1492,7 @@ return $str;
 	 * @return	string		Select field string
 	 * @see parseFieldList()
 	 */
-	function compileFieldList($selectFields)	{
+	public function compileFieldList($selectFields) {
 
 			// Prepare buffer variable:
 		$outputParts = array();
@@ -1514,8 +1533,10 @@ return $str;
 	 * @param	array		Array of table names, (made with ->parseFromTables())
 	 * @return	string		Table name string
 	 * @see parseFromTables()
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, this is a DBAL-only method that was moved to ux_t3lib_sqlparser.
 	 */
-	function compileFromTables($tablesArray)	{
+	public function compileFromTables($tablesArray) {
+		t3lib_div::logDeprecatedFunction();
 
 			// Prepare buffer variable:
 		$outputParts = array();
@@ -1533,7 +1554,12 @@ return $str;
 				}
 
 				if (is_array($v['JOIN']))	{
-					$outputParts[$k] .= ' '.$v['JOIN']['type'].' '.$v['JOIN']['withTable'].' ON ';
+					$outputParts[$k] .= ' ' . $v['JOIN']['type'] . ' ' . $v['JOIN']['withTable'];
+						// Add alias AS if there:
+					if (isset($v['JOIN']['as']) && $v['JOIN']['as']) {
+						$outputParts[$k] .= ' ' . $v['JOIN']['as_keyword'] . ' ' . $v['JOIN']['as'];
+					}
+					$outputParts[$k] .= ' ON ';
 					$outputParts[$k] .= ($v['JOIN']['ON'][0]['table']) ? $v['JOIN']['ON'][0]['table'].'.' : '';
 					$outputParts[$k] .= $v['JOIN']['ON'][0]['field'];
 					$outputParts[$k] .= '=';
@@ -1555,8 +1581,10 @@ return $str;
 	 * @param	array		WHERE clause configuration
 	 * @return	string		WHERE clause as string.
 	 * @see	explodeWhereClause()
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, this is a DBAL-only method that was moved to ux_t3lib_sqlparser.
 	 */
-	function compileWhereClause($clauseArray)	{
+	public function compileWhereClause($clauseArray) {
+		t3lib_div::logDeprecatedFunction();
 
 			// Prepare buffer variable:
 		$output='';
@@ -1610,7 +1638,7 @@ return $str;
 	 * @param	array		Field definition parts
 	 * @return	string		Field definition string
 	 */
-	function compileFieldCfg($fieldCfg)	{
+	public function compileFieldCfg($fieldCfg) {
 
 			// Set type:
 		$cfg = $fieldCfg['fieldType'];
@@ -1659,7 +1687,7 @@ return $str;
 	 * @param	string		SQL string to verify parsability of
 	 * @return	mixed		Returns array with string 1 and 2 if error, otherwise false
 	 */
-	function debug_parseSQLpart($part,$str)	{
+	public function debug_parseSQLpart($part, $str) {
 		$retVal = false;
 
 		switch($part)	{
@@ -1684,7 +1712,7 @@ return $str;
 	 * @param	boolean		If true, the strings are compared insensitive to case
 	 * @return	mixed		Returns array with string 1 and 2 if error, otherwise false
 	 */
-	function debug_parseSQLpartCompare($str,$newStr,$caseInsensitive=FALSE)	{
+	public function debug_parseSQLpartCompare($str, $newStr, $caseInsensitive = FALSE) {
 		if ($caseInsensitive)	{
 			$str1 = strtoupper($str);
 			$str2 = strtoupper($newStr);
@@ -1717,7 +1745,7 @@ return $str;
 	 * @param	string		SQL query
 	 * @return	string		Query if all is well, otherwise exit.
 	 */
-	function debug_testSQL($SQLquery)	{
+	public function debug_testSQL($SQLquery) {
 
 			// Getting result array:
 		$parseResult = $this->parseSQL($SQLquery);

@@ -119,6 +119,10 @@ class localRecordList extends recordList {
 	var $CBnames=array();					// Tracking names of elements (for clipboard use)
 	var $duplicateStack=array();			// Used to track which elements has duplicates and how many
 
+	var $references;						// References of the current record
+	var $translations;						// Translations of the current record
+	var $selFieldList;						// select fields for the query which fetches the translations of the current record
+
 	public function __construct() {
 		parent::__construct();
 	}
@@ -167,14 +171,14 @@ class localRecordList extends recordList {
 			} else {
 					//default exclusion: doktype 254, 255
 				$noViewDokTypes = array('254', '255');
-			}	
-				
+			}
+
 			if (!in_array($this->pageRow['doktype'], $noViewDokTypes)) {
 				$buttons['view'] = '<a href="#" onclick="' . htmlspecialchars(t3lib_BEfunc::viewOnClick($this->id, $this->backPath, t3lib_BEfunc::BEgetRootLine($this->id))) . '">' .
 							'<img' . t3lib_iconWorks::skinImg($this->backPath, 'gfx/zoom.gif') . ' title="' . $LANG->sL('LLL:EXT:lang/locallang_core.php:labels.showPage', 1) . '" alt="" />' .
 							'</a>';
 			}
-			
+
 				// New record
 			if (!$GLOBALS['SOBE']->modTSconfig['properties']['noCreateRecordsLink']) {
 				$buttons['new_record'] = '<a href="#" onclick="' . htmlspecialchars('return jumpExt(\'' . $this->backPath . 'db_new.php?id=' . $this->id . '\');') . '">' .
@@ -241,9 +245,9 @@ class localRecordList extends recordList {
 
 					// Export
 				if (t3lib_extMgm::isLoaded('impexp')) {
-					$buttons['export'] = '<a href="' . htmlspecialchars($this->backPath. 'mod.php?M=xMOD_tximpexp&tx_impexp[action]=export&tx_impexp[list][]=' . rawurlencode($this->table . ':' . $this->id)) . '">' .
-									'<img' . t3lib_iconWorks::skinImg($this->backPath, t3lib_extMgm::extRelPath('impexp') . 'export.gif') . ' title="' . $LANG->sL('LLL:EXT:lang/locallang_core.php:rm.export', 1) . '" alt="" />' .
-									'</a>';
+					$url = $this->backPath . t3lib_extMgm::extRelPath('impexp') . 'app/index.php?tx_impexp[action]=export';
+					$buttons['export'] = '<a href="' . htmlspecialchars($url . '&tx_impexp[list][]=' . rawurlencode($this->table . ':' . $this->id)) . '">' .									'<img' . t3lib_iconWorks::skinImg($this->backPath, t3lib_extMgm::extRelPath('impexp') . 'export.gif') . ' title="' . $LANG->sL('LLL:EXT:lang/locallang_core.php:rm.export', 1) . '" alt="" />' .
+										'</a>';
 				}
 
 			}
@@ -374,6 +378,7 @@ class localRecordList extends recordList {
 		$selectFields = array_unique($selectFields);		// Unique list!
 		$selectFields = array_intersect($selectFields,$this->makeFieldList($table,1));		// Making sure that the fields in the field-list ARE in the field-list from TCA!
 		$selFieldList = implode(',',$selectFields);		// implode it into a list of fields for the SQL-statement.
+		$this->selFieldList = $selFieldList;
 
 		/**
 		 * @hook			DB-List getTable
@@ -382,7 +387,7 @@ class localRecordList extends recordList {
 		 */
 		if(is_array($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['getTable'])) {
 			foreach($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['getTable'] as $classData) {
-				$hookObject = &t3lib_div::getUserObj($classData);
+				$hookObject = t3lib_div::getUserObj($classData);
 
 				if(!($hookObject instanceof t3lib_localRecordListGetTableHook)) {
 					throw new UnexpectedValueException('$hookObject must implement interface t3lib_localRecordListGetTableHook', 1195114460);
@@ -538,28 +543,21 @@ class localRecordList extends recordList {
 					// Render item row if counter < limit
 					if ($cc < $this->iLimit) {
 						$cc++;
+						$this->translations = FALSE;
 						$iOut.= $this->renderListRow($table,$row,$cc,$titleCol,$thumbsCol);
 
 							// If localization view is enabled it means that the selected records are either default or All language and here we will not select translations which point to the main record:
 						if ($this->localizationView && $l10nEnabled)	{
-
-								// Look for translations of this record:
-							$translations = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-								$selFieldList,
-								$table,
-								'pid='.$row['pid'].
-									' AND '.$TCA[$table]['ctrl']['languageField'].'>0'.
-									' AND '.$TCA[$table]['ctrl']['transOrigPointerField'].'='.intval($row['uid']).
-									t3lib_BEfunc::deleteClause($table).
-									t3lib_BEfunc::versioningPlaceholderClause($table)
-							);
-
 								// For each available translation, render the record:
-							if (is_array($translations)) {
-								foreach($translations as $lRow)	{
+							if (is_array($this->translations)) {
+								foreach ($this->translations as $lRow) {
+										// $lRow isn't always what we want - if record was moved we've to work with the placeholder records otherwise the list is messed up a bit
+									if ($row['_MOVE_PLH_uid'] && $row['_MOVE_PLH_pid']) {
+										$tmpRow = t3lib_BEfunc::getRecordRaw($table, 't3ver_move_id="'.intval($lRow['uid']) . '" AND pid="' . $row['_MOVE_PLH_pid'] . '" AND t3ver_wsid=' . $row['t3ver_wsid'] . t3lib_beFunc::deleteClause($table), $selFieldList);
+										$lRow = is_array($tmpRow)?$tmpRow:$lRow;
+									}
 										// In offline workspace, look for alternative record:
-									t3lib_BEfunc::workspaceOL($table, $lRow, $GLOBALS['BE_USER']->workspace);
-
+									t3lib_BEfunc::workspaceOL($table, $lRow, $GLOBALS['BE_USER']->workspace, true);
 									if (is_array($lRow) && $GLOBALS['BE_USER']->checkLanguageAccess($lRow[$TCA[$table]['ctrl']['languageField']]))	{
 										$currentIdList[] = $lRow['uid'];
 										$iOut.=$this->renderListRow($table,$lRow,$cc,$titleCol,$thumbsCol,18);
@@ -573,18 +571,30 @@ class localRecordList extends recordList {
 					$this->eCounter++;
 				}
 
-				// Record navigation is added to the beginning and end of the table if in single table mode
+					// Record navigation is added to the beginning and end of the table if in single table mode
 				if ($this->table) {
 					$pageNavigation = $this->renderListNavigation();
 					$iOut = $pageNavigation . $iOut . $pageNavigation;
+				} else {
+						// show that there are more records than shown
+					if ($this->totalItems > $this->itemsLimitPerTable) {
+						$countOnFirstPage = $this->totalItems > $this->itemsLimitSingleTable ? $this->itemsLimitSingleTable : $this->totalItems;
+						$hasMore = ($this->totalItems > $this->itemsLimitSingleTable);
+						$iOut .= '<tr><td colspan="' . count($this->fieldArray) . '" style="padding:5px;">
+								<a href="'.htmlspecialchars($this->listURL() . '&table=' . rawurlencode($table)) . '">' .
+								'<img' . t3lib_iconWorks::skinImg($this->backPath,'gfx/pildown.gif', 'width="14" height="14"') .' alt="" />'.
+								' <i>[1 - ' . $countOnFirstPage . ($hasMore ? '+' : '') . ']</i></a>
+								</td></tr>';
+						}
+
 				}
 
 					// The header row for the table is now created:
-				$out.=$this->renderListHeader($table,$currentIdList);
+				$out .= $this->renderListHeader($table,$currentIdList);
 			}
 
 				// The list of records is added after the header:
-			$out.=$iOut;
+			$out .= $iOut;
 			unset($iOut);
 
 				// ... and it is all wrapped in a table:
@@ -630,6 +640,7 @@ class localRecordList extends recordList {
 
 		if (is_array($row))	{
 
+			$this->setReferences($table, $row['uid']);
 				// add special classes for first and last row
 			$rowSpecial = '';
 			if ($cc == 1 && $indent == 0) {
@@ -668,6 +679,13 @@ class localRecordList extends recordList {
 							'</a>';
 					}
 					$theData[$fCol] = $warning . $this->linkWrapItems($table, $row['uid'], $recTitle, $row);
+
+					$localizationMarkerClass = '';
+					if (isset($GLOBALS['TCA'][$table]['ctrl']['languageField'])
+					&& $row[$GLOBALS['TCA'][$table]['ctrl']['languageField']] != 0) {
+							// it's a translated record
+						$localizationMarkerClass = ' localization';
+					}
 				} elseif ($fCol == 'pid') {
 					$theData[$fCol]=$row[$fCol];
 				} elseif ($fCol == '_PATH_') {
@@ -703,7 +721,7 @@ class localRecordList extends recordList {
 			}
 
 			// Add classes to table cells
-			$this->addElement_tdCssClass[$titleCol]         = 'col-title';
+			$this->addElement_tdCssClass[$titleCol]         = 'col-title' . $localizationMarkerClass;
 			if (!$this->dontShowClipControlPanels) {
 				$this->addElement_tdCssClass['_CONTROL_']       = 'col-control';
 				$this->addElement_tdCssClass['_AFTERCONTROL_']  = 'col-control-space';
@@ -725,6 +743,24 @@ class localRecordList extends recordList {
 				// Finally, return table row element:
 			return $iOut;
 		}
+	}
+
+	/**
+	 * Write sys_refindex entries for current record to $this->references
+	 *
+	 * @param	string		Table name
+	 * @param	integer		Uid of current record
+	 * @return	void
+	 */
+	function setReferences($table, $uid) {
+		$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+			'*',
+			'sys_refindex',
+			'ref_table='.$GLOBALS['TYPO3_DB']->fullQuoteStr($table,'sys_refindex').
+				' AND ref_uid='.intval($uid).
+				' AND deleted=0'
+		);
+		$this->references = $rows;
 	}
 
 	/**
@@ -804,7 +840,7 @@ class localRecordList extends recordList {
 					 */
 					if(is_array($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['actions']))	{
 						foreach($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['actions'] as $classData)	{
-							$hookObject = &t3lib_div::getUserObj($classData);
+							$hookObject = t3lib_div::getUserObj($classData);
 							if(!($hookObject instanceof localRecordList_actionsHook))	{
 								throw new UnexpectedValueException('$hookObject must implement interface localRecordList_actionsHook', 1195567850);
 							}
@@ -896,7 +932,7 @@ class localRecordList extends recordList {
 		 */
 		if(is_array($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['actions']))	{
 			foreach($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['actions'] as $classData)	{
-				$hookObject = &t3lib_div::getUserObj($classData);
+				$hookObject = t3lib_div::getUserObj($classData);
 				if(!($hookObject instanceof localRecordList_actionsHook))	{
 					throw new UnexpectedValueException('$hookObject must implement interface localRecordList_actionsHook', 1195567855);
 				}
@@ -1024,7 +1060,7 @@ class localRecordList extends recordList {
 				. '</span>';
 
 			$content .= '<div id="typo3-dblist-pagination">'
-				. $first . $previous  
+				. $first . $previous
 				. '<span class="bar">&nbsp;</span>'
 				. $rangeIndicator . '<span class="bar">&nbsp;</span>'
 				. $pageIndicator . '<span class="bar">&nbsp;</span>'
@@ -1122,7 +1158,7 @@ class localRecordList extends recordList {
 
 					// Versioning:
 				if (t3lib_extMgm::isLoaded('version'))	{
-					$vers = t3lib_BEfunc::selectVersionsOfRecord($table, $row['uid'], 'uid', $GLOBALS['BE_USER']->workspace);
+					$vers = t3lib_BEfunc::selectVersionsOfRecord($table, $row['uid'], 'uid', $GLOBALS['BE_USER']->workspace, FALSE, $row);
 					if (is_array($vers))	{	// If table can be versionized.
 						if (count($vers)>1)	{
 							$class = 'typo3-ctrl-versioning-multipleVersions';
@@ -1212,7 +1248,10 @@ class localRecordList extends recordList {
 					$titleOrig = t3lib_BEfunc::getRecordTitle($table,$row,FALSE,TRUE);
 					$title = t3lib_div::slashJS(t3lib_div::fixed_lgd_cs($titleOrig, $this->fixedL), 1);
 					$params = '&cmd['.$table.']['.$row['uid'].'][delete]=1';
-					$cells['delete']='<a href="#" onclick="'.htmlspecialchars('if (confirm('.$LANG->JScharCode($LANG->getLL('deleteWarning').' "'. $title.'" '.t3lib_BEfunc::referenceCount($table,$row['uid'],' ' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.referencesToRecord'))).')) {jumpToUrl(\''.$SOBE->doc->issueCommand($params,-1).'\');} return false;').'">'.
+
+					$refCountMsg = t3lib_BEfunc::referenceCount($table, $row['uid'], ' ' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.referencesToRecord'), count($this->references)) .
+						t3lib_BEfunc::translationCount($table, $row['uid'], ' ' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.translationsOfRecord')) . ")";
+					$cells['delete']='<a href="#" onclick="'.htmlspecialchars('if (confirm('.$LANG->JScharCode($LANG->getLL('deleteWarning').' "'. $title.'" '.$refCountMsg).')) {jumpToUrl(\''.$SOBE->doc->issueCommand($params,-1).'\');} return false;').'">'.
 							'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/garbage.gif','width="11" height="12"').' title="'.$LANG->getLL('delete',1).'" alt="" />'.
 							'</a>';
 				} elseif(!$this->table) {
@@ -1272,7 +1311,7 @@ class localRecordList extends recordList {
 		 */
 		if(is_array($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['actions'])) {
 			foreach($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['actions'] as $classData) {
-				$hookObject = &t3lib_div::getUserObj($classData);
+				$hookObject = t3lib_div::getUserObj($classData);
 				if(!($hookObject instanceof localRecordList_actionsHook))	{
 					throw new UnexpectedValueException('$hookObject must implement interface localRecordList_actionsHook', 1195567840);
 				}
@@ -1301,17 +1340,18 @@ class localRecordList extends recordList {
 		$cells=array();
 
 		$cells['pasteAfter'] = $cells['pasteInto'] = $this->spaceIcon;
-
+			//enables to hide the copy, cut and paste icons for localized records - doesn't make much sense to perform these options for them
+		$isL10nOverlay = $this->localizationView && $table != 'pages_language_overlay' && $row[$TCA[$table]['ctrl']['transOrigPointerField']] != 0;
 			// Return blank, if disabled:
 			// Whether a numeric clipboard pad is active or the normal pad we will see different content of the panel:
 		if ($this->clipObj->current=='normal')	{	// For the "Normal" pad:
 
 				// Show copy/cut icons:
 			$isSel = (string)$this->clipObj->isSelected($table,$row['uid']);
-			$cells['copy']='<a href="#" onclick="'.htmlspecialchars('return jumpSelf(\''.$this->clipObj->selUrlDB($table,$row['uid'],1,($isSel=='copy'),array('returnUrl'=>'')).'\');').'">'.
+			$cells['copy'] = $isL10nOverlay ? $this->spaceIcon : '<a href="#" onclick="'.htmlspecialchars('return jumpSelf(\''.$this->clipObj->selUrlDB($table,$row['uid'],1,($isSel=='copy'),array('returnUrl'=>'')).'\');').'">'.
 					'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/clip_copy'.($isSel=='copy'?'_h':'').'.gif','width="12" height="12"').' title="'.$LANG->sL('LLL:EXT:lang/locallang_core.php:cm.copy',1).'" alt="" />'.
 					'</a>';
-			$cells['cut']='<a href="#" onclick="'.htmlspecialchars('return jumpSelf(\''.$this->clipObj->selUrlDB($table,$row['uid'],0,($isSel=='cut'),array('returnUrl'=>'')).'\');').'">'.
+			$cells['cut'] = $isL10nOverlay ? $this->spaceIcon : '<a href="#" onclick="'.htmlspecialchars('return jumpSelf(\''.$this->clipObj->selUrlDB($table,$row['uid'],0,($isSel=='cut'),array('returnUrl'=>'')).'\');').'">'.
 					'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/clip_cut'.($isSel=='cut'?'_h':'').'.gif','width="12" height="12"').' title="'.$LANG->sL('LLL:EXT:lang/locallang_core.php:cm.cut',1).'" alt="" />'.
 					'</a>';
 
@@ -1334,13 +1374,13 @@ class localRecordList extends recordList {
 			}
 
 				// Adding the checkbox to the panel:
-			$cells['select']='<input type="hidden" name="CBH['.$n.']" value="0" /><input type="checkbox" name="CBC['.$n.']" value="1" class="smallCheckboxes"'.$checked.' />';
+			$cells['select'] = $isL10nOverlay ? $this->spaceIcon : '<input type="hidden" name="CBH['.$n.']" value="0" /><input type="checkbox" name="CBC['.$n.']" value="1" class="smallCheckboxes"'.$checked.' />';
 		}
 
 			// Now, looking for selected elements from the current table:
 		$elFromTable = $this->clipObj->elFromTable($table);
 		if (count($elFromTable) && $TCA[$table]['ctrl']['sortby'])	{	// IF elements are found and they can be individually ordered, then add a "paste after" icon:
-			$cells['pasteAfter']='<a href="'.htmlspecialchars($this->clipObj->pasteUrl($table,-$row['uid'])).'" onclick="'.htmlspecialchars('return '.$this->clipObj->confirmMsg($table,$row,'after',$elFromTable)).'">'.
+			$cells['pasteAfter'] = $isL10nOverlay ? $this->spaceIcon : '<a href="'.htmlspecialchars($this->clipObj->pasteUrl($table,-$row['uid'])).'" onclick="'.htmlspecialchars('return '.$this->clipObj->confirmMsg($table,$row,'after',$elFromTable)).'">'.
 					'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/clip_pasteafter.gif','width="12" height="12"').' title="'.$LANG->getLL('clip_pasteAfter',1).'" alt="" />'.
 					'</a>';
 		}
@@ -1361,7 +1401,7 @@ class localRecordList extends recordList {
 		 */
 		if(is_array($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['actions'])) {
 			foreach($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list_extra.inc']['actions'] as $classData) {
-				$hookObject = &t3lib_div::getUserObj($classData);
+				$hookObject = t3lib_div::getUserObj($classData);
 				if(!($hookObject instanceof localRecordList_actionsHook))	{
 					throw new UnexpectedValueException('$hookObject must implement interface localRecordList_actionsHook', 1195567845);
 				}
@@ -1383,19 +1423,10 @@ class localRecordList extends recordList {
 	 */
 	function makeRef($table,$uid)	{
 
-			// Look up the path:
-		$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-			'*',
-			'sys_refindex',
-			'ref_table='.$GLOBALS['TYPO3_DB']->fullQuoteStr($table,'sys_refindex').
-				' AND ref_uid='.intval($uid).
-				' AND deleted=0'
-		);
-
 			// Compile information for title tag:
 		$infoData=array();
-		if (is_array($rows)) {
-			foreach($rows as $row)	{
+		if (is_array($this->references)) {
+			foreach ($this->references as $row) {
 				$infoData[]=$row['tablename'].':'.$row['recuid'].':'.$row['field'];
 			}
 		}
@@ -1418,8 +1449,8 @@ class localRecordList extends recordList {
 			1 => '',
 		);
 
-		$t8Tools = t3lib_div::makeInstance('t3lib_transl8tools');
-		$translations = $t8Tools->translationInfo($table,$row['uid']);
+		$translations = $this->translateTools->translationInfo($table, $row['uid'], 0, $row, $this->selFieldList);
+		$this->translations = $translations['translations'];
 
 			// Language title and icon:
 		$out[0] = $this->languageFlag($row[$TCA[$table]['ctrl']['languageField']]);
@@ -1430,7 +1461,7 @@ class localRecordList extends recordList {
 			$lNew = '';
 			foreach($this->pageOverlays as $lUid_OnPage => $lsysRec)	{
 				if (!isset($translations['translations'][$lUid_OnPage]) && $GLOBALS['BE_USER']->checkLanguageAccess($lUid_OnPage))	{
-					$href = $GLOBALS['TBE_TEMPLATE']->issueCommand(
+					$href = $this->backPath . $GLOBALS['TBE_TEMPLATE']->issueCommand(
 						'&cmd['.$table.']['.$row['uid'].'][localize]='.$lUid_OnPage,
 						$this->listURL().'&justLocalized='.rawurlencode($table.':'.$row['uid'].':'.$lUid_OnPage)
 					);

@@ -36,6 +36,13 @@
  * @subpackage t3lib
  */
 class t3lib_frontendedit {
+	/**
+	 * GET/POST parameters for the FE editing.
+	 * Accessed as $GLOBALS['BE_USER']->frontendEdit->TSFE_EDIT, thus public
+	 *
+	 * @var array
+	 */
+	public $TSFE_EDIT;
 
 	/**
 	 * TCEmain object.
@@ -50,7 +57,7 @@ class t3lib_frontendedit {
 	 * @return	void
 	 */
 	public function initConfigOptions() {
-		$this->TSFE_EDIT = t3lib_div::_POST('TSFE_EDIT');
+		$this->TSFE_EDIT = t3lib_div::_GP('TSFE_EDIT');
 
 			// Include classes for editing IF editing module in Admin Panel is open
 		if ($GLOBALS['BE_USER']->isFrontendEditingActive()) {
@@ -101,7 +108,7 @@ class t3lib_frontendedit {
 		if ($GLOBALS['TSFE']->displayEditIcons && $table && $this->allowedToEdit($table, $dataArray, $conf) && $this->allowedToEditLanguage($table, $dataArray)) {
 			$editClass = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/classes/class.frontendedit.php']['edit'];
 			if ($editClass) {
-				$edit = &t3lib_div::getUserObj($editClass, false);
+				$edit = t3lib_div::getUserObj($editClass, false);
 				if (is_object($edit)) {
 					$allowedActions = $this->getAllowedEditActions($table, $conf, $dataArray['pid']);
 					$content = $edit->editPanel($content, $conf, $currentRecord, $dataArray, $table, $allowedActions, $newUid, $this->getHiddenFields($dataArray));
@@ -145,7 +152,7 @@ class t3lib_frontendedit {
 		if ($GLOBALS['TSFE']->displayFieldEditIcons && $table && $this->allowedToEdit($table, $dataArray, $conf) && $fieldList && $this->allowedToEditLanguage($table, $dataArray)) {
 			$editClass = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/classes/class.frontendedit.php']['edit'];
 			if ($editClass) {
-				$edit = &t3lib_div::getUserObj($editClass);
+				$edit = t3lib_div::getUserObj($editClass);
 				if (is_object($edit)) {
 					$content = $edit->editIcons($content, $params, $conf, $currentRecord, $dataArray, $addURLParamStr, $table, $editUid, $fieldList);
 				}
@@ -209,6 +216,7 @@ class t3lib_frontendedit {
 	public function editAction() {
 			// Commands:
 		list($table, $uid) = explode(':', $this->TSFE_EDIT['record']);
+		$uid = intval($uid);
 		$cmd = $this->TSFE_EDIT['cmd'];
 
 			// Look for some TSFE_EDIT data that indicates we should save.
@@ -441,7 +449,7 @@ class t3lib_frontendedit {
 		$this->doSave($table, $uid);
 	}
 
-	
+
 	/**
 	 * Stub for closing a record. No real functionality needed since content
 	 * element rendering will take care of everything.

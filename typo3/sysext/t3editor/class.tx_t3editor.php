@@ -44,6 +44,9 @@
  *
  * @author	Tobias Liebig <mail_typo3@etobi.de>
  */
+
+$GLOBALS['LANG']->includeLLFile('EXT:t3editor/locallang.xml');
+
 class tx_t3editor {
 
 	/**
@@ -125,8 +128,10 @@ class tx_t3editor {
 			$path_t3e = t3lib_extmgm::extRelPath('t3editor');
 
 				// include needed javascript-frameworks
-			$doc->loadPrototype();
-			$doc->loadScriptaculous();
+			/** @var $pageRenderer t3lib_PageRenderer */
+			$pageRenderer = $doc->getPageRenderer();
+			$pageRenderer->loadPrototype();
+			$pageRenderer->loadScriptaculous();
 
 				// include editor-css
 			$code.= '<link href="' .
@@ -147,12 +152,59 @@ class tx_t3editor {
 			// set correct path to the editor
 
 			$code.= t3lib_div::wrapJS(
+				'var T3editor = T3editor || {};' .
+				'T3editor.lang = ' . json_encode($this->getJavaScriptLabels()) .';' .
+				// TODO namespace all js vars (PATH_t3e, URL_typo3, ...)
 				'var PATH_t3e = "' . $GLOBALS['BACK_PATH'] . t3lib_extmgm::extRelPath('t3editor') . '"; ' .
 				'var URL_typo3 = "' . htmlspecialchars(t3lib_div::getIndpEnv('TYPO3_SITE_URL') . TYPO3_mainDir) . '"; '
 			);
 		}
 
 		return $code;
+	}
+
+	/**
+	 * Gets the labels to be used in JavaScript in the Ext JS interface.
+	 * TODO this method is copied from EXT:Recycler, maybe this should be refactored into a helper class
+	 *
+	 * @return	array		The labels to be used in JavaScript
+	 */
+	protected function getJavaScriptLabels() {
+		$javaScriptLabels = $this->getJavaScriptLabelsFromLocallang('js.', 'label_');
+
+			// Convert labels back to UTF-8 since json_encode() only works with UTF-8:
+		if ($GLOBALS['LANG']->charSet !== 'utf-8') {
+			$GLOBALS['LANG']->csConvObj->convArray($javaScriptLabels, $GLOBALS['LANG']->charSet, 'utf-8');
+		}
+
+		return $javaScriptLabels;
+	}
+
+	/**
+	 * Gets labels to be used in JavaScript fetched from the current locallang file.
+	 * TODO this method is copied from EXT:Recycler, maybe this should be refactored into a helper class
+	 *
+	 * @param	string		$selectionPrefix: Prefix to select the correct labels (default: 'js.')
+	 * @param	string		$stripFromSelectionName: Sub-prefix to be removed from label names in the result (default: '')
+	 * @return	array		Lables to be used in JavaScript of the current locallang file
+	 * @todo	Check, whether this method can be moved in a generic way to $GLOBALS['LANG']
+	 */
+	protected function getJavaScriptLabelsFromLocallang($selectionPrefix = 'js.', $stripFromSelectionName = '') {
+		$extraction = array();
+		$labels = array_merge(
+			(array)$GLOBALS['LOCAL_LANG']['default'],
+			(array)$GLOBALS['LOCAL_LANG'][$GLOBALS['LANG']->lang]
+		);
+			// Regular expression to strip the selection prefix and possibly something from the label name:
+		$labelPattern = '#^' . preg_quote($selectionPrefix, '#') . '(' . preg_quote($stripFromSelectionName, '#') . ')?#';
+			// Iterate throuh all locallang lables:
+		foreach ($labels as $label => $value) {
+			if (strpos($label, $selectionPrefix) === 0) {
+				$key = preg_replace($labelPattern, '', $label);
+				$extraction[$key] = $value;
+			}
+		}
+		return $extraction;
 	}
 
 	/**
@@ -196,7 +248,7 @@ class tx_t3editor {
 				'id="t3editor_disableEditor_' . $this->editorCounter.'_checkbox" ' .
 				$checked.' />&nbsp;' .
 				'<label for="t3editor_disableEditor_' . $this->editorCounter . '_checkbox">' .
-				'deactivate t3editor' .
+				$GLOBALS['LANG']->getLL('deactivate') .
 				'</label>' .
 				'<br /><br />';
 
@@ -268,7 +320,10 @@ class tx_t3editor {
 				'wrap="off" ' .
 				$pObj->pObj->doc->formWidthText(48, 'width:98%;height:60%', 'off');
 
-			$title = 'Template: ' . htmlspecialchars($parameters['tplRow']['title']) . ': Constants';
+			$title = $GLOBALS['LANG']->getLL('template') . ' ' .
+				htmlspecialchars($parameters['tplRow']['title']) .
+				$GLOBALS['LANG']->getLL('delimiter') . ' ' .
+				$GLOBALS['LANG']->getLL('constants');
 
 			$outCode = $GLOBALS['T3_VAR']['t3editorObj']->getCodeEditor(
 						'data[constants]',
@@ -294,7 +349,10 @@ class tx_t3editor {
 				'wrap="off" ' .
 				$pObj->pObj->doc->formWidthText(48, 'width:98%;height:60%', 'off');
 
-			$title = 'Template: ' . htmlspecialchars($parameters['tplRow']['title']) . ': Setup';
+			$title = $GLOBALS['LANG']->getLL('template') . ' ' .
+				htmlspecialchars($parameters['tplRow']['title']) .
+				$GLOBALS['LANG']->getLL('delimiter') . ' ' .
+				$GLOBALS['LANG']->getLL('setup');
 
 			$outCode = $GLOBALS['T3_VAR']['t3editorObj']->getCodeEditor(
 						'data[config]',
@@ -343,7 +401,7 @@ class tx_t3editor {
 				// TODO: fileadmin, extmng, TCEform, ...
 
 				default:
-					$ajaxObj->setError('Unknown content type: ' . $codeType);
+					$ajaxObj->setError($GLOBALS['LANG']->getLL('unknownContentType') . ' ' . $codeType);
 			}
 			$ajaxObj->setContent(array('result' => $savingsuccess));
 		}
@@ -383,6 +441,8 @@ class tx_t3editor {
 			$POST = t3lib_div::_POST();
 
 			if ($POST['submit']) {
+				require_once(PATH_t3lib . 'class.t3lib_tcemain.php');
+
 				// Set the data to be saved
 				$recData = array();
 

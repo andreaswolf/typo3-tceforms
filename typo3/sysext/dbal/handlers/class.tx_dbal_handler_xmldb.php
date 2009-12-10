@@ -27,7 +27,7 @@
 /**
  * Contains an example DBAL handler class
  *
- * $Id$
+ * $Id: class.tx_dbal_handler_xmldb.php 25889 2009-10-27 10:09:11Z xperseguers $
  *
  * @author	Kasper Skaarhoj <kasper@typo3.com>
  */
@@ -36,7 +36,7 @@
  *
  *
  *
- *   74: class tx_dbal_handler_xmldb extends t3lib_sqlengine
+ *   74: class tx_dbal_handler_xmldb extends tx_dbal_sqlengine
  *   91:     function init($config, &$pObj)
  *  128:     function readDataSource($table)
  *  157:     function saveDataSource($table)
@@ -71,7 +71,7 @@
  * @package TYPO3
  * @subpackage tx_dbal
  */
-class tx_dbal_handler_xmldb extends t3lib_sqlengine {
+class tx_dbal_handler_xmldb extends tx_dbal_sqlengine {
 
 	var $config = array();
 	var $pObj;	// Set from DBAL class.
@@ -89,7 +89,7 @@ class tx_dbal_handler_xmldb extends t3lib_sqlengine {
 	 * @param	object		Parent object
 	 * @return	void
 	 */
-	function init($config, &$pObj)	{
+	function init($config, $pObj) {
 		$this->config = $config['config'];
 
 		$dbStorage = t3lib_div::getFileAbsFileName($this->config['DBstorageDir']);

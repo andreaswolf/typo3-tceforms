@@ -8,13 +8,17 @@
 #
 CREATE TABLE cache_pages (
   id int(11) unsigned NOT NULL auto_increment,
-  identifier varchar(250) DEFAULT '' NOT NULL,
-  crdate int(11) unsigned DEFAULT '0' NOT NULL,
-  content mediumtext,
-  tags mediumtext,
-  lifetime int(11) unsigned DEFAULT '0' NOT NULL,
-  PRIMARY KEY (id),
-  KEY cache_id (identifier)
+  hash varchar(32) DEFAULT '' NOT NULL,
+  page_id int(11) unsigned DEFAULT '0' NOT NULL,
+  reg1 int(11) unsigned DEFAULT '0' NOT NULL,
+  HTML mediumblob,
+  temp_content int(1) DEFAULT '0' NOT NULL,
+  tstamp int(11) unsigned DEFAULT '0' NOT NULL,
+  expires int(10) unsigned DEFAULT '0' NOT NULL,
+  cache_data mediumblob,
+  KEY page_id (page_id),
+  KEY sel (hash,page_id),
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
 
@@ -22,14 +26,67 @@ CREATE TABLE cache_pages (
 # Table structure for table 'cache_pagesection'
 #
 CREATE TABLE cache_pagesection (
+  page_id int(11) unsigned DEFAULT '0' NOT NULL,
+  mpvar_hash int(11) unsigned DEFAULT '0' NOT NULL,
+  content blob,
+  tstamp int(11) unsigned DEFAULT '0' NOT NULL,
+  PRIMARY KEY (page_id,mpvar_hash)
+) ENGINE=InnoDB;
+
+
+
+
+#
+# Table structure for table 'cachingframework_cache_pages'
+#
+CREATE TABLE cachingframework_cache_pages (
   id int(11) unsigned NOT NULL auto_increment,
-  identifier varchar(250) DEFAULT '' NOT NULL,
+  identifier varchar(128) DEFAULT '' NOT NULL,
   crdate int(11) unsigned DEFAULT '0' NOT NULL,
   content mediumtext,
-  tags mediumtext,
   lifetime int(11) unsigned DEFAULT '0' NOT NULL,
   PRIMARY KEY (id),
   KEY cache_id (identifier)
+) ENGINE=InnoDB;
+
+
+#
+# Table structure for table 'cachingframework_cache_pages_tags'
+#
+CREATE TABLE cachingframework_cache_pages_tags (
+  id int(11) unsigned NOT NULL auto_increment,
+  identifier varchar(128) DEFAULT '' NOT NULL,
+  tag varchar(128) DEFAULT '' NOT NULL,
+  PRIMARY KEY (id),
+  KEY cache_id (identifier),
+  KEY cache_tag (tag)
+) ENGINE=InnoDB;
+
+
+#
+# Table structure for table 'cachingframework_cache_pagesection'
+#
+CREATE TABLE cachingframework_cache_pagesection (
+  id int(11) unsigned NOT NULL auto_increment,
+  identifier varchar(128) DEFAULT '' NOT NULL,
+  crdate int(11) unsigned DEFAULT '0' NOT NULL,
+  content mediumtext,
+  lifetime int(11) unsigned DEFAULT '0' NOT NULL,
+  PRIMARY KEY (id),
+  KEY cache_id (identifier)
+) ENGINE=InnoDB;
+
+
+#
+# Table structure for table 'cachingframework_cache_pagesection_tags'
+#
+CREATE TABLE cachingframework_cache_pagesection_tags (
+  id int(11) unsigned NOT NULL auto_increment,
+  identifier varchar(128) DEFAULT '' NOT NULL,
+  tag varchar(128) DEFAULT '' NOT NULL,
+  PRIMARY KEY (id),
+  KEY cache_id (identifier),
+  KEY cache_tag (tag)
 ) ENGINE=InnoDB;
 
 
@@ -253,6 +310,7 @@ CREATE TABLE sys_domain (
   redirectHttpStatusCode int(4) unsigned DEFAULT '301' NOT NULL,
   sorting int(10) unsigned DEFAULT '0' NOT NULL,
   prepend_params int(10) DEFAULT '0' NOT NULL,
+  forced tinyint(3) unsigned DEFAULT '0' NOT NULL,
 
   PRIMARY KEY (uid),
   KEY parent (pid)

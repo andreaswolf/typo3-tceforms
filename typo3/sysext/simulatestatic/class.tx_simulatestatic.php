@@ -105,12 +105,12 @@ class tx_simulatestatic {
 					$parentObject->pageUnavailableAndExit('PATH_INFO was not configured for this website, and the URL tries to find the page by PATH_INFO!');
 				} else {
 					$message = 'PATH_INFO was not configured for this website, and the URL tries to find the page by PATH_INFO!';
-					header(t3lib_div::HTTP_STATUS_503);
+					header(t3lib_utility_Http::HTTP_STATUS_503);
 					t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
 					$parentObject->printError($message.'<br /><br /><a href="' . htmlspecialchars($redirectUrl) . '">Click here to get to the right page.</a>','Error: PATH_INFO not configured');
 				}
 			} else {
-				t3lib_div::redirect(t3lib_div::locationHeaderUrl($redirectUrl));
+				t3lib_utility_Http::redirect($redirectUrl);
 			}
 			exit;
 			// Set no_cache if PATH_INFO is NOT used as simulateStaticDoc.
@@ -321,7 +321,7 @@ class tx_simulatestatic {
 					if (!$GLOBALS['TYPO3_DB']->sql_num_rows($res)) {
 						$insertFields = array(
 							'md5hash' => $md5,
-							'tstamp'  => time(),
+							'tstamp'  => $GLOBALS['EXEC_TIME'],
 							'type'    => 1,
 							'params'  => $addParams
 						);

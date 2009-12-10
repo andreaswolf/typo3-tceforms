@@ -84,12 +84,13 @@ var TsParser = function(tsRef,extTsObjTree){
 					return node.v;
 				} else {
 					var type = this.getNodeTypeFromTsref();
-					if(type)
+					if(type) {
 						return type;
-					else
+					} else {
 						return '';
 				}
 			}
+		}
 		}
 
 		/**
@@ -125,7 +126,9 @@ var TsParser = function(tsRef,extTsObjTree){
 			var extTree = extTsObjTree;
 			var path = this.extPath.split('.');
 			var pathSeg;
-			if (path == "") return extTree;
+			if (path == "") {
+			return extTree;
+			}
 			var i;
 			for(i=0;i<path.length;i++){
 				pathSeg = path[i];
@@ -192,12 +195,19 @@ var TsParser = function(tsRef,extTsObjTree){
 		while(true) {
 			if(currentNode.hasChildNodes() && currentNode.firstChild.nodeType==3 && currentNode.currentText.length>0) {
 				node = currentNode.currentText;
-				if (node[0] == '#')stack.push('#');
-				if (node    == '(')stack.push('(');
-				if (node[0] == '/' && node[1]=='*')stack.push('/*');
+				if (node[0] == '#') {
+					stack.push('#');
+				}
+				if (node == '(') {
+					stack.push('(');
+				}
+				if (node[0] == '/' && node[1]=='*') {
+					stack.push('/*');
+				}
 				if (node    == '{') {
+					// TODO: ignore whole block if wrong whitespaces in this line
 					stack.push('{');
-					prefixes.push(line);
+					prefixes.push(line.strip());
 					ignoreLine = true;
 				}
 				// TODO: conditions
@@ -229,8 +239,6 @@ var TsParser = function(tsRef,extTsObjTree){
 					ignoreLine = true;
 				}
 
-
-
 				if (node == ')') {
 					stack.popIfLastElementEquals('(');
 				}
@@ -239,9 +247,13 @@ var TsParser = function(tsRef,extTsObjTree){
 					ignoreLine = true;
 				}
 				if (node == '}') {
-					stack.popIfLastElementEquals('{');
-					if (prefixes.length>0) prefixes.pop();
-					ignoreLine = true;
+					//no characters except whitespace allowed before closing bracket
+					trimmedLine = line.replace(/\s/g,"");
+					if (trimmedLine=="") {
+						stack.popIfLastElementEquals('{');
+						if (prefixes.length>0) prefixes.pop();
+						ignoreLine = true;
+					}
 				}
 				if (!stack.lastElementEquals('#')) {
 					line += node;
@@ -252,7 +264,7 @@ var TsParser = function(tsRef,extTsObjTree){
 				if (currentNode.tagName == "BR") {
 					// ignore comments, ...
 					if(!stack.lastElementEquals('/*') && !stack.lastElementEquals('(') && !ignoreLine && !insideCondition) {
-						line = line.replace(/\s/g,"");
+						line = line.strip();
 						// check if there is any operator in this line
 						var op = getOperator(line);
 						if (op != -1) {
@@ -266,26 +278,40 @@ var TsParser = function(tsRef,extTsObjTree){
 							}
 							// the type or value should be right to the operator
 							var str = line.substring(pos+op.length, line.length);
-							path = path.replace(/\s/g,"");
-							str = str.replace(/\s/g,"");
+							path = path.strip();
+							str = str.strip();
 							switch(op) { // set a value or create a new object
 							case '=':
+								//ignore if path is empty or contains whitespace 
+								if (path.search(/\s/g) == -1 && path.length > 0) {
 								setTreeNodeValue(path, str);
+								}
 								break;
 							case '=<': // reference to another object in the tree
 								 // resolve relative path		
-								if ( prefixes.length > 0
-										&& str.substr(0, 1) == '.' ) {
+								if(prefixes.length > 0 && str.substr(0, 1) == '.') {
 									str = prefixes.join('.') + str;
 								}
+								//ignore if either path or str is empty or contains whitespace 
+								if (path.search(/\s/g) == -1 
+								 && path.length > 0 
+								 && str.search(/\s/g) == -1 
+								 && str.length > 0) {
 								setReference(path, str);
+								}
 								break;
 							case '<': // copy from another object in the tree
-								if ( prefixes.length > 0
-										&& str.substr(0, 1) == '.' ) {
+								// resolve relative path
+								if(prefixes.length > 0 && str.substr(0, 1) == '.') {
 									str = prefixes.join('.') + str;
 								}
+								//ignore if either path or str is empty or contains whitespace
+								if (path.search(/\s/g) == -1 
+								 && path.length > 0 
+								 && str.search(/\s/g) == -1 
+								 && str.length > 0) {
 								setCopy(path, str);
+								}
 								break;
 							case '>': // delete object value and properties
 								deleteTreeNodeValue(path);
@@ -322,7 +348,7 @@ var TsParser = function(tsRef,extTsObjTree){
 			var i = line.indexOf('<');
 			if (i != -1) {
 				var path = line.substring(i+1, line.length);
-				path = path.replace(/\s/g,"");
+				path = path.strip();
 				if ( prefixes.length > 0 && path.substr(0,1) == '.') {
 					path = prefixes.join('.') + path;
 				}
@@ -367,7 +393,7 @@ var TsParser = function(tsRef,extTsObjTree){
 	 * along the path, if necessary
 	 */
 	function getTreeNode(path){
-		var aPath = path.replace(/\s/g,"").split(".");
+		var aPath = path.strip().split(".");
 		if (aPath == "") {
 			return tsTree;
 		}
@@ -378,12 +404,12 @@ var TsParser = function(tsRef,extTsObjTree){
 		// step through the path from left to right
 		for(i=0;i<aPath.length;i++){
 			pathSeg = aPath[i];
+
 			// if there isn't already a treenode
 			if(subTree[pathSeg] == null || subTree[pathSeg].childNodes == null){ // if this subpath is not defined in the code
 				// create a new treenode
 				subTree[pathSeg] = new TreeNode(pathSeg);
 				subTree[pathSeg].parent = parent;
-				//subTree[pathSeg].extTsObjTree = extTsObjTree;
 				// the extPath has to be set, so the TreeNode can retrieve the respecting node in the external templates
 				var extPath = parent.extPath;
 				if(extPath) {
@@ -408,8 +434,11 @@ var TsParser = function(tsRef,extTsObjTree){
 	function setTreeNodeValue(path, value) {
 		var treeNode = getTreeNode(path);
 		// if we are inside a GIFBUILDER Object
-		if(treeNode.parent != null && treeNode.parent.value == "GIFBUILDER" && value == "TEXT") {
-			value = "IMGTEXT";
+		if(treeNode.parent != null && (treeNode.parent.value == "GIFBUILDER" || treeNode.parent.getValue() == "GMENU_itemState") && value == "TEXT") {
+			value = "GB_TEXT";
+		}
+		if(treeNode.parent != null && (treeNode.parent.value == "GIFBUILDER" || treeNode.parent.getValue() == "GMENU_itemState") && value == "IMAGE") {
+			value = "GB_IMAGE";
 		}
 		// just override if it is a real objecttype
 		if (tsRef.isType(value)) {
@@ -486,6 +515,5 @@ var TsParser = function(tsRef,extTsObjTree){
 			tsTree.childNodes[lastNodeName] = this.clone(treeNode2);
 			//tsTree[lastNodeName].extTsObjTree = extTsObjTree;
 		}
-
 	}
 }

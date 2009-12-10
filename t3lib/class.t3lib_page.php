@@ -188,6 +188,19 @@ class t3lib_pageSelect {
 	 * @see getPage_noCheck()
 	 */
 	function getPage($uid, $disableGroupAccessCheck=FALSE)	{
+			// Hook to manipulate the page uid for special overlay handling
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getPage'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getPage'] as $classRef) {
+				$hookObject = t3lib_div::getUserObj($classRef);
+
+				if (!($hookObject instanceof t3lib_pageSelect_getPageHook)) {
+					throw new UnexpectedValueException('$hookObject must implement interface t3lib_pageSelect_getPageHook', 1251476766);
+				}
+
+				$hookObject->getPage_preProcess($uid, $disableGroupAccessCheck, $this);
+			}
+		}
+
 		$accessCheck = $disableGroupAccessCheck ? '' : $this->where_groupAccess;
 		$cacheKey = md5($accessCheck . '-' . $this->where_hid_del . '-' . $this->sys_language_uid);
 
@@ -547,10 +560,10 @@ class t3lib_pageSelect {
 				}
 
 				$statusCode = intval($row['redirectHttpStatusCode']);
-				if ($statusCode && defined('t3lib_div::HTTP_STATUS_' . $statusCode)) {
-					t3lib_div::redirect($redirectUrl, constant('t3lib_div::HTTP_STATUS_' . $statusCode));
+				if ($statusCode && defined('t3lib_utility_Http::HTTP_STATUS_' . $statusCode)) {
+					t3lib_utility_Http::redirect($redirectUrl, constant('t3lib_utility_Http::HTTP_STATUS_' . $statusCode));
 				} else {
-					t3lib_div::redirect($redirectUrl, 't3lib_div::HTTP_STATUS_301');
+					t3lib_utility_Http::redirect($redirectUrl, 't3lib_utility_Http::HTTP_STATUS_301');
 				}
 				exit;
 			} else {
@@ -588,8 +601,7 @@ class t3lib_pageSelect {
 		$MPA = array();
 		if ($MP)	{
 			$MPA = explode(',',$MP);
-			reset($MPA);
-			while(list($MPAk) = each($MPA))	{
+			foreach ($MPA as $MPAk => $v) {
 				$MPA[$MPAk] = explode('-', $MPA[$MPAk]);
 			}
 		}
@@ -959,16 +971,30 @@ class t3lib_pageSelect {
 	 * @return	string		The "content" field of the "cache_hash" cache entry.
 	 * @see tslib_TStemplate::start(), storeHash()
 	 */
-	public static function getHash($hash)	{
+	public static function getHash($hash, $expTime = 0)	{
 		$hashContent = null;
 
-		$contentHashCache = $GLOBALS['typo3CacheManager']->getCache('cache_hash');
-		$cacheEntry = $contentHashCache->get($hash);
+		if (TYPO3_UseCachingFramework) {
+			if (is_object($GLOBALS['typo3CacheManager'])) {
+				$contentHashCache = $GLOBALS['typo3CacheManager']->getCache('cache_hash');
+				$cacheEntry = $contentHashCache->get($hash);
 
-		if ($cacheEntry) {
-			$hashContent = $cacheEntry;
+				if ($cacheEntry) {
+					$hashContent = $cacheEntry;
+				}
+			}
+		} else {
+			$expTime = intval($expTime);
+			if ($expTime) {
+				$whereAdd = ' AND tstamp > '.($GLOBALS['ACCESS_TIME']-$expTime);
+			}
+			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('content', 'cache_hash', 'hash='.$GLOBALS['TYPO3_DB']->fullQuoteStr($hash, 'cache_hash').$whereAdd);
+			$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
+			$GLOBALS['TYPO3_DB']->sql_free_result($res);
+			if ($row)	{
+				$hashContent = $row['content'];
+			}
 		}
-
 		return $hashContent;
 	}
 
@@ -985,12 +1011,25 @@ class t3lib_pageSelect {
 	 * @see tslib_TStemplate::start(), getHash()
 	 */
 	public static function storeHash($hash, $data, $ident, $lifetime = 0) {
-		$GLOBALS['typo3CacheManager']->getCache('cache_hash')->set(
-			$hash,
-			$data,
-			array('ident_' . $ident),
-			$lifetime
-		);
+		if (TYPO3_UseCachingFramework) {
+			if (is_object($GLOBALS['typo3CacheManager'])) {
+				$GLOBALS['typo3CacheManager']->getCache('cache_hash')->set(
+					$hash,
+					$data,
+					array('ident_' . $ident),
+					$lifetime
+				);
+			}
+		} else {
+			$insertFields = array(
+				'hash' => $hash,
+				'content' => $data,
+				'ident' => $ident,
+				'tstamp' => $GLOBALS['EXEC_TIME']
+			);
+			$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_hash', 'hash='.$GLOBALS['TYPO3_DB']->fullQuoteStr($hash, 'cache_hash'));
+			$GLOBALS['TYPO3_DB']->exec_INSERTquery('cache_hash', $insertFields);
+		}
 	}
 
 	/**

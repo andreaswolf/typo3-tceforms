@@ -102,6 +102,9 @@ Do you want to continue WITHOUT saving?</label>
 			<label index="labels.expandAll">Expand all</label>
  			<label index="labels.new_section">Create new:</label>
  			<label index="labels.count">Quantity:</label>
+ 			<label index="labels.findRecord">Find records</label>
+ 			<label index="labels.noRecordFound">No record found</label>
+			<label index="alttext.suggestSearching">Searching...</label>
 			<label index="ver.online">ONLINE</label>
 			<label index="ver.mgm">Version Management</label>
 			<label index="ver.selVer">Select version:</label>
@@ -109,6 +112,7 @@ Do you want to continue WITHOUT saving?</label>
 			<label index="ver.swapPage">Publish this version of the page including content</label>
 			<label index="TYPO3_Element_Browser">TYPO3 Element Browser</label>
 			<label index="labels.referencesToRecord">(There are %s reference(s) to this record!)</label>
+			<label index="labels.translationsOfRecord">(This record has %s translation(s) which will be deleted, too!)</label>
 			<label index="show_item.php.viewItem">View Item</label>
 			<label index="show_item.php.referencesToThisItem">References to this item:</label>
 			<label index="show_item.php.referencesFromThisItem">References from this item:</label>
@@ -161,11 +165,12 @@ Do you want to refresh it now?</label>
 			<label index="mess.refresh_login_countdown_singular">{0} second</label>
 			<label index="mess.refresh_login_logging_in">Logging in...</label>
 			<label index="mess.refresh_login_failed">Login failed</label>
-			<label index="mess.refresh_login_failed_message">Username or password not correct.</label>
-			<label index="mess.refresh_login_title">Login to TYPO3</label>
+			<label index="mess.refresh_login_failed_message">Password not correct.</label>
+			<label index="mess.refresh_login_title">Refresh Login to TYPO3 (User: %s)</label>
 			<label index="mess.refresh_login_username">Username</label>
 			<label index="mess.refresh_login_password">Password</label>
 			<label index="mess.refresh_login_button">Login</label>
+			<label index="mess.refresh_login_emptyPassword">Empty password is not allowed!</label>
 			<label index="mess.please_wait">Please wait ...</label>
 			<label index="mess.be_locked">The TYPO3 backend is currently locked for maintenance. Leave this browser window open and the backend will automatically become available again once maintenance is complete.</label>
 			<label index="mess.login_about_to_expire">Your TYPO3 login is about to expire. Please confirm that you want to stay logged in.</label>
@@ -187,6 +192,7 @@ Would you like to save now in order to refresh the display?</label>
 			<label index="rm.saveDocShow">Save document and view page</label>
 			<label index="rm.saveCloseDoc">Save and close document</label>
 			<label index="rm.translationSaveDoc">Translation finished, save and close</label>
+			<label index="rm.translationSaveDocClear">Translation NOT finished, Save</label>
 			<label index="rm.saveCloseAllDocs">Save and close all documents</label>
 			<label index="rm.saveNewDoc">Save document and create a new one</label>
 			<label index="rm.closeDoc">Close document</label>
@@ -241,13 +247,15 @@ Would you like to save now in order to refresh the display?</label>
 			<label index="warning.backend_admin">The default backend user "admin" with password &quot;password&quot; is still present. %sEdit this account%s, either deleting it completely or changing the username and password.</label>
 			<label index="warning.file_deny_pattern">The value of fileDenyPattern is not set to its default:%s If TYPO3 is running on Apache, a customized value might enable backend or frontend users to execute malicious php scripts.</label>
 			<label index="warning.file_deny_htaccess">The current value of fileDenyPattern allows to upload/create files with the name ".htaccess". If TYPO3 is running on Apache, this enables backend or frontend users to create and execute php scripts. Please reset the value of fileDenyPattern to its default.</label>
-			<label index="warning.install_enabled">The Install Tool is enabled. Delete the file &quot;%s&quot; when you have finished setting up TYPO3.</label>
+			<label index="warning.install_enabled">The Install Tool is permanently enabled. Delete the file &quot;%s&quot; when you have finished setting up TYPO3.</label>
 			<label index="warning.install_enabled_cmd">Click to remove the file now!</label>
 			<label index="warning.install_encryption">The encryption key is not set. Set it in the %sBasic Configuration section%s of the Install Tool.</label>
 			<label index="warning.install_update">This installation is not configured for the TYPO3 version it is running. If you did so intentionally, this message can be safely ignored. If you are unsure, visit the %sUpdate Wizard%s section of the Install Tool to see how TYPO3 would change.</label>
 			<label index="warning.header">Important Notice!</label>
 			<label index="warning.backend_reference">The Reference Index table is empty which is likely the result of a recent TYPO3 upgrade. Please go to %sTools&gt;DB Check%s and update the reference index.</label>
 			<label index="warning.memcache_not_usable">Memcache is configured, but connection to memcached failed with these configuration(s):</label>
+			<label index="warning.file_missing">File is missing!</label>
+			<label index="warning.file_missing_text">This content element references a file which seems to not exist:</label>
 			<label index="toolbarItems.shortcuts">Shortcuts</label>
 			<label index="toolbarItems.shortcut">Shortcut</label>
 			<label index="toolbarItems.shortcutsGroup">Shortcut Group</label>

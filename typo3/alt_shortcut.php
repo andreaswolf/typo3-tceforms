@@ -166,7 +166,7 @@ class SC_alt_shortcut {
 		$url = urldecode($this->URL);
 
 			// Lookup the title of this page and use it as default description
-		$page_id = $this->getLinkedPageId($url);         
+		$page_id = $this->getLinkedPageId($url);
 		if (t3lib_div::testInt($page_id))	{
 			if (preg_match('/\&edit\[(.*)\]\[(.*)\]=edit/',$url,$matches))	{
 					// Edit record
@@ -194,7 +194,7 @@ class SC_alt_shortcut {
 				'module_name' => $this->modName.'|'.$this->M_modName,
 				'url' => $this->URL,
 				'description' => $description,
-				'sorting' => time(),
+				'sorting' => $GLOBALS['EXEC_TIME'],
 			);
 			$GLOBALS['TYPO3_DB']->exec_INSERTquery('sys_be_shortcuts', $fields_values);
 		}
@@ -426,8 +426,12 @@ class SC_alt_shortcut {
 						-->
 						<table border="0" cellpadding="0" cellspacing="2" id="typo3-shortcuts">
 							<tr>
-							'.implode('
-							',$this->lines).$editIdCode.'
+							';
+							if ($GLOBALS['BE_USER']->getTSConfigVal('options.enableShortcuts')) {
+								$this->content .= implode('
+								', $this->lines);
+							}
+							$this->content .= $editIdCode . '
 							</tr>
 						</table>
 					</td>

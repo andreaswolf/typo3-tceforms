@@ -335,7 +335,8 @@ class tslib_cObj {
 	var $substMarkerCache=array();	// Caching substituteMarkerArrayCached function
 	var $recordRegister=array();	// Array that registers rendered content elements (or any table) to make sure they are not rendered recursively!
 	var $cObjHookObjectsArr = array();		// Containig hooks for userdefined cObjects
-	protected $stdWrapHookObjects = array();		// Containig hook objects for stdWrap
+	protected $stdWrapHookObjects = array();		// Containing hook objects for stdWrap
+	protected $getImgResourceHookObjects;			// Containing hook objects for getImgResource
 
 	/**
 	 * Set to true by doConvertToUserIntObject() if USER object wants to become USER_INT
@@ -379,13 +380,14 @@ class tslib_cObj {
 		$this->parameters = Array();
 		if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['cObjTypeAndClass'])) {
 			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['cObjTypeAndClass'] as $classArr) {
-				$this->cObjHookObjectsArr[$classArr[0]] = &t3lib_div::getUserObj($classArr[1]);
+				$this->cObjHookObjectsArr[$classArr[0]] = t3lib_div::getUserObj($classArr[1]);
 			}
 		}
 
+		$this->stdWrapHookObjects = array();
 		if(is_array($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['stdWrap'])) {
 			foreach($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['stdWrap'] as $classData) {
-				$hookObject = &t3lib_div::getUserObj($classData);
+				$hookObject = t3lib_div::getUserObj($classData);
 
 				if(!($hookObject instanceof tslib_content_stdWrapHook)) {
 					throw new UnexpectedValueException('$hookObject must implement interface tslib_content_stdWrapHook', 1195043965);
@@ -394,7 +396,32 @@ class tslib_cObj {
 				$this->stdWrapHookObjects[] = $hookObject;
 			}
 		}
+	}
 
+	/**
+	 * Gets the 'getImgResource' hook objects.
+	 * The first call initializes the accordant objects.
+	 *
+	 * @return	array		The 'getImgResource' hook objects (if any)
+	 */
+	protected function getGetImgResourceHookObjects() {
+		if (!isset($this->getImgResourceHookObjects)) {
+			$this->getImgResourceHookObjects = array();
+
+			if(is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_content.php']['getImgResource'])) {
+				foreach($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_content.php']['getImgResource'] as $classData) {
+					$hookObject = t3lib_div::getUserObj($classData);
+
+					if(!($hookObject instanceof tslib_cObj_getImgResourceHook)) {
+						throw new UnexpectedValueException('$hookObject must implement interface tslib_cObj_getImgResourceHook', 1218636383);
+					}
+
+					$this->getImgResourceHookObjects[] = $hookObject;
+				}
+			}
+		}
+
+		return $this->getImgResourceHookObjects;
 	}
 
 	/**
@@ -604,11 +631,20 @@ class tslib_cObj {
 						case 'MULTIMEDIA':
 							$content.=$this->MULTIMEDIA($conf);
 						break;
+						case 'MEDIA':
+							$content.=$this->MEDIA($conf);
+						break;
+						case 'SWFOBJECT':
+							$content.=$this->SWFOBJECT($conf);
+						break;
+						case 'QTOBJECT':
+							$content.=$this->QTOBJECT($conf);
+						break;
 						default:
 								// call hook functions for extra processing
 							if($name && is_array($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['cObjTypeAndClassDefault']))    {
 								foreach($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['cObjTypeAndClassDefault'] as $classData)    {
-									$hookObject = &t3lib_div::getUserObj($classData);
+									$hookObject = t3lib_div::getUserObj($classData);
 
 									if(!($hookObject instanceof tslib_content_cObjGetSingleHook)) {
 										throw new UnexpectedValueException('$hookObject must implement interface tslib_content_cObjGetSingleHook', 1195043731);
@@ -874,7 +910,7 @@ class tslib_cObj {
 				$capSplit = $this->stdWrap($conf['captionSplit.']['token'], $conf['captionSplit.']['token.']);
 				if (!$capSplit) {$capSplit=chr(10);}
 				$captionArray = explode($capSplit, $this->cObjGetSingle($conf['captionSplit.']['cObject'], $conf['captionSplit.']['cObject.'], 'captionSplit.cObject'));
-				while (list($ca_key, $ca_val) = each($captionArray))	{
+				foreach ($captionArray as $ca_key => $ca_val) {
 					$captionArray[$ca_key] = $this->stdWrap(trim($captionArray[$ca_key]), $conf['captionSplit.']['stdWrap.']);
 				}
 			}
@@ -1275,6 +1311,7 @@ class tslib_cObj {
 			$GLOBALS['TSFE']->recordRegister[$originalRec]++;
 		}
 
+		$conf['table'] = trim($this->stdWrap($conf['table'], $conf['table.']));
 		if ($conf['table']=='pages' || substr($conf['table'],0,3)=='tt_' || substr($conf['table'],0,3)=='fe_' || substr($conf['table'],0,3)=='tx_' || substr($conf['table'],0,4)=='ttx_' || substr($conf['table'],0,5)=='user_' || substr($conf['table'],0,7)=='static_')	{
 
 			$renderObjName = $conf['renderObj'] ? $conf['renderObj'] : '<'.$conf['table'];
@@ -1366,16 +1403,14 @@ class tslib_cObj {
 		if ($conf['tables'] && $conf['source']) {
 			$allowedTables = $conf['tables'];
 			if (is_array($conf['conf.']))	{
-				reset($conf['conf.']);
-				while(list($k)=each($conf['conf.']))	{
+				foreach ($conf['conf.'] as $k => $v) {
 					if (substr($k,-1)!='.')		$allowedTables.=','.$k;
 				}
 			}
 
 			$loadDB = t3lib_div::makeInstance('FE_loadDBGroup');
 			$loadDB->start($conf['source'], $allowedTables);
-			reset($loadDB->tableArray);
-			while(list($table,)=each($loadDB->tableArray))	{
+			foreach ($loadDB->tableArray as $table => $v) {
 				if (is_array($GLOBALS['TCA'][$table]))	{
 					$loadDB->additionalWhere[$table]=$this->enableFields($table);
 				}
@@ -1389,8 +1424,7 @@ class tslib_cObj {
 			$cObj->setParent($this->data,$this->currentRecord);
 			$this->currentRecordNumber=0;
 			$this->currentRecordTotal = count($loadDB->itemArray);
-			reset($loadDB->itemArray);
-			while(list(,$val)=each($loadDB->itemArray))	{
+			foreach ($loadDB->itemArray as $val) {
 				$row = $data[$val['table']][$val['id']];
 
 					// Versioning preview:
@@ -1537,8 +1571,7 @@ class tslib_cObj {
 				'gapLineCol' => $this->stdWrap($conf['gapLineCol'],$conf['gapLineCol.'])
 			);
 			$gapData = $GLOBALS['TSFE']->tmpl->splitConfArray($gapData,$rows-1);
-			reset($gapData);
-			while(list(,$val)=each($gapData))	{
+			foreach ($gapData as $val) {
 				$totalGapWidth+=intval($val['gapWidth']);
 			}
 
@@ -1654,8 +1687,7 @@ class tslib_cObj {
 		} else {
 			array_push($GLOBALS['TSFE']->registerStack,$GLOBALS['TSFE']->register);
 			if (is_array($conf))	{
-				reset($conf);
-				while(list($theKey,$theValue)=each($conf))	{
+				foreach ($conf as $theKey => $theValue) {
 					if (!strstr($theKey,'.') || !isset($conf[substr($theKey,0,-1)]))	{		// Only if 1) the property is set but not the value itself, 2) the value and/or any property
 						if (strstr($theKey,'.'))	{
 							$theKey = substr($theKey,0,-1);
@@ -1716,9 +1748,8 @@ class tslib_cObj {
 						list($temp[2]) = explode('|',$dAA['value.'] ? $this->stdWrap($dAA['value'],$dAA['value.']) : $dAA['value']);
 							// If value Array is set, then implode those values.
 						if (is_array($dAA['valueArray.'])) {
-							reset($dAA['valueArray.']);
 							$temp_accum = array();
-							while (list($dAKey_vA,$dAA_vA) = each($dAA['valueArray.']))	{
+							foreach ($dAA['valueArray.'] as $dAKey_vA => $dAA_vA) {
 								if (is_array($dAA_vA) && !strcmp(intval($dAKey_vA).'.',$dAKey_vA))	{
 									$temp_vA=array();
 									list($temp_vA[0])= explode('=',$dAA_vA['label.'] ? $this->stdWrap($dAA_vA['label'],$dAA_vA['label.']) : $dAA_vA['label']);
@@ -2155,8 +2186,7 @@ class tslib_cObj {
 
 			// hidden fields:
 		if (is_array($conf['hiddenFields.']))	{
-			reset($conf['hiddenFields.']);
-			while (list($hF_key,$hF_conf) = each($conf['hiddenFields.']))	{
+			foreach ($conf['hiddenFields.'] as $hF_key => $hF_conf) {
 				if (substr($hF_key,-1)!='.')	{
 					$hF_value = $this->cObjGetSingle($hF_conf,$conf['hiddenFields.'][$hF_key.'.'],'hiddenfields');
 					if (strlen($hF_value) && t3lib_div::inList('recipient_copy,recipient',$hF_key))	{
@@ -2222,9 +2252,9 @@ class tslib_cObj {
 				$temp_theStartId=t3lib_div::_GP('stype');
 				$rootLine = $GLOBALS['TSFE']->sys_page->getRootLine($temp_theStartId);
 					// The page MUST have a rootline with the Level0-page of the current site inside!!
-				while(list(,$val)=each($rootLine))	{
+				foreach ($rootLine as $val) {
 					if($val['uid']==$GLOBALS['TSFE']->tmpl->rootLine[0]['uid'])	{
-						$theStartId=$temp_theStartId;
+						$theStartId = $temp_theStartId;
 					}
 				}
 			} else if (t3lib_div::_GP('stype'))	{
@@ -2239,10 +2269,9 @@ class tslib_cObj {
 						ksort($altRootLine);
 						if (count($altRootLine))	{
 								// check if the rootline has the real Level0 in it!!
-							reset($altRootLine);
 							$hitRoot=0;
 							$theNewRoot=array();
-							while(list(,$val)=each($altRootLine))	{
+							foreach ($altRootLine as $val) {
 								if($hitRoot || $val['uid']==$GLOBALS['TSFE']->tmpl->rootLine[0]['uid'])	{
 									$hitRoot=1;
 									$theNewRoot[]=$val;
@@ -2444,8 +2473,7 @@ class tslib_cObj {
 			if ($conf['nonCachedSubst'])	{		// NON-CACHED:
 					// Getting marks
 				if (is_array($conf['marks.']))	{
-					reset($conf['marks.']);
-					while(list($theKey,$theValue)=each($conf['marks.']))	{
+					foreach ($conf['marks.'] as $theKey => $theValue) {
 						if (!strstr($theKey,'.'))	{
 							$content = str_replace(
 								$PRE.$theKey.$POST,
@@ -2457,8 +2485,7 @@ class tslib_cObj {
 
 					// Getting subparts.
 				if (is_array($conf['subparts.']))	{
-					reset($conf['subparts.']);
-					while(list($theKey,$theValue)=each($conf['subparts.']))	{
+					foreach ($conf['subparts.'] as $theKey => $theValue) {
 						if (!strstr($theKey,'.'))	{
 							$subpart = $this->getSubpart($content, $PRE.$theKey.$POST);
 							if ($subpart)	{
@@ -2475,8 +2502,7 @@ class tslib_cObj {
 				}
 					// Getting subpart wraps
 				if (is_array($conf['wraps.']))	{
-					reset($conf['wraps.']);
-					while(list($theKey,$theValue)=each($conf['wraps.']))	{
+					foreach ($conf['wraps.'] as $theKey => $theValue) {
 						if (!strstr($theKey,'.'))	{
 							$subpart = $this->getSubpart($content, $PRE.$theKey.$POST);
 							if ($subpart)	{
@@ -2494,8 +2520,7 @@ class tslib_cObj {
 			} else {	// CACHED
 					// Getting subparts.
 				if (is_array($conf['subparts.']))	{
-					reset($conf['subparts.']);
-					while(list($theKey,$theValue)=each($conf['subparts.']))	{
+					foreach ($conf['subparts.'] as $theKey => $theValue) {
 						if (!strstr($theKey,'.'))	{
 							$subpart = $this->getSubpart($content, $PRE.$theKey.$POST);
 							if ($subpart)	{
@@ -2508,8 +2533,7 @@ class tslib_cObj {
 				}
 					// Getting marks
 				if (is_array($conf['marks.']))	{
-					reset($conf['marks.']);
-					while(list($theKey,$theValue)=each($conf['marks.']))	{
+					foreach ($conf['marks.'] as $theKey => $theValue) {
 						if (!strstr($theKey,'.'))	{
 							$marks[$theKey]['name'] = $theValue;
 							$marks[$theKey]['conf'] = $conf['marks.'][$theKey.'.'];
@@ -2518,8 +2542,7 @@ class tslib_cObj {
 				}
 					// Getting subpart wraps
 				if (is_array($conf['wraps.']))	{
-					reset($conf['wraps.']);
-					while(list($theKey,$theValue)=each($conf['wraps.']))	{
+					foreach ($conf['wraps.'] as $theKey => $theValue) {
 						if (!strstr($theKey,'.'))	{
 							$wraps[$theKey]['name'] = $theValue;
 							$wraps[$theKey]['conf'] = $conf['wraps.'][$theKey.'.'];
@@ -2528,8 +2551,7 @@ class tslib_cObj {
 				}
 					// Getting subparts
 				$subpartArray =array();
-				reset($subparts);
-				while(list($theKey,$theValue)=each($subparts))	{
+				foreach ($subparts as $theKey => $theValue) {
 						// Set current with the content of the subpart...
 					$this->data[$this->currentValKey] = $GLOBALS['TSFE']->register['SUBPART_'.$theKey];
 						// Get subpart cObject and substitute it!
@@ -2539,14 +2561,12 @@ class tslib_cObj {
 
 					// Getting marks
 				$markerArray =array();
-				reset($marks);
-				while(list($theKey,$theValue)=each($marks))	{
+				foreach ($marks as $theKey => $theValue) {
 					$markerArray[$PRE.$theKey.$POST] = $this->cObjGetSingle($theValue['name'],$theValue['conf'],'marks.'.$theKey);
 				}
 					// Getting wraps
 				$subpartWraps =array();
-				reset($wraps);
-				while(list($theKey,$theValue)=each($wraps))	{
+				foreach ($wraps as $theKey => $theValue) {
 					$subpartWraps[$PRE.$theKey.$POST] = explode('|',$this->cObjGetSingle($theValue['name'],$theValue['conf'],'wraps.'.$theKey));
 				}
 
@@ -2585,20 +2605,20 @@ class tslib_cObj {
 				if (t3lib_div::inList('au,wav,mp3',$fileinfo['fileext']))	{
 				}
 				if (t3lib_div::inList('avi,mov,mpg,asf,wmv',$fileinfo['fileext']))	{
-					$parArray['width'] = 'width="200"';
-					$parArray['height'] = 'height="200"';
+					$parArray['width'] = 'width="' . ($conf['width'] ? $conf['width'] : 200) . '"';
+					$parArray['height'] = 'height="' . ($conf['height'] ? $conf['height'] : 200) . '"';
 				}
 				if (t3lib_div::inList('swf,swa,dcr',$fileinfo['fileext']))	{
 					$parArray['quality'] = 'quality="high"';
 				}
 				if (t3lib_div::inList('class',$fileinfo['fileext']))	{
-					$parArray['width'] = 'width="200"';
-					$parArray['height'] = 'height="200"';
+					$parArray['width'] = 'width="' . ($conf['width'] ? $conf['width'] : 200) . '"';
+					$parArray['height'] = 'height="' . ($conf['height'] ? $conf['height'] : 200) . '"';
 				}
 
 					// fetching params
 				$lines = explode(chr(10), $this->stdWrap($conf['params'],$conf['params.']));
-				while(list(,$l)=each($lines))	{
+				foreach ($lines as $l) {
 					$parts = explode('=', $l);
 					$parameter = strtolower(trim($parts[0]));
 					$value = trim($parts[1]);
@@ -2626,13 +2646,327 @@ class tslib_cObj {
 		return $content;
 	}
 
+	/**
+	 * Rendering the cObject, SWFOBJECT
+	 *
+	 * @param	array		Array of TypoScript properties
+	 * @return	string		Output
+	 */
+	public function MEDIA($conf) {
+		$content = '';
+		$flexParams = $this->stdWrap($conf['flexParams'], $conf['flexParams.']);
+		if (substr($flexParams, 0, 1) === '<') {
+			// it is a content element
+			$this->readFlexformIntoConf($flexParams, $conf['parameter.']);
+			$url = $conf['parameter.']['mmFile'];
+			$url = $this->stdWrap($url, $conf['file.']);
+		} else {
+			// it is a TS object
+			$url = $this->stdWrap($conf['file'], $conf['file.']);
+		}
+
+		$mode = is_file(PATH_site . $url) ? 'file' : 'url';
+		if ($mode === 'file') {
+			$filename = $GLOBALS['TSFE']->tmpl->getFileName($url);
+			$fileinfo = t3lib_div::split_fileref($filename);
+			$conf['file'] = $filename;
+		} else {
+			$conf['file'] = $this->typoLink_URL(array('parameter' => $url));
+		}
+
+		$renderType = $conf['renderType'];
+		if (isset($conf['parameter.']['mmRenderType'])) {
+			$renderType = $conf['parameter.']['mmRenderType'];
+		}
+		if ($renderType === 'auto') {
+				// default renderType is swf
+			$renderType = 'swf';
+			$handler = array_keys($conf['fileExtHandler.']);
+			if (in_array($fileinfo['fileext'], $handler)) {
+				$renderType = strtolower($conf['fileExtHandler.'][$fileinfo['fileext']]);
+			}
+		}
+
+		$forcePlayer = isset($conf['parameter.']['mmFile']) ? intval($conf['parameter.']['mmforcePlayer']) :  $conf['forcePlayer'];
+		$conf['forcePlayer'] = $forcePlayer;
+
+		$conf['type'] = isset($conf['parameter.']['mmType']) ? $conf['parameter.']['mmType'] : $conf['type'];
+		$mime = $renderType . 'object';
+		$typeConf = $conf['mimeConf.'][$mime . '.'][$conf['type'] . '.'] ? $conf['mimeConf.'][$mime . '.'][$conf['type'] . '.'] : array();
+		$conf['predefined'] = array();
+
+		$width = intval($conf['parameter.']['mmWidth']);
+		$height = intval($conf['parameter.']['mmHeight']);
+		if ($width) {
+			$conf['width'] = $width;
+		} else {
+			$conf['width'] = intval($conf['width']) ? $conf['width'] : $typeConf['defaultWidth'];
+		}
+		if ($height) {
+			$conf['height'] = $height;
+		} else {
+			$conf['height'] = intval($conf['height']) ? $conf['height'] : $typeConf['defaultHeight'];
+		}
+
+		if (is_array($conf['parameter.']['mmMediaOptions'])) {
+			$params = array();
+			foreach ($conf['parameter.']['mmMediaOptions'] as $key => $value) {
+				if ($key == 'mmMediaCustomParameterContainer') {
+					foreach ($value as $val) {
+						//custom parameter entry
+						$rawTS = $val['mmParamCustomEntry'];
+						//read and merge
+						$tmp = t3lib_div::trimExplode(chr(10), $rawTS);
+						if (count($tmp)) {
+							foreach ($tmp as $tsLine) {
+								if (substr($tsLine, 0, 1) != '#' && $pos = strpos($tsLine, '.')) {
+									$parts[0] = substr($tsLine, 0, $pos);
+									$parts[1] = substr($tsLine, $pos + 1);
+									$valueParts = t3lib_div::trimExplode('=', $parts[1], true);
+
+									switch (strtolower($parts[0])) {
+										case 'flashvars':
+											$conf['flashvars.'][$valueParts[0]] = $valueParts[1];
+										break;
+										case 'params':
+											$conf['params.'][$valueParts[0]] = $valueParts[1];
+										break;
+										case 'attributes':
+											$conf['attributes.'][$valueParts[0]] = $valueParts[1];
+										break;
+									}
+								}
+							}
+						}
+					}
+				} elseif ($key == 'mmMediaOptionsContainer') {
+					foreach ($value as $val) {
+						if (isset($val['mmParamSet'])) {
+							$pName = $val['mmParamName'];
+							$pSet = $val['mmParamSet'];
+							$pValue = $pSet == 2 ? $val['mmParamValue'] : ($pSet == 0 ? 'false' : 'true');
+							$conf['predefined'][$pName] = $pValue;
+						}
+					}
+				}
+			}
+		}
+
+			// render MEDIA
+		if ($mode == 'url' && !$forcePlayer) {
+				// url is called direct, not with player
+			if ($url == '' && !$conf['allowEmptyUrl']) {
+				return '<p style="background-color: yellow;">' . $GLOBALS['TSFE']->sL('LLL:EXT:cms/locallang_ttc.xml:media.noFile', true) . '</p>';
+			}
+			$conf = array_merge($conf['mimeConf.']['swfobject.'], $conf);
+			$conf[$conf['type'] . '.']['player'] = strpos($url, '://') === false ? 'http://' . $url : $url;
+			$conf['installUrl'] = 'null';
+			$conf['flashvars'] = array_merge((array) $conf['flashvars'], $conf['predefined']);
+		}
+
+		switch ($renderType) {
+			case 'swf':
+				$conf[$conf['type'] . '.'] = array_merge($conf['mimeConf.']['swfobject.'][$conf['type'] . '.'], $typeConf);
+				$conf = array_merge($conf['mimeConf.']['swfobject.'], $conf);
+				unset($conf['mimeConf.']);
+				$conf['flashvars.'] = array_merge((array) $conf['flashvars.'], $conf['predefined']);
+				$content = $this->SWFOBJECT($conf);
+			break;
+			case 'qt':
+				$conf[$conf['type'] . '.'] = array_merge($conf['mimeConf.']['swfobject.'][$conf['type'] . '.'], $typeConf);
+				$conf = array_merge($conf['mimeConf.']['qtobject.'], $conf);
+				unset($conf['mimeConf.']);
+				$conf['params.'] = array_merge((array) $conf['params.'], $conf['predefined']);
+				$content = $this->QTOBJECT($conf);
+			break;
+			case 'media':
+				$paramsArray = array_merge((array) $typeConf['default.']['params.'], (array) $conf['params.'], $conf['predefined']);
+				$conf['params']= '';
+				foreach ($paramsArray as $key => $value) {
+					$conf['params'] .= $key . '=' . $value . chr(10);
+				}
+				$content = $this->MULTIMEDIA($conf);
+			break;
+			default:
+				if (is_array ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/hooks/class.tx_cms_mediaitems.php']['customMediaRender'])) {
+					foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/hooks/class.tx_cms_mediaitems.php']['customMediaRender'] as $classRef) {
+						$hookObj = t3lib_div::getUserObj($classRef);
+						$conf['file'] = $url;
+						$conf['mode'] = $mode;
+						$content = $hookObj->customMediaRender($renderType, $conf, $this);
+					}
+				}
+		}
+
+		return $content;
+	}
 
 
+	/**
+	 * Rendering the cObject, SWFOBJECT
+	 *
+	 * @param	array		Array of TypoScript properties
+	 * @return	string		Output
+	 */
+	public function SWFOBJECT($conf) {
+		$content = '';
+		$flashvars = $params = $attributes = '';
+		$prefix = '';
+		if ($GLOBALS['TSFE']->baseUrl) {
+			$prefix = $GLOBALS['TSFE']->baseUrl;
+		}
+		if ($GLOBALS['TSFE']->absRefPrefix) {
+			$prefix = $GLOBALS['TSFE']->absRefPrefix;
+		};
+
+		$typeConf = $conf[$conf['type'] . '.'];
+
+			//add SWFobject js-file
+		$GLOBALS['TSFE']->getPageRenderer()->addJsFile('typo3/contrib/flashmedia/swfobject/swfobject.js');
+
+		$player = $this->stdWrap($conf[$conf['type'] . '.']['player'], $conf[$conf['type'] . '.']['player.']);
+		$installUrl = $conf['installUrl'] ? $conf['installUrl'] : $prefix . 'typo3/contrib/flashmedia/swfobject/expressInstall.swf';
+		$filename = $this->stdWrap($conf['file'], $conf['file.']);
+		if ($filename && $conf['forcePlayer']) {
+			if (strpos($filename, '://') !== FALSE) {
+				$conf['flashvars.']['file'] = $filename;
+			} else {
+				if ($prefix) {
+					$conf['flashvars.']['file'] = $prefix . $filename;
+				} else {
+					$conf['flashvars.']['file'] = str_repeat('../', substr_count($player, '/')) . $filename;
+				}
+
+			}
+		} else {
+			$player = $filename;
+		}
+			// Write calculated values in conf for the hook
+		$conf['player'] = $player;
+		$conf['installUrl'] = $installUrl;
+		$conf['filename'] = $filename;
+		$conf['prefix'] = $prefix;
+
+			// merge with default parameters
+		$conf['flashvars.'] = array_merge((array) $typeConf['default.']['flashvars.'], (array) $conf['flashvars.']);
+		$conf['params.'] = array_merge((array) $typeConf['default.']['params.'], (array) $conf['params.']);
+		$conf['attributes.'] = array_merge((array) $typeConf['default.']['attributes.'], (array) $conf['attributes.']);
+		$conf['embedParams'] = 'flashvars, params, attributes';
+
+			// Hook for manipulating the conf array, it's needed for some players like flowplayer
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/hooks/class.tx_cms_mediaitems.php']['swfParamTransform'])) {
+			foreach($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/hooks/class.tx_cms_mediaitems.php']['swfParamTransform'] as $classRef) {
+				t3lib_div::callUserFunction($classRef, $conf, $this);
+			}
+		}
+		if (is_array($conf['flashvars.'])) {
+			t3lib_div::remapArrayKeys($conf['flashvars.'], $typeConf['mapping.']['flashvars.']);
+		}
+		$flashvars = 'var flashvars = ' . (count($conf['flashvars.']) ? json_encode($conf['flashvars.']) : '{}') . ';';
+
+		if (is_array($conf['params.'])) {
+			t3lib_div::remapArrayKeys($conf['params.'], $typeConf['mapping.']['params.']);
+		}
+		$params = 'var params = ' . (count($conf['params.']) ? json_encode($conf['params.']) : '{}') . ';';
+
+		if (is_array($conf['attributes.'])) {
+			t3lib_div::remapArrayKeys($conf['attributes.'], $typeConf['attributes.']['params.']);
+		}
+		$attributes = 'var attributes = ' . (count($conf['attributes.']) ? json_encode($conf['attributes.']) : '{}') . ';';
+
+		$flashVersion = $this->stdWrap($conf['flashVersion'], $conf['flashVersion.']);
+		if (!$flashVersion) {
+		 	$flashVersion = '9';
+		}
+
+		$replaceElementIdString = uniqid('mmswf');
+		$GLOBALS['TSFE']->register['MMSWFID'] = $replaceElementIdString;
+
+		$alternativeContent = $this->stdWrap($conf['alternativeContent'], $conf['alternativeContent.']);
+
+		$layout = $this->stdWrap($conf['layout'], $conf['layout.']);
+		$layout = str_replace('###ID###', $replaceElementIdString, $layout);
+		$layout = str_replace('###SWFOBJECT###', '<div id="' . $replaceElementIdString . '">' . $alternativeContent . '</div>', $layout);
+
+		$width = $this->stdWrap($conf['width'], $conf['width.']);
+		$height = $this->stdWrap($conf['height'], $conf['height.']);
+
+		$width = $width ? $width : $conf[$conf['type'] . '.']['defaultWidth'];
+		$height = $height ? $height : $conf[$conf['type'] . '.']['defaultHeight'];
 
 
+		$embed = 'swfobject.embedSWF("' . $conf['player'] . '", "' . $replaceElementIdString . '", "' . $width . '", "' . $height . '",
+		 		"' . $flashVersion . '", "' . $installUrl . '", ' . $conf['embedParams'] . ');';
 
+		$content = $layout . '
+			<script type="text/javascript">
+				' . $flashvars . '
+				' . $params . '
+				' . $attributes . '
+				' . $embed . '
+			</script>';
 
+		return $content;
+	}
 
+	/**
+	 * Rendering the cObject, QTOBJECT
+	 *
+	 * @param	array		Array of TypoScript properties
+	 * @return	string		Output
+	 */
+	public function QTOBJECT($conf) {
+		$content = '';
+		$params = '';
+		$prefix = '';
+		if ($GLOBALS['TSFE']->baseUrl) {
+			$prefix = $GLOBALS['TSFE']->baseUrl;
+		}
+		if ($GLOBALS['TSFE']->absRefPrefix) {
+			$prefix = $GLOBALS['TSFE']->absRefPrefix;
+		}
+
+		$filename = $this->stdWrap($conf['file'],$conf['file.']);
+
+		$typeConf = $conf[$conf['type'] . '.'];
+
+			//add QTobject js-file
+		$GLOBALS['TSFE']->getPageRenderer()->addJsFile('typo3/contrib/flashmedia/qtobject/qtobject.js');
+		$replaceElementIdString = uniqid('mmqt');
+		$GLOBALS['TSFE']->register['MMQTID'] = $replaceElementIdString;
+		$qtObject = 'QTObject' . $replaceElementIdString;
+
+			// merge with default parameters
+		$conf['params.'] = array_merge((array) $typeConf['default.']['params.'], (array) $conf['params.']);
+
+		if (is_array($conf['params.'])) {
+			t3lib_div::remapArrayKeys($conf['params.'], $typeConf['mapping.']['params.']);
+			foreach ($conf['params.'] as $key => $value) {
+				$params .= $qtObject . '.addParam("' .$key . '", "' . $value . '");' . chr(10);
+			}
+		}
+		$params = ($params ? substr($params, 0, -2) : '') . chr(10) . $qtObject . '.write("' . $replaceElementIdString . '");';
+
+		$alternativeContent = $this->stdWrap($conf['alternativeContent'], $conf['alternativeContent.']);
+		$layout = $this->stdWrap($conf['layout'], $conf['layout.']);
+		$layout = str_replace('###ID###', $replaceElementIdString, $layout);
+		$layout = str_replace('###QTOBJECT###', '<div id="' . $replaceElementIdString . '">' . $alternativeContent . '</div>', $layout);
+
+		$width = $this->stdWrap($conf['width'], $conf['width.']);
+		$height = $this->stdWrap($conf['height'], $conf['height.']);
+		$width = $width ? $width : $conf[$conf['type'] . '.']['defaultWidth'];
+		$height = $height ? $height : $conf[$conf['type'] . '.']['defaultHeight'];
+
+		$embed = 'var ' . $qtObject . ' = new QTObject("' . $prefix . $filename . '", "' . $replaceElementIdString . '", "' . $width . '", "' . $height . '");';
+
+		$content = $layout . '
+			<script type="text/javascript">
+				' . $embed . '
+				' . $params . '
+			</script>';
+
+		return $content;
+	}
 
 
 
@@ -2647,6 +2981,49 @@ class tslib_cObj {
 	 * Various helper functions for content objects:
 	 *
 	 ************************************/
+
+
+	/**
+	 * Converts a given config in Flexform to a conf-Array
+	 * @param	string 		Flexform data
+	 * @param	array 		Array to write the data into, by reference
+	 * @param	boolean		is set if called recursive. Don't call function with this parameter, it's used inside the function only
+	 * @access 	public
+	 *
+	 */
+	public function readFlexformIntoConf($flexData, &$conf, $recursive=FALSE) {
+		if ($recursive === FALSE) {
+			$flexData = t3lib_div::xml2array($flexData, 'T3');
+		}
+
+		if (is_array($flexData)) {
+			if (isset($flexData['data']['sDEF']['lDEF'])) {
+				$flexData = $flexData['data']['sDEF']['lDEF'];
+			}
+
+			foreach ($flexData as $key => $value) {
+				if (is_array($value['el']) && count($value['el']) > 0) {
+					foreach ($value['el'] as $ekey => $element) {
+						if (isset($element['vDEF'])) {
+							$conf[$ekey] =  $element['vDEF'];
+						} else {
+							if(is_array($element)) {
+								$this->readFlexformIntoConf($element, $conf[$key][key($element)][$ekey], TRUE);
+							} else {
+								$this->readFlexformIntoConf($element, $conf[$key][$ekey], TRUE);
+							}
+						}
+					}
+				} else {
+					$this->readFlexformIntoConf($value['el'], $conf[$key], TRUE);
+				}
+				if ($value['vDEF']) {
+					$conf[$key] = $value['vDEF'];
+				}
+			}
+		}
+	}
+
 
 	/**
 	 * Returns all parents of the given PID (Page UID) list
@@ -2663,7 +3040,7 @@ class tslib_cObj {
 		}
 		if (trim($pidList))	{
 			$listArr = t3lib_div::intExplode(',',str_replace('this',$GLOBALS['TSFE']->contentPid,$pidList));
-			$listArr = $this->checkPidArray($listArr, $table);
+			$listArr = $this->checkPidArray($listArr);
 		}
 		$pidList = array();
 		if (is_array($listArr)&&count($listArr))	{
@@ -2720,7 +3097,7 @@ class tslib_cObj {
 				$conf['altText.'] = $conf['alttext.'];
 			}
 			$altParam = $this->getAltParam($conf);
-			$theValue = '<img src="'.htmlspecialchars($GLOBALS['TSFE']->absRefPrefix.t3lib_div::rawUrlEncodeFP($info[3])).'" width="'.$info[0].'" height="'.$info[1].'"'.$this->getBorderAttr(' border="'.intval($conf['border']).'"').(($conf['params'] || is_array($conf['params.']))?' '.$this->stdwrap($conf['params'],$conf['params.']):'').($altParam).' />';
+			$theValue = '<img src="'.htmlspecialchars($GLOBALS['TSFE']->absRefPrefix.t3lib_div::rawUrlEncodeFP($info[3])).'" width="'.$info[0].'" height="'.$info[1].'"'.$this->getBorderAttr(' border="'.intval($conf['border']).'"').(($conf['params'] || is_array($conf['params.']))?' '.$this->stdWrap($conf['params'],$conf['params.']):'').($altParam).' />';
 			if ($conf['linkWrap'])	{
 				$theValue = $this->linkWrap($theValue,$conf['linkWrap']);
 			} elseif ($conf['imageLinkWrap']) {
@@ -2971,7 +3348,7 @@ class tslib_cObj {
 		$out = '';
 
 		if ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_content.php']['extLinkATagParamsHandler']) {
-			$extLinkATagParamsHandler = &t3lib_div::getUserObj($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_content.php']['extLinkATagParamsHandler']);
+			$extLinkATagParamsHandler = t3lib_div::getUserObj($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_content.php']['extLinkATagParamsHandler']);
 
 			if(method_exists($extLinkATagParamsHandler, 'main')) {
 				$out.= trim($extLinkATagParamsHandler->main($URL, $TYPE, $this));
@@ -3139,20 +3516,17 @@ class tslib_cObj {
 				$storeArr=array();
 
 					// Finding subparts and substituting them with the subpart as a marker
-				reset($sPkeys);
-				while(list(,$sPK)=each($sPkeys))	{
+				foreach ($sPkeys as $sPK) {
 					$content =$this->substituteSubpart($content,$sPK,$sPK);
 				}
 
 					// Finding subparts and wrapping them with markers
-				reset($wPkeys);
-				while(list(,$wPK)=each($wPkeys))	{
+				foreach ($wPkeys as $wPK) {
 					$content =$this->substituteSubpart($content,$wPK,array($wPK,$wPK));
 				}
 
 					// traverse keys and quote them for reg ex.
-				reset($aKeys);
-				while(list($tK,$tV)=each($aKeys))	{
+				foreach ($aKeys as $tK => $tV) {
 					$aKeys[$tK] = preg_quote($tV, '/');
 				}
 				$regex = '/' . implode('|', $aKeys) . '/';
@@ -3181,10 +3555,9 @@ class tslib_cObj {
 		$valueArr = array_merge($markContentArray,$subpartContentArray,$wrappedSubpartContentArray);
 
 		$wSCA_reg=array();
-		reset($storeArr['k']);
 		$content = '';
-			// traversin the keyList array and merging the static and dynamic content
-		while(list($n,$keyN)=each($storeArr['k']))	{
+			// traversing the keyList array and merging the static and dynamic content
+		foreach ($storeArr['k'] as $n => $keyN) {
 			$content.=$storeArr['c'][$n];
 			if (!is_array($valueArr[$keyN]))	{
 				$content.=$valueArr[$keyN];
@@ -3232,8 +3605,7 @@ class tslib_cObj {
 	 */
 	public function substituteMarkerInObject(&$tree, array $markContentArray) {
 		if (is_array ($tree)) {
-			reset($tree);
-			while(list($key, $value) = each($tree)) {
+			foreach ($tree as $key => $value) {
 				$this->substituteMarkerInObject ($tree[$key], $markContentArray);
 			}
 		} else {
@@ -3399,12 +3771,14 @@ class tslib_cObj {
 						$content = $GLOBALS['TSFE']->csConv($content,$tmp_charset);
 					}
 				}
-				if ($conf['age']){$content=$this->calcAge(time()-$content,$conf['age']);}
-
+				if ($conf['age']) {
+					$content = $this->calcAge($GLOBALS['EXEC_TIME'] - $content, $conf['age']);
+				}
 				if ($conf['case']){$content=$this->HTMLcaseshift($content, $conf['case']);}
 				if ($conf['bytes']){$content=t3lib_div::formatSize($content, $conf['bytes.']['labels']);}
 				if ($conf['substring']){$content=$this->substring($content,$conf['substring']);}
 				if ($conf['removeBadHTML'])	{$content = $this->removeBadHTML($content, $conf['removeBadHTML.']);}
+				if ($conf['cropHTML']) {$content=$this->cropHTML($content, $conf['cropHTML']);}
 				if ($conf['stripHtml']){$content = strip_tags($content);}
 				if ($conf['crop']){$content=$this->crop($content, $conf['crop']);}
 				if ($conf['rawUrlEncode']){$content = rawurlencode($content);}
@@ -3700,7 +4074,7 @@ class tslib_cObj {
 					reset($items['sorting']);
 					$fullPath = trim($data_arr[4]);
 					$list_arr=Array();
-					while(list($key,)=each($items['sorting']))	{
+					foreach ($items['sorting'] as $key => $v) {
 						$list_arr[]=  $fullPath ? $path.'/'.$items['files'][$key] : $items['files'][$key];
 					}
 					return implode(',',$list_arr);
@@ -3853,6 +4227,133 @@ class tslib_cObj {
 			}
 		}
 		return $content;
+	}
+
+	/**
+	 * Implements the stdWrap property "cropHTML" which is a modified "substr" function allowing to limit a string length
+	 * to a certain number of chars (from either start or end of string) and having a pre/postfix applied if the string
+	 * really was cropped.
+	 *
+	 * Compared to stdWrap.crop it respects HTML tags and entities.
+	 *
+	 * @param	string		The string to perform the operation on
+	 * @param	string		The parameters splitted by "|": First parameter is the max number of chars of the string. Negative value means cropping from end of string. Second parameter is the pre/postfix string to apply if cropping occurs. Third parameter is a boolean value. If set then crop will be applied at nearest space.
+	 * @return	string		The processed input value.
+	 * @access private
+	 * @see stdWrap()
+	 */
+	function cropHTML($content, $options) {
+		$options = explode('|', $options);
+		$chars = intval($options[0]);
+		$absChars = abs($chars);
+		$replacementForEllipsis = trim($options[1]);
+		$crop2space = $options[2] === '1' ? TRUE : FALSE;
+
+		// Split $content into an array (even items in the array are outside the tags, odd numbers are tag-blocks).
+		$tags= 'a|b|blockquote|body|div|em|font|form|h1|h2|h3|h4|h5|h6|i|li|map|ol|option|p|pre|sub|sup|select|span|strong|table|thead|tbody|tfoot|td|textarea|tr|u|ul|br|hr|img|input|area|link';
+		// TODO We should not crop inside <script> tags.
+		$tagsRegEx = "
+			(
+				(?:
+					<!--.*?-->					# a comment
+				)
+				|
+				</?(?:". $tags . ")+			# opening tag ('<tag') or closing tag ('</tag')
+				(?:
+					(?:
+						\s+\w+					# EITHER spaces, followed by word characters (attribute names)
+						(?:
+							\s*=?\s*			# equals
+							(?>
+								\".*?\"			# attribute values in double-quotes
+								|
+								'.*?'			# attribute values in single-quotes
+								|
+								[^'\">\s]+		# plain attribute values
+							)
+						)?
+					)+\s*
+					|							# OR only spaces
+					\s*
+				)
+				/?>								# closing the tag with '>' or '/>'
+			)";
+		$splittedContent = preg_split('%' . $tagsRegEx . '%xs', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+		// Reverse array if we are cropping from right.
+		if ($chars < 0) {
+			$splittedContent = array_reverse($splittedContent);
+		}
+
+		// Crop the text (chars of tag-blocks are not counted).
+		$strLen = 0;
+		$croppedOffset = NULL; // This is the offset of the content item which was cropped.
+		$countSplittedContent = count($splittedContent);
+		for ($offset = 0; $offset < $countSplittedContent; $offset++) {
+			if ($offset%2 === 0) {
+				$tempContent = $GLOBALS['TSFE']->csConvObj->utf8_encode($splittedContent[$offset], $GLOBALS['TSFE']->renderCharset);
+				$thisStrLen = $GLOBALS['TSFE']->csConvObj->strlen('utf-8', html_entity_decode($tempContent, ENT_COMPAT, 'UTF-8'));
+				if (($strLen + $thisStrLen > $absChars)) {
+					$croppedOffset = $offset;
+					$cropPosition = $absChars - $strLen;
+					if ($crop2space) {
+						$cropRegEx = $chars < 0 ? '#(?<=\s)(.(?![^&\s]{2,7};)|(&[^&\s;]{2,7};)){0,' . $cropPosition . '}$#ui' : '#^(.(?![^&\s]{2,7};)|(&[^&\s;]{2,7};)){0,' . $cropPosition . '}(?=\s)#ui';
+					} else {
+						// The snippets "&[^&\s;]{2,7};" in the RegEx below represents entities.
+						$cropRegEx = $chars < 0 ? '#(.(?![^&\s]{2,7};)|(&[^&\s;]{2,7};)){0,' . $cropPosition . '}$#ui' : '#^(.(?![^&\s]{2,7};)|(&[^&\s;]{2,7};)){0,' . $cropPosition . '}#ui';
+					}
+					if (preg_match($cropRegEx, $tempContent, $croppedMatch)) {
+						$tempContent = $croppedMatch[0];
+					}
+					$splittedContent[$offset] = $GLOBALS['TSFE']->csConvObj->utf8_decode($tempContent, $GLOBALS['TSFE']->renderCharset);
+					break;
+				} else {
+					$strLen += $thisStrLen;
+				}
+			}
+		}
+
+		// Close cropped tags.
+		$closingTags = array();
+		if($croppedOffset !== NULL) {
+			$tagName = '';
+			$openingTagRegEx = '#^<(\w+)(?:\s|>)#';
+			$closingTagRegEx = '#^</(\w+)(?:\s|>)#';
+			for ($offset = $croppedOffset - 1; $offset >= 0; $offset = $offset - 2) {
+				if (substr($splittedContent[$offset], -2) === '/>') {
+					// Ignore empty element tags (e.g. <br />).
+					continue;
+				}
+				preg_match($chars < 0 ? $closingTagRegEx : $openingTagRegEx, $splittedContent[$offset], $matches);
+				$tagName = isset($matches[1]) ? $matches[1] : NULL;
+				if ($tagName !== NULL) {
+					// Seek for the closing (or opening) tag.
+					$seekingTagName = '';
+					$countSplittedContent = count($splittedContent);
+					for ($seekingOffset = $offset + 2; $seekingOffset < $countSplittedContent; $seekingOffset = $seekingOffset + 2) {
+						preg_match($chars < 0 ? $openingTagRegEx : $closingTagRegEx, $splittedContent[$seekingOffset], $matches);
+						$seekingTagName = isset($matches[1]) ? $matches[1] : NULL;
+						if ($tagName === $seekingTagName) { // We found a matching tag.
+							// Add closing tag only if it occurs after the cropped content item.
+							if ($seekingOffset > $croppedOffset) {
+								$closingTags[] = $splittedContent[$seekingOffset];
+							}
+							break;
+						}
+					}
+				}
+			}
+			// Drop the cropped items of the content array. The $closingTags will be added later on again.
+			array_splice($splittedContent, $croppedOffset + 1);
+		}
+		$splittedContent = array_merge($splittedContent, array($croppedOffset !== NULL ? $replacementForEllipsis : ''), $closingTags);
+
+		// Reverse array once again if we are cropping from the end.
+		if ($chars < 0) {
+			$splittedContent = array_reverse($splittedContent);
+		}
+
+		return implode('', $splittedContent);
 	}
 
 	/**
@@ -4060,16 +4561,40 @@ class tslib_cObj {
 	 * @see stdWrap()
 	 */
 	function filelink($theValue, $conf)	{
-		$output = '';
-		$aTagParams = $this->getATagParams($conf);
-		$initP = '?id='.$GLOBALS['TSFE']->id.'&type='.$GLOBALS['TSFE']->type;
-		$conf['path'] = $this->stdWrap($conf['path'],$conf['path.']);
-		$theFile = trim($conf['path']).$theValue;
+		$conf['path'] = $this->stdWrap($conf['path'], $conf['path.']);
+		$theFile = trim($conf['path']) . $theValue;
 		if (@is_file($theFile))	{
 			$theFileEnc = str_replace('%2F', '/', rawurlencode($theFile));
-			$locDataAdd = $conf['jumpurl.']['secure'] ? $this->locDataJU($theFileEnc,$conf['jumpurl.']['secure.']) : '';
-			$url = ($conf['jumpurl']) ? $GLOBALS['TSFE']->config['mainScript'].$initP.'&jumpurl='.rawurlencode($theFileEnc).$locDataAdd.$GLOBALS['TSFE']->getMethodUrlIdToken : $theFileEnc;		// && $GLOBALS['TSFE']->config['config']['jumpurl_enable']
-			$theLinkWrap = '<a href="'.htmlspecialchars($GLOBALS['TSFE']->absRefPrefix.$url).'"'.($conf['target']?' target="'.$conf['target'].'"':'').$aTagParams.'>|</a>';
+
+			// the jumpURL feature will be taken care of by typoLink, only "jumpurl.secure = 1" is applyable needed for special link creation
+			if ($conf['jumpurl.']['secure']) {
+				$typoLinkConf = array(
+					'parameter'  => $GLOBALS['TSFE']->id . ',' . $GLOBALS['TSFE']->type,
+					'target'     => $conf['target'],
+					'ATagParams' => $this->getATagParams($conf),
+					'additionalParams' => '&jumpurl=' . rawurlencode($theFileEnc) . $this->locDataJU($theFileEnc, $conf['jumpurl.']['secure.']) . $GLOBALS['TSFE']->getMethodUrlIdToken
+				);
+			} else {
+				$typoLinkConf = array(
+					'parameter'  => $theFileEnc,
+					'target'     => $conf['target'],
+					'ATagParams' => $this->getATagParams($conf)
+				);
+			}
+
+				// if the global jumpURL feature is activated, but is disabled for this
+				// filelink, the global parameter needs to be disabled as well for this link creation
+			$globalJumpUrlEnabled = $GLOBALS['TSFE']->config['config']['jumpurl_enable'];
+			if ($globalJumpUrlEnabled && isset($conf['jumpurl']) && $conf['jumpurl'] == 0) {
+				$GLOBALS['TSFE']->config['config']['jumpurl_enable'] = 0;
+				// if the global jumpURL feature is deactivated, but is wanted for this link, then activate it for now
+			} else if (!$globalJumpUrlEnabled && $conf['jumpurl']) {
+				$GLOBALS['TSFE']->config['config']['jumpurl_enable'] = 1;
+			}
+			$theLinkWrap = $this->typoLink('|', $typoLinkConf);
+
+			// now the original value is set again
+			$GLOBALS['TSFE']->config['config']['jumpurl_enable'] = $globalJumpUrlEnabled;
 
 			$theSize = filesize($theFile);
 			$fI = t3lib_div::split_fileref($theFile);
@@ -4135,8 +4660,7 @@ class tslib_cObj {
 		$mimetype='';
 		if ($fI['extension'])	{
 			$mimeTypes = t3lib_div::trimExplode(',',$conf['mimeTypes'],1);
-			reset($mimeTypes);
-			while(list(,$v)=each($mimeTypes))	{
+			foreach ($mimeTypes as $v) {
 				$parts = explode('=',$v,2);
 				if (strtolower($fI['extension']) == strtolower(trim($parts[0])))	{
 					$mimetype = '&mimeType='.rawurlencode(trim($parts[1]));
@@ -4164,8 +4688,7 @@ class tslib_cObj {
 	function calc($val)	{
 		$parts= t3lib_div::splitCalc($val,'+-*/');
 		$value=0;
-		reset($parts);
-		while(list(,$part)=each($parts))	{
+		foreach ($parts as $part) {
 			$theVal = $part[1];
 			$sign =  $part[0];
 			if ((string)intval($theVal)==(string)$theVal)	{
@@ -4192,7 +4715,7 @@ class tslib_cObj {
 	 */
 	function calcIntExplode($delim, $string)	{
 		$temp = explode($delim,$string);
-		while(list($key,$val)=each($temp))	{
+		foreach ($temp as $key => $val) {
 			$temp[$key]=intval(tslib_cObj::calc($val));
 		}
 		return $temp;
@@ -4290,8 +4813,7 @@ class tslib_cObj {
 			$htmlParser = t3lib_div::makeInstance('t3lib_parsehtml');
 			$parts = $htmlParser->splitIntoBlock($tags,$theValue);
 
-			reset($parts);
-			while(list($k,$v)=each($parts))	{
+			foreach ($parts as $k => $v) {
 				if ($k%2)	{	// font:
 					$tagName=strtolower($htmlParser->getFirstTagName($v));
 					$cfg=$conf['externalBlocks.'][$tagName.'.'];
@@ -4304,8 +4826,7 @@ class tslib_cObj {
 				}
 			}
 
-			reset($parts);
-			while(list($k,$v)=each($parts))	{
+			foreach ($parts as $k => $v) {
 				if ($k%2)	{
 					$tag=$htmlParser->getFirstTag($v);
 					$tagName=strtolower($htmlParser->getFirstTagName($v));
@@ -4324,13 +4845,11 @@ class tslib_cObj {
 						}
 					} elseif($cfg['HTMLtableCells']) {
 						$rowParts = $htmlParser->splitIntoBlock('tr',$parts[$k]);
-						reset($rowParts);
-						while(list($kk,$vv)=each($rowParts))	{
+						foreach ($rowParts as $kk => $vv) {
 							if ($kk%2)	{
 								$colParts = $htmlParser->splitIntoBlock('td,th',$vv);
-								reset($colParts);
 								$cc=0;
-								while(list($kkk,$vvv)=each($colParts))	{
+								foreach ($colParts as $kkk => $vvv) {
 									if ($kkk%2)	{
 										$cc++;
 										$tag=$htmlParser->getFirstTag($vvv);
@@ -4427,9 +4946,9 @@ class tslib_cObj {
 
 					if (!is_array($currentTag))	{			// These operations should only be performed on code outside the tags...
 							// Constants
-						if ($conf['constants'] && is_array($GLOBALS['TSFE']->tmpl->setup['constants.']))	{
-							reset($GLOBALS['TSFE']->tmpl->setup['constants.']);
-							while(list($key,$val)=each($GLOBALS['TSFE']->tmpl->setup['constants.']))	{
+						$tmpConstants = $GLOBALS['TSFE']->tmpl->setup['constants.'];
+						if ($conf['constants'] && is_array($tmpConstants)) {
+							foreach ($tmpConstants as $key => $val) {
 								if (is_string($val))	{
 									$data = str_replace('###'.$key.'###', $val, $data);
 								}
@@ -4439,8 +4958,7 @@ class tslib_cObj {
 						if (is_array($conf['short.']))	{
 							$shortWords = $conf['short.'];
 							krsort($shortWords);
-							reset($shortWords);
-							while(list($key,$val)=each($shortWords))	{
+							foreach ($shortWords as $key => $val) {
 								if (is_string($val))	{
 									$data = str_replace($key, $val, $data);
 								}
@@ -4519,8 +5037,7 @@ class tslib_cObj {
 						if ($currentTag[1])	{
 							$params=t3lib_div::get_tag_attributes($currentTag[1]);
 							if (is_array($params))	{
-								reset($params);
-								while(list($option,$val)=each($params))	{
+								foreach ($params as $option => $val) {
 									$this->parameters[strtolower($option)]=$val;
 								}
 							}
@@ -4597,7 +5114,7 @@ class tslib_cObj {
 
 		if (!strcmp('',$theValue))	return '';
 
-		while(list($k,$l)=each($lParts))	{
+		foreach ($lParts as $k => $l) {
 			$sameBeginEnd=0;
 			$l=trim($l);
 			$attrib=array();
@@ -4628,8 +5145,7 @@ class tslib_cObj {
 			if ($uTagName)	{
 					// Setting common attributes
 				if (is_array($conf['addAttributes.'][$uTagName.'.']))	{
-					reset($conf['addAttributes.'][$uTagName.'.']);
-					while(list($kk,$vv)=each($conf['addAttributes.'][$uTagName.'.']))	{
+					foreach ($conf['addAttributes.'][$uTagName.'.'] as $kk => $vv) {
 						if (!is_array($vv))	{
 							if ((string)$conf['addAttributes.'][$uTagName.'.'][$kk.'.']['setOnly']=='blank')	{
 								if (!strcmp($attrib[$kk],''))	$attrib[$kk]=$vv;
@@ -4794,7 +5310,7 @@ class tslib_cObj {
 						$gifCreator->start($fileArray,$this->data);
 						$theImage = $gifCreator->gifBuild();
 					}
-					return $gifCreator->getImageDimensions($theImage);
+					$imageResource = $gifCreator->getImageDimensions($theImage);
 				break;
 				default:
 					if ($fileArray['import.'])	{
@@ -4893,8 +5409,7 @@ class tslib_cObj {
 												// The image onto the background
 											$gifCreator->combineExec($tempScale['m_bgImg'],$tempFileInfo[3],$tempScale['m_mask'],$dest);
 												// Unlink the temp-images...
-											reset($tempScale);
-											while(list(,$file)=each($tempScale))	{
+											foreach ($tempScale as $file) {
 												if (@is_file($file))	{
 													unlink($file);
 												}
@@ -4925,23 +5440,35 @@ class tslib_cObj {
 							}
 							$GLOBALS['TSFE']->tmpl->fileCache[$hash]['origFile'] = $theImage;
 							$GLOBALS['TSFE']->tmpl->fileCache[$hash]['origFile_mtime'] = @filemtime($theImage);	// This is needed by tslib_gifbuilder, ln 100ff in order for the setup-array to create a unique filename hash.
+							$GLOBALS['TSFE']->tmpl->fileCache[$hash]['fileCacheHash'] = $hash;
 						}
-						return $GLOBALS['TSFE']->tmpl->fileCache[$hash];
+						$imageResource = $GLOBALS['TSFE']->tmpl->fileCache[$hash];
 					}
 
 				break;
 			}
 		}
 		$theImage = $GLOBALS['TSFE']->tmpl->getFileName($file);
-		if ($theImage)	{
+			// If image was processed by GIFBUILDER:
+			// ($imageResource indicates that it was processed the regular way)
+		if (!isset($imageResource) && $theImage) {
 			$gifCreator = t3lib_div::makeInstance('tslib_gifbuilder');
 			/* @var $gifCreator tslib_gifbuilder */
 			$gifCreator->init();
 			$info= $gifCreator->imageMagickConvert($theImage,'WEB','','','','','');
 			$info['origFile'] = $theImage;
 			$info['origFile_mtime'] = @filemtime($theImage);	// This is needed by tslib_gifbuilder, ln 100ff in order for the setup-array to create a unique filename hash.
-			return $info;
+			$imageResource = $info;
 		}
+
+			// Hook 'getImgResource': Post-processing of image resources
+		if (isset($imageResource)) {
+			foreach($this->getGetImgResourceHookObjects() as $hookObject) {
+				$imageResource = $hookObject->getImgResourcePostProcess($file, (array)$fileArray, $imageResource, $this);
+			}
+		}
+
+		return $imageResource;
 	}
 
 	/**
@@ -5002,7 +5529,7 @@ class tslib_cObj {
 			return $this->data[trim($field)];
 		} else {
 			$sections = t3lib_div::trimExplode('//',$field,1);
-			while (list(,$k)=each($sections)) {
+			foreach ($sections as $k) {
 				if (strcmp($this->data[$k],''))	return $this->data[$k];
 			}
 		}
@@ -5095,7 +5622,7 @@ class tslib_cObj {
 					break;
 					case 'date':
 						if (!$key) {$key = 'd/m Y';}
-						$retVal = date($key, time());
+						$retVal = date($key, $GLOBALS['EXEC_TIME']);
 					break;
 					case 'page':
 						$retVal = $GLOBALS['TSFE']->page[$key];
@@ -5142,7 +5669,7 @@ class tslib_cObj {
 
 			if(is_array($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['getData']))    {
 				foreach($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['getData'] as $classData)    {
-					$hookObject = &t3lib_div::getUserObj($classData);
+					$hookObject = t3lib_div::getUserObj($classData);
 
 					if(!($hookObject instanceof tslib_content_getDataHook)) {
 						throw new UnexpectedValueException('$hookObject must implement interface tslib_content_getDataHook', 1195044480);
@@ -5262,8 +5789,7 @@ class tslib_cObj {
 			$output = array();
 			foreach ($values as $value) {
 					// Traverse the items-array...
-				reset($TCA[$table]['columns'][$field]['config']['items']);
-				while (list($key,$item)=each($TCA[$table]['columns'][$field]['config']['items'])) {
+				foreach ($TCA[$table]['columns'][$field]['config']['items'] as $item) {
 						// ... and return the first found label where the value was equal to $key
 					if (!strcmp($item[1],trim($value))) {
 						$output[] = $GLOBALS['TSFE']->sL($item[0]);
@@ -5330,7 +5856,7 @@ class tslib_cObj {
 				// Check for link-handler keyword:
 			list($linkHandlerKeyword,$linkHandlerValue) = explode(':',trim($link_paramA[0]),2);
 			if ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_content.php']['typolinkLinkHandler'][$linkHandlerKeyword] && strcmp($linkHandlerValue, '')) {
-				$linkHandlerObj = &t3lib_div::getUserObj($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_content.php']['typolinkLinkHandler'][$linkHandlerKeyword]);
+				$linkHandlerObj = t3lib_div::getUserObj($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_content.php']['typolinkLinkHandler'][$linkHandlerKeyword]);
 
 				if(method_exists($linkHandlerObj, 'main')) {
 					return $linkHandlerObj->main($linktxt, $conf, $linkHandlerKeyword, $linkHandlerValue, $link_param, $this);
@@ -5495,11 +6021,12 @@ class tslib_cObj {
 						if (substr($addQueryParams,0,1)!='&')		{
 							$addQueryParams = '';
 						} elseif ($conf['useCacheHash']) {	// cache hashing:
-							$pA = t3lib_div::cHashParams($addQueryParams.$GLOBALS['TSFE']->linkVars);	// Added '.$this->linkVars' dec 2003: The need for adding the linkVars is that they will be included in the link, but not the cHash. Thus the linkVars will always be the problem that prevents the cHash from working. I cannot see what negative implications in terms of incompatibilities this could bring, but for now I hope there are none. So here we go... (- kasper)
-							$addQueryParams.= '&cHash='.t3lib_div::shortMD5(serialize($pA));
+								// Added '.$this->linkVars' dec 2003: The need for adding the linkVars is that they will be included in the link, but not the cHash. Thus the linkVars will always be the problem that prevents the cHash from working. I cannot see what negative implications in terms of incompatibilities this could bring, but for now I hope there are none. So here we go... (- kasper);
+							$addQueryParams .= '&cHash=' . t3lib_div::generateCHash($addQueryParams . $GLOBALS['TSFE']->linkVars);
 						}
 
-						$tCR_domain = '';
+						$targetDomain = '';
+						$currentDomain = t3lib_div::getIndpEnv('HTTP_HOST');
 						// Mount pages are always local and never link to another domain
 						if (count($MPvarAcc))	{
 							// Add "&MP" var:
@@ -5527,33 +6054,56 @@ class tslib_cObj {
 								}
 							}
 
-							// This checks if the linked id is in the rootline of this site and if not it will find the domain for that ID and prefix it:
-							$tCR_rootline = $GLOBALS['TSFE']->sys_page->getRootLine($page['uid']);	// Gets rootline of linked-to page
-							$tCR_flag = 0;
-							foreach ($tCR_rootline as $tCR_data)	{
-								if ($tCR_data['uid'] == $GLOBALS['TSFE']->tmpl->rootLine[0]['uid'])	{
-									$tCR_flag = 1;	// OK, it was in rootline!
-									break;
+							// Find all domain records in the rootline of the target page
+							$targetPageRootline = $GLOBALS['TSFE']->sys_page->getRootLine($page['uid']);
+							$foundDomains = array();
+							$foundForcedDomains = array();
+							$targetPageRootlinePids = array();
+							foreach ($targetPageRootline as $data)	{
+								$targetPageRootlinePids[] = intval($data['uid']);
+							}
+							$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+								'pid, domainName, forced',
+								'sys_domain',
+								'pid IN (' . implode(',', $targetPageRootlinePids) . ') ' .
+									' AND redirectTo=\'\' ' . $this->enableFields('sys_domain'),
+								'',
+								'sorting ASC'
+							);
+							// TODO maybe it makes sense to hold all sys_domain records in a cache to save additional DB querys on each typolink
+							while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+								if (!isset($foundDomains[$row['pid']])) {
+									$foundDomains[$row['pid']] = preg_replace('/\/$/', '', $row['domainName']);
 								}
-								if ($tCR_data['is_siteroot']) {
-									// Possibly subdomain inside main domain. In any case we must stop now because site root is reached.
-									break;
+								if ($row['forced'] && !isset($foundForcedDomains[$row['pid']])) {
+									$foundForcedDomains[$row['pid']] = preg_replace('/\/$/', '', $row['domainName']);
 								}
 							}
-							if (!$tCR_flag)	{
-								foreach ($tCR_rootline as $tCR_data)	{
-									$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('domainName', 'sys_domain', 'pid='.intval($tCR_data['uid']).' AND redirectTo=\'\''.$this->enableFields('sys_domain'), '', 'sorting');
-									$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
-									$GLOBALS['TYPO3_DB']->sql_free_result($res);
-									if ($row)	{
-										$tCR_domain = preg_replace('/\/$/','',$row['domainName']);
+							$GLOBALS['TYPO3_DB']->sql_free_result($res);
+
+							// Set targetDomain to first found domain record if the target page cannot be reached within the current domain
+							if (count($foundDomains) > 0
+							  && (!in_array($currentDomain, $foundDomains) || count($foundForcedDomains) > 0)) {
+								foreach ($targetPageRootlinePids as $pid) {
+									// Always use the 'forced' domain if we found one
+									if (isset($foundForcedDomains[$pid])) {
+										$targetDomain = $foundForcedDomains[$pid];
 										break;
 									}
+									// Use the first found domain record
+									if ($targetDomain === '' && isset($foundDomains[$pid])) {
+										$targetDomain = $foundDomains[$pid];
+									}
+								}
+								// Do not prepend the domain if its the current hostname
+								if ($targetDomain === $currentDomain) {
+									$targetDomain = '';
 								}
 							}
 						}
-							// If other domain, overwrite
-						if (strlen($tCR_domain) && !$enableLinksAcrossDomains) {
+
+						// If target page has a different domain and the current domain's linking scheme (e.g. simulateStaticDocuments/RealURL/...) should not be used
+						if (strlen($targetDomain) && !$enableLinksAcrossDomains) {
 							$target = isset($conf['extTarget']) ? $conf['extTarget'] : $GLOBALS['TSFE']->extTarget;
 							if ($conf['extTarget.']) {
 								$target = $this->stdWrap($target, $conf['extTarget.']);
@@ -5562,13 +6112,13 @@ class tslib_cObj {
 								$target = $forceTarget;
 							}
 							$LD['target'] = $target;
-							$this->lastTypoLinkUrl = $this->URLqMark('http://'.$tCR_domain.'/index.php?id='.$page['uid'],$addQueryParams).$sectionMark;
-						} else {	// Internal link:
+							$this->lastTypoLinkUrl = $this->URLqMark('http://' . $targetDomain . '/index.php?id=' . $page['uid'], $addQueryParams) . $sectionMark;
+						} else {	// Internal link or current domain's linking scheme should be used
 							if ($forceTarget) {
 								$target = $forceTarget;
 							}
-							$LD = $GLOBALS['TSFE']->tmpl->linkData($page,$target,$conf['no_cache'],'','',$addQueryParams,$theTypeP);
-							if (strlen($tCR_domain)) {
+							$LD = $GLOBALS['TSFE']->tmpl->linkData($page, $target, $conf['no_cache'], '', '', $addQueryParams, $theTypeP, $targetDomain);
+							if (strlen($targetDomain)) {
 								// We will add domain only if URL does not have it already.
 
 								if ($enableLinksAcrossDomains) {
@@ -5583,7 +6133,7 @@ class tslib_cObj {
 								}
 								$urlParts = parse_url($LD['totalURL']);
 								if ($urlParts['host'] == '') {
-									$LD['totalURL'] = 'http://' . $tCR_domain . ($LD['totalURL']{0} == '/' ? '' : '/') . $LD['totalURL'];
+									$LD['totalURL'] = 'http://' . $targetDomain . ($LD['totalURL']{0} == '/' ? '' : '/') . $LD['totalURL'];
 								}
 							}
 							$this->lastTypoLinkUrl = $this->URLqMark($LD['totalURL'],'').$sectionMark;
@@ -5592,8 +6142,11 @@ class tslib_cObj {
 						$this->lastTypoLinkTarget = $LD['target'];
 						$targetPart = $LD['target'] ? ' target="'.$LD['target'].'"' : '';
 
-							// If sectionMark is set, there is no baseURL AND the current page is the page the link is to, check if there are any additional parameters and is not, drop the url.
-						if ($sectionMark && !trim($addQueryParams) && $page['uid']==$GLOBALS['TSFE']->id && !$GLOBALS['TSFE']->config['config']['baseURL'])	{
+							// If sectionMark is set, there is no baseURL AND the current page is the page the link is to, check if there are any additional parameters or addQueryString parameters and if not, drop the url.
+						if ($sectionMark && !$GLOBALS['TSFE']->config['config']['baseURL'] &&
+								$page['uid'] == $GLOBALS['TSFE']->id && !trim($addQueryParams) &&
+								!($conf['addQueryString'] && $conf['addQueryString.'])) {
+
 							list(,$URLparams) = explode('?',$this->lastTypoLinkUrl);
 							list($URLparams) = explode('#',$URLparams);
 							parse_str ($URLparams.$LD['orig_type'], $URLparamsArray);
@@ -6069,7 +6622,7 @@ class tslib_cObj {
 			if ($this->isClassAvailable($parts[0], $conf)) {
 				$classObj = t3lib_div::makeInstance($parts[0]);
 				if (is_object($classObj) && method_exists($classObj, $parts[1])) {
-					$classObj->cObj = &$this;
+					$classObj->cObj = $this;
 				 	$content = call_user_func_array(array($classObj, $parts[1]), array($content, $conf));
 				} else {
 					$GLOBALS['TT']->setTSlogMessage('Method "' . $parts[1] . '" did not exist in class "' . $parts[0] . '"', 3);
@@ -6114,8 +6667,7 @@ class tslib_cObj {
 	 */
 	function keywords($content)	{
 		$listArr = preg_split('/[,;' . chr(10) . ']/', $content);
-		reset($listArr);
-		while(list($k,$v)=each($listArr))	{
+		foreach ($listArr as $k => $v) {
 			$listArr[$k]=trim($v);
 		}
 		return implode(',',$listArr);
@@ -6287,7 +6839,7 @@ class tslib_cObj {
 	 */
 	function clearTSProperties($TSArr,$propList)	{
 		$list = explode(',',$propList);
-		while(list(,$prop)=each($list))	{
+		foreach ($list as $prop) {
 			$prop = trim($prop);
 			unset($TSArr[$prop]);
 			unset($TSArr[$prop.'.']);
@@ -6329,8 +6881,7 @@ class tslib_cObj {
 	 */
 	function joinTSarrays($conf,$old_conf)	{
 		if (is_array($old_conf))	{
-			reset($old_conf);
-			while(list($key,$val)=each($old_conf))	{
+			foreach ($old_conf as $key => $val) {
 				if (is_array($val))	{
 					$conf[$key] = $this->joinTSarrays($conf[$key],$val);
 				} else {
@@ -6360,8 +6911,7 @@ class tslib_cObj {
 		if ($tmplObjNumber && $gifbuilderConf[$tmplObjNumber]=='TEXT')	{
 			$textArr = $this->linebreaks($text,$chars,$maxLines);
 			$angle = intval($gifbuilderConf[$tmplObjNumber.'.']['angle']);
-			reset($textArr);
-			while(list($c,$textChunk)=each($textArr))	{
+			foreach ($textArr as $c => $textChunk) {
 				$index = $tmplObjNumber+1+($c*2);
 					// Workarea
 				$gifbuilderConf = $this->clearTSProperties($gifbuilderConf,$index);
@@ -6410,9 +6960,9 @@ class tslib_cObj {
 		$lines = explode(chr(10),$string);
 		$lineArr=Array();
 		$c=0;
-		while(list(,$paragraph)=each($lines))	{
+		foreach ($lines as $paragraph) {
 			$words = explode(' ',$paragraph);
-			while(list(,$word)=each($words))	{
+			foreach ($words as $word) {
 				if (strlen($lineArr[$c].$word)>$chars)	{
 					$c++;
 				}
@@ -6440,12 +6990,10 @@ class tslib_cObj {
 	function getUpdateJS($dataArray, $formName, $arrPrefix, $fieldList)	{
 		$JSPart='';
 		$updateValues=t3lib_div::trimExplode(',',$fieldList);
-		reset($updateValues);
-		while(list(,$fKey)=each($updateValues))	{
+		foreach ($updateValues as $fKey) {
 			$value = $dataArray[$fKey];
 			if (is_array($value))	{
-				reset($value);
-				while(list(,$Nvalue)=each($value))	{
+				foreach ($value as $Nvalue) {
 					$JSPart.="
 	updateForm('".$formName."','".$arrPrefix."[".$fKey."][]',".t3lib_div::quoteJSvalue($Nvalue, true).");";
 				}
@@ -6604,7 +7152,7 @@ class tslib_cObj {
 			}
 
 			if ($GLOBALS['TCA'][$table]['ctrl']['tstamp'])	{
-				$updateFields[$GLOBALS['TCA'][$table]['ctrl']['tstamp']] = time();
+				$updateFields[$GLOBALS['TCA'][$table]['ctrl']['tstamp']] = $GLOBALS['EXEC_TIME'];
 			}
 
 			if (count($updateFields))	{
@@ -6633,8 +7181,16 @@ class tslib_cObj {
 	 */
 	function DBgetInsert($table, $pid, $dataArr, $fieldList, $doExec=FALSE)	{
 		$extraList='pid';
-		if ($GLOBALS['TCA'][$table]['ctrl']['tstamp'])	{$field=$GLOBALS['TCA'][$table]['ctrl']['tstamp']; $dataArr[$field]=time(); $extraList.=','.$field;}
-		if ($GLOBALS['TCA'][$table]['ctrl']['crdate'])	{$field=$GLOBALS['TCA'][$table]['ctrl']['crdate']; $dataArr[$field]=time(); $extraList.=','.$field;}
+		if ($GLOBALS['TCA'][$table]['ctrl']['tstamp']) {
+			$field = $GLOBALS['TCA'][$table]['ctrl']['tstamp'];
+			$dataArr[$field] = $GLOBALS['EXEC_TIME'];
+			$extraList .= ',' . $field;
+		}
+		if ($GLOBALS['TCA'][$table]['ctrl']['crdate']) {
+			$field=$GLOBALS['TCA'][$table]['ctrl']['crdate'];
+			$dataArr[$field] = $GLOBALS['EXEC_TIME'];
+			$extraList .= ',' . $field;
+		}
 		if ($GLOBALS['TCA'][$table]['ctrl']['cruser_id'])	{$field=$GLOBALS['TCA'][$table]['ctrl']['cruser_id']; $dataArr[$field]=0; $extraList.=','.$field;}
 		if ($GLOBALS['TCA'][$table]['ctrl']['fe_cruser_id'])	{$field=$GLOBALS['TCA'][$table]['ctrl']['fe_cruser_id']; $dataArr[$field]=intval($GLOBALS['TSFE']->fe_user->user['uid']); $extraList.=','.$field;}
 		if ($GLOBALS['TCA'][$table]['ctrl']['fe_crgroup_id'])	{$field=$GLOBALS['TCA'][$table]['ctrl']['fe_crgroup_id']; list($dataArr[$field])=explode(',',$GLOBALS['TSFE']->fe_user->user['usergroup']); $dataArr[$field]=intval($dataArr[$field]); $extraList.=','.$field;}
@@ -6719,7 +7275,7 @@ class tslib_cObj {
 			// points to the field (integer) that holds the fe_group-id of the creator fe_user's first group
 		if ($GLOBALS['TCA'][$table]['ctrl']['fe_crgroup_id'])	{
 			$values = t3lib_div::intExplode(',',$groupList);
-			while(list(,$theGroupUid)=each($values))	{
+			foreach ($values as $theGroupUid) {
 				if ($theGroupUid)	{$OR_arr[]=$GLOBALS['TCA'][$table]['ctrl']['fe_crgroup_id'].'='.$theGroupUid;}
 			}
 		}
@@ -6811,16 +7367,12 @@ class tslib_cObj {
 				$cacheEntry = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
 					'treelist',
 					'cache_treelist',
-					'md5hash = \'' . $requestHash . '\' AND ( expires > ' . time() . ' OR expires = 0 )'
+					'md5hash = \'' . $requestHash . '\' AND ( expires > ' . $GLOBALS['EXEC_TIME'] . ' OR expires = 0 )'
 				);
 
 				if (!empty($cacheEntry[0]['treelist'])) {
 						// cache hit
-					t3lib_div::devLog('Cache Treelist: HIT', 'tslib_cObj');
 					return $cacheEntry[0]['treelist'];
-				} else {
-						// cache miss
-					t3lib_div::devLog('Cache Treelist: MISS', 'tslib_cObj');
 				}
 
 					// If Id less than zero it means we should add the real id to list:
@@ -6938,7 +7490,7 @@ class tslib_cObj {
 					'md5hash'  => $requestHash,
 					'pid'      => $id,
 					'treelist' => $theList,
-					'tstamp'   => time()
+					'tstamp'   => $GLOBALS['EXEC_TIME'],
 				)
 			);
 		}
@@ -7030,13 +7582,12 @@ class tslib_cObj {
 			$searchFields = explode(',',$searchFieldList);
 			$kw = preg_split('/[ ,]/', $sw);
 
-			while(list(,$val)=each($kw))	{
+			foreach ($kw as $val) {
 				$val = trim($val);
 				$where_p = array();
 				if (strlen($val)>=2)	{
 					$val = $TYPO3_DB->escapeStrForLike($TYPO3_DB->quoteStr($val,$searchTable),$searchTable);
-					reset($searchFields);
-					while(list(,$field)=each($searchFields))	{
+					foreach ($searchFields as $field) {
 						$where_p[] = $prefixTableName.$field.' LIKE \'%'.$val.'%\'';
 					}
 				}
@@ -7195,10 +7746,10 @@ class tslib_cObj {
 		if (substr($table,0,7)=='static_') {
 			$pid_uid_flag++;
 		}
-		if (strcmp(trim($conf['pidInList']), '')) {
+		if (trim($conf['pidInList'])) {
 			$listArr = t3lib_div::intExplode(',',str_replace('this',$GLOBALS['TSFE']->contentPid,$conf['pidInList']));
 				// removes all pages which are not visible for the user!
-			$listArr = $this->checkPidArray($listArr, $table);
+			$listArr = $this->checkPidArray($listArr);
 			if (count($listArr))	{
 				$query.=' AND '.$table.'.pid IN ('.implode(',',$GLOBALS['TYPO3_DB']->cleanIntArray($listArr)).')';
 				$pid_uid_flag++;
@@ -7262,18 +7813,13 @@ class tslib_cObj {
 	 * Removes Page UID numbers from the input array which are not available due to enableFields() or the list of bad doktype numbers ($this->checkPid_badDoktypeList)
 	 *
 	 * @param	array		Array of Page UID numbers for select and for which pages with enablefields and bad doktypes should be removed.
-	 * @param	string		Name of the table the UID numbers shall be used for
 	 * @return	array		Returns the array of remaining page UID numbers
 	 * @access private
 	 * @see getWhere(),checkPid()
 	 */
-	function checkPidArray($listArr, $table = '') {
+	function checkPidArray($listArr)	{
 		$outArr = Array();
 		if (is_array($listArr) && count($listArr))	{
-				// The root page cannot be checked since there is no page with uid=0:
-			if ($table == 'pages' && in_array(0, $listArr, true)) {
-				$outArr[] = 0;
-			}
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid', 'pages', 'uid IN ('.implode(',',$listArr).')'.$this->enableFields('pages').' AND doktype NOT IN ('.$this->checkPid_badDoktypeList.')');
 			if ($error = $GLOBALS['TYPO3_DB']->sql_error())	{
 				$GLOBALS['TT']->setTSlogMessage($error.': '.$query,3);
@@ -7415,8 +7961,8 @@ class tslib_cObj {
 		if (
 			($TCA[$table]['ctrl']['enablecolumns']['disabled'] && $row[$TCA[$table]['ctrl']['enablecolumns']['disabled']]) ||
 			($TCA[$table]['ctrl']['enablecolumns']['fe_group'] && $GLOBALS['TSFE']->simUserGroup && $row[$TCA[$table]['ctrl']['enablecolumns']['fe_group']]==$GLOBALS['TSFE']->simUserGroup) ||
-			($TCA[$table]['ctrl']['enablecolumns']['starttime'] && $row[$TCA[$table]['ctrl']['enablecolumns']['starttime']]>time() ) ||
-			($TCA[$table]['ctrl']['enablecolumns']['endtime'] && $row[$TCA[$table]['ctrl']['enablecolumns']['endtime']] && $row[$TCA[$table]['ctrl']['enablecolumns']['endtime']]<time())
+			($TCA[$table]['ctrl']['enablecolumns']['starttime'] && $row[$TCA[$table]['ctrl']['enablecolumns']['starttime']] > $GLOBALS['EXEC_TIME']) ||
+			($TCA[$table]['ctrl']['enablecolumns']['endtime'] && $row[$TCA[$table]['ctrl']['enablecolumns']['endtime']] && $row[$TCA[$table]['ctrl']['enablecolumns']['endtime']] < $GLOBALS['EXEC_TIME'])
 		)	return true;
 	}
 }
@@ -7455,8 +8001,7 @@ class tslib_frameset {
 		$content = '';
 		if (is_array($setup))	{
 			$sKeyArray=t3lib_TStemplate::sortedKeyList($setup);
-			reset($sKeyArray);
-			while(list(,$theKey)=each($sKeyArray))	{
+			foreach ($sKeyArray as $theKey) {
 				$theValue=$setup[$theKey];
 				if (intval($theKey) && $conf=$setup[$theKey.'.'])	{
 					switch($theValue)	{

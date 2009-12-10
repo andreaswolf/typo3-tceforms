@@ -1,3 +1,133 @@
+2009-11-29  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Set version to 1.0.2 [TYPO3 4.3.0]
+	* Fixed bug #12800: Add functionality to work with caching framework (support for "IN (subquery)" in where clause)
+	* Follow-up of changeset 26118: parts of initial patch for RFC 12231 had actually not been integrated
+
+2009-11-27  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Cleanup: Reorganized unit-tests
+
+2009-11-25  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Set version to 1.0.1
+
+2009-11-20  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Added unit-test for bug #5708: Fieldmapping doesn't work on the "right side" in where clause with table.field
+	* Fixed bugs #5044/#11142: Column's default value is not properly quoted in CREATE TABLE
+	* Added unit-test for bug #12670: Columns with NOT NULL are created as NULLable
+
+2009-11-17  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Set version to 1.0.0 (stable)
+	* Updated documentation: updated copyright and refreshed TOC
+	* Added unit-test for bug #4466: Index on tx_realurl_uniqalias breaks with DBAL
+
+2009-11-16  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Now using Core dispatcher for backend module (thanks to Oliver Hader)
+
+2009-11-15  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #12596: RIGHT OUTER JOIN is not supported
+
+2009-11-11  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Added unit test for bug #11093: bigint (int8) values get converted to int4 by int-cast 
+
+2009-11-10  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Removed comments stating that SQL parser is experimental
+	* Follow-up of revision 26334: LIKE on Oracle should use dbms_lob.instr() function
+	* Updated Oracle unit tests to use $GLOBALS['TYPO3_DB'] instead of a fixture to avoid side-effects on SQL rewriting
+	* Updated general database unit tests to use $GLOBALS['TYPO3_DB'] instead of a fixture to avoid side-effects on SQL rewriting
+
+2009-11-09  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #10965: Float database field gets converted to integer on insert (thanks to Christian Ducrot)
+	* Fixed bug #12515: DAM-related: CONCAT operator cannot be used after LIKE
+	* Fixed bug #10411: Applied missing chunks of patch
+
+2009-11-07  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Added unit test for RFC #6198: Problem with strings in IN
+	* Added unit test for RFC #6953: Mapping of fieldnames in SQL-functions like MIN(), MAX() or SUM() does not work
+
+2009-11-06  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Set version to 0.9.25
+	* Fixed bug: tables and fields were not always properly mapped in INNER JOINs
+	* Added unit tests to test quoting and remapping of tables and fields when using Oracle
+
+2009-11-05  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Set version to 0.9.24
+	* Follow-up of RFC #12452: Reflected change of visibility of method compileFieldCfg() in t3lib_sqlparser
+
+2009-11-04  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Updated ext_emconf.php's author and extension version dependencies
+
+2009-11-03  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Added some general unit tests (without any engine-specific test nor mapping)
+	* Cleanup #12440: Copy DBAL-only SQL parser methods from t3lib_sqlparser to ux_t3lib_sqlparser
+	* Fixed bug #12231: New caching framework (4.3-dev) does not work with DBAL
+
+2009-10-28  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Added compatibility operators for PostgreSQL as resource script (thanks to Ries van Twisk)
+	* Added message in Extension Manager to let users know compatibility scripts may need to be run
+
+2009-10-27  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Follow-up of changeset 25876: Using tx_dbal_sqlengine instead of t3lib_sqlengine for sample handlers
+	* Created icons for extension and Debug module
+	* Cleanup: Applied CGL
+
+2009-10-26  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #12354: Include t3lib_sqlengine from Core to DBAL
+	* Fixed bug #12349: Clean-up SQL parser and SQL engine
+
+2009-10-20  Oliver Hader  <oliver@typo3.org>
+
+	* Set version to 0.9.23
+
+2009-10-08  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #6953: Mapping of fieldnames in SQL-functions like MIN(), MAX() or SUM() does not work (Thanks to Christian and Michael Miousse)
+
+2009-10-01  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Raised version to 0.9.22
+
+2009-09-29  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #12071: t3lib_sqlparser is not able to parse alias of a joined table
+
+2009-09-20  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #12012: admin_get_tables() method is using PHP5.3-deprecated function mysql_list_tables
+
+2009-09-18  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Raised version to 0.9.21
+
+2009-09-18  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #11984: Remove reference operators for objects
+
+2009-09-03  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #11436: Unknown tables break Install-Tool (Thanks to David Bruchmann)
+	* Fixed bug #11108: DBAL wildly quotes fields and table names
+
+2009-09-04  Karsten Dambekalns <karsten@typo3.org>
+
+	* Raised version to 0.9.20
+
 2008-02-04  Michael Stucki  <michael@typo3.org>
 
 	* Fixed bug #7295: Uninitialized variable in ->handler_getFromTableList() (Patch by Oliver Klee)

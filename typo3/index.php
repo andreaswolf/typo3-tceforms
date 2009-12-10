@@ -153,7 +153,7 @@ class SC_index {
 		}
 		$GLOBALS['LANG']->includeLLFile('EXT:lang/locallang_login.xml');
 
-			// check if labels from $GLOBALS['TYPO3_CONF_VARS']['BE']['loginLabels'] were changed, 
+			// check if labels from $GLOBALS['TYPO3_CONF_VARS']['BE']['loginLabels'] were changed,
 			// and merge them to $GLOBALS['LOCAL_LANG'] if needed
 		$this->mergeOldLoginLabels();
 
@@ -165,7 +165,7 @@ class SC_index {
 		if ($this->L == 'OUT' && is_object($GLOBALS['BE_USER'])) {
 			$GLOBALS['BE_USER']->logoff();
 			if ($this->redirect_url) {
-				t3lib_div::redirect($this->redirect_url);
+				t3lib_utility_Http::redirect($this->redirect_url);
 			}
 			exit;
 		}
@@ -249,6 +249,8 @@ class SC_index {
 			$content = t3lib_parsehtml::substituteSubpart($content, '###LOGIN_ERROR###', '');
 		} else {
 			$markers['ERROR_MESSAGE'] = $GLOBALS['LANG']->getLL('error.login', true);
+			$markers['ERROR_LOGIN_TITLE'] = $GLOBALS['LANG']->getLL('error.login.title', true);
+			$markers['ERROR_LOGIN_DESCRIPTION'] = $GLOBALS['LANG']->getLL('error.login.description', true);
 		}
 
 
@@ -257,7 +259,7 @@ class SC_index {
 			$content = t3lib_parsehtml::substituteSubpart($content, '###INTERFACE_SELECTOR###', '');
 		} else {
 			$markers['LABEL_INTERFACE'] = $GLOBALS['LANG']->getLL('labels.interface', true);
-			$markers['VALUE_INTERFACE'] = $this->interfaceSelector_jump;
+			$markers['VALUE_INTERFACE'] = $this->interfaceSelector;
 		}
 
 		return t3lib_parsehtml::substituteMarkerArray($content, $markers, '###|###');
@@ -312,16 +314,29 @@ class SC_index {
 			'NEWS'             => $this->makeLoginNews(),
 			'COPYRIGHT'        => $this->makeCopyrightNotice(),
 			'CSS_ERRORCLASS'   => ($this->commandLI ? ' class="error"' : ''),
+			'CSS_OPENIDCLASS'  => 't3-login-openid-' . (t3lib_extMgm::isLoaded('openid') ? 'enabled' : 'disabled'),
 
 				// the labels will be replaced later on, thus the other parts above
 				// can use these markers as well and it will be replaced
 			'HEADLINE'         => $GLOBALS['LANG']->getLL('headline', true),
-			'INFO'             => $GLOBALS['LANG']->getLL('info.jscookies', true),
+			'INFO_ABOUT'       => $GLOBALS['LANG']->getLL('info.about', true),
+			'INFO_RELOAD'      => $GLOBALS['LANG']->getLL('info.reset', true),
+			'INFO'             => $GLOBALS['LANG']->getLL('info.cookies_and_js', true),
 			'ERROR_JAVASCRIPT' => $GLOBALS['LANG']->getLL('error.javascript', true),
 			'ERROR_COOKIES'    => $GLOBALS['LANG']->getLL('error.cookies', true),
+			'ERROR_COOKIES_IGNORE' => $GLOBALS['LANG']->getLL('error.cookies_ignore', true),
+			'ERROR_CAPSLOCK'   => $GLOBALS['LANG']->getLL('error.capslock', true),
+			'ERROR_FURTHERHELP' => $GLOBALS['LANG']->getLL('error.furtherInformation', true),
 			'LABEL_DONATELINK' => $GLOBALS['LANG']->getLL('labels.donate', true),
 			'LABEL_USERNAME'   => $GLOBALS['LANG']->getLL('labels.username', true),
+			'LABEL_OPENID'     => $GLOBALS['LANG']->getLL('labels.openId', true),
 			'LABEL_PASSWORD'   => $GLOBALS['LANG']->getLL('labels.password', true),
+			'LABEL_WHATISOPENID' => $GLOBALS['LANG']->getLL('labels.whatIsOpenId', true),
+			'LABEL_SWITCHOPENID' => $GLOBALS['LANG']->getLL('labels.switchToOpenId', true),
+			'LABEL_SWITCHDEFAULT' => $GLOBALS['LANG']->getLL('labels.switchToDefault', true),
+			'CLEAR'            => $GLOBALS['LANG']->getLL('clear', true),
+			'LOGIN_PROCESS'    => $GLOBALS['LANG']->getLL('login_process', true),
+			'SITELINK'         => '<a href="/">###SITENAME###</a>',
 
 				// global variables will now be replaced (at last)
 			'SITENAME'         => $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']
@@ -379,17 +394,19 @@ class SC_index {
 
 				// If there is a redirect URL AND if loginRefresh is not set...
 			if (!$this->loginRefresh)	{
-				header('Location: '.t3lib_div::locationHeaderUrl($this->redirectToURL));
-				exit;
+				t3lib_utility_Http::redirect($this->redirectToURL);
 			} else {
 				$TBE_TEMPLATE->JScode.=$TBE_TEMPLATE->wrapScriptTags('
-					if (parent.opener && parent.opener.busy)	{
-						parent.opener.busy.loginRefreshed();
+					if (parent.opener && (parent.opener.busy || parent.opener.TYPO3.loginRefresh)) {
+						if (parent.opener.TYPO3.loginRefresh) {
+							parent.opener.TYPO3.loginRefresh.startTimer();
+						} else {
+							parent.opener.busy.loginRefreshed();
+						}
 						parent.close();
 					}
 				');
 			}
-
 		} elseif (!$BE_USER->user['uid'] && $this->commandLI) {
 			sleep(5);	// Wrong password, wait for 5 seconds
 		}
@@ -414,12 +431,11 @@ class SC_index {
 			if (count($parts)>1)	{	// Only if more than one interface is defined will we show the selector:
 
 					// Initialize:
-				$tempLabels = t3lib_div::trimExplode(',', $GLOBALS['LANG']->getLL('availableInterfaces'));
 				$labels=array();
 
-				$labels['backend']     = $tempLabels[0];
-				$labels['backend_old'] = $tempLabels[2];
-				$labels['frontend']    = $tempLabels[1];
+				$labels['backend']     = $GLOBALS['LANG']->getLL('interface.backend');
+				$labels['backend_old'] = $GLOBALS['LANG']->getLL('interface.backend_old');
+				$labels['frontend']    = $GLOBALS['LANG']->getLL('interface.frontend');
 
 				$jumpScript=array();
 				$jumpScript['backend']     = 'backend.php';
@@ -434,10 +450,10 @@ class SC_index {
 							<option value="'.htmlspecialchars($jumpScript[$valueStr]).'">'.htmlspecialchars($labels[$valueStr]).'</option>';
 				}
 				$this->interfaceSelector='
-						<select id="interfaceselector" name="interface" class="c-interfaceselector">'.$this->interfaceSelector.'
+						<select id="t3-interfaceselector" name="interface" class="c-interfaceselector" tabindex="3">'.$this->interfaceSelector.'
 						</select>';
 				$this->interfaceSelector_jump='
-						<select id="interfaceselector" name="interface" class="c-interfaceselector" onchange="window.location.href=this.options[this.selectedIndex].value;">'.$this->interfaceSelector_jump.'
+						<select id="t3-interfaceselector" name="interface" class="c-interfaceselector" tabindex="3" onchange="window.location.href=this.options[this.selectedIndex].value;">'.$this->interfaceSelector_jump.'
 						</select>';
 
 			} else {	// If there is only ONE interface value set:
@@ -477,7 +493,7 @@ class SC_index {
 					$GLOBALS['LANG']->getLL('typo3.cms') . ($GLOBALS['TYPO3_CONF_VARS']['SYS']['loginCopyrightShowVersion']?' ' . $GLOBALS['LANG']->getLL('version.short') . ' ' . htmlspecialchars($GLOBALS['TYPO_VERSION']):'') .
 					'</a>. ' .
 					$GLOBALS['LANG']->getLL('copyright') . ' &copy; ' . TYPO3_copyright_year . ' Kasper Sk&#229;rh&#248;j. ' . $GLOBALS['LANG']->getLL('extension.copyright') . ' ' .
-					sprintf($GLOBALS['LANG']->getLL('details.link'), '<a href="http://typo3.com/" target="_blank">http://typo3.com/</a>') . ' ' .
+					sprintf($GLOBALS['LANG']->getLL('details.link'), '<a href="http://typo3.com/" target="_blank">http://typo3.com/</a>') . '<br /> ' .
 					$warrantyNote . ' ' .
 					sprintf($GLOBALS['LANG']->getLL('free.software'), '<a href="http://typo3.com/1316.0.html" target="_blank">', '</a> ') .
 					$GLOBALS['LANG']->getLL('keep.notice');
@@ -545,7 +561,7 @@ class SC_index {
 			// Traverse news array IF there are records in it:
 		if (is_array($GLOBALS['TYPO3_CONF_VARS']['BE']['loginNews']) && count($GLOBALS['TYPO3_CONF_VARS']['BE']['loginNews'])) {
 
-				// get the main news template, and replace the subpart after looped through 
+				// get the main news template, and replace the subpart after looped through
 			$newsContent      = t3lib_parsehtml::getSubpart($GLOBALS['TBE_TEMPLATE']->moduleTemplate, '###LOGIN_NEWS###');
 			$newsItemTemplate = t3lib_parsehtml::getSubpart($newsContent, '###NEWS_ITEM###');
 
@@ -654,6 +670,49 @@ class SC_index {
 					document.loginform.p_field.focus();
 				}
 			}
+
+				// This function shows a warning, if user has capslock enabled
+				// parameter showWarning: shows warning if true and capslock active, otherwise only hides warning, if capslock gets inactive
+			function checkCapslock(e, showWarning) {
+				if (!isCapslock(e)) {
+					document.getElementById(\'t3-capslock\').style.display = \'none\';
+				} else if (showWarning) {
+					document.getElementById(\'t3-capslock\').style.display = \'block\';
+				}
+			}
+
+				// Checks weather capslock is enabled (returns true if enabled, false otherwise)
+				// thanks to http://24ways.org/2007/capturing-caps-lock
+
+			function isCapslock(e) {
+				var ev = e ? e : window.event;
+				if (!ev) {
+					return;
+				}
+				var targ = ev.target ? ev.target : ev.srcElement;
+				// get key pressed
+				var which = -1;
+				if (ev.which) {
+					which = ev.which;
+				} else if (ev.keyCode) {
+					which = ev.keyCode;
+				}
+				// get shift status
+				var shift_status = false;
+				if (ev.shiftKey) {
+					shift_status = ev.shiftKey;
+				} else if (ev.modifiers) {
+					shift_status = !!(ev.modifiers & 4);
+				}
+				return (((which >= 65 && which <= 90) && !shift_status) ||
+					((which >= 97 && which <= 122) && shift_status));
+			}
+
+				// prevent opening the login form in the backend frameset
+			if (top.location.href != self.location.href) {
+				top.location.href = self.location.href;
+			}
+
 			');
 
 		return $JSCode;

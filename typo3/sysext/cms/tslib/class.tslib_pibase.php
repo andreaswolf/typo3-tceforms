@@ -640,8 +640,7 @@ class tslib_pibase {
 	 */
 	function pi_list_modeSelector($items=array(),$tableParams='')	{
 		$cells=array();
-		reset($items);
-		while(list($k,$v)=each($items))	{
+		foreach ($items as $k => $v) {
 			$cells[]='
 					<td'.($this->piVars['mode']==$k?$this->pi_classParam('modeSelector-SCell'):'').'><p>'.
 				$this->pi_linkTP_keepPIvars(htmlspecialchars($v),array('mode'=>$k),$this->pi_isOnlyFields($this->pi_isOnlyFields)).
@@ -785,11 +784,13 @@ class tslib_pibase {
 	 * @param	string		$data: CSS data
 	 * @param	string		If $selector is set to any CSS selector, eg 'P' or 'H1' or 'TABLE' then the style $data will regard those HTML-elements only
 	 * @return	void
-	 * @deprecated since TYPO3 3.6 - I think this function should not be used (and probably isn't used anywhere). It was a part of a concept which was left behind quite quickly.
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5, I think this function should not be used (and probably isn't used anywhere). It was a part of a concept which was left behind quite quickly.
 	 * @obsolete
 	 * @private
 	 */
 	function pi_setClassStyle($class,$data,$selector='')	{
+		t3lib_div::logDeprecatedFunction();
+
 		$GLOBALS['TSFE']->setCSS($this->pi_getClassName($class).($selector?' '.$selector:''),'.'.$this->pi_getClassName($class).($selector?' '.$selector:'').' {'.$data.'}');
 	}
 
@@ -971,7 +972,7 @@ class tslib_pibase {
 	 */
 	function pi_loadLL()	{
 		if (!$this->LOCAL_LANG_loaded && $this->scriptRelPath)	{
-			$basePath = t3lib_extMgm::extPath($this->extKey).dirname($this->scriptRelPath).'/locallang.php';
+			$basePath = 'EXT:' . $this->extKey . '/' . dirname($this->scriptRelPath) . '/locallang.xml';
 
 				// Read the strings in the required charset (since TYPO3 4.2)
 			$this->LOCAL_LANG = t3lib_div::readLLfile($basePath,$this->LLkey,$GLOBALS['TSFE']->renderCharset);
@@ -981,9 +982,9 @@ class tslib_pibase {
 			}
 
 				// Overlaying labels from TypoScript (including fictitious language keys for non-system languages!):
-			if (is_array($this->conf['_LOCAL_LANG.']))	{
-				reset($this->conf['_LOCAL_LANG.']);
-				while(list($k,$lA)=each($this->conf['_LOCAL_LANG.']))	{
+			$confLL = $this->conf['_LOCAL_LANG.'];
+			if (is_array($confLL)) {
+				foreach ($confLL as $k => $lA) {
 					if (is_array($lA))	{
 						$k = substr($k,0,-1);
 						foreach($lA as $llK => $llV)	{
@@ -1043,7 +1044,7 @@ class tslib_pibase {
 	 * @param	boolean		If set, the function will return the query not as a string but array with the various parts.
 	 * @return	mixed		The query build.
 	 * @access private
-	 * @deprecated since TYPO3 3.6 - Use pi_exec_query() instead!
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5, use pi_exec_query() instead!
 	 */
 	function pi_list_query($table,$count=0,$addWhere='',$mm_cat='',$groupBy='',$orderBy='',$query='',$returnQueryArray=FALSE)	{
 
@@ -1196,7 +1197,7 @@ class tslib_pibase {
 	function pi_prependFieldsWithTable($table,$fieldList)	{
 		$list=t3lib_div::trimExplode(',',$fieldList,1);
 		$return=array();
-		while(list(,$listItem)=each($list))	{
+		foreach ($list as $listItem) {
 			$return[]=$table.'.'.$listItem;
 		}
 		return implode(',',$return);
@@ -1262,7 +1263,7 @@ class tslib_pibase {
 
 		$fList = t3lib_div::trimExplode(',',$fList,1);
 		$tempPiVars = $this->piVars;
-		while(list(,$k)=each($fList))	{
+		foreach ($fList as $k) {
 			if (!t3lib_div::testInt($tempPiVars[$k]) || $tempPiVars[$k]<$lowerThan)		unset($tempPiVars[$k]);
 		}
 		if (!count($tempPiVars))	return 1;
@@ -1279,8 +1280,7 @@ class tslib_pibase {
 	 */
 	function pi_autoCache($inArray)	{
 		if (is_array($inArray))	{
-			reset($inArray);
-			while(list($fN,$fV)=each($inArray))	{
+			foreach ($inArray as $fN => $fV) {
 				if (!strcmp($inArray[$fN],''))	{
 					unset($inArray[$fN]);
 				} elseif (is_array($this->pi_autoCacheFields[$fN]))	{

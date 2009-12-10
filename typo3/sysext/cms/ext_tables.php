@@ -2,6 +2,7 @@
 # TYPO3 SVN ID: $Id$
 if (!defined ('TYPO3_MODE'))	die ('Access denied.');
 
+
 if (TYPO3_MODE == 'BE') {
 	t3lib_extMgm::addModule('web','layout','top',t3lib_extMgm::extPath($_EXTKEY).'layout/');
 	t3lib_extMgm::addLLrefForTCAdescr('_MOD_web_layout','EXT:cms/locallang_csh_weblayout.xml');
@@ -325,8 +326,13 @@ if (TYPO3_MODE=='BE')	{
 				'size' => '3',
 				'maxitems' => '1',
 				'minitems' => '0',
-				'show_thumbs' => '1'
-			)
+				'show_thumbs' => '1',
+				'wizards' => array(
+					'suggest' => array(
+						'type' => 'suggest',
+					),
+				),
+			),
 		),
 		'shortcut_mode' => array (
 			'exclude' => 1,
@@ -346,24 +352,34 @@ if (TYPO3_MODE=='BE')	{
 			'config' => array (
 				'type' => 'group',
 				'internal_type' => 'db',
-					'allowed' => 'pages',
+				'allowed' => 'pages',
 				'size' => '1',
 				'maxitems' => '1',
 				'minitems' => '0',
-				'show_thumbs' => '1'
-			)
+				'show_thumbs' => '1',
+				'wizards' => array(
+					'suggest' => array(
+						'type' => 'suggest',
+					),
+				),
+			),
 		),
 		'mount_pid' => array (
 			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.mount_pid',
 			'config' => array (
 				'type' => 'group',
 				'internal_type' => 'db',
-					'allowed' => 'pages',
+				'allowed' => 'pages',
 				'size' => '1',
 				'maxitems' => '1',
 				'minitems' => '0',
-				'show_thumbs' => '1'
-			)
+				'show_thumbs' => '1',
+				'wizards' => array(
+					'suggest' => array(
+						'type' => 'suggest',
+					),
+				),
+			),
 		),
 		'keywords' => array (
 			'exclude' => 1,
@@ -467,8 +483,9 @@ if (TYPO3_MODE=='BE')	{
 				'type' => 'select',
 				'items' => array (
 					array('', 0),
-					array('LLL:EXT:cms/locallang_tca.xml:pages.fe_login_mode.disable', 1),
-					array('LLL:EXT:cms/locallang_tca.xml:pages.fe_login_mode.enable', 2),
+					array('LLL:EXT:cms/locallang_tca.xml:pages.fe_login_mode.disableAll', 1),
+					array('LLL:EXT:cms/locallang_tca.xml:pages.fe_login_mode.disableGroups', 3),
+					array('LLL:EXT:cms/locallang_tca.xml:pages.fe_login_mode.enableAgain', 2),
 				)
 			)
 		),
@@ -564,6 +581,8 @@ if (TYPO3_MODE=='BE')	{
 			// sysfolder
 		'254' => array('showitem' =>
 				'doktype;;2;;1-1-1, hidden, title;LLL:EXT:lang/locallang_general.xml:LGL.title,
+			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.files,
+				media,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.options,
 				TSconfig;;6;nowrap;5-5-5, storage_pid;;7, module,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
@@ -665,6 +684,7 @@ $TCA['tt_content'] = array (
 			'splash' => 'tt_content_news.gif',
 			'uploads' => 'tt_content_uploads.gif',
 			'multimedia' => 'tt_content_mm.gif',
+			'media' => 'tt_content_mm.gif',
 			'menu' => 'tt_content_menu.gif',
 			'list' => 'tt_content_list.gif',
 			'mailform' => 'tt_content_form.gif',

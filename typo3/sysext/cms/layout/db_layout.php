@@ -522,6 +522,21 @@ class SC_db_layout {
 				$body = $this->renderListContent();	// All other listings
 			}
 
+
+			if ($this->pageinfo['content_from_pid']) {
+				$contentPage = t3lib_BEfunc::getRecord('pages', intval($this->pageinfo['content_from_pid']));
+				$title = t3lib_BEfunc::getRecordTitle('pages', $contentPage);
+				$linkToPid = $this->local_linkThisScript(array('id' => $this->pageinfo['content_from_pid']));
+				$link = '<a href="' . $linkToPid . '">' . htmlspecialchars($title) . ' (PID ' . intval($this->pageinfo['content_from_pid']) . ')</a>';
+				$flashMessage = t3lib_div::makeInstance(
+					't3lib_FlashMessage',
+					'',
+					sprintf($GLOBALS['LANG']->getLL('content_from_pid_title'), $link),
+					t3lib_FlashMessage::INFO
+				);
+				$body = $flashMessage->render() . $body;
+			}
+
 				// Setting up the buttons and markers for docheader
 			$docHeaderButtons = $this->getButtons($this->MOD_SETTINGS['function']==0 ? 'quickEdit' : '');
 			$markers = array(
@@ -622,8 +637,7 @@ class SC_db_layout {
 			}
 
 			$url = $BACK_PATH.'alt_doc.php?edit[tt_content]['.implode(',',$idListA).']=edit&returnUrl='.rawurlencode($this->local_linkThisScript(array('edit_record'=>'')));
-			header('Location: '.t3lib_div::locationHeaderUrl($url));
-			exit;
+			t3lib_utility_Http::redirect($url);
 		}
 
 			// If the former record edited was the creation of a NEW record, this will look up the created records uid:
@@ -826,23 +840,18 @@ class SC_db_layout {
 				$theCode=$tceforms->printNeededJSFunctions_top().$theCode.$tceforms->printNeededJSFunctions();
 
 					// Add warning sign if record was "locked":
-				if ($lockInfo=t3lib_BEfunc::isRecordLocked($this->eRParts[0],$rec['uid']))	{
-					$lockIcon='
-
-						<!--
-						 	Warning box:
-						-->
-						<table border="0" cellpadding="0" cellspacing="0" class="warningbox">
-							<tr>
-								<td><img'.t3lib_iconWorks::skinImg($BACK_PATH,'gfx/recordlock_warning3.gif','width="17" height="12"').' alt="" /></td>
-								<td>'.htmlspecialchars($lockInfo['msg']).'</td>
-							</tr>
-						</table>
-						';
-				} else $lockIcon='';
+				if ($lockInfo = t3lib_BEfunc::isRecordLocked($this->eRParts[0], $rec['uid'])) {
+					$lockedMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						htmlspecialchars($lockInfo['msg']),
+						'',
+						t3lib_FlashMessage::WARNING
+					);
+					t3lib_FlashMessageQueue::addMessage($lockedMessage);
+				}
 
 					// Add whole form as a document section:
-				$content.=$this->doc->section('',$lockIcon.$theCode);
+				$content .= $this->doc->section('', $theCode);
 			}
 		} else {
 				// If no edit access, print error message:
@@ -1226,7 +1235,11 @@ class SC_db_layout {
 				if($this->undoButton) {
 						// Undo button
 					$buttons['undo'] = '<a href="#" onclick="' . htmlspecialchars('window.location.href=\'' . $BACK_PATH . 'show_rechis.php?element=' . rawurlencode($this->eRParts[0] . ':' . $this->eRParts[1]) . '&revert=ALL_FIELDS&sumUp=-1&returnUrl=' . rawurlencode($this->R_URI) . '\'; return false;') . '">' .
-						'<img' . t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/undo.gif', 'width="21" height="16"') . ' class="c-inputButton" title="' . htmlspecialchars(sprintf($LANG->getLL('undoLastChange'), t3lib_BEfunc::calcAge(time() - $this->undoButtonR['tstamp'], $LANG->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears')))) . '" alt="" />' .
+						'<img' .
+							t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/undo.gif', 'width="21" height="16"') .
+							' class="c-inputButton"' .
+							' title="' . htmlspecialchars(sprintf($LANG->getLL('undoLastChange'), t3lib_BEfunc::calcAge($GLOBALS['EXEC_TIME'] - $this->undoButtonR['tstamp'], $LANG->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears')))) .
+							'" alt="" />' .
 						'</a>';
 
 						// History button

@@ -88,13 +88,14 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 	public function render() {
 		global $BE_USER,$LANG,$BACK_PATH,$TCA_DESCR,$TCA,$CLIENT,$TYPO3_CONF_VARS;
 
+		$this->content .= $this->doc->section($GLOBALS['LANG']->getLL('title'), $GLOBALS['LANG']->getLL('description'));
 		if ($this->isAccessibleForCurrentUser) {
 			$this->loadHeaderData();
 				// div container for renderTo
-			$this->content.= '<div id="recyclerContent"></div>';
+			$this->content .= '<div id="recyclerContent"></div>';
 		} else {
 			// If no access or if ID == zero
-			$this->content.= $this->doc->spacer(10);
+			$this->content .= $this->doc->spacer(10);
 		}
 	}
 
@@ -111,7 +112,6 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 			$this->getTemplateMarkers()
 		);
 		$content.= $this->doc->endPage();
-		$content.= $this->doc->insertStylesAndJS($this->content);
 
 		$this->content = null;
 		$this->doc = null;
@@ -137,7 +137,7 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 			// Load CSS Stylesheets:
 		$this->loadStylesheet($this->relativePath . 'res/css/customExtJs.css');
 			// Load Ext JS:
-		$this->doc->loadExtJS();
+		$this->doc->getPageRenderer()->loadExtJS();
 			// Integrate dynamic JavaScript such as configuration or lables:
 		$this->doc->JScode.= t3lib_div::wrapJS('
 			Ext.namespace("Recycler");
@@ -211,8 +211,16 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 			'depth_4'		=> $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.depth_4'),
 			'depth_infi'	=> $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.depth_infi'),
 		);
+
 		$extensionLabels = $this->getJavaScriptLabelsFromLocallang('js.', 'label_');
-		return array_merge($coreLabels, $extensionLabels);
+		$javaScriptLabels = array_merge($coreLabels, $extensionLabels);
+
+			// Convert labels back to UTF-8 since json_encode() only works with UTF-8:
+		if ($GLOBALS['LANG']->charSet !== 'utf-8') {
+			$GLOBALS['LANG']->csConvObj->convArray($javaScriptLabels, $GLOBALS['LANG']->charSet, 'utf-8');
+		}
+
+		return $javaScriptLabels;
 	}
 
 	/**

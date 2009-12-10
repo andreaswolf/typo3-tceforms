@@ -136,9 +136,10 @@ class t3lib_TCEforms_FE extends t3lib_TCEforms {
 	 * @return	void
 	 */
 	public function loadJavascriptLib($lib) {
-		if (!isset($GLOBALS['TSFE']->additionalHeaderData[$lib])) {
-			$GLOBALS['TSFE']->additionalHeaderData[$lib] = '<script type="text/javascript" src="' . $this->backPath . $lib . '"></script>';
-		}
+		/** @var $pageRenderer t3lib_PageRenderer */
+		$pageRenderer = $GLOBALS['TSFE']->getPageRenderer();
+		$pageRenderer->addJsLibrary($lib, $this->prependBackPath($lib));
+
 	}
 
 	/**
@@ -151,9 +152,9 @@ class t3lib_TCEforms_FE extends t3lib_TCEforms {
 	 * @return	void
 	 */
 	public function addStyleSheet($key, $href, $title='', $relation='stylesheet') {
-		if (!isset($GLOBALS['TSFE']->additionalHeaderData[$key])) {
-			$GLOBALS['TSFE']->additionalHeaderData[$key] = '<link rel="' . $relation . '" type="text/css" href="' . $href . '"' . ($title ? (' title="' . $title . '"') : '') . ' />';
-		}
+		/** @var $pageRenderer t3lib_PageRenderer */
+		$pageRenderer = $GLOBALS['TSFE']->getPageRenderer();
+		$pageRenderer->addCssFile($this->prependBackPath($href), $relation, 'screen', $title);
 	 }
 
 	/**
@@ -168,6 +169,21 @@ class t3lib_TCEforms_FE extends t3lib_TCEforms {
 
 		$GLOBALS['SOBE'] = new stdClass();
 		$GLOBALS['SOBE']->doc = $GLOBALS['TBE_TEMPLATE'];
+	}
+
+	/**
+	 * Prepends backPath to given URL if it's not an absolute URL
+	 *
+	 * @param string $url
+	 * @return string
+	 */
+	private function prependBackPath($url) {
+		if (strpos($url, '://') !== FALSE || substr($url, 0, 1) === '/') {
+			return $url;
+		} else {
+			return $this->backPath . $url;
+		}
+
 	}
 }
 

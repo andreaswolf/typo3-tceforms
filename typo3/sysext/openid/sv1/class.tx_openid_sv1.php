@@ -44,6 +44,7 @@
  */
 
 require_once(PATH_t3lib . 'class.t3lib_svbase.php');
+require_once(t3lib_extMgm::extPath('openid', 'sv1/class.tx_openid_store.php'));
 
 /**
  * Service "OpenID Authentication" for the "openid" extension.
@@ -92,6 +93,19 @@ class tx_openid_sv1 extends t3lib_svbase {
 	 * If set to true, than libraries are already included.
 	 */
 	protected static $openIDLibrariesIncluded = false;
+
+	/**
+	 * Contructs the OpenID authentication service.
+	 */
+	public function __construct() {
+		// Auth_Yadis_Yadis::getHTTPFetcher() will use a cURL fetcher if the functionality
+		// is available in PHP, however the TYPO3 setting is not considered here:
+		if (!defined('Auth_Yadis_CURL_OVERRIDE')) {
+			if (!$GLOBALS['TYPO3_CONF_VARS']['SYS']['curlUse']) {
+				define('Auth_Yadis_CURL_OVERRIDE', true);
+			}
+		}
+	}
 
 	/**
 	 * Checks if service is available,. In case of this service we check that
@@ -263,7 +277,6 @@ class tx_openid_sv1 extends t3lib_svbase {
 
 			// Include files
 			require_once($phpOpenIDLibPath . '/Auth/OpenID/Consumer.php');
-			require_once($phpOpenIDLibPath . '/Auth/OpenID/FileStore.php');
 
 			// Restore path
 			@set_include_path($oldIncludePath);
@@ -306,15 +319,10 @@ class tx_openid_sv1 extends t3lib_svbase {
 	 * @return	Auth_OpenID_Consumer		Consumer instance
 	 */
 	protected function getOpenIDConsumer() {
-		// TODO Change this to a TYPO3-specific database-based store in future.
-		// File-based store is ineffective and insecure. After changing
-		// get rid of the FileStore include in includePHPOpenIDLibrary()
-		$openIDStorePath = PATH_site . 'typo3temp/tx_openid';
-		// For now we just prevent any web access to these files
-		if (!file_exists($openIDStorePath . '/.htaccess')) {
-			file_put_contents($openIDStorePath . '/.htaccess', 'deny from all');
-		}
-		$openIDStore = new Auth_OpenID_FileStore($openIDStorePath);
+		$openIDStore = t3lib_div::makeInstance('tx_openid_store');
+		/* @var $openIDStore tx_openid_store */
+		$openIDStore->cleanup();
+
 		return new Auth_OpenID_Consumer($openIDStore);
 	}
 
@@ -371,8 +379,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 			// requests without resending the form. This is exactly what we need here.
 			// See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.4
 			@ob_end_clean();
-			header(t3lib_div::HTTP_STATUS_303);
-			header('Location: ' . $redirectURL);
+			t3lib_utility_Http::redirect($redirectURL, t3lib_utility_Http::HTTP_STATUS_303);
 		} else {
 			$formHtml = $authenticationRequest->htmlMarkup($trustedRoot,
 							$returnURL, false, array('id' => 'openid_message'));

@@ -1396,7 +1396,9 @@ class SC_mod_tools_be_user_index {
 
 				foreach ($dat['users'] as $uDat) {
 					$uItem = '<tr><td width="130">' . t3lib_iconWorks::getIconImage('be_users',$uDat,$GLOBALS['BACK_PATH'],'align="top" title="' . $uDat['uid'] . '"') . $this->linkUser($uDat['username'],$uDat) . '&nbsp;&nbsp;</td><td nowrap="nowrap">' . $this->elementLinks('be_users',$uDat);
-					if ($curUid != $uDat['uid'] && !$uDat['disable'] && ($uDat['starttime'] == 0 || $uDat['starttime'] < time()) && ($uDat['endtime'] == 0 || $uDat['endtime'] > time()))	{
+					if ($curUid != $uDat['uid'] && !$uDat['disable'] && ($uDat['starttime'] == 0 ||
+						$uDat['starttime'] < $GLOBALS['EXEC_TIME']) && ($uDat['endtime'] == 0 ||
+						$uDat['endtime'] > $GLOBALS['EXEC_TIME'])) {
 						$uItem .= '<a href="' . t3lib_div::linkThisScript(array('SwitchUser'=>$uDat['uid'])) . '" target="_top"><img ' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/su.gif') . ' border="0" align="top" title="' . htmlspecialchars($GLOBALS['LANG']->getLL('switchUserTo', true) . ' ' . $uDat['username']) . ' ' . $GLOBALS['LANG']->getLL('changeToMode', true) . '" alt="" /></a>'.
 							'<a href="' . t3lib_div::linkThisScript(array('SwitchUser'=>$uDat['uid'], 'switchBackUser' => 1)) . '" target="_top"><img ' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/su_back.gif') . ' border="0" align="top" title="' . htmlspecialchars($GLOBALS['LANG']->getLL('switchUserTo', true) . ' ' . $uDat['username']) . ' ' . $GLOBALS['LANG']->getLL('switchBackMode', true) . '" alt="" /></a>';
 					}
@@ -1525,8 +1527,8 @@ class SC_mod_tools_be_user_index {
 			}
 			$GLOBALS['TYPO3_DB']->exec_UPDATEquery('be_sessions', 'ses_id='.$GLOBALS['TYPO3_DB']->fullQuoteStr($GLOBALS['BE_USER']->id, 'be_sessions').' AND ses_name=\'be_typo_user\' AND ses_userid='.intval($GLOBALS['BE_USER']->user['uid']),$updateData);
 
-			header('Location: '.t3lib_div::locationHeaderUrl($GLOBALS['BACK_PATH'].'index.php'.($GLOBALS['TYPO3_CONF_VARS']['BE']['interfaces']?'':'?commandLI=1')));
-			exit;
+			$redirectUrl = $GLOBALS['BACK_PATH'] . 'index.php' . ($GLOBALS['TYPO3_CONF_VARS']['BE']['interfaces'] ? '' : '?commandLI=1');
+			t3lib_utility_Http::redirect($redirectUrl);
 		}
 	}
 
@@ -1541,16 +1543,16 @@ class SC_mod_tools_be_user_index {
 	 */
 	function whoIsOnline()	{
 		$select_fields = 'ses_id, ses_tstamp, ses_iplock, u.uid,u.username, u.admin, u.realName, u.disable, u.starttime, u.endtime, u.deleted, bu.uid AS bu_uid,bu.username AS bu_username, bu.realName AS bu_realName';
-		$from_table = '(be_sessions, be_users u) LEFT OUTER JOIN be_users bu ON (ses_backuserid=bu.uid)';
-		$where_clause = 'ses_userid=u.uid';
+		$from_table = 'be_sessions INNER JOIN be_users u ON ses_userid=u.uid LEFT OUTER JOIN be_users bu ON ses_backuserid=bu.uid';
+		$where_clause = '';
 		$orderBy = 'u.username';
 
 		if (t3lib_div::testInt($GLOBALS['TYPO3_CONF_VARS']['BE']['sessionTimeout']))	{
-			$where_clause .= ' AND '.$GLOBALS['EXEC_TIME'].'<(ses_tstamp+'.$GLOBALS['TYPO3_CONF_VARS']['BE']['sessionTimeout'].')';
+			$where_clause .= 'ses_tstamp+' . $GLOBALS['TYPO3_CONF_VARS']['BE']['sessionTimeout'] . ' > ' . $GLOBALS['EXEC_TIME'];
 		} else {
 			$timeout = intval($GLOBALS['TYPO3_CONF_VARS']['BE']['sessionTimeout']);
 			if ($timeout > 0)	{
-				$where_clause .= ' AND '.$GLOBALS['EXEC_TIME'].'<(ses_tstamp+'.$timeout.')';
+				$where_clause .= 'ses_tstamp+' . $timeout . ' > ' . $GLOBALS['EXEC_TIME'];
 			}
 		}
 			// Fetch active sessions of other users from storage:

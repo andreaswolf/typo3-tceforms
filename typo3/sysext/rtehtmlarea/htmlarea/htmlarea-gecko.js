@@ -479,6 +479,37 @@ HTMLArea.prototype.wrapWithInlineElement = function(element, selection, range) {
 	this.selectNodeContents(element, false);
 };
 
+/*
+ * Clean Apple wrapping span and font tags under the specified node
+ *
+ * @param	object	node: the node in the subtree of which cleaning is performed
+ *
+ * @return	void
+ */
+HTMLArea.prototype.cleanAppleStyleSpans = function(node) {
+	if (HTMLArea.is_safari) {
+		if (node.getElementsByClassName) {
+			var spans = node.getElementsByClassName("Apple-style-span");
+			for (var i = spans.length; --i >= 0;) {
+				this.removeMarkup(spans[i]);
+			}
+		} else {
+			var spans = node.getElementsByTagName("span");
+			for (var i = spans.length; --i >= 0;) {
+				if (HTMLArea._hasClass(spans[i], "Apple-style-span")) {
+					this.removeMarkup(spans[i]);
+				}
+			}
+			var fonts = node.getElementsByTagName("font");
+			for (i = fonts.length; --i >= 0;) {
+				if (HTMLArea._hasClass(fonts[i], "Apple-style-span")) {
+					this.removeMarkup(fonts[i]);
+				}
+			}
+		}
+	}
+};
+
 /***************************************************
  *  EVENTS HANDLERS
  ***************************************************/
@@ -538,39 +569,40 @@ HTMLArea.NestedHandler = function(ev,editor,nestedObj,noOpenCloseAction) {
  * Backspace event handler
  */
 HTMLArea.prototype._checkBackspace = function() {
-	var self = this;
-	self.focusEditor();
-	var sel = self._getSelection();
-	var range = self._createRange(sel);
-	var SC = range.startContainer;
-	var SO = range.startOffset;
-	var EC = range.endContainer;
-	var EO = range.endOffset;
-	var newr = SC.nextSibling;
-	while (SC.nodeType == 3 || /^a$/i.test(SC.tagName)) SC = SC.parentNode;
-	if (!self.config.disableEnterParagraphs && /^td$/i.test(SC.parentNode.tagName) && SC.parentNode.firstChild == SC && SO == 0 && range.collapsed) return true;
-	window.setTimeout(function() {
-			// Remove br tag inserted by Mozilla
-		if (!self.config.disableEnterParagraphs && (/^p$/i.test(SC.tagName) || !/\S/.test(SC.tagName)) && SO == 0) {
-			if (SC.firstChild && /^br$/i.test(SC.firstChild.tagName)) {
-				HTMLArea.removeFromParent(SC.firstChild);
-				return true;
+	if (!HTMLArea.is_safari && !HTMLArea.is_opera) {
+		var self = this;
+		window.setTimeout(function() {
+			var selection = self._getSelection();
+			var range = self._createRange(selection);
+			var startContainer = range.startContainer;
+			var startOffset = range.startOffset;
+			if (self._selectionEmpty()) {
+				if (/^(body)$/i.test(startContainer.nodeName)) {
+					var node = startContainer.childNodes[startOffset];
+				} else if (/^(body)$/i.test(startContainer.parentNode.nodeName)) {
+					var node = startContainer;
+				} else {
+					return false;
+				}
+				if (/^(br|#text)$/i.test(node.nodeName) && !/\S/.test(node.textContent)) {
+					var previousSibling = node.previousSibling;
+					while (previousSibling && /^(br|#text)$/i.test(previousSibling.nodeName) && !/\S/.test(previousSibling.textContent)) {
+						previousSibling = previousSibling.previousSibling;
+					}
+					HTMLArea.removeFromParent(node);
+					if (/^(ol|ul|dl)$/i.test(previousSibling.nodeName)) {
+						self.selectNodeContents(previousSibling.lastChild, false);
+					} else if (/^(table)$/i.test(previousSibling.nodeName)) {
+						self.selectNodeContents(previousSibling.rows[previousSibling.rows.length-1].cells[previousSibling.rows[previousSibling.rows.length-1].cells.length-1], false);
+					} else if (!/\S/.test(previousSibling.textContent) && previousSibling.firstChild) {
+						self.selectNode(previousSibling.firstChild, true);
+					} else {
+						self.selectNodeContents(previousSibling, false);
+					}
+				}
 			}
-		}
-		if (!/\S/.test(SC.tagName)) {
-			var p = document.createElement("p");
-			while (SC.firstChild) p.appendChild(SC.firstChild);
-			SC.parentNode.insertBefore(p, SC);
-			HTMLArea.removeFromParent(SC);
-			var r = range.cloneRange();
-			r.setStartBefore(newr);
-			r.setEndAfter(newr);
-			r.extractContents();
-			this.emptySelection(sel);
-			this.addRangeToSelection(sel, r);
-			return true;
-		}
-	},10);
+		}, 10);
+	}
 	return false;
 };
 
@@ -658,19 +690,28 @@ HTMLArea.prototype._checkInsertP = function() {
 				if (!HTMLArea.is_opera) {
 					p.innerHTML = "<br />";
 				}
-			}
-			if(/^li$/i.test(p.nodeName) && left_empty && !block.nextSibling) {
-				left = block.parentNode;
-				left.removeChild(block);
-				range.setEndAfter(left);
-				range.collapse(false);
-				p = this.convertNode(p, /^(li|dd|td|th)$/i.test(left.parentNode.nodeName) ? "br" : "p");
+				if(/^li$/i.test(p.nodeName) && left_empty && !block.nextSibling) {
+					left = block.parentNode;
+					left.removeChild(block);
+					range.setEndAfter(left);
+					range.collapse(false);
+					p = this.convertNode(p, /^(li|dd|td|th)$/i.test(left.parentNode.nodeName) ? "br" : "p");
+				}
 			}
 			range.insertNode(df);
 				// Remove any anchor created empty
 			if (p.previousSibling) {
 				var a = p.previousSibling.lastChild;
-				if (a && /^a$/i.test(a.nodeName) && !/\S/.test(a.innerHTML)) HTMLArea.removeFromParent(a);
+				if (a && /^a$/i.test(a.nodeName) && !/\S/.test(a.innerHTML)) {
+					if (HTMLArea.is_opera) {
+						this.removeMarkup(a);
+					} else {
+						HTMLArea.removeFromParent(a);
+					}
+				}
+				if (!/\S/.test(p.previousSibling.textContent) && !HTMLArea.is_opera) {
+					p.previousSibling.innerHTML = "<br />";
+				}
 			}
 			if (/^br$/i.test(p.nodeName)) {
 				p = p.parentNode.insertBefore(this._doc.createTextNode("\x20"), p);

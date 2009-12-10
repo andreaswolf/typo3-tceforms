@@ -64,6 +64,8 @@ HTMLArea = function(textarea, config) {
  */
 HTMLArea.agt = navigator.userAgent.toLowerCase();
 HTMLArea.is_opera  = (HTMLArea.agt.indexOf("opera") != -1);
+// Some operations require bug fixes provided by Opera 10 (Presto 2.2)
+HTMLArea.is_opera9 = HTMLArea.is_opera && HTMLArea.agt.indexOf("Presto/2.1") != -1;
 HTMLArea.is_ie = (HTMLArea.agt.indexOf("msie") != -1) && !HTMLArea.is_opera;
 HTMLArea.is_safari = (HTMLArea.agt.indexOf("webkit") != -1);
 HTMLArea.is_gecko  = (navigator.product == "Gecko") || HTMLArea.is_opera;
@@ -202,6 +204,8 @@ HTMLArea.init = function() {
 		HTMLArea.editorCSS = _editor_CSS;
 			// Initialize event cache
 		HTMLArea._eventCache = HTMLArea._eventCacheConstructor();
+			// Initialize pending request flag
+		HTMLArea.pendingSynchronousXMLHttpRequest = false;
 			// Set troubleshooting mode
 		HTMLArea._debugMode = false;
 		if (typeof(_editor_debug_mode) != "undefined") HTMLArea._debugMode = _editor_debug_mode;
@@ -832,7 +836,12 @@ HTMLArea.prototype.generate = function () {
 	htmlarea.appendChild(iframe);
 	this._iframe = iframe;
 	HTMLArea._appendToLog("[HTMLArea::generate]: Editor iframe successfully created.");
-	this.initIframe();
+	if (HTMLArea.is_opera) {
+		var self = this;
+		this._iframe.onload = function() { self.initIframe(); };
+	} else {
+		this.initIframe();
+	}
 	return this;
 };
 
@@ -1081,10 +1090,17 @@ HTMLArea.prototype.stylesLoaded = function() {
 	var stylesAreLoaded = true;
 	var errorText = '';
 	var rules;
-	for (var rule = 0; rule < doc.styleSheets.length; rule++) {
-		if (HTMLArea.is_gecko) try { rules = doc.styleSheets[rule].cssRules; } catch(e) { stylesAreLoaded = false; errorText = e; }
-		if (HTMLArea.is_ie) try { rules = doc.styleSheets[rule].rules; } catch(e) { stylesAreLoaded = false; errorText = e; }
-		if (HTMLArea.is_ie) try { rules = doc.styleSheets[rule].imports; } catch(e) { stylesAreLoaded = false; errorText = e; }
+	if (HTMLArea.is_opera) {
+		if (doc.readyState != "complete") {
+			stylesAreLoaded = false;
+			errorText = "Stylesheets not yet loaded";
+		}
+	} else {
+		for (var rule = 0; rule < doc.styleSheets.length; rule++) {
+			if (HTMLArea.is_gecko) try { rules = doc.styleSheets[rule].cssRules; } catch(e) { stylesAreLoaded = false; errorText = e; }
+			if (HTMLArea.is_ie) try { rules = doc.styleSheets[rule].rules; } catch(e) { stylesAreLoaded = false; errorText = e; }
+			if (HTMLArea.is_ie) try { rules = doc.styleSheets[rule].imports; } catch(e) { stylesAreLoaded = false; errorText = e; }
+		}
 	}
 	if (!stylesAreLoaded && !HTMLArea.is_wamcom) {
 		HTMLArea._appendToLog("[HTMLArea::initIframe]: Failed attempt at loading stylesheets: " + errorText + " Retrying...");
@@ -1789,10 +1805,16 @@ HTMLArea._editorEvent = function(ev) {
 	}
 	var editor = RTEarea[owner._editorNo]["editor"];
 	var keyEvent = ((HTMLArea.is_ie || HTMLArea.is_safari) && ev.type == "keydown") || (HTMLArea.is_gecko && ev.type == "keypress");
+	var mouseEvent = (ev.type == "mousedown" || ev.type == "mouseup");
 	editor.focusEditor();
 
 	if(keyEvent) {
-		if(editor._hasPluginWithOnKeyPressHandler) {
+			// In Opera, inhibit key events while synchronous XMLHttpRequest is being processed
+		if (HTMLArea.is_opera && HTMLArea.pendingSynchronousXMLHttpRequest) {
+			HTMLArea._stopEvent(ev);
+			return false;
+		}
+		if (editor._hasPluginWithOnKeyPressHandler) {
 			for (var pluginId in editor.plugins) {
 				if (editor.plugins.hasOwnProperty(pluginId)) {
 					var pluginInstance = editor.plugins[pluginId].instance;
@@ -1872,7 +1894,7 @@ HTMLArea._editorEvent = function(ev) {
 						}
 							// update the toolbar state after some time
 						if (editor._timerToolbar) window.clearTimeout(editor._timerToolbar);
-						editor._timerToolbar = window.setTimeout("HTMLArea.updateToolbar(\'" + editor._editorNumber + "\');", 100);
+						editor._timerToolbar = window.setTimeout("HTMLArea.updateToolbar(\'" + editor._editorNumber + "\');", 200);
 						return false;
 					}
 					break;
@@ -1883,7 +1905,7 @@ HTMLArea._editorEvent = function(ev) {
 					}
 						// update the toolbar state after some time
 					if (editor._timerToolbar) window.clearTimeout(editor._timerToolbar);
-					editor._timerToolbar = window.setTimeout("HTMLArea.updateToolbar(\'" + editor._editorNumber + "\');", 50);
+					editor._timerToolbar = window.setTimeout("HTMLArea.updateToolbar(\'" + editor._editorNumber + "\');", 200);
 					break;
 				case 9: // KEY horizontal tab
 					var newkey = (ev.shiftKey ? "SHIFT-" : "") + "TAB";
@@ -1898,9 +1920,9 @@ HTMLArea._editorEvent = function(ev) {
 				case 38: // UP arrow key
 				case 39: // RIGHT arrow key
 				case 40: // DOWN arrow key
-					if (HTMLArea.is_ie) {
+					if (HTMLArea.is_ie || HTMLArea.is_safari) {
 						if (editor._timerToolbar) window.clearTimeout(editor._timerToolbar);
-						editor._timerToolbar = window.setTimeout("HTMLArea.updateToolbar(\'" + editor._editorNumber + "\');", 10);
+						editor._timerToolbar = window.setTimeout("HTMLArea.updateToolbar(\'" + editor._editorNumber + "\');", 200);
 						return true;
 					}
 					break;
@@ -1922,7 +1944,7 @@ HTMLArea._editorEvent = function(ev) {
 			}
 			return true;
 		}
-	} else {
+	} else if (mouseEvent) {
 			// mouse event
 		if (editor._timerToolbar) window.clearTimeout(editor._timerToolbar);
 		if (ev.type == "mouseup") editor.updateToolbar();
@@ -2374,11 +2396,15 @@ HTMLArea._colorToRgb = function(v) {
 	return null;
 };
 
-/** Use XML HTTPRequest to post some data back to the server and do something
- * with the response (asyncronously!), this is used by such things as the spellchecker update personal dict function
+/*
+ * Use XML HTTPRequest to post some data back to the server and do something
+ * with the response (asyncronously or syncronously); this is used by such things as the spellchecker update personal dict function
  */
-HTMLArea._postback = function(url, data, handler, addParams, charset) {
+HTMLArea._postback = function(url, data, handler, addParams, charset, asynchronous) {
 	if (typeof(charset) == "undefined") var charset = "utf-8";
+	if (typeof(asynchronous) == "undefined") {
+		var asynchronous = true;
+	}
 	var req = null;
 	if (window.XMLHttpRequest) req = new XMLHttpRequest();
 		else if (window.ActiveXObject) {
@@ -2405,24 +2431,40 @@ HTMLArea._postback = function(url, data, handler, addParams, charset) {
 		}
 
 		function callBack() {
-			if(req.readyState == 4) {
+			if (req.readyState == 4) {
 				if (req.status == 200) {
-					if (typeof(handler) == 'function') handler(req.responseText, req);
+					if (typeof(handler) == "function") handler(req.responseText, req);
 					HTMLArea._appendToLog("[HTMLArea::_postback]: Server response: " + req.responseText);
 				} else {
 					HTMLArea._appendToLog("ERROR [HTMLArea::_postback]: Unable to post " + postUrl + " . Server reported " + req.statusText);
 				}
 			}
 		}
-		req.onreadystatechange = callBack;
+		if (asynchronous) {
+			req.onreadystatechange = callBack;
+		}
 		function sendRequest() {
 			HTMLArea._appendToLog("[HTMLArea::_postback]: Request: " + content);
 			req.send(content);
 		}
 
-		req.open('POST', postUrl, true);
+		req.open('POST', postUrl, asynchronous);
 		req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-		window.setTimeout(sendRequest, 500);
+		if (!asynchronous) {
+			HTMLArea.pendingSynchronousXMLHttpRequest = true;
+			sendRequest();
+			if (req.status == 200) {
+				if (typeof(handler) == "function") {
+					handler(req.responseText, req);
+				}
+				HTMLArea._appendToLog("[HTMLArea::_postback]: Server response: " + req.responseText);
+			} else {
+				HTMLArea._appendToLog("ERROR [HTMLArea::_postback]: Unable to post " + postUrl + " . Server reported " + req.statusText);
+			}
+			HTMLArea.pendingSynchronousXMLHttpRequest = false;
+		} else {
+			window.setTimeout(sendRequest, 500);
+		}
 	}
 };
 
@@ -3048,11 +3090,15 @@ HTMLArea.Plugin = HTMLArea.Base.extend({
 	 * @param	string		url: url to post data to
 	 * @param	object		data: data to be posted
 	 * @param	function	handler: function that will handle the response returned by the server
+	 * @param	boolean		asynchronous: flag indicating if the request should processed asynchronously or not
 	 *
 	 * @return	boolean		true on success
 	 */
-	 postData : function (url, data, handler) {
-		 HTMLArea._postback(url, data, handler, this.editorConfiguration.RTEtsConfigParams, (this.editorConfiguration.typo3ContentCharset ? this.editorConfiguration.typo3ContentCharset : "utf-8"));
+	 postData : function (url, data, handler, asynchronous) {
+	 	 if (typeof(asynchronous) == "undefined") {
+	 	 	 var asynchronous = true;
+	 	 }
+		 HTMLArea._postback(url, data, handler, this.editorConfiguration.RTEtsConfigParams, (this.editorConfiguration.typo3ContentCharset ? this.editorConfiguration.typo3ContentCharset : "utf-8"), asynchronous);
 	 },
 
 	/**

@@ -70,14 +70,6 @@ function T3editor(textarea) {
 	});
 	this.outerdiv.appendChild(this.modalOverlay);
 
-/*
-		// wrapping the Toolbar
-	this.toolbar_wrap = new Element("DIV", {
-		"class": "t3e_toolbar_wrap"
-	});
-	this.outerdiv.appendChild(this.toolbar_wrap);
-*/
-	
 		// wrapping the linenumbers
 	this.linenum_wrap = new Element("DIV", {
 		"class": "t3e_linenum_wrap"
@@ -153,7 +145,9 @@ T3editor.prototype = {
 			// hide the textarea
 			this.textarea.hide();
 
-			this.saveButtons = $(this.textarea.form).getInputs('image', 'submit');
+			// get the form object (needed for Ajax saving)
+			var form = $(this.textarea.form);
+			this.saveButtons = form.getInputs('image', 'submit');
 
 			// initialize ajax saving events
 			this.saveFunctionEvent = this.saveFunction.bind(this);
@@ -228,9 +222,10 @@ T3editor.prototype = {
 			}
 
 			this.t3e_statusbar_status.update(
-				(this.textModified ? ' <span alt="document has been modified">*</span> ': '')
+				(this.textModified ? ' <span title="' + T3editor.lang.documentModified + '" alt="' + T3editor.lang.documentModified + '">*</span> ': '')
 				 + bodyContentLineCount
-				 + ' lines');
+				 + ' '
+				 + T3editor.lang.lines );
 		},
 		
 		updateTextarea: function(event) {
@@ -264,7 +259,7 @@ T3editor.prototype = {
 				this.textModified = false;
 				this.updateLinenum();
 			} else {
-				alert("An error occured while saving the data.");
+				alert(T3editor.lang.errorWhileSaving);
 			};
 			this.modalOverlay.hide();
 		},
@@ -390,8 +385,7 @@ function t3editor_toggleEditor(checkbox, index) {
 // ------------------------------------------------------------------------
 
 
-if (!Prototype.Browser.MobileSafari
-	&& !Prototype.Browser.WebKit) {
+if (!Prototype.Browser.MobileSafari) {
 	
 	// everything ready: turn textarea's into fancy editors	
 	Event.observe(window, 'load',

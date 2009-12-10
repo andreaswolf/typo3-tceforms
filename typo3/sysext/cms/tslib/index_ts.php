@@ -46,7 +46,15 @@ if (version_compare(phpversion(), '5.2', '<'))	die ('TYPO3 requires PHP 5.2.0 or
 // *******************************
 // Set error reporting
 // *******************************
+<<<<<<< HEAD
 error_reporting (E_ALL ^ E_DEPRECATED ^ E_NOTICE);
+=======
+if (defined('E_DEPRECATED')) {
+	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
+} else {
+	error_reporting(E_ALL ^ E_NOTICE);
+}
+>>>>>>> trunk
 
 
 // ******************
@@ -83,8 +91,14 @@ ob_start();
 // *********************
 // Timetracking started
 // *********************
-require_once(PATH_t3lib.'class.t3lib_timetrack.php');
-$TT = new t3lib_timeTrack;
+if ($_COOKIE['be_typo_user']) {
+	require_once(PATH_t3lib.'class.t3lib_timetrack.php');
+	$TT = new t3lib_timeTrack;
+} else {
+	require_once(PATH_t3lib.'class.t3lib_timetracknull.php');
+	$TT = new t3lib_timeTrackNull;
+}
+
 $TT->start();
 $TT->push('','Script start');
 
@@ -112,14 +126,22 @@ if (!defined('PATH_tslib')) {
 }
 
 
-// *********************
-// Autoloader
-// *********************
-$TT->push('Register Autoloader', '');
-	require_once(PATH_t3lib . 'class.t3lib_autoloader.php');
-	t3lib_autoloader::registerAutoloader();
-$TT->pull();
 
+
+// *********************
+// Error & Exception handling
+// *********************
+if ($TYPO3_CONF_VARS['SC_OPTIONS']['errors']['exceptionHandler'] !== '') {
+	$TT->push('Register Exceptionhandler', '');
+	if ($TYPO3_CONF_VARS['SYS']['errorHandler'] !== '') {
+			// register an error handler for the given errorHandlerErrors
+		$errorHandler = t3lib_div::makeInstance($TYPO3_CONF_VARS['SYS']['errorHandler'], $TYPO3_CONF_VARS['SYS']['errorHandlerErrors']);
+			// set errors which will be converted in an exception
+		$errorHandler->setExceptionalErrors($TYPO3_CONF_VARS['SC_OPTIONS']['errors']['exceptionalErrors']);
+	}
+	$exceptionHandler = t3lib_div::makeInstance($TYPO3_CONF_VARS['SC_OPTIONS']['errors']['exceptionHandler']);
+	$TT->pull();
+}
 
 $TYPO3_DB = t3lib_div::makeInstance('t3lib_DB');
 $TYPO3_DB->debugOutput = $TYPO3_CONF_VARS['SYS']['sqlDebug'];
@@ -244,7 +266,7 @@ if (is_array($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/index_ts.php']['preBeUser']))
 // *********
 // BE_USER
 // *********
-$BE_USER='';
+$BE_USER = NULL;
 if ($_COOKIE['be_typo_user']) {		// If the backend cookie is set, we proceed and checks if a backend user is logged in.
 	$TYPO3_MISC['microtime_BE_USER_start'] = microtime(true);
 	$TT->push('Back End user initialized','');
@@ -261,7 +283,7 @@ if ($_COOKIE['be_typo_user']) {		// If the backend cookie is set, we proceed and
 		}
 			// Unset the user initialization.
 		if (!$BE_USER->checkLockToIP() || !$BE_USER->checkBackendAccessSettingsFromInitPhp() || !$BE_USER->user['uid']) {
-			$BE_USER='';
+			$BE_USER = NULL;
 			$TSFE->beUserLogin=0;
 		}
 	$TT->pull();
@@ -278,7 +300,7 @@ if ($_COOKIE['be_typo_user']) {		// If the backend cookie is set, we proceed and
 		$BE_USER->fetchGroupData();
 		$TSFE->beUserLogin = 1;
 	} else {
-		$BE_USER = '';
+		$BE_USER = NULL;
 		$TSFE->beUserLogin = 0;
 	}
 }
@@ -514,7 +536,7 @@ $TSFE->previewInfo();
 // ******************
 // Publishing static
 // ******************
-if (is_object($BE_USER) && ($BE_USER->adminPabel instanceof tslib_AdminPanel)) {
+if (is_object($BE_USER) && ($BE_USER->adminPanel instanceof tslib_AdminPanel)) {
 	if ($BE_USER->adminPanel->isAdminModuleEnabled('publish') && $BE_USER->adminPanel->getExtPublishList()) {
 		include_once(PATH_tslib.'publish.php');
 	}
@@ -542,7 +564,7 @@ echo $TSFE->beLoginLinkIPList();
 // *************
 // Admin panel
 // *************
-if (is_object($BE_USER) && $TSFE->beUserLogin) {
+if (is_object($BE_USER) && $BE_USER->isAdminPanelVisible() && $TSFE->beUserLogin) {
 	echo $BE_USER->displayAdminPanel();
 }
 

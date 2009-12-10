@@ -66,7 +66,11 @@ if (version_compare(phpversion(), '5.2', '<'))	die ('TYPO3 requires PHP 5.2.0 or
 // *******************************
 // Set error reporting
 // *******************************
-error_reporting (E_ALL ^ E_DEPRECATED ^ E_NOTICE);
+if (defined('E_DEPRECATED')) {
+	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
+} else {
+	error_reporting(E_ALL ^ E_NOTICE);
+}
 
 // *******************************
 // Prevent any unwanted output that may corrupt AJAX/compression. Note: this does
@@ -177,12 +181,20 @@ require(PATH_t3lib.'config_default.php');
 if (!defined ('TYPO3_db')) 	die ('The configuration file was not included.');
 
 
-// *********************
-// Autoloader
-// *********************
-require_once(PATH_t3lib . 'class.t3lib_autoloader.php');
-t3lib_autoloader::registerAutoloader();
 
+
+// *********************
+// Error & Exception handling
+// *********************
+if ($TYPO3_CONF_VARS['SC_OPTIONS']['errors']['exceptionHandler'] !== '') {
+	if ($TYPO3_CONF_VARS['SYS']['errorHandler'] !== '') {
+			// 	register an error handler for the given errorHandlerErrors
+		$errorHandler = t3lib_div::makeInstance($TYPO3_CONF_VARS['SYS']['errorHandler'], $TYPO3_CONF_VARS['SYS']['errorHandlerErrors']);
+			// set errors which will be converted in an exception
+		$errorHandler->setExceptionalErrors($TYPO3_CONF_VARS['SC_OPTIONS']['errors']['exceptionalErrors']);
+	}
+	$exceptionHandler = t3lib_div::makeInstance($TYPO3_CONF_VARS['SC_OPTIONS']['errors']['exceptionHandler']);
+}
 
 /** @var TYPO3_DB t3lib_db */
 $TYPO3_DB = t3lib_div::makeInstance('t3lib_DB');
@@ -195,15 +207,16 @@ $PARSETIME_START = t3lib_div::milliseconds();		// Is set to the system time in m
 // Initializing the Caching System
 // ***********************************
 
-$typo3CacheManager = t3lib_div::makeInstance('t3lib_cache_Manager');
-$typo3CacheFactory = t3lib_div::makeInstance('t3lib_cache_Factory');
-$typo3CacheFactory->setCacheManager($typo3CacheManager);
+if (TYPO3_UseCachingFramework) {
+	$typo3CacheManager = t3lib_div::makeInstance('t3lib_cache_Manager');
+	$typo3CacheFactory = t3lib_div::makeInstance('t3lib_cache_Factory');
+	$typo3CacheFactory->setCacheManager($typo3CacheManager);
 
-t3lib_cache::initPageCache();
-t3lib_cache::initPageSectionCache();
-t3lib_cache::initContentHashCache();
-unset($cacheFactoryClass);
-
+	t3lib_cache::initPageCache();
+	t3lib_cache::initPageSectionCache();
+	t3lib_cache::initContentHashCache();
+	unset($cacheFactoryClass);
+}
 // *************************
 // CLI dispatch processing
 // *************************
@@ -249,7 +262,7 @@ if (!(defined('TYPO3_cliMode') && TYPO3_cliMode) && @is_file(PATH_typo3conf.'LOC
 		if ($fContent)	{
 			header('Location: '.$fContent);	// Redirect
 		} else {
-			die('Browser backend is locked for maintenance. Remove lock by removing the file "typo3conf/LOCK_BACKEND" or use CLI-scripts.'.chr(10).chr(10));
+			t3lib_BEfunc::typo3printError('Backend locked', 'Browser backend is locked for maintenance. Remove lock by removing the file "typo3conf/LOCK_BACKEND" or use CLI-scripts.');
 		}
 		exit;
 	}
@@ -332,14 +345,14 @@ if (defined('TYPO3_enterInstallScript') && TYPO3_enterInstallScript)	{
 // *************************
 if ($TYPO3_DB->sql_pconnect(TYPO3_db_host, TYPO3_db_username, TYPO3_db_password))	{
 	if (!TYPO3_db)	{
-		t3lib_BEfunc::typo3PrintError ('No database selected','Database Error');
+		t3lib_BEfunc::typo3PrintError('Database Error', 'No database selected');
 		exit;
 	} elseif (!$TYPO3_DB->sql_select_db(TYPO3_db))	{
-		t3lib_BEfunc::typo3PrintError ('Cannot connect to the current database, "'.TYPO3_db.'"','Database Error');
+		t3lib_BEfunc::typo3PrintError('Database Error', 'Cannot connect to the current database, "' . TYPO3_db . '"');
 		exit;
 	}
 } else {
-	t3lib_BEfunc::typo3PrintError ('The current username, password or host was not accepted when the connection to the database was attempted to be established!','Database Error');
+	t3lib_BEfunc::typo3PrintError('Database Error', 'The current username, password or host was not accepted when the connection to the database was attempted to be established!');
 	exit;
 }
 
@@ -385,7 +398,6 @@ $BE_USER->OS = TYPO3_OS;
 $BE_USER->start();			// Object is initialized
 $BE_USER->checkCLIuser();
 $BE_USER->backendCheckLogin();	// Checking if there's a user logged in
-$BE_USER->trackBeUser($TYPO3_CONF_VARS['BE']['trackBeUser']);	// Tracking backend user script hits
 
 	// Setting the web- and filemount global vars:
 $WEBMOUNTS = $BE_USER->returnWebmounts();		// ! WILL INCLUDE deleted mount pages as well!

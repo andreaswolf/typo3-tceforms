@@ -233,8 +233,16 @@ class tslib_feTCE	{
 	 */
 	function execNEWinsert($table, $dataArr)	{
 		$extraList=$this->extraList;
-		if ($GLOBALS['TCA'][$table]['ctrl']['tstamp'])	{$field=$GLOBALS['TCA'][$table]['ctrl']['tstamp']; $dataArr[$field]=time(); $extraList.=','.$field;}
-		if ($GLOBALS['TCA'][$table]['ctrl']['crdate'])	{$field=$GLOBALS['TCA'][$table]['ctrl']['crdate']; $dataArr[$field]=time(); $extraList.=','.$field;}
+		if ($GLOBALS['TCA'][$table]['ctrl']['tstamp']) {
+			$field = $GLOBALS['TCA'][$table]['ctrl']['tstamp'];
+			$dataArr[$field] = $GLOBALS['EXEC_TIME'];
+			$extraList .= ',' . $field;
+		}
+		if ($GLOBALS['TCA'][$table]['ctrl']['crdate']) {
+			$field = $GLOBALS['TCA'][$table]['ctrl']['crdate'];
+			$dataArr[$field] = $GLOBALS['EXEC_TIME'];
+			$extraList .= ',' . $field;
+		}
 		if ($GLOBALS['TCA'][$table]['ctrl']['cruser_id'])	{$field=$GLOBALS['TCA'][$table]['ctrl']['cruser_id']; $dataArr[$field]=0; $extraList.=','.$field;}
 
 		unset($dataArr['uid']);	// uid can never be set
@@ -261,10 +269,12 @@ class tslib_feTCE	{
 		$cacheCmd = intval($cacheCmd);
 
 		if ($cacheCmd)	{
-
-			$GLOBALS['typo3CacheManager']->getCache('cache_pages')->flushByTag(
-				'pageId_' . $cacheCmd
-			);
+			if (TYPO3_UseCachingFramework) {
+				$pageCache = $GLOBALS['typo3CacheManager']->getCache('cache_pages');
+				$pageCache->flushByTag('pageId_' . $cacheCmd);
+			} else {
+				$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pages', 'page_id = ' . $cacheCmd);
+			}
 
 			if ($cacheCmd == intval($GLOBALS['TSFE']->id)) {
 					// Setting no_cache true if the cleared-cache page is the current page!

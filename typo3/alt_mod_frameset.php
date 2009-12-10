@@ -87,8 +87,8 @@ class SC_alt_mod_frameset {
 		global $BE_USER,$TBE_TEMPLATE,$TBE_STYLES;
 
 			// GPvars:
-		$this->exScript = t3lib_div::_GP('exScript');
-		$this->id = t3lib_div::_GP('id');
+		$this->exScript = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('exScript'));
+		$this->id = intval(t3lib_div::_GP('id'));
 		$this->fW = t3lib_div::_GP('fW');
 
 			// Setting resizing flag:
@@ -103,23 +103,20 @@ class SC_alt_mod_frameset {
 		}
 
 			// Navigation frame URL:
-		$script = t3lib_div::_GP('script');
-		$nav = t3lib_div::_GP('nav');
+		$script = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('script'));
+		$nav = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('nav'));
 		$URL_nav = htmlspecialchars($nav.'&currentSubScript='.rawurlencode($script));
 
 			// List frame URL:
 		$URL_list = htmlspecialchars($this->exScript ? $this->exScript : ($script . ($this->id ? (strpos($script, '?') ? '&' : '?' ) . 'id=' . rawurlencode($this->id) : '')));
-			
+
 			// Start page output
 		$TBE_TEMPLATE->docType='xhtml_frames';
 		$this->content = $TBE_TEMPLATE->startPage('Frameset');
 
-			// THis onload handler is a bug-fix for a possible bug in Safari browser for Mac. Posted by Jack COLE. Should not influence other browsers negatively.
-		$onLoadHandler = ' onload="if(top.content.nav_frame.location.href.length == 1) {top.content.nav_frame.location=\''.$URL_nav.'\';};"';
-
 		if ($this->resizable)	{
 			$this->content.= '
-	<frameset id="typo3-content-frameset" cols="'.$width.',*"'.$onLoadHandler.'>
+	<frameset id="typo3-content-frameset" cols="'.$width.',*">
 		<frame name="nav_frame" src="'.$URL_nav.'" marginwidth="0" marginheight="0" scrolling="auto" />
 		<frame name="list_frame" src="'.$URL_list.'" marginwidth="0" marginheight="0" scrolling="auto" />
 	</frameset>
@@ -129,7 +126,7 @@ class SC_alt_mod_frameset {
 		} else {
 			$this->content.= '
 
-	<frameset id="typo3-content-frameset" cols="'.$width.',8,*" framespacing="0" frameborder="0" border="0"'.$onLoadHandler.'>
+	<frameset id="typo3-content-frameset" cols="'.$width.',8,*" framespacing="0" frameborder="0" border="0">
 		<frame name="nav_frame" src="'.$URL_nav.'" marginwidth="0" marginheight="0" frameborder="0" scrolling="auto" noresize="noresize" />
 		<frame name="border_frame" src="'.(isset($GLOBALS['TBE_STYLES']['border']) ? $GLOBALS['TBE_STYLES']['border'] : 'border.html').'" marginwidth="0" marginheight="0" frameborder="0" scrolling="no" noresize="noresize" />
 		<frame name="list_frame" src="'.$URL_list.'" marginwidth="0" marginheight="0" frameborder="0" scrolling="auto" noresize="noresize" />

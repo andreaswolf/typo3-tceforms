@@ -99,7 +99,12 @@
 // *******************************
 // Set error reporting
 // *******************************
-error_reporting (E_ALL ^ E_NOTICE);
+if (defined('E_DEPRECATED')) {
+	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
+} else {
+	error_reporting(E_ALL ^ E_NOTICE);
+}
+
 define('TYPO3_mainDir', 'typo3/');		// This is the directory of the backend administration for the sites of this TYPO3 installation.
 
 
@@ -1067,7 +1072,7 @@ class t3lib_superadmin {
 		$query = $GLOBALS['TYPO3_DB']->SELECTquery(
 						'sys_log.*, be_users.username  AS username, be_users.admin AS admin',
 						'sys_log,be_users',
-						'be_users.uid=sys_log.userid AND sys_log.type=255 AND sys_log.tstamp > '.(time()-(60*60*24*30)),
+						'be_users.uid=sys_log.userid AND sys_log.type=255 AND sys_log.tstamp > ' . ($GLOBALS['EXEC_TIME'] - (60 * 60 * 24 * 30)),
 						'',
 						'sys_log.tstamp DESC'
 					);
@@ -1173,7 +1178,7 @@ class t3lib_superadmin {
 							<b>'.htmlspecialchars($label).'</b> ('.htmlspecialchars(substr($all['siteInfo']['SA_PATH'],strlen($all['siteInfo']['MAIN_DIR'])+1)).')<br />';
 
 								// To avoid "visited links" display on next hit:
-							$tempVal='&_someUniqueValue='.time();
+							$tempVal='&_someUniqueValue=' . $GLOBALS['EXEC_TIME'];
 
 								// Add links for update:
 							$url = $this->scriptName.'?type=page&show=rmTempCached&exp='.$k.$tempVal;

@@ -204,24 +204,23 @@ class template {
 	var $sectionFlag=0;				// Internal: Indicates if a <div>-output section is open
 	var $divClass = '';				// (Default) Class for wrapping <DIV>-tag of page. Is set in class extensions.
 
-		// internal flags for JS-libraries
-	protected $addPrototype = false;
-	protected $addScriptaculousModules = array(
-		'builder'  => false,
-		'effects'  => false,
-		'dragdrop' => false,
-		'controls' => false,
-		'slider'   => false
-	);
-	protected $addExtJS = false;
-	protected $extJSadapter = 'ext/ext-base.js';
-	protected $enableExtJsDebug = false;
+	var $pageHeaderBlock = '';
+	var $endOfPageJsBlock = '';
 
-	// available adapters for extJs
-	const EXTJS_ADAPTER_JQUERY = 'jquery'; 
-	const EXTJS_ADAPTER_PROTOTYPE = 'prototype'; 
-	const EXTJS_ADAPTER_YUI = 'yui';
+	var $hasDocheader = true;
 
+	/**
+	 * @var t3lib_PageRenderer
+	 */
+	protected $pageRenderer;
+	protected $pageHeaderFooterTemplateFile = '';	// alternative template file
+
+	/**
+	 * Whether flashmessages should be rendered or not
+	 *
+	 * @var $showFlashMessages
+	 */
+	public $showFlashMessages = TRUE;
 
 	/**
 	 * Constructor
@@ -231,6 +230,9 @@ class template {
 	 */
 	function template()	{
 		global $TBE_STYLES;
+
+			// Initializes the page rendering object:
+		$this->getPageRenderer();
 
 			// Setting default scriptID:
 		if (($temp_M = (string) t3lib_div::_GET('M')) && $GLOBALS['TBE_MODULES']['_PATHS'][$temp_M]) {
@@ -272,7 +274,21 @@ class template {
 	}
 
 
-
+	/**
+	 * Gets instance of PageRenderer
+	 *
+	 * @return	t3lib_PageRenderer
+	 */
+	public function getPageRenderer() {
+		if (!isset($this->pageRenderer)) {
+			$this->pageRenderer = t3lib_div::makeInstance('t3lib_PageRenderer');
+			$this->pageRenderer->setTemplateFile(
+				TYPO3_mainDir . 'templates/template_page_backend.html'
+			);
+			$this->pageRenderer->setLanguage($GLOBALS['LANG']->lang);
+		}
+		return $this->pageRenderer;
+	}
 
 
 
@@ -631,18 +647,24 @@ class template {
 			}
 		}
 
-			// Get META tag containing the currently selected charset for backend output. The function sets $this->charSet.
-		$charSet = $this->initCharset();
-		$generator = $this->generator();
+		$this->pageRenderer->backPath = $this->backPath;
 
+			// alternative template for Header and Footer
+		if ($this->pageHeaderFooterTemplateFile) {
+			$file =  t3lib_div::getFileAbsFileName($this->pageHeaderFooterTemplateFile, TRUE);
+			if ($file) {
+				$this->pageRenderer->setTemplateFile($file);
+			}
+		}
 			// For debugging: If this outputs "QuirksMode"/"BackCompat" (IE) the browser runs in quirks-mode. Otherwise the value is "CSS1Compat"
 #		$this->JScodeArray[]='alert(document.compatMode);';
 
 			// Send HTTP header for selected charset. Added by Robert Lemke 23.10.2003
+		$this->initCharset();
 		header ('Content-Type:text/html;charset='.$this->charset);
 
 			// Standard HTML tag
-		$htmlTag = '<html xmlns="http://www.w3.org/1999/xhtml">';
+		$this->pageRenderer->setHtmlTag('<html xmlns="http://www.w3.org/1999/xhtml">');
 
 		switch($this->docType)	{
 			case 'html_3':
@@ -674,7 +696,7 @@ class template {
 		}
 
 			// Get the browser info
-		$browserInfo = t3lib_utility_client::getBrowserInfo(t3lib_div::getIndpEnv('HTTP_USER_AGENT'));
+		$browserInfo = t3lib_utility_Client::getBrowserInfo(t3lib_div::getIndpEnv('HTTP_USER_AGENT'));
 
 			// Set the XML prologue
 		$xmlPrologue = '<?xml version="1.0" encoding="' . $this->charset . '"?>';
@@ -697,25 +719,41 @@ class template {
 			}
 		}
 
+		$this->pageRenderer->setXmlPrologAndDocType($headerStart);
+		$this->pageRenderer->setHeadTag('<head>' . chr(10). '<!-- TYPO3 Script ID: '.htmlspecialchars($this->scriptID).' -->');
+		$this->pageRenderer->setCharSet($this->charset);
+		$this->pageRenderer->addMetaTag($this->generator());
+		$this->pageRenderer->setTitle($title);
+
+		// add docstyles
+		$this->docStyle();
+
+
+		// add jsCode - has to go to headerData as it may contain the script tags already
+		$this->pageRenderer->addHeaderData($this->JScode);
+
+		foreach ($this->JScodeArray as $name => $code) {
+			$this->pageRenderer->addJsInlineCode($name, $code);
+		}
+
+		if (count($this->JScodeLibArray)) {
+			foreach($this->JScodeLibArray as $library) {
+				$this->pageRenderer->addHeaderData($library);
+			}
+		}
+
+		if ($this->extJScode) {
+			$this->pageRenderer->addExtOnReadyCode($this->extJScode);
+		}
+
 			// Construct page header.
-		$str = $headerStart . chr(10) . $htmlTag . '
-<head>
-	<!-- TYPO3 Script ID: '.htmlspecialchars($this->scriptID).' -->
-	'.$charSet.'
-	'.$generator.'
-	<title>'.htmlspecialchars($title).'</title>
-	'.$this->docStyle().'
-	' . $this->renderJSlibraries() . '
-	'.$this->JScode.'
-	'.$this->wrapScriptTags(implode("\n", $this->JScodeArray)).
-	($this->extJScode ? $this->wrapScriptTags('Ext.onReady(function() {' . chr(10) . $this->extJScode . chr(10) . '});') : '') .
-	'
-	<!--###POSTJSMARKER###-->
-</head>
-';
+		$str = $this->pageRenderer->render(t3lib_PageRenderer::PART_HEADER);
+
 		$this->JScodeLibArray = array();
 		$this->JScode = $this->extJScode = '';
 		$this->JScodeArray = array();
+
+		$this->endOfPageJsBlock = $this->pageRenderer->render(t3lib_PageRenderer::PART_FOOTER);
 
 		if ($this->docType=='xhtml_frames')	{
 			return $str;
@@ -749,12 +787,10 @@ $str.=$this->docBodyTagBegin().
 			$str .= ($this->divClass?'
 
 <!-- Wrapping DIV-section for whole page END -->
-</div>':'').'
-</body>	';
+</div>':'') . $this->endOfPageJsBlock ;
 
 		}
 
-		$str .= '</html>';
 
 			// Logging: Can't find better place to put it:
 		if (TYPO3_DLOG)	t3lib_div::devLog('END of BACKEND session', 'template', 0, array('_FLUSH' => true));
@@ -849,14 +885,17 @@ $str.=$this->docBodyTagBegin().
 	 * @param	string		Additional attributes to h-tag, eg. ' class=""'
 	 * @return	string		HTML content
 	 */
-	function sectionHeader($label,$sH=FALSE,$addAttrib='')	{
-		$tag = ($sH?'h3':'h4');
+	function sectionHeader($label, $sH=FALSE, $addAttrib='') {
+		$tag = ($sH ? 'h3' : 'h4');
+		if ($addAttrib && substr($addAttrib, 0, 1) !== ' ') {
+			$addAttrib = ' ' . $addAttrib;
+		}
 		$str='
 
 	<!-- Section header -->
-	<'.$tag.$addAttrib.'>'.$label.'</'.$tag.'>
+	<' . $tag . $addAttrib . '>' . $label . '</' . $tag . '>
 ';
-		return $this->sectionBegin().$str;
+		return $this->sectionBegin() . $str;
 	}
 
 	/**
@@ -955,28 +994,20 @@ $str.=$this->docBodyTagBegin().
 		$this->inDocStylesArray[] = $this->inDocStyles_TBEstyle;
 
 			// Implode it all:
-		$inDocStyles = implode('
-					',$this->inDocStylesArray);
+		$inDocStyles = implode(chr(10), $this->inDocStylesArray);
 
-			// The default color scheme should also in full be represented in the stylesheet.
-		$style=trim('
-			'.($this->styleSheetFile?'<link rel="stylesheet" type="text/css" href="'.$this->backPath.$this->styleSheetFile.'" />':'').'
-			'.($this->styleSheetFile2?'<link rel="stylesheet" type="text/css" href="'.$this->backPath.$this->styleSheetFile2.'" />':'').'
-			<style type="text/css" id="internalStyle">
-				/*<![CDATA[*/
-					'.trim($inDocStyles).'
-					/*###POSTCSSMARKER###*/
-				/*]]>*/
-			</style>
-			'.($this->styleSheetFile_post?'<link rel="stylesheet" type="text/css" href="'.$this->backPath.$this->styleSheetFile_post.'" />':'').'
-			'.implode("\n", $this->additionalStyleSheets)
-		)
-		;
-		$this->inDocStyles='';
-		$this->inDocStylesArray=array();
+		if ($this->styleSheetFile) {
+			$this->pageRenderer->addCssFile($this->backPath . $this->styleSheetFile);
+		}
+		if ($this->styleSheetFile2) {
+			$this->pageRenderer->addCssFile($this->backPath . $this->styleSheetFile2);
+		}
 
-		return '
-			'.$style;
+		$this->pageRenderer->addCssInlineBlock('inDocStyles', $inDocStyles . chr(10) . '/*###POSTCSSMARKER###*/');
+		if ($this->styleSheetFile_post) {
+			$this->pageRenderer->addCssFile($this->backPath . $this->styleSheetFile_post);
+	}
+
 	}
 
 	/**
@@ -989,10 +1020,13 @@ $str.=$this->docBodyTagBegin().
 	 * @return	void
 	 */
 	function addStyleSheet($key, $href, $title='', $relation='stylesheet') {
-		if (!isset($this->additionalStyleSheets[$key])) {
-			$this->additionalStyleSheets[$key] = '<link rel="' . $relation . '" type="text/css" href="' . $href . '"' . ($title ? (' title="' . $title . '"') : '') . ' />';
+		if (strpos($href, '://') !== FALSE || substr($href, 0, 1) === '/') {
+			$file = $href;
+		} else {
+			$file = $this->backPath . $href;
 		}
-	 }
+		$this->pageRenderer->addCssFile($file, $relation, $title);
+	}
 
 	/**
 	 * Insert post rendering document style into already rendered content
@@ -1318,26 +1352,10 @@ $str.=$this->docBodyTagBegin().
 	 * @return	void
 	 */
 	function loadJavascriptLib($lib)	{
-		if (!isset($this->JScodeLibArray[$lib]))	{
-			$this->JScodeLibArray[$lib] = '<script type="text/javascript" src="' . $this->backPath . $lib . '"></script>';
-		}
+		$this->pageRenderer->addJsFile($this->backPath . $lib);
 	}
 
 
-	/**
-	 *
-	 * @param string $lib	it will remove lib from general JScodeLibArray because lib is loaded already.
-	 */
-	protected function removeJavascriptLib($lib) {
-		if (count($this->JScodeLibArray)) {
-			$scripts = array_keys($this->JScodeLibArray);
-			foreach ($scripts as $script) {
-				if (strpos($script, '/' . $lib . '/') !== false) {
-					unset ($this->JScodeLibArray[$script]);
-				}
-			}
-		}
-	}
 
 	/**
 	 * Includes the necessary Javascript function for the clickmenu (context sensitive menus) in the document
@@ -1346,7 +1364,7 @@ $str.=$this->docBodyTagBegin().
 	 *			Please just call this function without expecting a return value for future calls
 	 */
 	function getContextMenuCode()   {
-	       $this->loadPrototype();
+	       $this->pageRenderer->loadPrototype();
 	       $this->loadJavascriptLib('js/clickmenu.js');
 
 	       $this->JScodeArray['clickmenu'] = '
@@ -1365,7 +1383,7 @@ $str.=$this->docBodyTagBegin().
 	 * @return	array		If values are present: [0] = A <script> section for the HTML page header, [1] = onmousemove/onload handler for HTML tag or alike, [2] = One empty <div> layer for the follow-mouse drag element
 	 */
 	function getDragDropCode($table)	{
-		$this->loadPrototype();
+		$this->pageRenderer->loadPrototype();
 		$this->loadJavascriptLib('js/common.js');
 		$this->loadJavascriptLib('js/tree.js');
 
@@ -1539,7 +1557,7 @@ $str.=$this->docBodyTagBegin().
 				}
 
 				$mouseOverOut = ' onmouseover="DTM_mouseOver(this);" onmouseout="DTM_mouseOut(this);"';
-				$requiredIcon = '<img name="' . $id . '-' . $index . '-REQ" src="' . $GLOBALS['BACK_PATH'] . 'gfx/clear.gif" width="10" height="10" hspace="4" alt="" />';
+				$requiredIcon = '<img name="' . $id . '-' . $index . '-REQ" src="' . $GLOBALS['BACK_PATH'] . 'gfx/clear.gif" class="t3-TCEforms-reqTabImg" alt="" />';
 
 				if (!$foldout)	{
 						// Create TAB cell:
@@ -1812,11 +1830,10 @@ $str.=$this->docBodyTagBegin().
 		}
 	}
 
-
 	/**
 	 * Function to load a HTML template file with markers.
 	 * When calling from own extension, use  syntax getHtmlTemplate('EXT:extkey/template.html')
-	 * 
+	 *
 	 * @param	string		tmpl name, usually in the typo3/template/ directory
 	 * @return	string		HTML of template
 	 */
@@ -1839,7 +1856,7 @@ $str.=$this->docBodyTagBegin().
 	 */
 	function setModuleTemplate($filename) {
 			// Load Prototype lib for IE event
-		$this->loadPrototype();
+		$this->pageRenderer->loadPrototype();
 		$this->loadJavascriptLib('js/iecompatibility.js');
 		$this->moduleTemplate = $this->getHtmlTemplate($filename);
 	}
@@ -1884,6 +1901,31 @@ $str.=$this->docBodyTagBegin().
 		foreach ($subpartArray as $marker => $content) {
 			$moduleBody = t3lib_parsehtml::substituteSubpart($moduleBody, $marker, $content);
 		}
+
+		if ($this->showFlashMessages) {
+				// adding flash messages
+			$flashMessages = t3lib_FlashMessageQueue::renderFlashMessages();
+			if (!empty($flashMessages)) {
+				$flashMessages = '<div id="typo3-messages">' . $flashMessages . '</div>';
+			}
+
+			if (strstr($moduleBody, '###FLASHMESSAGES###')) {
+					// either replace a dedicated marker for the messages if present
+				$moduleBody = str_replace(
+					'###FLASHMESSAGES###',
+					$flashMessages,
+					$moduleBody
+				);
+			} else {
+					// or force them to appear before the content
+				$moduleBody = str_replace(
+					'###CONTENT###',
+					$flashMessages . '###CONTENT###',
+					$moduleBody
+				);
+			}
+		}
+
 			// replacing all markers with the finished markers and return the HTML content
 		return t3lib_parsehtml::substituteMarkerArray($moduleBody, $markerArray, '###|###');
 
@@ -1920,7 +1962,7 @@ $str.=$this->docBodyTagBegin().
 				// replace the marker with the template and remove all line breaks (for IE compat)
 			$markers['BUTTONLIST_' . strtoupper($key)] = str_replace("\n", '', $buttonTemplate);
 		}
-		
+
 			// Hook for manipulating docHeaderButtons
 		if (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/template.php']['docHeaderButtonsHook'])) {
 			$params = array(
@@ -1978,6 +2020,7 @@ $str.=$this->docBodyTagBegin().
 			$iconImg = t3lib_iconWorks::getIconImage('pages', $pageRecord, $this->backPath, 'class="absmiddle" title="'. htmlspecialchars($alttext) . '"');
 				// Make Icon:
 			$theIcon = $GLOBALS['SOBE']->doc->wrapClickMenuOnIcon($iconImg, 'pages', $pageRecord['uid']);
+			$pid = $pageRecord['uid'];
 		} else {	// On root-level of page tree
 				// Make Icon
 			$iconImg = '<img' . t3lib_iconWorks::skinImg($this->backPath, 'gfx/i/_icon_website.gif') . ' alt="' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] . '" />';
@@ -1986,169 +2029,19 @@ $str.=$this->docBodyTagBegin().
 			} else {
 				$theIcon = $iconImg;
 			}
+			$pid = '0 (root)';
 		}
 
 			// Setting icon with clickmenu + uid
-		$pageInfo = $theIcon . '<em>[pid: ' . $pageRecord['uid'] . ']</em>';
+		$pageInfo = $theIcon . '<em>[pid: ' . $pid . ']</em>';
 		return $pageInfo;
 	}
 
 
-	/**
-	 *  Following functions are help function for JS library include.
-	 *  They enable loading the libraries prototype, scriptaculous and extJS from contrib-directory
-	 */
 
 
-	/**
-	 * Function for render the JS-libraries in header
-	 * Load order is prototype / scriptaculous / extJS
-	 */
-	protected function renderJSlibraries() {
-		$libs = array();
 
-			// include prototype
-		if ($this->addPrototype) {
-			$libs[] = 'contrib/prototype/prototype.js';
-				// remove prototype from JScodeLibArray
-			$this->removeJavascriptLib('prototype');
 		}
-
-			// include scriptaculous
-		if ($this->addScriptaculous) {
-			$mods = array();
-			foreach ($this->addScriptaculousModules as $key => $value) {
-				if ($this->addScriptaculousModules[$key]) {
-					$mods[] = $key;
-				}
-			}
-				// resolve dependencies
-			if (in_array('dragdrop', $mods) || in_array('controls', $mods)) {
-				$mods = array_merge(array('effects'), $mods);
-			}
-
-			if (count($mods)) {
-				$moduleLoadString = '?load=' . implode(',', $mods);
-			}
-			$libs[] = 'contrib/scriptaculous/scriptaculous.js' . $moduleLoadString;
-				// remove scriptaculous from JScodeLibArray
-			$this->removeJavascriptLib('scriptaculous');
-		}
-
-			// include extJS
-		if ($this->addExtJS) {
-				// use the base adapter all the time
-			$libs[] = 'contrib/extjs/adapter/' . ($this->enableExtJsDebug ? str_replace('.js', '-debug.js', $this->extJSadapter) : $this->extJSadapter);
-			$libs[] = 'contrib/extjs/ext-all' . ($this->enableExtJsDebug ? '-debug' : '') . '.js';
-
-				// add extJS localization
-			$localeMap = $GLOBAL['LANG']->csConvObj->isoArray;	// load standard ISO mapping and modify for use with ExtJS
-			$localeMap[''] = 'en';
-			$localeMap['default'] = 'en';
-			$localeMap['gr'] = 'el_GR';	// Greek
-			$localeMap['no'] = 'no_BO';	// Norwegian Bokmaal
-			$localeMap['se'] = 'se_SV';	// Swedish
-			$extJsLang = isset($localeMap[$GLOBALS['BE_USER']->uc['lang']]) ? $localeMap[$GLOBALS['BE_USER']->uc['lang']] : $GLOBALS['BE_USER']->uc['lang'];
-			// TODO autoconvert file from UTF8 to current BE charset if necessary!!!!
-			$extJsLocaleFile = 'contrib/extjs/locale/ext-lang-' . $extJsLang . '-min.js';
-			if (file_exists(PATH_typo3 . $extJsLocaleFile)) {
-				$libs[] = $extJsLocaleFile;
-			}
-				// set clear.gif
-			$this->extJScode .= 'Ext.BLANK_IMAGE_URL = "' . htmlspecialchars(t3lib_div::locationHeaderUrl('gfx/clear.gif')) . '";';
-				// remove extjs from JScodeLibArray
-			$this->removeJavascriptLib('contrib/extjs');
-		}
-
-		foreach ($libs as &$lib) {
-			$lib = '<script type="text/javascript" src="' . $this->backPath . $lib . '"></script>';
-		}
-
-			// add other JavascriptLibs and return it
-		$libs = array_merge($libs, $this->JScodeLibArray);
-		return count($libs) ? chr(10) . chr(10) . implode(chr(10), $libs) . chr(10) . chr(10) : '';
-	}
-
-	/**
-	 *  call function if you need the prototype library
-	 */
-	public function loadPrototype() {
-		$this->addPrototype = true;
-	}
-
-	/**
-	 *  call function if you need the Scriptaculous library
-	 * @param string $modules   add modules you need. use "all" if you need complete modules
-	 */
-	public function loadScriptaculous($modules='') {
-			// Scriptaculous require prototype, so load prototype too.
-		$this->addPrototype = true;
-		$this->addScriptaculous = true;
-		if ($modules) {
-			if ($modules == 'all') {
-				foreach ($this->addScriptaculousModules as $key => $value) {
-					$this->addScriptaculousModules[$key] = true;
-				}
-			} else {
-				$mods = t3lib_div::trimExplode(',', $modules);
-				foreach ($mods as $mod) {
-					if (isset($this->addScriptaculousModules[strtolower($mod)])) {
-						$this->addScriptaculousModules[strtolower($mod)] = true;
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 *  call this function if you need the extJS library
-	 * @param boolean $css flag, if set the ext-css will be loaded
-	 * @param boolean $theme flag, if set the ext-theme "grey" will be loaded
-	 * @param string $adapter choose alternative adapter, possible values: yui, prototype, jquery
-	 */
-	public function loadExtJS($css = true, $theme = true, $adapter = '') {
-		if ($adapter) {
-				// empty $adapter will always load the ext adapter
-			switch (t3lib_div::strtolower(trim($adapter))) {
-				case template::EXTJS_ADAPTER_YUI:
-					$this->extJSadapter = 'yui/ext-yui-adapter.js';
-				break;
-				case template::EXTJS_ADAPTER_PROTOTYPE:
-				    $this->extJSadapter = 'prototype/ext-prototype-adapter.js';
-				break;
-				case template::EXTJS_ADAPTER_JQUERY:
-					$this->extJSadapter = 'jquery/ext-jquery-adapter.js';
-				break;
-			}
-		}
-		if (!$this->addExtJS) {
-			$this->addExtJS = true;
-			if ($css) {
-				if (isset($GLOBALS['TBE_STYLES']['extJS']['all'])) {
-					$this->addStyleSheet('ext-all', $this->backPath . $GLOBALS['TBE_STYLES']['extJS']['all']);
-				} else {
-					$this->addStyleSheet('ext-all', $this->backPath . 'contrib/extjs/resources/css/ext-all-notheme.css');
-				}
-			}
-			if ($theme) {
-				if (isset($GLOBALS['TBE_STYLES']['extJS']['theme'])) {
-					$this->addStyleSheet('ext-theme', $this->backPath . $GLOBALS['TBE_STYLES']['extJS']['theme']);
-				} else {
-					$this->addStyleSheet('ext-theme', $this->backPath . 'contrib/extjs/resources/css/xtheme-blue.css');
-				}
-			}
-		}
-	}
-
-	/**
-	 * call this function to load debug version of extJS. Use this for development only
-	 */
-	public function enableExtJsDebug() {
-		$this->enableExtJsDebug = true;
-	}
-
-
-}
 
 
 // ******************************
@@ -2199,7 +2092,6 @@ class mediumDoc extends template {
  * Extension class for "template" - used in the context of frontend editing.
  */
 class frontendDoc extends template {
-	var $backPath = 'typo3/';
 
 	/**
 	 * Used in the frontend context to insert header data via TSFE->additionalHeaderData.
@@ -2208,13 +2100,38 @@ class frontendDoc extends template {
 	 * @return	void
 	 */
 	public function insertHeaderData() {
-		$GLOBALS['TSFE']->additionalHeaderData['docStyle'] = $this->docStyle();
-		$GLOBALS['TSFE']->additionalHeaderData['JSLibraries'] = $this->renderJSlibraries();
-		$GLOBALS['TSFE']->additionalHeaderData['JScode'] = $this->JScode;
-		$GLOBALS['TSFE']->additionalHeaderData['JScodeArray'] = $this->wrapScriptTags(implode("\n", $this->JScodeArray));
-		
-		if ($this->extJScode) {
-			$GLOBALS['TSFE']->additionalHeaderData['extJScode'] = $this->wrapScriptTags('Ext.onReady(function() {' . chr(10) . $this->extJScode . chr(10) . '});');
+
+		/** @var $pageRenderer t3lib_PageRenderer */
+		$pageRenderer = $GLOBALS['TSFE']->getPageRenderer();
+
+		$this->backPath = $GLOBALS['TSFE']->backPath = TYPO3_mainDir;
+		$this->pageRenderer->setBackPath($this->backPath);
+		$this->docStyle();
+
+			// add applied JS/CSS to $GLOBALS['TSFE']
+		if ($this->JScode) {
+			$pageRenderer->addHeaderData($this->JScode);
+		}
+		if (count($this->JScodeArray)) {
+			foreach ($this->JScodeArray as $name => $code) {
+				$pageRenderer->addJsInlineCode($name, $code);
+	}
+}
+
+		if ($this->addPrototype) {
+			$pageRenderer->loadPrototype();
+		}
+		if ($this->addScriptaculous) {
+			$pageRenderer->loadScriptaculous();
+		}
+		if ($this->addExtJS) {
+			$pageRenderer->loadExtJs();
+		}
+		if ($this->inlineLanguageLabels) {
+			$pageRenderer->addInlineLanguageLabelArray($this->inlineLanguageLabels);
+		}
+		if ($this->inlineSettings) {
+			$pageRenderer->addInlineSettingArray($this->inlineSettings);
 		}
 	}
 }

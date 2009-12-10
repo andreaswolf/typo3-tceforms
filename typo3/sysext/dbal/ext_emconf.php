@@ -1,13 +1,13 @@
 <?php
 
 ########################################################################
-# Extension Manager/Repository config file for ext: "dbal"
+# Extension Manager/Repository config file for ext "dbal".
 #
-# Auto generated 11-03-2009 19:01
+# Auto generated 29-11-2009 18:40
 #
 # Manual updates:
-# Only the data in the array - anything else is removed by next write.
-# "version" and "dependencies" must not be touched!
+# Only the data in the array - everything else is removed by next
+# writing. "version" and "dependencies" must not be touched!
 ########################################################################
 
 $EM_CONF[$_EXTKEY] = array(
@@ -20,24 +20,24 @@ $EM_CONF[$_EXTKEY] = array(
 	'priority' => '',
 	'loadOrder' => '',
 	'module' => 'mod1',
-	'state' => 'beta',
+	'state' => 'stable',
 	'internal' => 0,
 	'uploadfolder' => 0,
 	'createDirs' => '',
 	'modify_tables' => '',
 	'clearCacheOnLoad' => 0,
 	'lockType' => '',
-	'author' => 'Karsten Dambekalns',
-	'author_email' => 'k.dambekalns@fishfarm.de',
-	'author_company' => 'TYPO3 Association',
+	'author' => 'Xavier Perseguers',
+	'author_email' => 'typo3@perseguers.ch',
+	'author_company' => '',
 	'CGLcompliance' => '',
 	'CGLcompliance_note' => '',
-	'version' => '0.9.20',
-	'_md5_values_when_last_written' => 'a:20:{s:9:"ChangeLog";s:4:"0461";s:26:"class.ux_db_list_extra.php";s:4:"5cab";s:21:"class.ux_t3lib_db.php";s:4:"97c5";s:28:"class.ux_t3lib_sqlengine.php";s:4:"f650";s:28:"class.ux_t3lib_sqlparser.php";s:4:"403b";s:12:"ext_icon.gif";s:4:"1bdc";s:17:"ext_localconf.php";s:4:"c22b";s:14:"ext_tables.php";s:4:"427e";s:14:"ext_tables.sql";s:4:"1f95";s:27:"doc/class.tslib_fe.php.diff";s:4:"0083";s:14:"doc/manual.sxw";s:4:"17d4";s:45:"handlers/class.tx_dbal_handler_openoffice.php";s:4:"da73";s:43:"handlers/class.tx_dbal_handler_rawmysql.php";s:4:"6e90";s:40:"handlers/class.tx_dbal_handler_xmldb.php";s:4:"6f9e";s:14:"mod1/clear.gif";s:4:"cc11";s:13:"mod1/conf.php";s:4:"cf19";s:14:"mod1/index.php";s:4:"da6e";s:18:"mod1/locallang.xml";s:4:"0b57";s:22:"mod1/locallang_mod.xml";s:4:"86ef";s:19:"mod1/moduleicon.gif";s:4:"8074";}',
+	'version' => '1.0.2',
+	'_md5_values_when_last_written' => 'a:31:{s:9:"ChangeLog";s:4:"590a";s:26:"class.ux_db_list_extra.php";s:4:"7b9e";s:21:"class.ux_t3lib_db.php";s:4:"5057";s:28:"class.ux_t3lib_sqlparser.php";s:4:"d2cb";s:16:"ext_autoload.php";s:4:"821a";s:21:"ext_conf_template.txt";s:4:"f5cf";s:12:"ext_icon.gif";s:4:"c9ba";s:17:"ext_localconf.php";s:4:"5280";s:14:"ext_tables.php";s:4:"8414";s:14:"ext_tables.sql";s:4:"1f95";s:27:"doc/class.tslib_fe.php.diff";s:4:"0083";s:14:"doc/manual.sxw";s:4:"3d96";s:45:"handlers/class.tx_dbal_handler_openoffice.php";s:4:"d6c1";s:43:"handlers/class.tx_dbal_handler_rawmysql.php";s:4:"2f1b";s:40:"handlers/class.tx_dbal_handler_xmldb.php";s:4:"e363";s:31:"lib/class.tx_dbal_sqlengine.php";s:4:"66a9";s:33:"lib/class.tx_dbal_tsparserext.php";s:4:"ce12";s:14:"mod1/clear.gif";s:4:"cc11";s:13:"mod1/conf.php";s:4:"6e63";s:14:"mod1/index.php";s:4:"6944";s:18:"mod1/locallang.xml";s:4:"0b57";s:22:"mod1/locallang_mod.xml";s:4:"86ef";s:19:"mod1/moduleicon.gif";s:4:"2b8f";s:10:"res/README";s:4:"be19";s:43:"res/postgresql/postgresql-compatibility.sql";s:4:"5299";s:22:"tests/BaseTestCase.php";s:4:"8a4a";s:26:"tests/FakeDbConnection.php";s:4:"ed15";s:29:"tests/db_general_testcase.php";s:4:"aa70";s:28:"tests/db_oracle_testcase.php";s:4:"917f";s:36:"tests/sqlparser_general_testcase.php";s:4:"8e36";s:30:"tests/fixtures/oci8.config.php";s:4:"9ab9";}',
 	'constraints' => array(
 		'depends' => array(
-			'adodb' => '4.94.0-',
-			'php' => '5.1.0-0.0.0',
+			'adodb' => '5.10.0-',
+			'php' => '5.2.0-0.0.0',
 			'typo3' => '4.3.0-4.3.99',
 		),
 		'conflicts' => array(

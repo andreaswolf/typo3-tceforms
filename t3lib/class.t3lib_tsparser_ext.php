@@ -134,6 +134,7 @@ class t3lib_tsparser_ext extends t3lib_TStemplate	{
 		'ctable' => Array('Content: \'Table\'', 'mf'),
 		'cuploads' => Array('Content: \'Filelinks\'', 'mg'),
 		'cmultimedia' => Array('Content: \'Multimedia\'', 'mh'),
+		'cmedia' => Array('Content: \'Media\'', 'mr'),
 		'cmailform' => Array('Content: \'Form\'', 'mi'),
 		'csearch' => Array('Content: \'Search\'', 'mj'),
 		'clogin' => Array('Content: \'Login\'', 'mk'),
@@ -291,8 +292,9 @@ class t3lib_tsparser_ext extends t3lib_TStemplate	{
 		$constants->setup = $this->const;
 		$constants->setup = $this->mergeConstantsFromPageTSconfig($constants->setup);
 
-		$matchObj = t3lib_div::makeInstance('t3lib_matchCondition');
-		$matchObj->matchAll=1;		// Matches ALL conditions in TypoScript
+		/* @var $matchObj t3lib_matchCondition_frontend */
+		$matchObj = t3lib_div::makeInstance('t3lib_matchCondition_frontend');
+		$matchObj->setSimulateMatchResult(true);	// Matches ALL conditions in TypoScript
 
 		$c=0;
 		$cc=count($this->constants);

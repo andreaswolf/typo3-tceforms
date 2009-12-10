@@ -44,6 +44,18 @@
 
 /* General style */
 
+h2 {
+	font-size: 14px !important;
+}
+h3 {
+	font-size: 13px;
+	padding: 2px 0;
+	margin: 8px 0 10px;
+}
+h4 {
+	font-size: 12px;
+}
+
 th,
 td {
 	vertical-align: top;
@@ -70,7 +82,13 @@ select, textarea, input, td, body, .defstyle, p, div {
 	color: #212424;
 }
 
-textarea, input {
+/* Set cursor type */
+input, select, textarea {
+	cursor: default;
+}
+
+/* Format input elements */
+textarea, input[type="submit"], input[type="reset"], input[type="button"] {
 	border-top: 1px solid #838EA0;
 	border-left: 1px solid #838EA0;
 	border-right: 1px solid #545861;
@@ -78,18 +96,60 @@ textarea, input {
 	background-color: #FEFEFE;
 }
 
-textarea:hover, input:hover {
+textarea:hover, input[type="submit"]:hover, input[type="reset"]:hover, input[type="button"]:hover {
 	border-top: 1px solid #AAAAAA;
 	border-left: 1px solid #AAAAAA;
 	border-right: 1px solid #888888;
 	border-bottom: 1px solid #888888;
 }
 
-textarea:focus, input:focus {
+textarea:focus, input[type="submit"]:focus, input[type="reset"]:focus, input[type="button"]:focus {
 	border-top: 1px solid #999999;
 	border-left: 1px solid #999999;
 	border-right: 1px solid #777777;
 	border-bottom: 1px solid #777777;
+}
+
+/* Reformatting of the submit buttons */
+input[type="submit"], input[type="reset"], input[type="button"] {
+	border-top: none;
+	border-left: none;
+	border-right: none;
+	border-bottom: none;
+}
+
+input[type="submit"], input[type="reset"], input[type="button"] {
+	background-color: #c3c7ce;
+	background: url('../icons/gfx/bg_input_button.gif') repeat-x;
+	color: #333;
+	border: 1px solid #ACB3BE;
+	padding: 2px 4px 2px 4px;
+	cursor: pointer;
+}
+
+input[type="submit"]:hover, input[type="reset"]:hover, input[type="button"]:hover {
+	background: #c3c7ce url('../icons/gfx/bg_input_button_hover.gif') repeat-x;
+	color: #000;
+	border: 1px solid #737F91;
+	cursor: pointer;
+}
+
+/* Special treatment for searchfield on page */
+#typo3-dblist-search input[type="submit"] {
+	background: #c3c7ce url('../icons/gfx/bg_input_button.gif') repeat-x;
+	color: #333;
+	border: 1px solid #ACB3BE;
+	padding: 0 4px 2px 4px;
+	margin-left: 5px;
+	height: 19px;
+	cursor: pointer;
+}
+
+#typo3-dblist-search input[type="submit"]:hover {
+	background: #c3c7ce url('../icons/gfx/bg_input_button_hover.gif') repeat-x;
+	color: #000;
+	border: 1px solid #737F91;
+	cursor: pointer;
 }
 
 .checkbox,
@@ -97,6 +157,7 @@ textarea:focus, input:focus {
 input[type="checkbox"] {
 	border: none;
 	background: none;
+	cursor: pointer;
 }
 
 .checkbox,
@@ -151,8 +212,8 @@ h4 {
 
 /* Icons */
 .t3icon-ext-upload {
-	background: url('../icons/gfx/upload.gif') 1px 2px no-repeat !important;
+	background: url('../icons/gfx/upload.gif') 1px 1px no-repeat !important;
 }
 .t3icon-ext-cancel {
-	background: url('../icons/gfx/icon_fatalerror.gif') 1px 2px no-repeat !important;
+	background: url('../icons/gfx/icon_fatalerror.gif') 1px 1px no-repeat !important;
 }

@@ -266,6 +266,12 @@ class clickMenu {
 		if ($table=='pages' && in_array($uid,$GLOBALS['BE_USER']->returnWebmounts()))	{	// DB mount
 			$DBmount = TRUE;
 		}
+			// used to hide cut,copy icons for l10n-records
+		$l10nOverlay = false;
+			// should only be performed for overlay-records within the same table
+		if (t3lib_BEfunc::isTableLocalizable($table) && !isset($TCA[$table]['ctrl']['transOrigPointerTable'])) {
+			$l10nOverlay = intval($this->rec[$TCA[$table]['ctrl']['transOrigPointerField']]) != 0;
+		}
 
 			// If record found (or root), go ahead and fill the $menuItems array which will contain data for the elements to render.
 		if (is_array($this->rec) || $root)	{
@@ -297,9 +303,9 @@ class clickMenu {
 			$menuItems['spacer1']='spacer';
 
 				// Copy:
-			if(!in_array('copy',$this->disabledItems) && !$root && !$DBmount)	$menuItems['copy']=$this->DB_copycut($table,$uid,'copy');
+			if (!in_array('copy', $this->disabledItems) && !$root && !$DBmount && !$l10nOverlay)	$menuItems['copy'] = $this->DB_copycut($table, $uid, 'copy');
 				// Cut:
-			if(!in_array('cut',$this->disabledItems) && !$root && !$DBmount)	$menuItems['cut']=$this->DB_copycut($table,$uid,'cut');
+			if (!in_array('cut', $this->disabledItems) && !$root && !$DBmount && !$l10nOverlay)	$menuItems['cut'] = $this->DB_copycut($table, $uid, 'cut');
 
 				// Paste:
 			$elFromAllTables = count($this->clipObj->elFromTable(''));
@@ -727,7 +733,10 @@ class clickMenu {
 		$editOnClick='';
 		$loc='top.content'.($this->listFrame && !$this->alwaysContentFrame ?'.list_frame':'');
 		if($GLOBALS['BE_USER']->jsConfirmation(4))	{
-			$conf = "confirm(".$GLOBALS['LANG']->JScharCode(sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:mess.delete'),$elInfo[0]).t3lib_BEfunc::referenceCount($table,$uid,' (There are %s reference(s) to this record!)')).")";
+			$conf = "confirm(".$GLOBALS['LANG']->JScharCode(sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:mess.delete'),$elInfo[0]) .
+						t3lib_BEfunc::referenceCount($table,$uid,' (There are %s reference(s) to this record!)') .
+						t3lib_BEfunc::translationCount($table, $uid, ' ' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.translationsOfRecord'))
+					) . ")";
 		} else {
 			$conf = '1==1';
 		}

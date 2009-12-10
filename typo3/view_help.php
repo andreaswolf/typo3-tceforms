@@ -147,6 +147,10 @@ class SC_view_help {
 
 			// Setting GPvars:
 		$this->tfID = t3lib_div::_GP('tfID');
+			// Sanitizes the tfID using whitelisting.
+		if (!preg_match('/^[a-zA-Z0-9_\-\.\*]*$/', $this->tfID)) {
+			$this->tfID = '';
+		}
 		if (!$this->tfID) {
 			if (($this->ffID = t3lib_div::_GP('ffID'))) {
 				$this->ffID = unserialize(base64_decode($this->ffID));
@@ -444,7 +448,9 @@ class SC_view_help {
 				}
 			}
 
-			if (!strcmp($parts,''))	unset($parts[0]);
+			if (!$parts[0])	{
+				unset($parts[0]);
+			}
 			$output.= implode('<br />',$parts);
 		}
 
@@ -829,7 +835,7 @@ class SC_view_help {
 	 */
 	function substituteGlossaryWords($code) {
 		$htmlParser = t3lib_div::makeInstance('local_t3lib_parsehtml');
-		$htmlParser->pObj = &$this;
+		$htmlParser->pObj = $this;
 		$code = $htmlParser->HTMLcleaner($code, array(), 1);
 
 		return $code;

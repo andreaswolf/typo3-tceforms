@@ -205,9 +205,11 @@ class TYPO3backend {
 		 * now put the complete backend document together
 		 ******************************************************/
 
-		$GLOBALS['TBE_TEMPLATE']->loadScriptaculous('builder,effects,controls,dragdrop');
-		$GLOBALS['TBE_TEMPLATE']->loadExtJS();
-		
+		/** @var $pageRenderer t3lib_PageRenderer */
+		$pageRenderer = $GLOBALS['TBE_TEMPLATE']->getPageRenderer();
+		$pageRenderer->loadScriptaculous('builder,effects,controls,dragdrop');
+		$pageRenderer->loadExtJS();
+
 			// remove duplicate entries
 		$this->jsFiles = array_unique($this->jsFiles);
 
@@ -218,12 +220,12 @@ class TYPO3backend {
 		$GLOBALS['TBE_TEMPLATE']->JScode .= chr(10);
 		$this->generateJavascript();
 		$GLOBALS['TBE_TEMPLATE']->JScode .= $GLOBALS['TBE_TEMPLATE']->wrapScriptTags($this->js) . chr(10);
-		
+
 		foreach($this->jsFilesAfterInline as $jsFile) {
 			$GLOBALS['TBE_TEMPLATE']->JScode .= '
 			<script type="text/javascript" src="' . $jsFile . '"></script>';
 		}
-		
+
 
 			// FIXME abusing the JS container to add CSS, need to fix template.php
 		foreach($this->cssFiles as $cssFileName => $cssFile) {
@@ -281,7 +283,7 @@ class TYPO3backend {
 	}
 
 	/**
-	 * gets the label of the currently loged in BE user
+	 * Gets the label of the BE user currently logged in
 	 *
 	 * @return	string		html code snippet displaying the currently logged in user
 	 */
@@ -312,8 +314,9 @@ class TYPO3backend {
 			// superuser mode
 		if($BE_USER->user['ses_backuserid']) {
 			$username   = ' su-user">'.$icon.
-			'<span title="'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_misc.xml:switchtouser').'">SU: </span>'.
-			'<span>'.htmlspecialchars($label).'</span>';
+			'<span title="' . $GLOBALS['LANG']->getLL('switchtouser') . '">' .
+			$GLOBALS['LANG']->getLL('switchtousershort') . ' </span>' .
+			'<span>' . htmlspecialchars($label) . '</span>';
 		}
 
 		return '<div id="username" class="toolbar-item no-separator'.$username.'</div>';
@@ -339,11 +342,6 @@ class TYPO3backend {
 			$menuFrameName = 'topmenuFrame';
 		}
 
-		// create challenge for the (re)login form and save it in the session.
-		$challenge = md5(uniqid('').getmypid());
-		session_start();
-		$_SESSION['login_challenge'] = $challenge;
-
 		// determine security level from conf vars and default to super challenged
 		if ($GLOBALS['TYPO3_CONF_VARS']['BE']['loginSecurityLevel']) {
 			$this->loginSecurityLevel = $GLOBALS['TYPO3_CONF_VARS']['BE']['loginSecurityLevel'];
@@ -351,76 +349,83 @@ class TYPO3backend {
 			$this->loginSecurityLevel = 'superchallenged';
 		}
 
-		$this->js .= '
-	Ext.BLANK_IMAGE_URL = "' .
-				// t3lib_div::locationHeaderUrl() will include '/typo3/' in the URL
-				htmlspecialchars(t3lib_div::locationHeaderUrl('gfx/clear.gif')) .
-				'";
-	
+		$t3Configuration = array(
+			'siteUrl' => t3lib_div::getIndpEnv('TYPO3_SITE_URL'),
+			'PATH_typo3' => $pathTYPO3,
+			'PATH_typo3_enc' => rawurlencode($pathTYPO3),
+			'username' => htmlspecialchars($GLOBALS['BE_USER']->user['username']),
+			'uniqueID' => t3lib_div::shortMD5(uniqid('')),
+			'securityLevel' => $this->loginSecurityLevel,
+			'TYPO3_mainDir' => TYPO3_mainDir,
+			'pageModule' => $pageModule,
+			'condensedMode' => $GLOBALS['BE_USER']->uc['condensedMode'] ? 1 : 0 ,
+			'workspaceFrontendPreviewEnabled' => $GLOBALS['BE_USER']->workspace != 0 && !$GLOBALS['BE_USER']->user['workspace_preview'] ? 0 : 1,
+			'veriCode' => $GLOBALS['BE_USER']->veriCode(),
+			'denyFileTypes' => PHP_EXTENSIONS_DEFAULT,
+			'showRefreshLoginPopup' => isset($GLOBALS['TYPO3_CONF_VARS']['BE']['showRefreshLoginPopup']) ? intval($GLOBALS['TYPO3_CONF_VARS']['BE']['showRefreshLoginPopup']) : FALSE,
+		);
+		$t3LLLcore = array(
+			'waitTitle' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_logging_in') ,
+			'refresh_login_failed' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_failed'),
+			'refresh_login_failed_message' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_failed_message'),
+			'refresh_login_title' => sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_title'), htmlspecialchars($GLOBALS['BE_USER']->user['username'])),
+			'login_expired' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_expired'),
+			'refresh_login_username' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_username'),
+			'refresh_login_password' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_password'),
+			'refresh_login_emptyPassword' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_emptyPassword'),
+			'refresh_login_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_button'),
+			'refresh_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_logout_button'),
+			'please_wait' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.please_wait'),
+			'be_locked' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.be_locked'),
+			'refresh_login_countdown_singular' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown_singular'),
+			'refresh_login_countdown' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown'),
+			'login_about_to_expire' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_about_to_expire'),
+			'login_about_to_expire_title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_about_to_expire_title'),
+			'refresh_login_refresh_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_refresh_button'),
+			'refresh_direct_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_direct_logout_button'),
+		);
+		$t3LLLfileUpload = array(
+			'windowTitle' => $GLOBALS['LANG']->getLL('fileUpload_windowTitle'),
+			'buttonSelectFiles' => $GLOBALS['LANG']->getLL('fileUpload_buttonSelectFiles'),
+			'buttonCancelAll' => $GLOBALS['LANG']->getLL('fileUpload_buttonCancelAll'),
+			'infoComponentMaxFileSize' => $GLOBALS['LANG']->getLL('fileUpload_infoComponentMaxFileSize'),
+			'infoComponentFileUploadLimit' => $GLOBALS['LANG']->getLL('fileUpload_infoComponentFileUploadLimit'),
+			'infoComponentFileTypeLimit' => $GLOBALS['LANG']->getLL('fileUpload_infoComponentFileTypeLimit'),
+			'infoComponentOverrideFiles' => $GLOBALS['LANG']->getLL('fileUpload_infoComponentOverrideFiles'),
+	 		'processRunning' => $GLOBALS['LANG']->getLL('fileUpload_processRunning'),
+			'uploadWait' => $GLOBALS['LANG']->getLL('fileUpload_uploadWait'),
+			'uploadStarting' => $GLOBALS['LANG']->getLL('fileUpload_uploadStarting'),
+			'uploadProgress' => $GLOBALS['LANG']->getLL('fileUpload_uploadProgress'),
+			'uploadSuccess' => $GLOBALS['LANG']->getLL('fileUpload_uploadSuccess'),
+			'errorQueueLimitExceeded' => $GLOBALS['LANG']->getLL('fileUpload_errorQueueLimitExceeded'),
+			'errorQueueFileSizeLimit' => $GLOBALS['LANG']->getLL('fileUpload_errorQueueFileSizeLimit'),
+			'errorQueueZeroByteFile' =>  $GLOBALS['LANG']->getLL('fileUpload_errorQueueZeroByteFile'),
+			'errorQueueInvalidFiletype' => $GLOBALS['LANG']->getLL('fileUpload_errorQueueInvalidFiletype'),
+			'errorUploadHttp' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadHttp'),
+			'errorUploadMissingUrl' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadMissingUrl'),
+			'errorUploadIO' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadIO'),
+			'errorUploadSecurityError' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadSecurityError'),
+			'errorUploadLimit' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadLimit'),
+			'errorUploadFailed' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFailed'),
+			'errorUploadFileIDNotFound' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFileIDNotFound'),
+			'errorUploadFileValidation' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFileValidation'),
+			'errorUploadFileCancelled' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFileCancelled'),
+			'errorUploadStopped' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadStopped'),
+		);
 
-	TYPO3.configuration = ' . json_encode(array(
-		'siteUrl' => t3lib_div::getIndpEnv('TYPO3_SITE_URL'),
-		'PATH_typo3' => $pathTYPO3,
-		'PATH_typo3_enc' => rawurlencode($pathTYPO3),
-		'username' => htmlspecialchars($GLOBALS['BE_USER']->user['username']),
-		'uniqueID' => t3lib_div::shortMD5(uniqid('')),
-		'securityLevel' => $this->loginSecurityLevel,
-		'challenge' => $challenge,
-		'TYPO3_mainDir' => TYPO3_mainDir,
-		'pageModule' => $pageModule,
-		'condensedMode' => $GLOBALS['BE_USER']->uc['condensedMode'] ? 1 : 0 ,
-		'workspaceFrontendPreviewEnabled' => (($GLOBALS['BE_USER']->workspace != 0 && !$GLOBALS['BE_USER']->user['workspace_preview']) ? 'false' : 'true'),
-		'veriCode' => $GLOBALS['BE_USER']->veriCode(),
-		'denyFileTypes' => PHP_EXTENSIONS_DEFAULT,
-	)) . ';
-	TYPO3.LLL = { 
-			core : ' . json_encode(array(
-		'waitTitle' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_logging_in') ,
-		'refresh_login_failed' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_failed'),
-		'refresh_login_failed_message' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_failed_message'),
-		'refresh_login_title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_title'),
-		'login_expired' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_expired'),
-		'refresh_login_username' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_username'),
-		'refresh_login_password' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_password'),
-		'refresh_login_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_button'),
-		'refresh_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_logout_button'),
-		'please_wait' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.please_wait'),
-		'be_locked' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.be_locked'),
-		'refresh_login_countdown_singular' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown_singular'),
-		'refresh_login_countdown' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown'),
-		'login_about_to_expire' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_about_to_expire'),
-		'login_about_to_expire_title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_about_to_expire_title'),
-		'refresh_login_refresh_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_refresh_button'),
-		'refresh_direct_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_direct_logout_button'),        
-	)) . ',
-		fileUpload: ' . json_encode(array(
-			'windowTitle' => "File Upload Progress",
-			'buttonSelectFiles' => "Select Files",
-			'buttonCancelAll' => "Cancel All Uploads",
-			'infoComponentMaxFileSize' => "You can upload files with a maximum size of {0}.",
-			'infoComponentFileUploadLimit' => "You can upload a total of {0}.",
-			'infoComponentFileTypeLimit' => "You can upload the following file types {0}.",
-			'infoComponentOverrideFiles' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_misc.xml:overwriteExistingFiles', 1),
-	 		'processRunning' => "Another process is already uploading",
-			'uploadWait' => "Waiting to start upload of {0}",
-			'uploadStarting' => "Starting upload of {0}",
-			'uploadProgress' => "{0}% of {1} uploaded",
-			'uploadSuccess' => "{0} was successfully uploaded!",
-			'errorQueueLimitExceeded' => "Too many files selected",
-			'errorQueueFileSizeLimit' => "{0} is too big",
-			'errorQueueZeroByteFile' =>  "{0} is empty",
-			'errorQueueInvalidFiletype' => "Filetype not allowed for {0}",
-			'errorUploadHttp' => "Too many files selected",
-			'errorUploadMissingUrl' => "Internal error: No Upload URL set",
-			'errorUploadIO' => "Internal error: Problems while reading/writing the file",
-			'errorUploadSecurityError' => "Internal error: {0}",
-			'errorUploadLimit' => "Upload limit exceeded",
-			'errorUploadFailed' => "Upload failed",
-			'errorUploadFileIDNotFound' => "Internal error: File ID not found",
-			'errorUploadFileValidation' => "Internal error while validating the file",
-			'errorUploadFileCancelled' => "Upload of {0} canceled",
-			'errorUploadStopped' => "Upload of {0} stopped",
-		)) . '};
+			// Convert labels/settings back to UTF-8 since json_encode() only works with UTF-8:
+		if ($GLOBALS['LANG']->charSet !== 'utf-8') {
+			$t3Configuration['username'] = $GLOBALS['LANG']->csConvObj->conv($t3Configuration['username'], $GLOBALS['LANG']->charSet, 'utf-8');
+			$GLOBALS['LANG']->csConvObj->convArray($t3LLLcore, $GLOBALS['LANG']->charSet, 'utf-8');
+			$GLOBALS['LANG']->csConvObj->convArray($t3LLLfileUpload, $GLOBALS['LANG']->charSet, 'utf-8');
+		}
+
+		$this->js .= '
+	TYPO3.configuration = ' . json_encode($t3Configuration) . ';
+	TYPO3.LLL = {
+		core : ' . json_encode($t3LLLcore) . ',
+		fileUpload: ' . json_encode($t3LLLfileUpload) . '
+	};
 
 	/**
 	 * TypoSetup object.
@@ -438,7 +443,7 @@ class TYPO3backend {
 	var TS = new typoSetup();
 
 	var currentModuleLoaded = "";
-	var goToModule = ' . $goToModuleSwitch . '; 
+	var goToModule = ' . $goToModuleSwitch . ';
 
 	/**
 	 * Frameset Module object
@@ -545,7 +550,7 @@ class TYPO3backend {
 			});
 		}
 
-		startInModule(\''.$startModule.'\', false, \''.$moduleParameters.'\');
+		startInModule(\''.$startModule.'\', false, '.t3lib_div::quoteJSvalue($moduleParameters).');
 			';
 		}
 	}

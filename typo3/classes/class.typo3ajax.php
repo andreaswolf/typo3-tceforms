@@ -114,9 +114,9 @@ class TYPO3AJAX {
 		if (array_key_exists($key, $this->content)) {
 			$oldcontent = $this->content[$key];
 		}
-		if (!isset($content) || !strlen($content)) {
+		if (!isset($content) || empty($content)) {
 			unset($this->content[$key]);
-		} elseif (!isset($key) || !strlen($key)) {
+		} elseif (!isset($key) || empty($key)) {
 			$this->content[] = $content;
 		} else {
 			$this->content[$key] = $content;
@@ -142,7 +142,7 @@ class TYPO3AJAX {
 	 * @return	void
 	 */
 	public function setContentFormat($format) {
-		if (t3lib_div::inArray(array('plain', 'xml', 'json', 'jsonhead', 'jsonbody'), $format)) {
+		if (t3lib_div::inArray(array('plain', 'xml', 'json', 'jsonhead', 'jsonbody', 'javascript'), $format)) {
 			$this->contentFormat = $format;
 		}
 	}
@@ -186,6 +186,9 @@ class TYPO3AJAX {
 			case 'json':
 				$this->renderAsJSON();
 				break;
+			case 'javascript':
+				$this->renderAsJavascript();
+				break;
 			case 'xml':
 				$this->renderAsXML();
 				break;
@@ -203,6 +206,7 @@ class TYPO3AJAX {
 	 * @return	void
 	 */
 	protected function renderAsError() {
+		header(t3lib_utility_Http::HTTP_STATUS_500 . ' (AJAX)');
 		header('Content-type: text/xml; charset='.$this->charset);
 		header('X-JSON: false');
 		die('<t3err>'.htmlspecialchars($this->errorMessage).'</t3err>');
@@ -248,15 +252,46 @@ class TYPO3AJAX {
 	 * @return	void
 	 */
 	protected function renderAsJSON() {
+			// if the backend does not run in UTF-8 then we need to convert it to unicode as
+			// the json_encode method will return empty otherwise
+		if ($this->charset != $this->requestCharset) {
+			$GLOBALS['LANG']->csConvObj->convArray($this->content, $this->charset, $this->requestCharset);
+		}
+
 		$content = json_encode($this->content);
 
-		header('Content-type: application/json; charset='.$this->charset);
+		header('Content-type: application/json; charset='.$this->requestCharset);
 		header('X-JSON: '.($this->contentFormat != 'jsonbody' ? $content : true));
 
 			// bring content in xhr.responseText except when in "json head only" mode
 		if ($this->contentFormat != 'jsonhead') {
 			echo $content;
 		}
+	}
+
+	/**
+	 * Renders the AJAX call as inline JSON inside a script tag. This is useful
+	 * when an iframe is used as the AJAX transport.
+	 *
+	 * @return	 void
+	 */
+	protected function renderAsJavascript() {
+			// if the backend does not run in UTF-8 then we need to convert it to unicode as
+			// the json_encode method will return empty otherwise
+		if ($this->charset != $this->requestCharset) {
+			$GLOBALS['LANG']->csConvObj->convArray($this->content, $this->charset, $this->requestCharset);
+		}
+
+		$content = '<script type="text/javascript">
+					/*<![CDATA[*/
+
+					response = ' . json_encode($this->content) . ';
+
+					/*]]>*/
+					</script>';
+
+		header('Content-type: text/html; charset=' . $this->requestCharset);
+		echo $content;
 	}
 }
 

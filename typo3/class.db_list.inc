@@ -178,7 +178,7 @@ class recordList extends t3lib_recordList {
 		$this->counter=0;
 		$this->JScode='';
 		$this->HTMLcode='';
-        
+
 			// limits
 		if(isset($this->modTSconfig['properties']['itemsLimitPerTable'])) {
 			$this->itemsLimitPerTable = t3lib_div::intInRange(intval($this->modTSconfig['properties']['itemsLimitPerTable']), 1, 10000);
@@ -186,7 +186,7 @@ class recordList extends t3lib_recordList {
 		if(isset($this->modTSconfig['properties']['itemsLimitSingleTable'])) {
 			$this->itemsLimitSingleTable = t3lib_div::intInRange(intval($this->modTSconfig['properties']['itemsLimitSingleTable']), 1, 10000);
 		}
-		
+
 			// Set select levels:
 		$sL=intval($this->searchLevels);
 		$this->perms_clause = $GLOBALS['BE_USER']->getPagePermsClause(1);
@@ -212,7 +212,7 @@ class recordList extends t3lib_recordList {
 			$GLOBALS['BE_USER']->writeUC($GLOBALS['BE_USER']->uc);
 			if (t3lib_div::_GP('returnUrl')) {
 				$location = t3lib_div::_GP('returnUrl');
-				t3lib_div::redirect($location);
+				t3lib_utility_Http::redirect($location);
 			}
 		}
 
@@ -468,7 +468,7 @@ class recordList extends t3lib_recordList {
 		$hookObjectsArr = array();
 		if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list.inc']['makeQueryArray'])) {
 			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/class.db_list.inc']['makeQueryArray'] as $classRef) {
-				$hookObjectsArr[] = &t3lib_div::getUserObj($classRef);
+				$hookObjectsArr[] = t3lib_div::getUserObj($classRef);
 			}
 		}
 
@@ -819,8 +819,7 @@ class recordList extends t3lib_recordList {
 				$returnUrl = '&returnUrl='.rawurlencode($this->listURL());
 				$location = $GLOBALS['BACK_PATH'].'alt_doc.php?'.$params.$returnUrl;
 
-				header('Location: '.t3lib_div::locationHeaderUrl($location));
-				exit;
+				t3lib_utility_Http::redirect($location);
 			}
 		}
 	}

@@ -107,7 +107,10 @@
  * 		external_ref[tables][]=table/_ALL
  */
 
-
+unset($MCONF);
+require ('conf.php');
+require_once ($BACK_PATH.'init.php');
+require_once ($BACK_PATH.'template.php');
 $LANG->includeLLFile('EXT:impexp/app/locallang.php');
 require_once (t3lib_extMgm::extPath('impexp').'class.tx_impexp.php');
 
@@ -973,7 +976,7 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 		$presets = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
 						'*',
 						'tx_impexp_presets',
-						'(public>0 || user_uid='.intval($GLOBALS['BE_USER']->user['uid']).')'.
+						'(public>0 OR user_uid='.intval($GLOBALS['BE_USER']->user['uid']).')'.
 							($inData['pagetree']['id'] ? ' AND (item_uid='.intval($inData['pagetree']['id']).' OR item_uid=0)' : '')
 
 					);
@@ -1298,8 +1301,7 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 							$import->importData($this->id);
 							t3lib_BEfunc::getSetUpdateSignal('updatePageTree');
 						} else {
-							header('Location: '.t3lib_div::locationHeaderUrl($emURL));
-							exit;
+							t3lib_utility_Http::redirect($emURL);
 						}
 					}
 

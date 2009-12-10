@@ -772,14 +772,14 @@ class browse_links {
 		$this->doc = t3lib_div::makeInstance('template');
 		$this->doc->backPath = $GLOBALS['BACK_PATH'];
 			// Load the Prototype library and browse_links.js
-		$this->doc->loadPrototype();
+		$this->doc->getPageRenderer()->loadPrototype();
 		$this->doc->loadJavascriptLib('js/browse_links.js');
 
 			// init hook objects:
 		$this->hookObjects = array();
 		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/class.browse_links.php']['browseLinksHook'])) {
 			foreach($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/class.browse_links.php']['browseLinksHook'] as $classData) {
-				$processObject = &t3lib_div::getUserObj($classData);
+				$processObject = t3lib_div::getUserObj($classData);
 
 				if(!($processObject instanceof t3lib_browseLinksHook)) {
 					throw new UnexpectedValueException('$processObject must implement interface t3lib_browseLinksHook', 1195039394);

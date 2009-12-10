@@ -40,15 +40,29 @@ unset($MCONF);
 require('init.php');
 require('template.php');
 
-	// Find module path:
+// Find module path:
 $temp_M = (string)t3lib_div::_GET('M');
-if ($temp_path = $TBE_MODULES['_PATHS'][$temp_M])	{
-	$MCONF['_'] = 'mod.php?M='.rawurlencode($temp_M);
-	require($temp_path.'conf.php');
-	$BACK_PATH='';
-	require($temp_path.'index.php');
+$isDispatched = FALSE;
+
+if ($temp_path = $TBE_MODULES['_PATHS'][$temp_M]) {
+	$MCONF['_'] = 'mod.php?M=' . rawurlencode($temp_M);
+	require($temp_path . 'conf.php');
+	$BACK_PATH = '';
+	require($temp_path . 'index.php');
+	$isDispatched = TRUE;
 } else {
-	die('Value "'.htmlspecialchars($temp_M).'" for "M" was not found as a module');
+	if (is_array($TBE_MODULES['_dispatcher'])) {
+		foreach ($TBE_MODULES['_dispatcher'] as $dispatcherClassName) {
+			$dispatcher = t3lib_div::makeInstance($dispatcherClassName);
+			if ($dispatcher->callModule($temp_M) === TRUE) {
+				$isDispatched = TRUE;
+				break;
+			}
+		}
+	}
 }
 
+if ($isDispatched === FALSE) {
+	die('Value "' . htmlspecialchars($temp_M) . '" for "M" was not found as a module');
+}
 ?>

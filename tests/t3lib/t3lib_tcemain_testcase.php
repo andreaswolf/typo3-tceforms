@@ -36,17 +36,22 @@ require_once(PATH_t3lib . 'class.t3lib_tcemain.php');
  */
 class t3lib_tcemain_testcase extends tx_phpunit_testcase {
 	/**
+	 * @var	boolean
+	 */
+	protected $backupGlobals = true;
+
+	/**
 	 * @var t3lib_TCEmain
 	 */
 	private $fixture;
 
 	/**
-	 * @var t3lib_beUserAuth a simulated logged-in back-end user
+	 * @var t3lib_beUserAuth a mock logged-in back-end user
 	 */
 	private $backEndUser;
 
 	public function setUp() {
-		$this->backEndUser = $this->createBackEndUser();
+		$this->backEndUser = $this->getMock('t3lib_beUserAuth');
 
 		$this->fixture = new t3lib_TCEmain();
 		$this->fixture->start(array(), '', $this->backEndUser);
@@ -55,37 +60,6 @@ class t3lib_tcemain_testcase extends tx_phpunit_testcase {
 	public function tearDown() {
 		unset(
 			$this->fixture->BE_USER, $this->fixture, $this->backEndUser
-		);
-	}
-
-
-	//////////////////////
-	// Utility functions
-	//////////////////////
-
-	/**
-	 * Creates a back-end user.
-	 *
-	 * @return t3lib_beUserAuth a back-end user
-	 */
-	private function createBackEndUser() {
-		$user = new t3lib_beUserAuth();
-		$user->user = array();
-
-		return $user;
-	}
-
-
-	////////////////////////////////////
-	// Tests for the utility functions
-	////////////////////////////////////
-
-	/**
-	 * @test
-	 */
-	public function createBackEndUserCreatesBeUserAuthInstance() {
-		$this->assertTrue(
-			$this->createBackEndUser() instanceof t3lib_beUserAuth
 		);
 	}
 
@@ -197,5 +171,63 @@ class t3lib_tcemain_testcase extends tx_phpunit_testcase {
 		}
 	}
 
+
+	///////////////////////////////////////////
+	// Tests concerning checkModifyAccessList
+	///////////////////////////////////////////
+
+	/**
+	 * Tests whether a wrong interface on the 'checkModifyAccessList' hook throws an exception.
+	 * @test
+	 * @expectedException UnexpectedValueException
+	 * @see t3lib_TCEmain::checkModifyAccessList()
+	 */
+	public function doesCheckModifyAccessListThrowExceptionOnWrongHookInterface() {
+		$hookClass = uniqid('tx_coretest');
+		eval('class ' . $hookClass . ' {}');
+
+		$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['checkModifyAccessList'][] = $hookClass;
+
+		$this->fixture->checkModifyAccessList('tt_content');
+	}
+
+	/**
+	 * Tests whether the 'checkModifyAccessList' hook is called correctly.
+	 * @test
+	 * @see t3lib_TCEmain::checkModifyAccessList()
+	 */
+	public function doesCheckModifyAccessListHookGetsCalled() {
+		$hookClass = uniqid('tx_coretest');
+		$hookMock = $this->getMock(
+			't3lib_TCEmain_checkModifyAccessListHook',
+			array('checkModifyAccessList'),
+			array(),
+			$hookClass
+		);
+		$hookMock->expects($this->once())->method('checkModifyAccessList');
+
+		$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['checkModifyAccessList'][] = $hookClass;
+		$GLOBALS['T3_VAR']['getUserObj'][$hookClass] = $hookMock;
+
+		$this->fixture->checkModifyAccessList('tt_content');
+	}
+
+	/**
+	 * Tests whether the 'checkModifyAccessList' hook modifies the $accessAllowed variable.
+	 * @test
+	 * @see t3lib_TCEmain::checkModifyAccessList()
+	 */
+	public function doesCheckModifyAccessListHookModifyAccessAllowed() {
+		$hookClass = uniqid('tx_coretest');
+		eval('
+			class ' . $hookClass . ' implements t3lib_TCEmain_checkModifyAccessListHook {
+				public function checkModifyAccessList(&$accessAllowed, $table, t3lib_TCEmain $parent) { $accessAllowed = true; }
+			}
+		');
+
+		$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['checkModifyAccessList'][] = $hookClass;
+
+		$this->assertTrue($this->fixture->checkModifyAccessList('tt_content'));
+	}
 }
 ?>

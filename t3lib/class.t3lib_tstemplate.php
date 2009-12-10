@@ -262,18 +262,26 @@ class t3lib_TStemplate	{
 	 */
 	function getCurrentPageData() {
 		$currentPageData = false;
-		$pageSectionCache = $GLOBALS['typo3CacheManager']->getCache('cache_pagesection');
-		/* @var $pageSectionCache t3lib_cache_AbstractCache */
+		if (TYPO3_UseCachingFramework) {
+			$pageSectionCache = $GLOBALS['typo3CacheManager']->getCache('cache_pagesection');
+			/* @var $pageSectionCache t3lib_cache_AbstractCache */
 
-		$cacheEntry = $pageSectionCache->get(
-			intval($GLOBALS['TSFE']->id) . '_' . t3lib_div::md5int($GLOBALS['TSFE']->MP)
-		);
+			$cacheEntry = $pageSectionCache->get(
+				intval($GLOBALS['TSFE']->id) . '_' . t3lib_div::md5int($GLOBALS['TSFE']->MP)
+			);
 
-		if ($cacheEntry) {
-			$currentPageData = unserialize($cacheEntry);
+			if ($cacheEntry) {
+				$currentPageData = unserialize($cacheEntry);
+			}
+		} else {
+			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				'content', 'cache_pagesection', 'page_id='.intval($GLOBALS['TSFE']->id).' AND mpvar_hash='.t3lib_div::md5int($GLOBALS['TSFE']->MP));
+			if ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
+				$currentPageData = unserialize($row['content']);
+			}
 		}
 
-		return $currentPageData;	// 2008-02-03 / Stucki: Notice that $this->currentPageData is not used anymore!
+		return $currentPageData;
 	}
 
 	/**
@@ -285,8 +293,9 @@ class t3lib_TStemplate	{
 	 */
 	function matching($cc)	{
 		if (is_array($cc['all']))	{
-			$matchObj = t3lib_div::makeInstance('t3lib_matchCondition');
-			$matchObj->altRootLine=$cc['rootLine'];
+			/* @var $matchObj t3lib_matchCondition_frontend */
+			$matchObj = t3lib_div::makeInstance('t3lib_matchCondition_frontend');
+			$matchObj->setRootline((array)$cc['rootLine']);
 			foreach ($cc['all'] as $key => $pre) {
 				if ($matchObj->match($pre))	{
 					$sectionsMatch[$key]=$pre;
@@ -400,20 +409,30 @@ class t3lib_TStemplate	{
 			unset($cc['match']);
 
 			if (!$isCached && !$this->simulationHiddenOrTime && !$GLOBALS['TSFE']->no_cache) {	// Only save the data if we're not simulating by hidden/starttime/endtime
-				$pageSectionCache = $GLOBALS['typo3CacheManager']->getCache('cache_pagesection');
-				/* @var $pageSectionCache t3lib_cache_AbstractCache */
-
 				$mpvarHash = t3lib_div::md5int($GLOBALS['TSFE']->MP);
-
-				$pageSectionCache->set(
-					intval($GLOBALS['TSFE']->id) . '_' . $mpvarHash,
-					serialize($cc),
-					array(
-						'pageId_' . intval($GLOBALS['TSFE']->id),
-						'mpvarHash_' . $mpvarHash
-					)
-				);
-
+				if (TYPO3_UseCachingFramework) {
+					$pageSectionCache = $GLOBALS['typo3CacheManager']->getCache('cache_pagesection');
+					/* @var $pageSectionCache t3lib_cache_AbstractCache */
+					$pageSectionCache->set(
+						intval($GLOBALS['TSFE']->id) . '_' . $mpvarHash,
+						serialize($cc),
+						array(
+							'pageId_' . intval($GLOBALS['TSFE']->id),
+							'mpvarHash_' . $mpvarHash
+						)
+					);
+				} else {
+					$dbFields = array(
+						'content' => serialize($cc),
+						'tstamp' => $GLOBALS['EXEC_TIME']
+					);
+					$GLOBALS['TYPO3_DB']->exec_UPDATEquery('cache_pagesection', 'page_id=' . intval($GLOBALS['TSFE']->id) . ' AND mpvar_hash=' . $mpvarHash, $dbFields);
+					if ($GLOBALS['TYPO3_DB']->sql_affected_rows() == 0) {
+						$dbFields['page_id'] = intval($GLOBALS['TSFE']->id);
+						$dbFields['mpvar_hash'] = $mpvarHash;
+						$GLOBALS['TYPO3_DB']->exec_INSERTquery('cache_pagesection', $dbFields);
+					}
+				}
 			}
 				// If everything OK.
 			if ($this->rootId && $this->rootLine && $this->setup)	{
@@ -491,6 +510,7 @@ class t3lib_TStemplate	{
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
 			$this->rootLine[] = $this->absoluteRootLine[$a];
 		}
+		$this->procesIncludes();
 	}
 
 	/**
@@ -791,9 +811,11 @@ class t3lib_TStemplate	{
 		$constants->breakPointLN=intval($this->ext_constants_BRP);
 		$constants->setup = $this->const;
 		$constants->setup = $this->mergeConstantsFromPageTSconfig($constants->setup);
-		$matchObj = t3lib_div::makeInstance('t3lib_matchCondition');
-		$matchObj->matchAlternative = $this->matchAlternative;
-		$matchObj->matchAll = $this->matchAll;		// Matches ALL conditions in TypoScript
+
+		/* @var $matchObj t3lib_matchCondition_frontend */
+		$matchObj = t3lib_div::makeInstance('t3lib_matchCondition_frontend');
+		$matchObj->setSimulateMatchConditions($this->matchAlternative);
+		$matchObj->setSimulateMatchResult((bool)$this->matchAll);
 
 			// Traverse constants text fields and parse them
 		foreach($this->constants as $str)	{
@@ -1237,10 +1259,12 @@ class t3lib_TStemplate	{
 	 * @param	string		Property name in the menu array
 	 * @param	array		Menu array to traverse
 	 * @return	array		Modified menu array
-	 * @deprecated since TYPO3 3.6
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5.
 	 * @internal
 	 */
 	function checkFile($name,$menuArr)	{
+		t3lib_div::logDeprecatedFunction();
+
 		reset ($menuArr);
 		while (list($aKey,)=each($menuArr))	{
 			$menuArr[$aKey][$name] = $this->getFileName($menuArr[$aKey][$name]);
@@ -1331,7 +1355,7 @@ class t3lib_TStemplate	{
 		$setupArrKeys = array_keys($setupArr);
 		foreach ($setupArrKeys as $key) {
 			if ($acceptOnlyProperties || t3lib_div::testInt($key)) {
-				$keyArr[] = $key;
+				$keyArr[] = intval($key);
 			}
 		}
 		$keyArr = array_unique($keyArr);
@@ -1383,10 +1407,11 @@ class t3lib_TStemplate	{
 	 * @param	array		Array with overriding values for the $page array.
 	 * @param	string		Additional URL parameters to set in the URL. Syntax is "&foo=bar&foo2=bar2" etc. Also used internally to add parameters if needed.
 	 * @param	string		If you set this value to something else than a blank string, then the typeNumber used in the link will be forced to this value. Normally the typeNum is based on the target set OR on $GLOBALS['TSFE']->config['config']['forceTypeValue'] if found.
+	 * @param	string		The target Doamin, if any was detected in typolink
 	 * @return	array		Contains keys like "totalURL", "url", "sectionIndex", "linkVars", "no_cache", "type", "target" of which "totalURL" is normally the value you would use while the other keys contains various parts that was used to construct "totalURL"
 	 * @see tslib_frameset::frameParams(), tslib_cObj::typoLink(), tslib_cObj::SEARCHRESULT(), TSpagegen::pagegenInit(), tslib_menu::link()
 	 */
-	function linkData($page,$oTarget,$no_cache,$script,$overrideArray='',$addParams='',$typeOverride='')	{
+	function linkData($page, $oTarget, $no_cache, $script, $overrideArray='', $addParams='', $typeOverride='', $targetDomain='') {
 		global $TYPO3_CONF_VARS;
 
 		$LD = Array();
@@ -1461,7 +1486,7 @@ class t3lib_TStemplate	{
 		if (is_array($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tstemplate.php']['linkData-PostProc']))	{
 			$_params = array(
 							'LD' => &$LD,
-							'args' => array('page'=>$page, 'oTarget'=>$oTarget, 'no_cache'=>$no_cache, 'script'=>$script, 'overrideArray'=>$overrideArray, 'addParams'=>$addParams, 'typeOverride'=>$typeOverride),
+							'args' => array('page'=>$page, 'oTarget'=>$oTarget, 'no_cache'=>$no_cache, 'script'=>$script, 'overrideArray'=>$overrideArray, 'addParams'=>$addParams, 'typeOverride'=>$typeOverride,'targetDomain'=>$targetDomain),
 							'typeNum' => $typeNum
 						);
 			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tstemplate.php']['linkData-PostProc'] as $_funcRef)	{

@@ -29,7 +29,7 @@
  * Contains the update class for the split of css styled content templates. Used by the update wizard in the install tool.
  *
  * @author Susanne Moog <typo3@susanne-moog.de>
- * @version $Id: $
+ * @version $Id$
  */
 class tx_coreupdates_cscsplit {
 
@@ -152,7 +152,7 @@ class tx_coreupdates_cscsplit {
 	/**
 	 * updates the template records to include the new css styled content templates, according to the current compat version
 	 *
-	 * @param	array		template records to update, fetched by getTemplates() and filtered by 
+	 * @param	array		template records to update, fetched by getTemplates() and filtered by
 	 * @param	array		pointer where to insert all DB queries made, so they can be shown to the user if wanted
 	 * @param	string		pointer to output custom messages
 	 */

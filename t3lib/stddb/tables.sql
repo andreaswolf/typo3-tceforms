@@ -124,14 +124,41 @@ CREATE TABLE cache_extensions (
 #
 CREATE TABLE cache_hash (
   id int(11) unsigned NOT NULL auto_increment,
-  identifier varchar(250) DEFAULT '' NOT NULL,
+  hash varchar(32) DEFAULT '' NOT NULL,
+  content mediumblob,
+  tstamp int(11) unsigned DEFAULT '0' NOT NULL,
+  ident varchar(32) DEFAULT '' NOT NULL,
+  PRIMARY KEY (id),
+  KEY hash (hash)
+) ENGINE=InnoDB;
+
+
+#
+# Table structure for table 'cachingframework_cache_hash'
+#
+CREATE TABLE cachingframework_cache_hash (
+  id int(11) unsigned NOT NULL auto_increment,
+  identifier varchar(128) DEFAULT '' NOT NULL,
   crdate int(11) unsigned DEFAULT '0' NOT NULL,
   content mediumtext,
-  tags mediumtext,
   lifetime int(11) unsigned DEFAULT '0' NOT NULL,
   PRIMARY KEY (id),
   KEY cache_id (identifier)
 ) ENGINE=InnoDB;
+
+
+#
+# Table structure for table 'cachingframework_cache_hash_tags'
+#
+CREATE TABLE cachingframework_cache_hash_tags (
+  id int(11) unsigned NOT NULL auto_increment,
+  identifier varchar(128) DEFAULT '' NOT NULL,
+  tag varchar(128) DEFAULT '' NOT NULL,
+  PRIMARY KEY (id),
+  KEY cache_id (identifier),
+  KEY cache_tag (tag)
+) ENGINE=InnoDB;
+
 
 #
 # Table structure for table 'cache_imagesizes'
@@ -185,6 +212,18 @@ CREATE TABLE pages (
   PRIMARY KEY (uid),
   KEY t3ver_oid (t3ver_oid,t3ver_wsid),
   KEY parent (pid,sorting,deleted,hidden)
+);
+
+#
+# Table structure for table 'sys_registry'
+#
+CREATE TABLE sys_registry (
+  uid int(11) unsigned NOT NULL auto_increment,
+  entry_namespace varchar(128) DEFAULT '' NOT NULL,
+  entry_key varchar(128) DEFAULT '' NOT NULL,
+  entry_value blob,
+  PRIMARY KEY (uid),
+  UNIQUE KEY entry_identifier (entry_namespace,entry_key)
 );
 
 #
@@ -315,11 +354,11 @@ CREATE TABLE sys_refindex (
   PRIMARY KEY (hash),
   KEY lookup_rec (tablename,recuid),
   KEY lookup_uid (ref_table,ref_uid),
-  KEY lookup_string (ref_table,ref_string)
+  KEY lookup_string (ref_string)
 );
 
 #
-# Table structure for table ''
+# Table structure for table 'sys_refindex_words'
 #
 CREATE TABLE sys_refindex_words (
   wid int(11) DEFAULT '0' NOT NULL,
@@ -328,7 +367,7 @@ CREATE TABLE sys_refindex_words (
 );
 
 #
-# Table structure for table ''
+# Table structure for table 'sys_refindex_rel'
 #
 CREATE TABLE sys_refindex_rel (
   rid int(11) DEFAULT '0' NOT NULL,
@@ -338,7 +377,7 @@ CREATE TABLE sys_refindex_rel (
 
 
 #
-# Table structure for table ''
+# Table structure for table 'sys_refindex_res'
 #
 CREATE TABLE sys_refindex_res (
   rid int(11) DEFAULT '0' NOT NULL,

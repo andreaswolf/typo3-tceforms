@@ -40,7 +40,16 @@
 // Insert some security here, if you don't trust the Install Tool Password:
 // **************************************************************************
 
+<<<<<<< HEAD
 error_reporting (E_ALL ^ E_DEPRECATED ^ E_NOTICE);
+=======
+if (defined('E_DEPRECATED')) {
+	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
+} else {
+	error_reporting(E_ALL ^ E_NOTICE);
+}
+
+>>>>>>> trunk
 $PATH_thisScript = str_replace('//','/', str_replace('\\','/', (PHP_SAPI=='cgi'||PHP_SAPI=='isapi' ||PHP_SAPI=='cgi-fcgi')&&($_SERVER['ORIG_PATH_TRANSLATED']?$_SERVER['ORIG_PATH_TRANSLATED']:$_SERVER['PATH_TRANSLATED'])? ($_SERVER['ORIG_PATH_TRANSLATED']?$_SERVER['ORIG_PATH_TRANSLATED']:$_SERVER['PATH_TRANSLATED']):($_SERVER['ORIG_SCRIPT_FILENAME']?$_SERVER['ORIG_SCRIPT_FILENAME']:$_SERVER['SCRIPT_FILENAME'])));
 
 	// Only allow Install Tool access if the file "typo3conf/ENABLE_INSTALL_TOOL" is found
@@ -57,7 +66,7 @@ if (is_file($enableInstallToolFile) && (time() - filemtime($enableInstallToolFil
 }
 
 	// Change 1==2 to 1==1 if you want to lock the Install Tool regardless of the file ENABLE_INSTALL_TOOL
-if (1==2 || ($_SERVER['REMOTE_ADDR']!='127.0.0.1' && !is_file($enableInstallToolFile))) {
+if (1==2 || !is_file($enableInstallToolFile)) {
 	die(nl2br('<strong>The Install Tool is locked.</strong>
 
 		Fix: Create a file typo3conf/ENABLE_INSTALL_TOOL

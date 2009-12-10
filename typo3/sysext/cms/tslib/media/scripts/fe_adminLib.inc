@@ -757,7 +757,7 @@ class user_feAdmin	{
 	function userProcess($mConfKey,$passVar)	{
 		if ($this->conf[$mConfKey])	{
 			$funcConf = $this->conf[$mConfKey.'.'];
-			$funcConf['parentObj']=&$this;
+			$funcConf['parentObj'] = $this;
 			$passVar = $GLOBALS['TSFE']->cObj->callUserFunction($this->conf[$mConfKey], $funcConf, $passVar);
 		}
 		return $passVar;
@@ -775,7 +775,7 @@ class user_feAdmin	{
 	function userProcess_alt($confVal,$confArr,$passVar)	{
 		if ($confVal)	{
 			$funcConf = $confArr;
-			$funcConf['parentObj']=&$this;
+			$funcConf['parentObj'] = $this;
 			$passVar = $GLOBALS['TSFE']->cObj->callUserFunction($confVal, $funcConf, $passVar);
 		}
 		return $passVar;
@@ -996,6 +996,10 @@ class user_feAdmin	{
 			$templateCode = $this->removeRequired($templateCode,$failure);
 			$this->setCObjects($templateCode);
 
+			if (!is_array($this->dataArr)) {
+				$this->dataArr = array();
+			}
+			
 			$markerArray = $this->cObj->fillInMarkerArray($this->markerArray, $this->dataArr, '', TRUE, 'FIELD_', $this->recInMarkersHSC);
 			if ($this->conf['create.']['preview'] && !$this->previewLabel)	{$markerArray['###HIDDENFIELDS###'].= '<input type="hidden" name="preview" value="1" />';}
 			$content = $this->cObj->substituteMarkerArray($templateCode, $markerArray);

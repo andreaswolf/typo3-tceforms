@@ -133,7 +133,7 @@ class filelistFolderTree extends t3lib_folderTree {
 
 		$out = '
 			<!-- TYPO3 folder tree structure. -->
-			<ul class="tree">
+			<ul class="tree" id="treeRoot">
 		';
 		$titleLen=intval($this->BE_USER->uc['titleLen']);
 		if (!is_array($treeArr))	$treeArr=$this->tree;
@@ -406,6 +406,13 @@ class filelistFolderTree extends t3lib_folderTree {
 				$HTML = $this->PMicon($row,$a,$c,$nextCount,$exp);
 
 				$webpath = t3lib_BEfunc::getPathType_web_nonweb($path);
+
+				if (is_writable($path)) {
+					$type = '';
+				} else {
+					$type = 'readonly';
+				}
+
 				$icon = 'gfx/i/_icon_' .$webpath . 'folders' . ($type == 'readonly' ? '_ro' : '') . '.gif';
 				if ($val == '_temp_')	{
 					$icon = 'gfx/i/sysf.gif';
