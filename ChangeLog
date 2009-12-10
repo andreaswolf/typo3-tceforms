@@ -1,3 +1,37 @@
+2009-12-09  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #12682: Section links coming from RTE broken in FE
+
+2009-12-07  Steffen Kamper  <info@sk-typo3.de>
+
+	* Raised felogin version from 1.2.0 to 1.3.0
+	* Fixed bug #10327: [felogin] redirect does not work
+
+2009-12-06  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Follow-up to bug #12926: RTE floods BE Log with error messages from json_encode()
+
+2009-12-05  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #12930: htmlArea: Resizable RTE area
+	* Added feature #12943: htmlArea RTE: Configuring custom items in the block formatting drop-down list
+	* Fixed bug #12926: RTE floods BE Log with error messages from json_encode()
+
+2009-12-02  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #12899: Wrong usage of CDATA raise javascript error
+	* Fixed bug #12863: t3lib_cs::convArray converts integers to string
+
+2009-12-02  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #12852: Missing labels for CType header in New Content Wizard (Thanks to Uschi Renziehausen)
+	* Fixed bug #12847: 4.3.0 install tool incorrectly reports memory limit problem
+
+2009-11-30  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #12843: Mulitple tests of the t3lib_PageRenderer_testcase fail
+	* Fixed bug #12541: Unescaped & in urls of list module
+
 2009-11-30  Oliver Hader  <oliver@typo3.org>
 
 	* Branching TYPO3 4.3.0 to TYPO3_4-3
