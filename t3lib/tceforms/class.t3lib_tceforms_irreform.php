@@ -341,7 +341,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 			// This expresses the edit permissions for this particular element:
 		$permsEdit = ($isPagesTable && ($localCalcPerms&2)) || (!$isPagesTable && ($calcPerms&16));
 
-			// Controls: Defines which controls should be shown
+			// Defines which controls should be shown in header of each record:
 		$enabledControls = array(
 			'info'		=> true,
 			'new'		=> true,
@@ -351,6 +351,11 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 			'delete'	=> true,
 			'localize'	=> true,
 		);
+		if (isset($config['appearance']['enabledControls']) && is_array($config['appearance']['enabledControls'])) {
+			$config['appearance']['enabledControls'] = array_merge($enabledControls, $config['appearance']['enabledControls']);
+		} else {
+			$config['appearance']['enabledControls'] = $enabledControls;
+		}
 			// Hook: Can disable/enable single controls for specific child records:
 		/* TODO reenable this
 		foreach ($this->hookObjects as $hookObj) {
