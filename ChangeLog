@@ -1,3 +1,110 @@
+2010-01-05  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Added feature #13134: Support of SQL LOCATE function
+
+2010-01-05  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #12341: Image generation broken with PHPs safe_mode activated and GraphicsMagick (Thanks to Marcus Krause, Helmut Hummel and Bernhard Kraft)
+
+2010-01-04  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #13096: Unable to disable thumbnails with thumbnailsByDefault (Thanks to Steffen Gebert)
+	* Fixed bug #13118: Toggle empty tree produces JS error (Thanks to Felix Oertel)
+	* Fixed bug #12946: t3lib_div::readLLfile use debug output
+
+2010-01-04  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #12506: JSMENU does not respect mount point overlays (Thanks to Joerg Wagner)
+
+2010-01-03  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Added feature #13135: Support for CASE WHEN flow control
+
+2010-01-03  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #13095: Massuploader: Max file size is shown in KB (Thanks to Steffen Gebert)
+
+2009-12-30  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Raised DBAL version from 1.0.2 to 1.1.0
+
+2009-12-28  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #12855: t3lib/class.t3lib_page.php generates invalid queries for DBAL
+	* Fixed bug #13104: SQL parser cannot parse escaped single quote in INSERT statement
+
+2009-12-28  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Fixed bug #12909: Cleanup alt_intro and remove "You are logged in as user .." (Thanks to Georg Ringer)
+
+2009-12-26  Francois Suter  <francois@typo3.org>
+
+	* Fixed bug #13100: Scheduler: Undefined enableBELog configuration option causes warnings
+
+2009-12-26  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #12807: Bug: CSS issues with buttons (Recycler / File Mass Uploader) (Thanks to Andreas Kundoch and Helmut Hummel)
+
+2009-12-26  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13080: Uncheck function in tceforms unchecks too many items (Thanks to Georg Ringer)
+
+2009-12-25  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #5260: Function linkWrapFile() in file class.file_list.inc uses wrong PATH prefix
+
+2009-12-23  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #12987: List module: delete confirmation has extra ")" (Thanks to Steffen Gebert)
+	* Fixed bug #13059: overriden user settings are not visible to the user (Thanks to Georg Ringer)
+
+2009-12-21  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #12505: JSMENU's showActive is broken (Thanks to Joerg Wagner)
+
+2009-12-19  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13064: Deprecated function spliti for PHP5.3
+
+2009-12-18  Tobias Liebig  <mail_typo3@etobi.de>
+
+	* Fixed bug #12703: t3editor/codecompletion: parser error on opening brackets on the right side of an operator
+
+2009-12-18  Francois Suter  <francois@typo3.org>
+
+	* Fixed bug #12955: Missing -R option in chmod command in INSTALL.txt (thanks to Patrick Nussbaumer)
+
+2009-12-13  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13015: Available languages are ordered by name in english and not in selected language (thanks to Georg Ringer)
+	* Fixed bug #13003: Move back methods belonging to t3lib_sqlparser
+
+2009-12-12  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13021: Mistyping prevents the CSV-export of the _PATH_field in List-View (thanks to Mathias Gisch)
+
+2009-12-11  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #12782: htmlArea RTE: Editing a link title or target with Firefox 3 sometimes simply unlinks the link
+
+2009-12-11  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #12897: Cannot parse SQL hints
+
+2009-12-10  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #13004: htmlArea RTE: buttons.table.disableEnterParagraphs not honoured in Opera
+	* Fixed bug #13007: htmlArea RTE: Toggling insertlist buttons may freeze Safari/Chrome browsers
+	* Fixed bug #13008: htmlArea RTE: Ending a list may produce invalid xhtml in Safari/Chrome
+
+2009-12-10  Dmitry Dulepov  <dmitry.dulepov@gmail.com>
+
+	* Fixed bug #12959: cHashParams in index_phash is too small
+
+2009-12-10  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #12072: Permanent login checkbox is not shown as expected
+
 2009-12-09  Stanislas Rolland  <typo3@sjbr.ca>
 
 	* Fixed bug #12682: Section links coming from RTE broken in FE

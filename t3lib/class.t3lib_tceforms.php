@@ -1768,6 +1768,7 @@ class t3lib_TCEforms	{
 									</td>
 								</tr>';
 							$setAll = array();
+							$unSetAll = array();
 					}
 
 					$tRows[] = '
