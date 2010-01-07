@@ -319,7 +319,6 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	}
 
 	public function renderJavascriptAfterForm($formname='forms[0]') {
-		$jsFile = array();
 		$elements = array();
 
 		// TODO: use $this->formName instead (as soon as there are getters/setters for it
@@ -350,7 +349,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			}
 		//}
 
-		$javascriptFiles = $this->includeJavascriptFiles();
+		$this->includeJavascriptFiles();
 		$out .= $this->javascriptForUpdate($formname);
 
 		$this->addToTBE_EDITOR_fieldChanged_func('TBE_EDITOR.fieldChanged_fName(fName,formObj[fName+"_list"]);');
@@ -396,8 +395,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 			// Regular direct output:
 		if (!$update) {
-			$spacer = chr(10).chr(9);
-			$out  = $spacer.$javascriptFiles.t3lib_div::wrapJS($out);
+			$out  = chr(10) . chr(9) . t3lib_div::wrapJS($out);
 		}
 
 
@@ -470,19 +468,17 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			$jsFile[] =	'<script type="text/javascript" src="' . $this->backPath . 'md5.js"></script>';
 		}
 
-		$jsFile[] = '<script type="text/javascript" src="' . $this->backPath . 'contrib/prototype/prototype.js"></script>';
-		$jsFile[] = '<script type="text/javascript" src="' . $this->backPath . 'contrib/scriptaculous/scriptaculous.js"></script>';
-		$jsFile[] = '<script type="text/javascript" src="' . $this->backPath . '../t3lib/jsfunc.evalfield.js"></script>';
-		$jsFile[] = '<script type="text/javascript" src="' . $this->backPath . 'jsfunc.tbe_editor.js"></script>';
-		$jsFile[] = '<script type="text/javascript" src="' . $this->backPath . 'js/tceforms.js"></script>';
+		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('contrib/prototype/prototype.js');
+		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('contrib/scriptaculous/scriptaculous.js');
+		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('../t3lib/jsfunc.evalfield.js');
+		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('jsfunc.tbe_editor.js');
+		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('js/tceforms.js');
 
 			// if IRRE fields were processed, add the JavaScript functions:
 		if ($this->hasInlineElements()) {
-			$jsFile[] = '<script src="' . $this->backPath . 'contrib/scriptaculous/scriptaculous.js" type="text/javascript"></script>';
-			$jsFile[] = '<script src="' . $this->backPath . '../t3lib/jsfunc.inline.js" type="text/javascript"></script>';
+			$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('contrib/scriptaculous/scriptaculous.js');
+			$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('../t3lib/jsfunc.inline.js');
 		}
-
-		return implode(chr(10).chr(9), $jsFile);
 	}
 
 	/**
