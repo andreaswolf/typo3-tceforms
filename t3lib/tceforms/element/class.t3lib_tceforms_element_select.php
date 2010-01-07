@@ -207,6 +207,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 			$item.= '<input type="hidden" name="'.$this->itemFormElName.'_selIconVal" value="'.htmlspecialchars($sI).'" />';	// MUST be inserted before the selector - else is the value of the hiddenfield here mysteriously submitted...
 		}
 		$item.= '<select'.$selectedStyle.' name="'.$this->itemFormElName.'"'.
+					($config['iconsInOptionTags'] ? ' class="icon-select"' : '') .
 					$this->insertDefaultElementStyle('select').
 					($size?' size="'.$size.'"':'').
 					' onchange="'.htmlspecialchars($sOnChange).'"'.
