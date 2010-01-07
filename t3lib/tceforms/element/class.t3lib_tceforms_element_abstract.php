@@ -1603,7 +1603,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 							} else {
 								$assignValue = $this->elName($itemName).'.value=this.options[this.selectedIndex].value';
 							}
-							$sOnChange = $assignValue.';this.selectedIndex=0;'.implode('',$this->fieldChangeFunc);
+							$sOnChange = $assignValue.';this.blur();this.selectedIndex=0;'.implode('',$this->fieldChangeFunc);
 							$outArr[] = '<select name="_WIZARD'.$fName.'" onchange="'.htmlspecialchars($sOnChange).'">'.implode('',$opt).'</select>';
 						break;
 					}
