@@ -349,7 +349,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			}
 		//}
 
-		$this->includeJavascriptFiles();
+		$javaScriptFiles = $this->includeJavascriptFiles();
 		$out .= $this->javascriptForUpdate($formname);
 
 		$this->addToTBE_EDITOR_fieldChanged_func('TBE_EDITOR.fieldChanged_fName(fName,formObj[fName+"_list"]);');
@@ -395,7 +395,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 			// Regular direct output:
 		if (!$update) {
-			$out  = chr(10) . chr(9) . t3lib_div::wrapJS($out);
+			$spacer . implode($spacer, $jsFile);
+			$out  = $spacer . implode($spacer, $javaScriptFiles) . t3lib_div::wrapJS($out);
 		}
 
 
@@ -464,21 +465,26 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	}
 
 	protected function includeJavascriptFiles() {
+		$jsFile = array();
+
 		if ($this->loadMd5Javascript) {
 			$jsFile[] =	'<script type="text/javascript" src="' . $this->backPath . 'md5.js"></script>';
 		}
 
-		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('contrib/prototype/prototype.js');
-		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('contrib/scriptaculous/scriptaculous.js');
-		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('../t3lib/jsfunc.evalfield.js');
-		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('jsfunc.tbe_editor.js');
-		$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('js/tceforms.js');
+		$GLOBALS['SOBE']->loadJavascriptLib('contrib/prototype/prototype.js');
+		$GLOBALS['SOBE']->loadJavascriptLib('contrib/scriptaculous/scriptaculous.js');
+		$GLOBALS['SOBE']->loadJavascriptLib('../t3lib/jsfunc.evalfield.js');
+		// @TODO: Change to loadJavascriptLib(), but fix "TS = new typoScript()" issue first - see bug #9494
+		$jsFile[] = '<script type="text/javascript" src="'.$this->backPath.'jsfunc.tbe_editor.js"></script>';
+		$GLOBALS['SOBE']->loadJavascriptLib('js/tceforms.js');
 
 			// if IRRE fields were processed, add the JavaScript functions:
 		if ($this->hasInlineElements()) {
-			$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('contrib/scriptaculous/scriptaculous.js');
-			$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib('../t3lib/jsfunc.inline.js');
+			$GLOBALS['SOBE']->loadJavascriptLib('contrib/scriptaculous/scriptaculous.js');
+			$GLOBALS['SOBE']->loadJavascriptLib('../t3lib/jsfunc.inline.js');
 		}
+
+		return $jsFile;
 	}
 
 	/**
