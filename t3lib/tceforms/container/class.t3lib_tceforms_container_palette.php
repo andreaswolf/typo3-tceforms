@@ -84,7 +84,9 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 					$fieldParts = t3lib_div::trimExplode(';',$info);
 					$theField = $fieldParts[0];
 
-					if (!$this->recordObject->isExcludeElement($theField) && $this->recordObject->getTCAdefinitionForField($theField)) {
+					if ($theField === '--linebreak--') {
+						$parts[]['NAME'] = '--linebreak--';
+					} elseif (!$this->recordObject->isExcludeElement($theField) && $this->recordObject->getTCAdefinitionForField($theField)) {
 						$this->fieldArr[] = $theField;
 						$elem = $this->formBuilder->getSingleField($theField, $this->recordObject->getTCAdefinitionForField($theField), $fieldParts[1], $fieldParts[3]);
 
@@ -145,15 +147,26 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		$ccAttr4 = $this->colorScheme[4] ? ' style="color:'.$this->colorScheme[4].'"' : '';
 		$ccAttr4.= $this->classScheme[4] ? ' class="'.$this->classScheme[4].'"' : '';
 
+		$row = 0;
+		$hRow = $iRow = array();
+		$lastLineWasLinebreak = FALSE;
+
 			// Traverse palette fields and render them into table rows:
 		foreach($palArr as $content) {
-			$hRow[]='<td'.$ccAttr2.'>&nbsp;</td>
+			if ($content['NAME'] === '--linebreak--') {
+				if (!$lastLineWasLinebreak) {
+					$row++;
+					$lastLineWasLinebreak = TRUE;
+				}
+			} else {
+				$lastLineWasLinebreak = FALSE;
+				$hRow[$row][] = '<td' . $ccAttr2 . '>&nbsp;</td>
 					<td nowrap="nowrap"'.$ccAttr2.'>'.
 						'<span'.$ccAttr4.'>'.
 							$content['NAME'].
 						'</span>'.
 					'</td>';
-			$iRow[]='<td valign="top">'.
+				$iRow[$row][] = '<td valign="top">' .
 						'<img name="req_'.$content['TABLE'].'_'.$content['ID'].'_'.$content['FIELD'].'" src="clear.gif" class="t3-TCEforms-reqPaletteImg" alt="" />'.
 						'<img name="cm_'.$content['TABLE'].'_'.$content['ID'].'_'.$content['FIELD'].'" src="clear.gif" class="t3-TCEforms-contentchangedPaletteImg" alt="" />'.
 					'</td>
@@ -161,21 +174,25 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 						$content['ITEM'].
 						$content['HELP_ICON'].
 					'</td>';
+			}
 		}
 
 			// Final wrapping into the table:
-		$out='<table border="0" cellpadding="0" cellspacing="0" class="typo3-TCEforms-palette">
+		$out='<table border="0" cellpadding="0" cellspacing="0" class="typo3-TCEforms-palette">';
+		for ($i=0; $i<=$row; $i++) {
+			$out .= '
 			<tr>
 				<td><img src="clear.gif" width="'.intval($this->paletteMargin).'" height="1" alt="" /></td>'.
 					implode('
-				',$hRow).'
+					',$hRow[$i]).'
 			</tr>
 			<tr>
 				<td></td>'.
 					implode('
-				',$iRow).'
-			</tr>
-		</table>';
+					',$iRow[$i]).'
+			</tr>';
+		}
+		$out .= '</table>';
 
 		return $out;
 	}

@@ -1660,7 +1660,7 @@ class t3lib_TCEforms	{
 				// If there is an icon for the selector box (rendered in table under)...:
 			if ($p[2] && !$suppressIcons && (!$onlySelectedIconShown || $sM))	{
 				list($selIconFile,$selIconInfo)=$this->getIcon($p[2]);
-				$iOnClick = $this->elName($PA['itemFormElName']) . '.selectedIndex=' . $c . '; ' . 
+				$iOnClick = $this->elName($PA['itemFormElName']) . '.selectedIndex=' . $c . '; ' .
 					$this->elName($PA['itemFormElName']) . '.style.backgroundImage=' . $this->elName($PA['itemFormElName']) . '.options[' . $c .'].style.backgroundImage; ' .
 					implode('',$PA['fieldChangeFunc']).$this->blur().'return false;';
 				$selicons[]=array(
