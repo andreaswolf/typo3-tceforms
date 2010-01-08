@@ -1743,10 +1743,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * Return default "style" / "class" attribute line.
 	 *
 	 * @param	string		Field type (eg. "check", "radio", "select")
+	 * @param	string		Additional class(es) to be added
 	 * @return	string		CSS attributes
 	 */
 	// copied from t3lib_tceforms::insertDefStyle
-	public function insertDefaultElementStyle($type) {
+	public function insertDefaultElementStyle($type, $additionalClass = '') {
 		$out = '';
 
 		// TODO: replace $this->defStyle by access to defaultStyle in contextObject/formObject
@@ -1754,7 +1755,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$out .= $style ? ' style="' . htmlspecialchars($style) . '"' : '';
 
 		$class = $this->formElClass($type);
-		$out .= $class ? ' class="' . htmlspecialchars($class) . '"' : '';
+		$classAttributeValue = join(' ', array_filter(array($class, $additionalClass)));
+		$out .= $classAttributeValue ? ' class="' . htmlspecialchars($classAttributeValue) . '"' : '';
 
 		return $out;
 	}
