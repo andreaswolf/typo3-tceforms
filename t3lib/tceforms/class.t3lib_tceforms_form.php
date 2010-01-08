@@ -83,6 +83,13 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	protected $editFieldHelpMode;
 
 	/**
+	 * The page renderer object
+	 *
+	 * @var t3lib_PageRenderer
+	 */
+	protected $pageRenderer;
+
+	/**
 	 * Whether or not the RTE is enabled.
 	 *
 	 * @var boolean
@@ -154,6 +161,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	}
 
 	public function init() {
+		$this->pageRenderer = $GLOBALS['SOBE']->doc->getPageRenderer();
 	}
 
 	public function render() {
@@ -468,7 +476,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			'dateFormat'       => array('j-n-Y', 'G:i j-n-Y'),
 			'dateFormatUS'     => array('n-j-Y', 'G:i n-j-Y'),
 		);
-		$out .= $GLOBALS['SOBE']->doc->getPageRenderer()->addInlineSettingArray('', $typo3Settings);
+		$out .= $this->pageRenderer->addInlineSettingArray('', $typo3Settings);
 
 		return $out;
 	}
@@ -480,11 +488,9 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			$jsFile[] =	'<script type="text/javascript" src="' . $this->backPath . 'md5.js"></script>';
 		}
 
-		/** @var $pageRenderer t3lib_PageRenderer */
-		$pageRenderer = $GLOBALS['SOBE']->doc->getPageRenderer();
-		$pageRenderer->loadPrototype();
-		$pageRenderer->loadExtJS();
-		$pageRenderer->loadScriptaculous();
+		$this->pageRenderer->loadPrototype();
+		$this->pageRenderer->loadExtJS();
+		$this->pageRenderer->loadScriptaculous();
 		$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/jsfunc.evalfield.js');
 
 		if (!($GLOBALS['BE_USER']->uc['resizeTextareas'] == '0' && $GLOBALS['BE_USER']->uc['resizeTextareas_Flexible'] == '0')) {
@@ -496,7 +502,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			'textareaFlexible' => (!$GLOBALS['BE_USER']->uc['resizeTextareas_Flexible'] == '0'),
 			'textareaResize' => (!$GLOBALS['BE_USER']->uc['resizeTextareas'] == '0'),
 		);
-		$pageRenderer->addInlineSettingArray('', $resizableSettings);
+		$this->pageRenderer->addInlineSettingArray('', $resizableSettings);
 
 		// @TODO: Change to loadJavascriptLib(), but fix "TS = new typoScript()" issue first - see bug #9494
 		$jsFile[] = '<script type="text/javascript" src="'.$this->backPath.'jsfunc.tbe_editor.js"></script>';
