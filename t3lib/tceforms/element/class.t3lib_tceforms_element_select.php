@@ -274,6 +274,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 									</td>
 								</tr>';
 							$setAll = array();
+							$unSetAll = array();
 					}
 
 					$tRows[] = '
