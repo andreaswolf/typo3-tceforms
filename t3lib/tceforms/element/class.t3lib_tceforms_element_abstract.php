@@ -1647,7 +1647,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 						$dist = $dist ? '<td><img src="clear.gif" height="1" width="'.$dist.'" alt="" /></td>' : '';
 						$outStr = '<tr><td'.$vAlign.'>'.implode('</td>'.$dist.'<td'.$vAlign.'>',$outArr).'</td></tr>';
 					}
-					$outStr = '<table border="0" cellpadding="'.intval($wizConf['_PADDING']).'" cellspacing="0">'.$outStr.'</table>';
+					$outStr = '<table border="0" cellpadding="' . intval($wizConf['_PADDING']) . '" cellspacing="' . intval($wizConf['_PADDING']) . '">' . $outStr . '</table>';
 				} else {
 					$outStr = implode('',$outArr);
 				}
