@@ -316,7 +316,14 @@ class t3lib_TCEforms_Record {
 		if ($this->TCAdefinition['ctrl']['type']) {
 			$typeFieldName = $this->TCAdefinition['ctrl']['type'];
 				// Get value of the row from the record which contains the type value.
-			$this->typeNumber = $this->recordData[$typeFieldName];
+			$typeFieldConfig = $this->TCAdefinition['columns'][$typeFieldName];
+			if (isset($typeFieldConfig['l10n_mode']) && $typeFieldConfig['l10n_mode'] == 'exclude') {
+					// retrieve the typeNum from the original records's type field
+				$typeNum = $this->defaultLanguageData[$typeFieldName];
+			} else {
+					// Get value of the row from the record which contains the type value.
+				$this->typeNumber = $this->recordData[$typeFieldName];
+			}
 				// If that value is an empty string, set it to "0" (zero)
 			if (!strcmp($this->typeNumber,'')) $this->typeNumber = 0;
 		} else {
