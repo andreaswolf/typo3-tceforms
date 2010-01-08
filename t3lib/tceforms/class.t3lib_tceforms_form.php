@@ -504,8 +504,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		);
 		$this->pageRenderer->addInlineSettingArray('', $resizableSettings);
 
-		// @TODO: Change to loadJavascriptLib(), but fix "TS = new typoScript()" issue first - see bug #9494
-		$jsFile[] = '<script type="text/javascript" src="'.$this->backPath.'jsfunc.tbe_editor.js"></script>';
+		$GLOBALS['SOBE']->doc->loadJavascriptLib('jsfunc.tbe_editor.js');
 		$GLOBALS['SOBE']->doc->loadJavascriptLib('js/tceforms.js');
 		$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/js/extjs/tceforms.js');
 
