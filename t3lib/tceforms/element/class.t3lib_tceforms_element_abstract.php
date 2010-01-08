@@ -1637,7 +1637,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 				if ($wizConf['_HIDDENFIELD'])	$item = $itemKinds[1];
 
 				$outStr = '';
-				$vAlign = $wizConf['_VALIGN'] ? ' valign="'.$wizConf['_VALIGN'].'"' : '';
+				$vAlign = $wizConf['_VALIGN'] ? ' style="vertical-align:'.$wizConf['_VALIGN'].'"' : '';
 				if (count($outArr)>1 || $wizConf['_PADDING'])	{
 					$dist = intval($wizConf['_DISTANCE']);
 					if ($wizConf['_VERTICAL'])	{
