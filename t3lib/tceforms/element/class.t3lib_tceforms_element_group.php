@@ -27,6 +27,9 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 
 			// Acting according to either "file" or "db" type:
 		switch((string)$config['internal_type'])	{
+			case 'file_reference':
+				$config['uploadfolder'] = '';
+				// Fall through
 			case 'file':	// If the element is of the internal type "file":
 
 					// Creating string showing allowed types:
@@ -61,7 +64,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 						$rowCopy[$field] = $imgPath;
 
 							// Icon + clickmenu:
-						$absFilePath = t3lib_div::getFileAbsFileName($config['uploadfolder'].'/'.$imgPath);
+						$absFilePath = t3lib_div::getFileAbsFileName($config['uploadfolder'] ? $config['uploadfolder'] . '/' . $imgPath : $imgPath);
 
 						$fI = pathinfo($imgPath);
 						$fileIcon = t3lib_BEfunc::getFileIcon(strtolower($fI['extension']));
@@ -93,7 +96,9 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 
 				if(!$disabled && !(isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'upload'))) {
 						// Adding the upload field:
-					if ($this->TCEformsObject->edit_docModuleUpload)	$item.='<input type="file" name="'.$this->itemFormElName_file.'"'.$this->TCEformsObject->formWidth().' size="60" />';
+					if ($this->TCEformsObject->edit_docModuleUpload && $config['uploadfolder']) {
+						$item .= '<input type="file" name="'.$this->itemFormElName_file.'"'.$this->TCEformsObject->formWidth().' size="60" />';
+					}
 				}
 			break;
 			case 'folder':	// If the element is of the internal type "folder":
