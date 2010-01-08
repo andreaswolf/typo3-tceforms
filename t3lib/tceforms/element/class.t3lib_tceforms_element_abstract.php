@@ -1115,7 +1115,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$selIconInfo = @getimagesize(PATH_typo3.$icon);
 		} else {
 			$selIconFile = t3lib_iconWorks::skinImg($this->backPath,'gfx/'.$icon,'',1);
-			$selIconInfo = @getimagesize(PATH_typo3.$selIconFile);
+			$iconPath = substr($selIconFile, strlen($this->backPath));
+			$selIconInfo = @getimagesize(PATH_typo3 . $iconPath);
 		}
 		return array($selIconFile,$selIconInfo);
 	}
