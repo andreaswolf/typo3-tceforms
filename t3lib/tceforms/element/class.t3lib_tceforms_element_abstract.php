@@ -1492,9 +1492,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 			// traverse wizards:
 		if (is_array($wizConf) && !$this->disableWizards) {
+			$parametersOfWizards =& $specConf['wizards']['parameters'];
+
 			foreach($wizConf as $wid => $wConf) {
 				if (substr($wid,0,1)!='_'
-						&& (!$wConf['enableByTypeConfig'] || @in_array($wid,$specConf['wizards']['parameters']))
+						&& (!$wConf['enableByTypeConfig'] || (is_array($parametersOfWizards) && in_array($wid, $parametersOfWizards)))
 						&& ($RTE || !$wConf['RTEonly'])
 					)	{
 
