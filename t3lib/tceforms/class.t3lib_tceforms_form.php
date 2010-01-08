@@ -494,7 +494,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/jsfunc.evalfield.js');
 
 		if (!($GLOBALS['BE_USER']->uc['resizeTextareas'] == '0' && $GLOBALS['BE_USER']->uc['resizeTextareas_Flexible'] == '0')) {
-			$GLOBALS['SOBE']->doc->addStyleSheet('ext.resizable', $this->backPath . '../t3lib/js/extjs/ux/resize.css');
+			$GLOBALS['SOBE']->doc->addStyleSheet('ext.resizable', '../t3lib/js/extjs/ux/resize.css');
 			$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/js/extjs/ux/ext.resizable.js');
 		}
 		$resizableSettings = array(
