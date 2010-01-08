@@ -486,8 +486,10 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		$pageRenderer = $GLOBALS['SOBE']->doc->getPageRenderer();
 		$pageRenderer->loadPrototype();
 		$pageRenderer->loadExtJS();
+		$GLOBALS['SOBE']->doc->addStyleSheet('ext.resizable', $this->backPath . '../t3lib/js/extjs/ux/resize.css');
 		$pageRenderer->loadScriptaculous();
 		$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/jsfunc.evalfield.js');
+		$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/js/extjs/ux/ext.resizable.js');
 		// @TODO: Change to loadJavascriptLib(), but fix "TS = new typoScript()" issue first - see bug #9494
 		$jsFile[] = '<script type="text/javascript" src="'.$this->backPath.'jsfunc.tbe_editor.js"></script>';
 		$GLOBALS['SOBE']->doc->loadJavascriptLib('js/tceforms.js');
