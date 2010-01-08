@@ -521,6 +521,15 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 			} elseif (isset($this->fieldTSConfig['altLabels.'][$evalValue])) {
 				$tvP[1] = rawurlencode($this->sL($this->fieldTSConfig['altLabels.'][$evalValue]));
 			}
+			if ($tvP[1] == '') {
+					// Case: flexform, default values supplied, no label provided (bug #9795)
+				foreach ($selItems as $selItem) {
+					if ($selItem[1] == $tvP[0]) {
+						$tvP[1] = $selItem[0];
+						break;
+					}
+				}
+			}
 			$itemArray[$tk] = implode('|',$tvP);
 		}
 		$itemsToSelect = '';
