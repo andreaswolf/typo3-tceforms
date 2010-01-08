@@ -1321,7 +1321,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			// Create selector box of the options
 		$sSize = $params['autoSizeMax'] ? t3lib_div::intInRange($itemArrayC+1,t3lib_div::intInRange($params['size'],1),$params['autoSizeMax']) : $params['size'];
 		if (!$selector)	{
-			$selector = '<select ' . ($params['noList'] ? 'style="display: none"' : 'size="'.$sSize.'"'.$this->insertDefaultElementStyle('group')).' multiple="multiple" name="'.$fName.'_list" '.$onFocus.$params['style'].$disabled.'>'.implode('',$opt).'</select>';
+			$selector = '<select id="' . uniqid('tceforms-multiselect-') . '" ' . ($params['noList'] ? 'style="display: none"' : 'size="' . $sSize . '"' . $this->insertDefaultElementStyle('group', 'tceforms-multiselect')) . ' multiple="multiple" name="' . $fName.'_list" ' . $onFocus . $params['style'] . $disabled . '>' . implode('', $opt) . '</select>';
 		}
 
 
@@ -1616,7 +1616,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 								$assignValue = $this->elName($itemName).'.value=this.options[this.selectedIndex].value';
 							}
 							$sOnChange = $assignValue.';this.blur();this.selectedIndex=0;'.implode('',$this->fieldChangeFunc);
-							$outArr[] = '<select name="_WIZARD'.$fName.'" onchange="'.htmlspecialchars($sOnChange).'">'.implode('',$opt).'</select>';
+							$outArr[] = '<select id="' . uniqid('tceforms-select-') . '" class="tceforms-select tceforms-wizardselect" name="_WIZARD'.$fName.'" onchange="'.htmlspecialchars($sOnChange).'">'.implode('',$opt).'</select>';
 						break;
 					}
 

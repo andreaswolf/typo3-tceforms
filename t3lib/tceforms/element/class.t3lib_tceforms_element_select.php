@@ -209,9 +209,9 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		if(!$disabled) {
 			$item.= '<input type="hidden" name="'.$this->itemFormElName.'_selIconVal" value="'.htmlspecialchars($sI).'" />';	// MUST be inserted before the selector - else is the value of the hiddenfield here mysteriously submitted...
 		}
-		$item.= '<select'.$selectedStyle.' name="'.$this->itemFormElName.'"'.
+		$item.= '<select'.$selectedStyle.' id="' . uniqid('tceforms-select-') . '" name="'.$this->itemFormElName.'"'.
 					($config['iconsInOptionTags'] ? ' class="icon-select"' : '') .
-					$this->insertDefaultElementStyle('select').
+					$this->insertDefaultElementStyle('select', 'tceforms-multiselect').
 					($size?' size="'.$size.'"':'').
 					' onchange="'.htmlspecialchars($onChangeIcon . $sOnChange).'"'.
 					$this->onFocus.$disabled.'>';
@@ -438,8 +438,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		$selector_itemListStyle = isset($this->fieldConfig['config']['itemListStyle']) ? ' style="'.htmlspecialchars($this->fieldConfig['config']['itemListStyle']).'"' : ' style="'.$this->defaultMultipleSelectorStyle.'"';
 		$size = intval($this->fieldConfig['config']['size']);
 		$size = $this->fieldConfig['config']['autoSizeMax'] ? t3lib_div::intInRange(count($this->selectItems)+1,t3lib_div::intInRange($size,1),$this->fieldConfig['config']['autoSizeMax']) : $size;
-		$selectBox = '<select name="'.$this->itemFormElName.'[]"'.
-						$this->insertDefaultElementStyle('select').
+		$selectBox = '<select id="' . uniqid('tceforms-multiselect-') . '" name="'.$this->itemFormElName.'[]"'.
+						$this->insertDefaultElementStyle('select', 'tceforms-multiselect').
 						($size ? ' size="'.$size.'"' : '').
 						' multiple="multiple" onchange="'.htmlspecialchars($sOnChange).'"'.
 						$this->onFocus.
@@ -549,8 +549,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 			}
 			$sOnChange .= implode('',$this->fieldChangeFunc);
 			$itemsToSelect = '
-				<select name="'.$this->itemFormElName.'_sel"'.
-							$this->insertDefaultElementStyle('select').
+				<select id="' . uniqid('tceforms-multiselect-') . '" name="'.$this->itemFormElName.'_sel"'.
+							$this->insertDefaultElementStyle('select', 'tceforms-multiselect tceforms-itemstoselect').
 							($size ? ' size="'.$size.'"' : '').
 							' onchange="'.htmlspecialchars($sOnChange).'"'.
 							$this->onFocus.

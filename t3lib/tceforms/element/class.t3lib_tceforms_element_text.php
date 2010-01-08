@@ -107,9 +107,11 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 					$classes = array_merge($classes, explode(' ', $res[1]));
 				}
 
-				if (count($classes))	{
-					$class = ' class="'.implode(' ',$classes).'"';
-				} else $class='';
+				if (count($classes)) {
+					$class = ' class="tceforms-textarea '.implode(' ',$classes).'"';
+				} else {
+					$class='tceforms-textarea';
+				}
 
 				$evalList = t3lib_div::trimExplode(',',$config['eval'],1);
 				foreach ($evalList as $func) {
@@ -134,7 +136,7 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 
 				$iOnChange = implode('', $this->fieldChangeFunc);
 				$item.= '
-					<textarea name="' . $this->itemFormElName . '"' . $formWidthText.$class.' rows="'.$rows.'" wrap="'.$wrap.'" onchange="'.htmlspecialchars($iOnChange).'"'.$this->PA['onFocus'].'>'.
+					<textarea id="' . uniqid('tceforms-textarea-') . '" name="' . $this->itemFormElName . '"' . $formWidthText.$class.' rows="'.$rows.'" wrap="'.$wrap.'" onchange="'.htmlspecialchars($iOnChange).'"'.$this->PA['onFocus'].'>'.
 					t3lib_div::formatForTextarea($this->itemFormElValue).
 					'</textarea>';
 				$item = $this->renderWizards(array($item, $altItem), $config['wizards'], $this->itemFormElName, $specConf, $RTEwouldHaveBeenLoaded);
