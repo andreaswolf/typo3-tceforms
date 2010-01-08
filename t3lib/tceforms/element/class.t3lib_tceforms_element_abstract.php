@@ -407,7 +407,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$this->overrideFieldConf($this->fieldTSConfig);
 
 			// set field to read-only if configured for translated records to show default language content as readonly
-		if ($this->fieldConfig['l10n_display'] && t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly') && $this->record[$TCA[$this->table]['ctrl']['languageField']]) {
+		if ($this->fieldConfig['l10n_display'] && t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly') && $this->record[$TCA[$this->table]['ctrl']['languageField']] > 0) {
 			$this->fieldConfig['config']['readOnly'] =  true;
 			$this->itemFormElValue = $this->defaultLanguageData[$this->table.':'.$this->record['uid']][$this->field];
 		}
