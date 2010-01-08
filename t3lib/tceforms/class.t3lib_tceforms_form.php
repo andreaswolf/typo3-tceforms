@@ -462,6 +462,16 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		TBE_EDITOR.backend_interface = "' . $GLOBALS['BE_USER']->uc['interfaceSetup'] . '";
 		';
 
+	        // needed for tceform manipulation (date picker)
+		$typo3Settings = array(
+			'datePickerUSmode' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['USdateFormat'] ? 1 : 0,
+			'dateFormat'       => array('j-n-Y', 'G:i j-n-Y'),
+			'dateFormatUS'     => array('n-j-Y', 'G:i n-j-Y'),
+		);
+		$out .= '
+		Ext.ns("TYPO3");
+		TYPO3.settings = ' . json_encode($typo3Settings) . ';';
+
 		return $out;
 	}
 
@@ -475,6 +485,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		/** @var $pageRenderer t3lib_PageRenderer */
 		$pageRenderer = $GLOBALS['SOBE']->doc->getPageRenderer();
 		$pageRenderer->loadPrototype();
+		$pageRenderer->loadExtJS();
 		$pageRenderer->loadScriptaculous();
 		$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/jsfunc.evalfield.js');
 		// @TODO: Change to loadJavascriptLib(), but fix "TS = new typoScript()" issue first - see bug #9494

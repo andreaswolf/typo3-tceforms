@@ -12,13 +12,23 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 		$size = t3lib_div::intInRange($config['size'] ? $config['size'] : 30, 5, $this->maxInputWidth);
 		$evalList = t3lib_div::trimExplode(',',$config['eval'], TRUE);
 
+		$fieldAppendix = '';
+
 	        // cssclass and id will show the kind of field
 		if (in_array('date', $evalList)) {
 			$inputId = uniqid('tceforms-datefield-');
 			$cssClass = 'tceforms-textfield tceforms-datefield';
+			$fieldAppendix = '<img' . t3lib_iconWorks::skinImg(
+				$this->backPath, 'gfx/datepicker.gif', '', 0)
+				. ' style="cursor:pointer; vertical-align:middle;" alt=""'
+				. ' id="picker-' . $inputId . '" />';
 		} elseif (in_array('datetime', $evalList)) {
 			$inputId = uniqid('tceforms-datetimefield-');
 			$cssClass = 'tceforms-textfield tceforms-datetimefield';
+			$fieldAppendix = '<img' . t3lib_iconWorks::skinImg(
+				$this->backPath, 'gfx/datepicker.gif', '', 0)
+				. ' style="cursor:pointer; vertical-align:middle;" alt=""'
+				. ' id="picker-' . $inputId . '" />';
 		} elseif (in_array('timesec', $evalList)) {
 			$inputId = uniqid('tceforms-timesecfield-');
 			$cssClass = 'tceforms-textfield tceforms-timesecfield';
@@ -116,6 +126,7 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 			// This is the ACTUAL form field - values from the EDITABLE field must be transferred to
 			// this field which is the one that is written to the database.
 		$item.='<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
+		$item .= $fieldAppendix;
 
 		$this->contextObject->addToEvaluationJS('typo3form.fieldSet('.$this->paramsList.');');
 
