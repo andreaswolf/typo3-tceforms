@@ -264,7 +264,8 @@ function flexFormToggleSubs(id)	{	// Toggling sub flexform elements on/off:
     }
 }
 function flexFormSortable(id)	{	// Create sortables for flexform sections
-		Sortable.create(id, {tag:'div',constraint: false, onChange:function(){
+	Position.includeScrollOffsets = true;
+	Sortable.create(id, {tag:'div',constraint: false, onChange:function(){
 		setActionStatus(id);
 	} });
 }
