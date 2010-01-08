@@ -1020,16 +1020,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		    )
 		    || $force)
 		  ) {
-			$aOnClick = 'vHWin=window.open(\''.$this->backPath.'view_help.php?tfID='.($this->table.'.'.$this->field).'\',\'viewFieldHelp\',\'height=400,width=600,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;';
-
-			if ($this->contextObject->getEditFieldHelpMode() == 'icon') {
-				$text = t3lib_befunc::helpText($this->table, $this->field, $this->backPath, '');
-				$text = '<span class="typo3-csh-inline">'.$GLOBALS['LANG']->hscAndCharConv($text, false).'</span>';
-			}
-
-			return '<a class="typo3-csh-link" href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
-					'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/helpbubble.gif','width="14" height="14"').' hspace="2" border="0" class="absmiddle"'.($GLOBALS['CLIENT']['FORMSTYLE']?' style="cursor:help;"':'').' alt="" />'.$text.
-					'</a>';
+			return t3lib_BEfunc::helpTextIcon($table, $field, $this->backPath, $force);
 		} else {
 				// Detects fields with no CSH and outputs dummy line to insert into CSH locallang file:
 			return '<span class="nbsp">&nbsp;</span>';
