@@ -472,8 +472,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			$jsFile[] =	'<script type="text/javascript" src="' . $this->backPath . 'md5.js"></script>';
 		}
 
-		$GLOBALS['SOBE']->loadJavascriptLib('contrib/prototype/prototype.js');
-		$GLOBALS['SOBE']->loadJavascriptLib('contrib/scriptaculous/scriptaculous.js');
+		$GLOBALS['SOBE']->doc->loadPrototype();
+		$GLOBALS['SOBE']->doc->loadScriptaculous();
 		$GLOBALS['SOBE']->loadJavascriptLib('../t3lib/jsfunc.evalfield.js');
 		// @TODO: Change to loadJavascriptLib(), but fix "TS = new typoScript()" issue first - see bug #9494
 		$jsFile[] = '<script type="text/javascript" src="'.$this->backPath.'jsfunc.tbe_editor.js"></script>';
@@ -481,7 +481,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 			// if IRRE fields were processed, add the JavaScript functions:
 		if ($this->hasInlineElements()) {
-			$GLOBALS['SOBE']->loadJavascriptLib('contrib/scriptaculous/scriptaculous.js');
+			$GLOBALS['SOBE']->doc->loadScriptaculous();
 			$GLOBALS['SOBE']->loadJavascriptLib('../t3lib/jsfunc.inline.js');
 		}
 
