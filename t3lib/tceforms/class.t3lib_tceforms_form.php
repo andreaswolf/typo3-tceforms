@@ -468,9 +468,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			'dateFormat'       => array('j-n-Y', 'G:i j-n-Y'),
 			'dateFormatUS'     => array('n-j-Y', 'G:i n-j-Y'),
 		);
-		$out .= '
-		Ext.ns("TYPO3");
-		TYPO3.settings = ' . json_encode($typo3Settings) . ';';
+		$out .= $GLOBALS['SOBE']->doc->getPageRenderer()->addInlineSettingArray('', $typo3Settings);
 
 		return $out;
 	}
@@ -486,10 +484,20 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		$pageRenderer = $GLOBALS['SOBE']->doc->getPageRenderer();
 		$pageRenderer->loadPrototype();
 		$pageRenderer->loadExtJS();
-		$GLOBALS['SOBE']->doc->addStyleSheet('ext.resizable', $this->backPath . '../t3lib/js/extjs/ux/resize.css');
 		$pageRenderer->loadScriptaculous();
 		$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/jsfunc.evalfield.js');
-		$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/js/extjs/ux/ext.resizable.js');
+
+		if (!($GLOBALS['BE_USER']->uc['resizeTextareas'] == '0' && $GLOBALS['BE_USER']->uc['resizeTextareas_Flexible'] == '0')) {
+			$GLOBALS['SOBE']->doc->addStyleSheet('ext.resizable', $this->backPath . '../t3lib/js/extjs/ux/resize.css');
+			$GLOBALS['SOBE']->doc->loadJavascriptLib('../t3lib/js/extjs/ux/ext.resizable.js');
+		}
+		$resizableSettings = array(
+			'textareaMaxHeight' => $GLOBALS['BE_USER']->uc['resizeTextareas_MaxHeight'] >0 ? $GLOBALS['BE_USER']->uc['resizeTextareas_MaxHeight'] : '600',
+			'textareaFlexible' => (!$GLOBALS['BE_USER']->uc['resizeTextareas_Flexible'] == '0'),
+			'textareaResize' => (!$GLOBALS['BE_USER']->uc['resizeTextareas'] == '0'),
+		);
+		$pageRenderer->addInlineSettingArray('', $resizableSettings);
+
 		// @TODO: Change to loadJavascriptLib(), but fix "TS = new typoScript()" issue first - see bug #9494
 		$jsFile[] = '<script type="text/javascript" src="'.$this->backPath.'jsfunc.tbe_editor.js"></script>';
 		$GLOBALS['SOBE']->doc->loadJavascriptLib('js/tceforms.js');
