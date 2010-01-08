@@ -1686,26 +1686,54 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	function formWidth($size = 48, $textarea = 0) {
 
-			// Input or text-field attribute (size or cols)
+		$widthAndStyleAttributes = '';
+		$fieldWidthAndStyle = $this->formWidthAsArray($size, $textarea);
+
+		if (!$GLOBALS['CLIENT']['FORMSTYLE']) {
+				// If not setting the width by style-attribute
+			$widthAndStyleAttributes = ' ' . $fieldWidthAndStyle['width'];
+		} else {
+				// Setting width by style-attribute. 'cols' MUST be avoided with NN6+
+			$widthAndStyleAttributes = ' style="' . htmlspecialchars($fieldWidthAndStyle['style']) . '"';
+
+			if ($fieldWidthAndStyle['class']) {
+				$widthAndStyleAttributes .= ' class="' . htmlspecialchars($fieldWidthAndStyle['class']) . '"';
+			}
+		}
+
+		return $widthAndStyleAttributes;
+	}
+
+	/**
+	 * Returns parameters to set the width for a <input>/<textarea>-element
+	 *
+	 * @param       integer         The abstract size value (1-48)
+	 * @param       boolean         If set, calculates sizes for a text area.
+	 * @return      array           An array containing style, class, and width attributes.
+	 */
+    protected function formWidthAsArray($size = 48, $textarea = false) {
+		$fieldWidthAndStyle = array('style' => '', 'class' => '', 'width' => '');
+
 		if ($this->docLarge) {
 			$size = round($size * $this->form_largeComp);
 		}
-		$wAttrib = $textarea ? 'cols' : 'size';
-		if (!$GLOBALS['CLIENT']['FORMSTYLE']) {	// If not setting the width by style-attribute
-			$retVal = ' ' . $wAttrib . '="' . $size . '"';
+
+		$widthAttribute = $textarea ? 'cols' : 'size';
+		if (!$GLOBALS['CLIENT']['FORMSTYLE']) {
+				// If not setting the width by style-attribute
+			$fieldWidthAndStyle['width'] = $widthAttribute . '="' . $size . '"';
 		} else {
 				// Setting width by style-attribute. 'cols' MUST be avoided with NN6+
-			$pixels = ceil($size * $this->form_rowsToStylewidth);
-			$theStyle = 'width:' . $pixels . 'px;' . $this->defStyle . $this->formElStyle($textarea ? 'text' : 'input');
-			$retVal = ' style="'.htmlspecialchars($theStyle).'"';
+			$widthInPixels = ceil($size * $this->form_rowsToStylewidth);
+			$fieldWidthAndStyle['style'] = 'width: ' . $widthInPixels . 'px; '
+				. $this->defStyle
+				. $this->formElStyle($textarea ? 'text' : 'input');
 
-			$class = $this->formElClass($textarea ? 'text' : 'input');
-			if ($class) {
-				$retVal.= ' class="'.htmlspecialchars($class).'"';
-			}
+			$fieldWidthAndStyle['class'] = $this->formElClass($textarea ? 'text' : 'input');
 		}
-		return $retVal;
-	}
+
+		return $fieldWidthAndStyle;
+    }
 
 	/**
 	 * Returns parameters to set width for a textarea field
