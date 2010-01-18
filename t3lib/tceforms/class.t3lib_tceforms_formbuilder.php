@@ -13,12 +13,20 @@ class t3lib_TCEforms_FormBuilder {
 
 	protected $formFieldNamePrefix;
 
+	/**
+	 * The data structure the target record is based on
+	 *
+	 * @var unknown_type
+	 */
+	protected $dataStructure;
+
+
 	protected function __construct(t3lib_TCEforms_Record $recordObject) {
 		t3lib_div::devLog('Created new formbuilder object for record ' . $recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
 		$this->recordObject = $recordObject;
 		$this->contextObject = $recordObject->getContextObject();
-		$this->TCAdefinition = $recordObject->getTCAdefinitionForTable();
+		$this->dataStructure = $recordObject->getDataStructure();
 	}
 
 	public static function createInstanceForRecordObject(t3lib_TCEforms_Record $recordObject) {
@@ -59,16 +67,15 @@ class t3lib_TCEforms_FormBuilder {
 				$this->recordObject->addSheetObject($this->currentSheet);
 			} else {
 				if ($theField !== '') {
-					if ($this->TCAdefinition['columns'][$theField]) {
-						t3lib_div::devLog('Adding standard element for field "' . $theField . '" in record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
-
-						// TODO: Handle field configuration here.
-						$formFieldObject = $this->getSingleField($theField, $this->TCAdefinition['columns'][$theField], $parts[1], $parts[3]);
-
-					} elseif ($theField == '--palette--') {
+					if ($theField == '--palette--') {
 						t3lib_div::devLog('Adding palette element for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
 						$formFieldObject = $this->createPaletteElement($parts[2], $this->sL($parts[1]));
+					} elseif ($this->dataStructure->hasField($theField)) {
+						t3lib_div::devLog('Adding standard element for field "' . $theField . '" in record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
+
+						// TODO: Handle field configuration here.
+						$formFieldObject = $this->getSingleField($theField, $this->dataStructure->getFieldConfiguration($theField), $parts[1], $parts[3]);
 					} else {
 						// if this is no field, just continue with the next entry in the field list.
 						continue;
@@ -252,7 +259,7 @@ class t3lib_TCEforms_FormBuilder {
 	protected function resolveMainPalettes() {
 		t3lib_div::devLog('Building top-level palette elements for ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		$mainPalettesArray = t3lib_div::trimExplode(',', $this->TCAdefinition['ctrl']['mainpalette'], TRUE);
+		$mainPalettesArray = t3lib_div::trimExplode(',', $this->dataStructure->getControlValue('mainpalette'), TRUE);
 
 		$i = 0;
 		foreach ($mainPalettesArray as $paletteNumber) {

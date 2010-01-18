@@ -31,6 +31,8 @@
  * @author  Andreas Wolf <andreas.wolf@ikt-werk.de>
  */
 
+require_once(PATH_t3lib.'tca/class.t3lib_tca_datastructure.php');
+
 /**
  * This class serves as a record abstraction for TCEforms. Is instantiated by a form object and
  * responsible for creating and rendering its own HTML form.
@@ -62,6 +64,13 @@ class t3lib_TCEforms_Record {
 	 * @var array
 	 */
 	protected $TCAdefinition;
+
+	/**
+	 * The data structure object for the record
+	 *
+	 * @var t3lib_TCA_DataStructure
+	 */
+	protected $dataStructure;
 
 	/**
 	 * An array holding the names of all fields to be rendered
@@ -147,10 +156,11 @@ class t3lib_TCEforms_Record {
 	protected $createdPalettes = array();
 
 
-	public function __construct($table, array $recordData, array $TCAdefinition) {
+	public function __construct($table, array $recordData, array $TCAdefinition, t3lib_TCA_DataStructure $dataStructure) {
 		$this->table = $table;
 		$this->recordData = $recordData;
 		$this->TCAdefinition = $TCAdefinition;
+		$this->dataStructure = $dataStructure;
 		$this->contextRecordObject = $this;
 
 		$this->setRecordTypeNumber();
@@ -167,7 +177,7 @@ class t3lib_TCEforms_Record {
 
 		return $this;
 	}
-	
+
 	public function getParentFormObject() {
 		return $this->parentFormObject;
 	}
@@ -229,6 +239,17 @@ class t3lib_TCEforms_Record {
 		}*/
 
 		$this->fieldList = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd());
+	}
+
+	/**
+	 * Returns the object representation of the data structure for this record.
+	 * The source for this data structure could have been PHP-based TCA or an XML-based Flexform
+	 * data structure
+	 *
+	 * @return t3lib_TCA_DataStructure
+	 */
+	public function getDataStructure() {
+		return $this->dataStructure;
 	}
 
 	public function getFieldList() {
