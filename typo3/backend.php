@@ -102,11 +102,13 @@ class TYPO3backend {
 			'js/modulemenu.js',
 			'js/iecompatibility.js',
 			'js/flashupload.js',
-			'../t3lib/jsfunc.evalfield.js'
+			'../t3lib/jsfunc.evalfield.js',
+			'ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.Backend'
 		);
+
 		$this->jsFilesAfterInline = array(
 			'js/backend.js',
-				'js/loginrefresh.js',
+			'js/loginrefresh.js',
 		);
 			// add default BE css
 		$this->css      = '';
@@ -209,6 +211,16 @@ class TYPO3backend {
 		$pageRenderer = $GLOBALS['TBE_TEMPLATE']->getPageRenderer();
 		$pageRenderer->loadScriptaculous('builder,effects,controls,dragdrop');
 		$pageRenderer->loadExtJS();
+
+			// register the extDirect API providers
+			// Note: we need to iterate thru the object, because the addProvider method
+			// does this only with multiple arguments
+		$pageRenderer->addExtOnReadyCode(
+			'for (var api in Ext.app.ExtDirectAPI) {
+				Ext.Direct.addProvider(Ext.app.ExtDirectAPI[api]);
+			}',
+			TRUE
+		);
 
 			// remove duplicate entries
 		$this->jsFiles = array_unique($this->jsFiles);
@@ -401,7 +413,7 @@ class TYPO3backend {
 			'errorQueueFileSizeLimit' => $GLOBALS['LANG']->getLL('fileUpload_errorQueueFileSizeLimit'),
 			'errorQueueZeroByteFile' =>  $GLOBALS['LANG']->getLL('fileUpload_errorQueueZeroByteFile'),
 			'errorQueueInvalidFiletype' => $GLOBALS['LANG']->getLL('fileUpload_errorQueueInvalidFiletype'),
-			'errorUploadHttp' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadHttp'),
+			'errorUploadHttp' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadHttpError'),
 			'errorUploadMissingUrl' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadMissingUrl'),
 			'errorUploadIO' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadIO'),
 			'errorUploadSecurityError' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadSecurityError'),
@@ -411,6 +423,10 @@ class TYPO3backend {
 			'errorUploadFileValidation' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFileValidation'),
 			'errorUploadFileCancelled' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFileCancelled'),
 			'errorUploadStopped' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadStopped'),
+			'allErrorMessageTitle' => $GLOBALS['LANG']->getLL('fileUpload_allErrorMessageTitle'),
+			'allErrorMessageText' => $GLOBALS['LANG']->getLL('fileUpload_allErrorMessageText'),
+			'allError401' => $GLOBALS['LANG']->getLL('fileUpload_allError401'),
+			'allError2038' => $GLOBALS['LANG']->getLL('fileUpload_allError2038'),
 		);
 
 			// Convert labels/settings back to UTF-8 since json_encode() only works with UTF-8:

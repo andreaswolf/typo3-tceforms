@@ -2507,12 +2507,16 @@ EXTENSION KEYS:
 								$eC=2;
 							}
 							if (!$this->fe_user['username'])	{
-								$content .= '<br /><br /><img src="' . $GLOBALS['BACK_PATH'] .
-									'gfx/icon_note.gif" width="18" height="16" align="top" alt="" />' .
+								$flashMessage = t3lib_div::makeInstance(
+									't3lib_FlashMessage',
 									sprintf($GLOBALS['LANG']->getLL('ext_details_no_username'),
 										'<a href="index.php?SET[function]=3">', '</a>'
-									) .
-									'<br />';
+									),
+									'',
+									t3lib_FlashMessage::INFO
+								);
+								$content .= '<br />' . $flashMessage->render();
+
 							}
 						}
 						$this->content .= $this->doc->section(
@@ -4346,7 +4350,7 @@ EXTENSION KEYS:
 		t3lib_div::isFirstPartOfStr($removePath,PATH_site.$this->typePaths['G']) ||
 		t3lib_div::isFirstPartOfStr($removePath,PATH_site.$this->typePaths['L']) ||
 		(t3lib_div::isFirstPartOfStr($removePath,PATH_site.$this->typePaths['S']) && $this->systemInstall) ||
-		t3lib_div::isFirstPartOfStr($removePath,PATH_site.'fileadmin/_temp_/'))		// Playing-around directory...
+		t3lib_div::isFirstPartOfStr($removePath, PATH_site . $GLOBALS['TYPO3_CONF_VARS']['BE']['fileadminDir'] . '_temp_/'))		// Playing-around directory...
 		) {
 
 			// All files in extension directory:
@@ -4434,7 +4438,7 @@ EXTENSION KEYS:
 					$path = PATH_site.$this->typePaths[$type];
 					$suffix = '';
 				} else {
-					$path = PATH_site.'fileadmin/_temp_/';
+					$path = PATH_site . $GLOBALS['TYPO3_CONF_VARS']['BE']['fileadminDir'] . '_temp_/';
 					$suffix = '_'.date('dmy-His');
 				}
 				break;
@@ -4951,17 +4955,28 @@ $EM_CONF[$_EXTKEY] = '.$this->arrayToCode($EM_CONF, 0).';
 				} elseif ($depK == 'typo3')	{
 					if (!$depV) continue;
 
+						// if the current TYPO3 version is a development version (like TYPO3 4.4-dev),
+						// then it should behave like TYPO3 4.4.0
+					$t3version = TYPO3_version;
+					if (stripos($t3version, '-dev')
+						|| stripos($t3version, '-alpha')
+						|| stripos($t3version, '-beta')
+						|| stripos($t3version, '-RC')) {
+							// find the last occurence of "-" and replace that part with a ".0"
+						$t3version = substr($t3version, 0, strrpos($t3version, '-')) . '.0';
+					}
+
 					$versionRange = $this->splitVersionRange($depV);
-					if ($versionRange[0]!='0.0.0' && version_compare(TYPO3_version,$versionRange[0],'<'))	{
+					if ($versionRange[0]!='0.0.0' && version_compare($t3version, $versionRange[0], '<')) {
 						$msg[] = '<br />' . sprintf($GLOBALS['LANG']->getLL('checkDependencies_typo3_too_low'),
-							TYPO3_version, $versionRange[0]);
+							$t3version, $versionRange[0]);
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $depK . ']" id="checkIgnore_' . $depK . '" />
 							<label for="checkIgnore_' . $depK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_requirement') . '</label>';
 						$depError = true;
 						continue;
-					} elseif ($versionRange[1]!='0.0.0' && version_compare(TYPO3_version,$versionRange[1],'>'))	{
+					} elseif ($versionRange[1]!='0.0.0' && version_compare($t3version, $versionRange[1], '>')) {
 						$msg[] = '<br />' . sprintf($GLOBALS['LANG']->getLL('checkDependencies_typo3_too_high'),
-							TYPO3_version, $versionRange[1]);
+							$t3version, $versionRange[1]);
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $depK . ']" id="checkIgnore_' . $depK . '" />
 							<label for="checkIgnore_' . $depK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_requirement') . '</label>';
 						$depError = true;
@@ -5597,7 +5612,7 @@ $EM_CONF[$_EXTKEY] = '.$this->arrayToCode($EM_CONF, 0).';
 						<td>
 							<form action="' . htmlspecialchars($script) . '" method="post">' .
 								$addFields .
-								$flashMessage->render() . 
+								$flashMessage->render() .
 								'<br /><input type="submit" name="write" value="' . $GLOBALS['LANG']->getLL('updatesForm_make_updates') . '" />
 							</form>
 						</td>

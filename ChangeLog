@@ -1,3 +1,190 @@
+2010-02-14  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Follow-up to #13448: Do not unset $typo3CacheFactory singleton
+
+2010-02-14  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Raised DBAL version from 1.1.0 to 1.1.1
+	* Fixed bug #12829: ALTER TABLE is not able to parse length restriction in index creation
+
+2010-02-14  Andreas Otto  <andreas@otto-hanika.de>
+
+	* Fixed bug #13380: Recursive deletion of alternative page languages
+
+2010-02-13  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #6196: IFNULL operator cannot be parsed
+	* Fixed bug #13529: DISTINCT should not be used as a function
+
+2010-02-11  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Follow-up of #13504: Using TRUNCATE instead of TRUNCATETABLE as public DB API
+
+2010-02-10  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13504: Cannot parse TRUNCATE TABLE in install tool
+
+2010-02-09  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13490: Where clause 0=0 cannot be parsed
+
+2010-02-08  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13464: ORA-00920: invalid relational operator in module statistics [indexed_search]
+	* Fixed bug #13463: Modfunc2 (statistics) is not compatible with DBAL [indexed_search]
+
+2010-02-08  Steffen Kamper  <info@sk-typo3.de>
+
+	* Reverted Follow-up to #13448: Unset another variable
+
+2010-02-08  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Fixed bug #13456: Typo in rsaauth ext_tables.sql
+	* Fixed bug #13257: PHP warning stristr() in Configuration -> Search under PHP 5.3 (thanks to Steffen Gebert)
+
+2010-02-07  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #1822: There is no API to list tables in theWeb->Page module (thanks to Franz Holzinger)
+
+2010-02-07  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Follow-up to #13448: Unset another variable
+	* Fixed bug #13365: Table headers in t3lib_fullsearch (thanks to Georg Ringer)
+	* Fixed bug #13448: Typo in BE cache init section
+	* Follow-up to #13193: Added tests for tx_scheduler_croncmd
+	* Fixed bug #13193: Day of week in scheduler cron command is not calculated correctly
+	* Added feature #12859: caching framework db backend: Use t3lib_db to insert all tags in one run
+
+2010-02-07  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Added feature #12858: Provide an API to insert multiple rows at once
+	* Added feature #13209: MySQL extended INSERT statements cannot be parsed
+
+2010-02-06  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13430: Cannot parse INSERT when VALUES has no space before left parenthesis
+
+2010-02-05  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #13391: JS-error in common.js crashes flash uploader
+	* Fixed bug #13348: Datepicker is brocken with ExtJS 3.1
+	* Converted t3lib/extjs files to unix format.
+
+2010-02-05  Francois Suter  <francois@typo3.org>
+
+	* Fixed bug #13323: "Allow preview of whole workspace" misses checkbox
+	* Cleanup #13377: Provide a manual for system extension saltedpasswords (thanks to Marcus Krause)
+
+2010-02-04  Benjamin Mack  <benni@typo3.org>
+
+	* Updated NEWS.txt for TYPO3 v4.4
+
+2010-02-03  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13412: BETWEEN operator is not supported
+
+2010-02-02  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13368: Method filelink of tslib_content uses 'target' instead of 'fileTarget'
+	* Fixed bug #12903: ORA-00918: column ambiguously defined [indexed_search]
+
+2010-02-02  Steffen Kamper  <info@sk-typo3.de>
+
+	* Follow-up to #13313: ExtDirect API
+
+2010-02-01  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #13388: Missing colon in locallang for DB and File mount (thanks to Georg Ringer)
+
+2010-01-27  Steffen Kamper  <info@sk-typo3.de>
+
+	* Added feature #11221 : Separate first-, middle- and lastname columns in fe_users table (thanks to Ismaël Bidau)
+
+2010-01-25  Steffen Kamper  <info@sk-typo3.de>
+
+	* Added feature #13313: ExtDirect API (thanks to Stefan Galinski and the T3UXW09 team)
+
+2010-01-24  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #13090: 4.4.0 trunk: version warning with CSS styled content
+
+2010-01-23  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #12688: MM relations: rollback not working / sys_history wrong (thanks to Ralf Hettinger)
+	* Fixed bug #13230: Using TYPO3_version with "xxx-dev" won't be parsed correct in EM
+	* Follow-up to #13327: Fix Recycler resize plugin
+	* Update #13327: Update ExtCore to version 3.1
+
+2010-01-22  Steffen Kamper  <info@sk-typo3.de>
+
+	* Update #13327: Update ExtJS to version 3.1
+
+2010-01-20  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Fixed bug #13270: t3lib_cache_backend_dbbackendtestcase does not reflect current db backend table definitions
+
+2010-01-18  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed #11089: Fixing the built-in shopping basket (Thanks to Mathias Schreiber)
+
+2010-01-17  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Added feature #13192: Allow different timestamp as optional parameter in constructor of class tx_scheduler_croncmd
+
+2010-01-17  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #13093: Massuploader: Window is not closable (Thanks to Steffen Gebert)
+	* Fixed bug #12742: BE-login screen: Login box with spinner becomes to small and label not centered (Thanks to Steffen Gebert)
+	* Fixed bug #13167: Flash Uploader error messages should be more descriptive / Improve error handling of massuploader (Thanks to Steffen Gebert)
+
+2010-01-17  Andreas Otto  <andreas@otto-hanika.de>
+
+	* Fixed bug #13254: Flash Messages in wizard "create multiple pages" (Thanks to Georg Ringer)
+
+2010-01-16  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #12681: Select/Deselect all should be visible as link (Thanks to Georg Ringer)
+	* Fixed bug #12553: Text "A simple table with up to 8 columns" is wrong (Thanks to Georg Ringer)
+	* Fixed bug #13255: Wrong text in wizard "create multiple pages" (Thanks to Georg Ringer)
+
+2010-01-15  Francois Suter  <francois@typo3.org>
+
+	* Fixed bug #11815: Saving translation settings in EM: strcmp() throws warning with PHP5.3 (Thanks to Steffen Gebert, Stefan Geith and Rupert Germann)
+
+2010-01-14  Dmitry Dulepov  <dmitry.dulepov+typo3svn@gmail.com>
+
+	* Fixed bug #13146: Authentication Bypass in TYPO3 Core (OpenID)
+
+2010-01-14  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #12947: saveDocNew saves on top instead of after (Thanks to Steffen Gebert)
+
+2010-01-13  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #13200: Text change: Links for additional software in install tool wrong / non-working (Thanks to Susanne Moog)
+	* Fixed bug #13199: Cleanup: fileadminDir is hardcoded in several places (Thanks to Susanne Moog)
+	* Fixed bug #5716: Install tool doesn't take the fileadminDir into account (Thanks to Benjamin Mack)
+	* Fixed bug #12709: Forgotten flash message in user setup (Thanks to Georg Ringer)
+	* Fixed bug #11968: Sporadic random Backend Logoffs / Add X-UA-Compatible flag (Thanks to Steffen Gebert)
+	* Fixed bug #12924: Bugfix: t3lib_tcemain checkFullLanguageAccess is too restrictive (Thanks to Tolleiv Nietsch)
+	* Fixed bug #13211: Change focus to login field when OpenId is selected at login (Thanks to Steffen Gebert)
+	* Follow-up to #12781: Bug: tceforms type do not work if the type field has l10n_mode == exclude (thanks to Fabrizio Branca)
+
+2010-01-11  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #13092: Massuploader button is too small (Thanks to Steffen Gebert)
+
+2010-01-10  Oliver Hader  <oliver@typo3.org>
+
+	* Fixed bug #12977: treeLevel in TSconfig conditions should consider the creation of new pages
+
+2010-01-09  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Fixed bug #13191: Scheduler fails with fatal error if using intervals in cron command
+	* Fixed bug #12631: Flash Message to the history / changelog (Thanks to Georg Ringer)
+	* Fixed bug #12928: SQL error in translationCount() if table does not provide deleted field (Thanks to Georg Ringer)
+	* Fixed bug #12507: (Un)Install icon points to wrong extension in Opera (Thanks to Steffen Gebert)
+
 2010-01-08  Steffen Kamper  <info@sk-typo3.de>
 
 	* Fixed bug #13098: DB list: layout looks weird with thumbnails (Thanks to Steffen Gebert)
@@ -1769,11 +1956,11 @@
 
 	* Fixed bug #11358: typoLink() perfomance improvement (thanks to Vladimir Podkovanov)
 
-2009-05-18  Benjamin Mack  <benni@typo3.org>
+2009-06-18  Benjamin Mack  <benni@typo3.org>
 
 	* Fixed bug / Feature #11293: Login page is not translatable
 
-2009-05-18  Oliver Hader  <oliver@typo3.org>
+2009-06-18  Oliver Hader  <oliver@typo3.org>
 
 	* Fixed bug #11009: External Links get prepended with http://typo3 in the RTEhtmlarea in Firefox 3.0.11/3.5b4
 

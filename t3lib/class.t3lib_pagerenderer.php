@@ -687,12 +687,17 @@ class t3lib_PageRenderer implements t3lib_Singleton {
 	/**
 	 * Adds Ext.onready code, which will be wrapped in Ext.onReady(function() {...});
 	 *
-	 * @param string $block
+	 * @param string $block javascript code
+	 * @param boolean $forceOnTop position of the javascript code (TRUE for putting it on top, default is FALSE = bottom)
 	 * @return void
 	 */
-	public function addExtOnReadyCode($block) {
+	public function addExtOnReadyCode($block, $forceOnTop = FALSE) {
 		if (!in_array($block, $this->extOnReadyCode)) {
-			$this->extOnReadyCode[] = $block;
+			if ($forceOnTop) {
+				array_unshift($this->extOnReadyCode, $block);
+			} else {
+				$this->extOnReadyCode[] = $block;
+			}
 		}
 	}
 
@@ -1201,7 +1206,7 @@ class t3lib_PageRenderer implements t3lib_Singleton {
 
 			$extJsLang = isset($localeMap[$this->lang]) ? $localeMap[$this->lang] : $this->lang;
 				// TODO autoconvert file from UTF8 to current BE charset if necessary!!!!
-			$extJsLocaleFile = 'contrib/extjs/locale/ext-lang-' . $extJsLang . '-min.js';
+			$extJsLocaleFile = 'contrib/extjs/locale/ext-lang-' . $extJsLang . '.js';
 			if (file_exists(PATH_typo3 . $extJsLocaleFile)) {
 				$out .= '<script src="' . $this->backPath . $extJsLocaleFile . '" type="text/javascript" charset="utf-8"></script>' . chr(10);
 			}

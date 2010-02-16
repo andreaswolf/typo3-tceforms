@@ -12,6 +12,7 @@ TYPO3BackendLogin = {
 		TYPO3BackendLogin.setVisibilityOfClearIcon($('t3-password'), $('t3-password-clearIcon'));
 		TYPO3BackendLogin.checkForLogintypeCookie();
 		TYPO3BackendLogin.checkForInterfaceCookie();
+		$('t3-username').activate();
 	},
 
 	/**
@@ -131,6 +132,8 @@ TYPO3BackendLogin = {
 			$('t3-login-interface-section').hide();
 		}
 		
+		$('t3-username').activate();
+
 		TYPO3BackendLogin.setLogintypeCookie('openid');
 	},
 
@@ -149,6 +152,8 @@ TYPO3BackendLogin = {
 		if ($('t3-login-interface-section')) {
 			$('t3-login-interface-section').show();
 		}
+
+		$('t3-username').activate();
 		
 		TYPO3BackendLogin.setLogintypeCookie('username');
 	},
@@ -205,7 +210,11 @@ TYPO3BackendLogin = {
 
 		$('t3-login-form-fields').hide();
 		$('t3-nocookies-error').hide();
-		$('t3-login-process').show();
+
+		// setting a fixed height (based on the current, calculated height of the browser) for 
+		// the box with the login form, so it doesn't jump around when the spinner is shown
+		var loginBoxHeight = $('t3-login-form-fields').getHeight();
+		$('t3-login-process').setStyle({height: loginBoxHeight + 'px'}).show();
 	}
 };
 

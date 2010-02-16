@@ -187,6 +187,23 @@ class t3lib_DB {
 	}
 
 	/**
+	 * Creates and executes an INSERT SQL-statement for $table with multiple rows.
+	 *
+	 * @param	string		Table name
+	 * @param	array		Field names
+	 * @param	array		Table rows. Each row should be an array with field values mapping to $fields
+	 * @param	string/array		See fullQuoteArray()
+	 * @return	pointer		MySQL result pointer / DBAL object
+	 */
+	public function exec_INSERTmultipleRows($table, array $fields, array $rows, $no_quote_fields = FALSE) {
+		$res = mysql_query($this->INSERTmultipleRows($table, $fields, $rows, $no_quote_fields), $this->link);
+		if ($this->debugOutput) {
+			$this->debug('exec_INSERTmultipleRows');
+		}
+		return $res;
+	}
+
+	/**
 	 * Creates and executes an UPDATE SQL-statement for $table where $where-clause (typ. 'uid=...') from the array with field/value pairs $fields_values.
 	 * Using this function specifically allow us to handle BLOB and CLOB fields depending on DB
 	 * Usage count/core: 50
@@ -365,6 +382,20 @@ class t3lib_DB {
 		return $count;
 	}
 
+	/**
+	 * Truncates a table.
+	 * 
+	 * @param	string		Database tablename
+	 * @return	mixed		Result from handler
+	 */
+	public function exec_TRUNCATEquery($table) {
+		$res = mysql_query($this->TRUNCATEquery($table), $this->link);
+		if ($this->debugOutput) {
+			$this->debug('exec_TRUNCATEquery');
+		}
+		return $res;
+	}
+
 
 
 
@@ -408,6 +439,41 @@ class t3lib_DB {
 			if ($this->debugOutput || $this->store_lastBuiltQuery) {
 				$this->debug_lastBuiltQuery = $query;
 			}
+			return $query;
+		}
+	}
+
+	/**
+	 * Creates an INSERT SQL-statement for $table with multiple rows.
+	 *
+	 * @param	string		Table name
+	 * @param	array		Field names
+	 * @param	array		Table rows. Each row should be an array with field values mapping to $fields
+	 * @param	string/array		See fullQuoteArray()
+	 * @return	string		Full SQL query for INSERT (unless $rows does not contain any elements in which case it will be false)
+	 */
+	public function INSERTmultipleRows($table, array $fields, array $rows, $no_quote_fields = FALSE) {
+			// Table and fieldnames should be "SQL-injection-safe" when supplied to this
+			// function (contrary to values in the arrays which may be insecure).
+		if (count($rows)) {
+				// Build query:
+			$query = 'INSERT INTO ' . $table .
+				' (' . implode(', ', $fields) . ') VALUES ';
+
+			$rowSQL = array();
+			foreach ($rows as $row) {
+					// quote and escape values
+				$row = $this->fullQuoteArray($row, $table, $no_quote_fields);
+				$rowSQL[] = '(' . implode(', ', $row) . ')';
+			}
+
+			$query .= implode(', ', $rowSQL);
+
+				// Return query:
+			if ($this->debugOutput || $this->store_lastBuiltQuery) {
+				$this->debug_lastBuiltQuery = $query;
+			}
+
 			return $query;
 		}
 	}
@@ -527,6 +593,25 @@ class t3lib_DB {
 			// Build basic query:
 		$query = 'SELECT ' . $select_fields . ' FROM ' . $from_table .
 			(strlen($where_clause) > 0 ? ' WHERE ' . $where_clause : '');
+
+			// Return query:
+		if ($this->debugOutput || $this->store_lastBuiltQuery) {
+			$this->debug_lastBuiltQuery = $query;
+		}
+
+		return $query;
+	}
+
+	/**
+	 * Creates a TRUNCATE TABLE SQL-statement
+	 * 
+	 * @param	string		See exec_TRUNCATEquery()
+	 * @return	string		Full SQL query for TRUNCATE TABLE
+	 */
+	public function TRUNCATEquery($table) {
+			// Table should be "SQL-injection-safe" when supplied to this function
+			// Build basic query:
+		$query = 'TRUNCATE TABLE ' . $table;
 
 			// Return query:
 		if ($this->debugOutput || $this->store_lastBuiltQuery) {

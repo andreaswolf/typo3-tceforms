@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2004-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -134,7 +134,7 @@ class t3lib_sqlparser {
 
 			// Finding starting keyword of string:
 		$_parseString = $parseString;	// Protecting original string...
-		$keyword = $this->nextPart($_parseString, '^(SELECT|UPDATE|INSERT[[:space:]]+INTO|DELETE[[:space:]]+FROM|EXPLAIN|DROP[[:space:]]+TABLE|CREATE[[:space:]]+TABLE|CREATE[[:space:]]+DATABASE|ALTER[[:space:]]+TABLE)[[:space:]]+');
+		$keyword = $this->nextPart($_parseString, '^(SELECT|UPDATE|INSERT[[:space:]]+INTO|DELETE[[:space:]]+FROM|EXPLAIN|DROP[[:space:]]+TABLE|CREATE[[:space:]]+TABLE|CREATE[[:space:]]+DATABASE|ALTER[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE)[[:space:]]+');
 		$keyword = strtoupper(str_replace(array(' ',"\t","\r","\n"),'',$keyword));
 
 		switch($keyword)	{
@@ -173,6 +173,10 @@ class t3lib_sqlparser {
 			case 'CREATEDATABASE':
 					// Parsing CREATE DATABASE query:
 				$result = $this->parseCREATEDATABASE($parseString);
+			break;
+			case 'TRUNCATETABLE':
+					// Parsing TRUNCATE TABLE query:
+				$result = $this->parseTRUNCATETABLE($parseString);
 			break;
 			default:
 				$result = $this->parseError('"'.$keyword.'" is not a keyword',$parseString);
@@ -330,30 +334,54 @@ class t3lib_sqlparser {
 
 		if ($result['TABLE'])	{
 
-			if ($this->nextPart($parseString,'^(VALUES)[[:space:]]+'))	{	// In this case there are no field names mentioned in the SQL!
+			if ($this->nextPart($parseString,'^(VALUES)([[:space:]]+|\()')) {	// In this case there are no field names mentioned in the SQL!
 					// Get values/fieldnames (depending...)
 				$result['VALUES_ONLY'] = $this->getValue($parseString,'IN');
-				if ($this->parse_error)	{ return $this->parse_error; }
+				if ($this->parse_error)	{
+					return $this->parse_error;
+				}
+				if (preg_match('/^,/', $parseString)) {
+					$result['VALUES_ONLY'] = array($result['VALUES_ONLY']);
+					$result['EXTENDED'] = '1';
+					while ($this->nextPart($parseString, '^(,)') === ',') {
+						$result['VALUES_ONLY'][] = $this->getValue($parseString, 'IN');
+						if ($this->parse_error)	{
+							return $this->parse_error;
+						}
+					}
+				}
 			} else {	// There are apparently fieldnames listed:
 				$fieldNames = $this->getValue($parseString,'_LIST');
 				if ($this->parse_error)	{ return $this->parse_error; }
 
-				if ($this->nextPart($parseString,'^(VALUES)[[:space:]]+'))	{	// "VALUES" keyword binds the fieldnames to values:
+				if ($this->nextPart($parseString,'^(VALUES)([[:space:]]+|\()')) {	// "VALUES" keyword binds the fieldnames to values:
+					$result['FIELDS'] = array();
+					do {
+						$values = $this->getValue($parseString, 'IN');	// Using the "getValue" function to get the field list...
+						if ($this->parse_error)	{
+							return $this->parse_error;
+						}
 
-					$values = $this->getValue($parseString,'IN');	// Using the "getValue" function to get the field list...
-					if ($this->parse_error)	{ return $this->parse_error; }
+						$insertValues = array();
+						foreach ($fieldNames as $k => $fN) {
+							if (preg_match('/^[[:alnum:]_]+$/', $fN)) {
+								if (isset($values[$k]))	{
+									if (!isset($insertValues[$fN])) {
+										$insertValues[$fN] = $values[$k];
+									} else return $this->parseError('Fieldname ("' . $fN . '") already found in list!', $parseString);
+								} else return $this->parseError('No value set!', $parseString);
+							} else return $this->parseError('Invalid fieldname ("' . $fN . '")', $parseString);
+						}
+						if (isset($values[$k + 1])) {
+							return $this->parseError('Too many values in list!', $parseString);
+						}
+						$result['FIELDS'][] = $insertValues;
+					} while ($this->nextPart($parseString, '^(,)') === ',');
 
-					foreach($fieldNames as $k => $fN)	{
-						if (preg_match('/^[[:alnum:]_]+$/',$fN))	{
-							if (isset($values[$k]))	{
-								if (!isset($result['FIELDS'][$fN]))	{
-									$result['FIELDS'][$fN] = $values[$k];
-								} else return $this->parseError('Fieldname ("'.$fN.'") already found in list!',$parseString);
-							} else return $this->parseError('No value set!',$parseString);
-						} else return $this->parseError('Invalid fieldname ("'.$fN.'")',$parseString);
-					}
-					if (isset($values[$k+1]))	{
-						return $this->parseError('Too many values in list!',$parseString);
+					if (count($result['FIELDS']) === 1) {
+						$result['FIELDS'] = $result['FIELDS'][0];
+					} else {
+						$result['EXTENDED'] = '1';
 					}
 				} else return $this->parseError('VALUES keyword expected',$parseString);
 			}
@@ -555,7 +583,7 @@ class t3lib_sqlparser {
 						case 'ADDKEY':
 						case 'ADDPRIMARYKEY':
 							$result['KEY'] = $fieldKey;
-							$result['fields'] = $this->getValue($parseString,'_LIST');
+							$result['fields'] = $this->getValue($parseString, '_LIST', 'INDEX');
 							if ($this->parse_error)	{ return $this->parse_error; }
 						break;
 						case 'DROPKEY':
@@ -638,6 +666,38 @@ class t3lib_sqlparser {
 
 			return $result;
 		} else return $this->parseError('No database found!',$parseString);
+	}
+
+	/**
+	 * Parsing TRUNCATE TABLE query
+	 * 
+	 * @param	string		SQL string starting with TRUNCATE TABLE
+	 * @return	mixed		Returns array with components of TRUNCATE TABLE query on success, otherwise an error message string.
+	 */
+	protected function parseTRUNCATETABLE($parseString) {
+
+			// Removing TRUNCATE TABLE
+		$parseString = $this->trimSQL($parseString);
+		$parseString = ltrim(substr(ltrim(substr($parseString, 8)), 5));
+
+			// Init output variable:
+		$result = array();
+		$result['type'] = 'TRUNCATETABLE';
+
+			// Get table:
+		$result['TABLE'] = $this->nextPart($parseString, '^([[:alnum:]_]+)[[:space:]]+');
+
+		if ($result['TABLE']) {
+
+				// Should be no more content now:
+			if ($parseString) {
+				return $this->parseError('Still content in clause after parsing!', $parseString);
+			}
+
+			return $result;
+		} else {
+			return $this->parseError('No table found!', $parseString);
+		}
 	}
 
 
@@ -737,7 +797,7 @@ class t3lib_sqlparser {
 					} else {
 						$stack[$pnt]['distinct'] = $this->nextPart($parseString,'^(distinct[[:space:]]+)');
 							// Otherwise, look for regular fieldname:
-						if ($fieldName = $this->nextPart($parseString,'^([[:alnum:]\*._]+)(,|[[:space:]]+)'))	{
+						if (($fieldName = $this->nextPart($parseString, '^([[:alnum:]\*._]+)(,|[[:space:]]+)')) !== '') {
 							$stack[$pnt]['type'] = 'field';
 	
 								// Explode fieldname into field and table:
@@ -1006,7 +1066,30 @@ class t3lib_sqlparser {
 						}
 						if (!$this->nextPart($parseString, '^([)])')) {
 							return $this->parseError('No ) parenthesis at end of function');
-	 					}						
+	 					}
+					} elseif (preg_match('/^IFNULL[[:space:]]*[(]/i', $parseString)) {
+						$stack[$level][$pnt[$level]]['func']['type'] = $this->nextPart($parseString, '^(IFNULL)[[:space:]]*');
+						$parseString = trim(substr($parseString, 1));	// Strip of "("
+						if ($fieldName = $this->nextPart($parseString, '^([[:alnum:]\*._]+)[[:space:]]*')) {
+ 
+								// Parse field name into field and table:
+							$tableField = explode('.', $fieldName, 2);
+							if (count($tableField) == 2) {
+								$stack[$level][$pnt[$level]]['func']['table'] = $tableField[0];
+								$stack[$level][$pnt[$level]]['func']['field'] = $tableField[1];
+							} else {
+								$stack[$level][$pnt[$level]]['func']['table'] = '';
+								$stack[$level][$pnt[$level]]['func']['field'] = $tableField[0];
+							}
+ 						} else {
+							return $this->parseError('No field name found as expected in parseWhereClause()', $parseString);
+ 						}
+						if ($this->nextPart($parseString, '^(,)')) {
+							$stack[$level][$pnt[$level]]['func']['default'] = $this->getValue($parseString);
+						}
+						if (!$this->nextPart($parseString, '^([)])')) {
+							return $this->parseError('No ) parenthesis at end of function');
+	 					}
  					} else {
 
 		 					// Support calculated value only for:
@@ -1017,10 +1100,10 @@ class t3lib_sqlparser {
 							// - "/" (division)
 							// - "%" (modulo)
 						$calcOperators = '&|\+|-|\*|\/|%';
-		
+
 							// Fieldname:
-						if ($fieldName = $this->nextPart($parseString, '^([[:alnum:]._]+)([[:space:]]+|' . $calcOperators . '|<=|>=|<|>|=|!=|IS)')) {
-		
+						if (($fieldName = $this->nextPart($parseString, '^([[:alnum:]._]+)([[:space:]]+|' . $calcOperators . '|<=|>=|<|>|=|!=|IS)')) !== '') {
+
 								// Parse field name into field and table:
 							$tableField = explode('.', $fieldName, 2);
  							if (count($tableField) == 2) {
@@ -1055,7 +1138,7 @@ class t3lib_sqlparser {
  					}
  	
  						// Find "comparator":
-					$stack[$level][$pnt[$level]]['comparator'] = $this->nextPart($parseString, '^(<=|>=|<|>|=|!=|NOT[[:space:]]+IN|IN|NOT[[:space:]]+LIKE|LIKE|IS[[:space:]]+NOT|IS)');
+					$stack[$level][$pnt[$level]]['comparator'] = $this->nextPart($parseString, '^(<=|>=|<|>|=|!=|NOT[[:space:]]+IN|IN|NOT[[:space:]]+LIKE|LIKE|IS[[:space:]]+NOT|IS|BETWEEN|NOT[[:space]]+BETWEEN)');
 					if (strlen($stack[$level][$pnt[$level]]['comparator'])) {
 						if (preg_match('/^CONCAT[[:space:]]*\(/', $parseString)) {
 							$this->nextPart($parseString, '^(CONCAT[[:space:]]?[(])');
@@ -1090,6 +1173,13 @@ class t3lib_sqlparser {
 							if (!$this->nextPart($parseString, '^([)])')) {
 								return 'No ) parenthesis at end of subquery';
 							}
+						} else if (t3lib_div::inList('BETWEEN,NOT BETWEEN', $stack[$level][$pnt[$level]]['comparator'])) {
+							$stack[$level][$pnt[$level]]['values'] = array();
+							$stack[$level][$pnt[$level]]['values'][0] = $this->getValue($parseString);
+							if (!$this->nextPart($parseString, '^(AND)')) {
+								return $this->parseError('No AND operator found as expected in parseWhereClause()', $parseString);
+							}
+							$stack[$level][$pnt[$level]]['values'][1] = $this->getValue($parseString);
 						} else {
 								// Finding value for comparator:
 							$stack[$level][$pnt[$level]]['value'] = $this->getValue($parseString, $stack[$level][$pnt[$level]]['comparator']);
@@ -1429,6 +1519,9 @@ class t3lib_sqlparser {
 			case 'ALTERTABLE':
 				$query = $this->compileALTERTABLE($components);
 			break;
+			case 'TRUNCATETABLE':
+				$query = $this->compileTRUNCATETABLE($components);
+			break;
 		}
 
 		return $query;
@@ -1501,34 +1594,36 @@ class t3lib_sqlparser {
 	 * @see parseINSERT()
 	 */
 	protected function compileINSERT($components) {
+		$values = array();
 
-		if ($components['VALUES_ONLY'])	{
-				// Initialize:
-			$fields = array();
-			foreach($components['VALUES_ONLY'] as $fV)	{
-				$fields[]=$fV[1].$this->compileAddslashes($fV[0]).$fV[1];
-			}
-
-				// Make query:
-			$query = 'INSERT INTO '.$components['TABLE'].'
-					VALUES
-					('.implode(',
-					',$fields).')';
+		if (isset($components['VALUES_ONLY']) && is_array($components['VALUES_ONLY'])) {
+			$valuesComponents = $components['EXTENDED'] === '1' ? $components['VALUES_ONLY'] : array($components['VALUES_ONLY']);
+			$tableFields = array();
 		} else {
-				// Initialize:
-			$fields = array();
-			foreach($components['FIELDS'] as $fN => $fV)	{
-				$fields[$fN]=$fV[1].$this->compileAddslashes($fV[0]).$fV[1];
-			}
-
-				// Make query:
-			$query = 'INSERT INTO '.$components['TABLE'].'
-					('.implode(',
-					',array_keys($fields)).')
-					VALUES
-					('.implode(',
-					',$fields).')';
+			$valuesComponents = $components['EXTENDED'] === '1' ? $components['FIELDS'] : array($components['FIELDS']);
+			$tableFields = array_keys($valuesComponents[0]);
 		}
+
+		foreach ($valuesComponents as $valuesComponent) {
+			$fields = array();
+			foreach ($valuesComponent as $fV) {
+				$fields[] = $fV[1] . $this->compileAddslashes($fV[0]) . $fV[1];
+			}
+			$values[] = '(' . implode(',
+				', $fields) . ')';
+		}
+
+			// Make query:
+		$query = 'INSERT INTO ' . $components['TABLE'];
+		if (count($tableFields)) {
+			$query .= '
+				(' . implode(',
+				', $tableFields) . ')';
+		}
+		$query .= '
+			VALUES
+			' . implode(',
+			', $values);
 
 		return $query;
 	}
@@ -1614,6 +1709,22 @@ class t3lib_sqlparser {
 				$query.=' ('.implode(',',$components['fields']).')';
 			break;
 		}
+
+			// Return query
+		return $query;
+	}
+
+	/**
+	 * Compiles a TRUNCATE TABLE statement from components array
+	 * 
+	 * @param	array		Array of SQL query components
+	 * @return	string		SQL TRUNCATE TABLE query
+	 * @see parseTRUNCATETABLE()
+	 */
+	protected function compileTRUNCATETABLE(array $components) {
+
+			// Make query:
+		$query = 'TRUNCATE TABLE ' . $components['TABLE'];
 
 			// Return query
 		return $query;
@@ -1797,6 +1908,11 @@ class t3lib_sqlparser {
 						$output .= ', ' . ($v['func']['table'] ? $v['func']['table'] . '.' : '') . $v['func']['field'];
 						$output .= isset($v['func']['pos']) ? ', ' . $v['func']['pos'][0] : '';
 						$output .= ')';
+					} elseif (isset($v['func']) && $v['func']['type'] === 'IFNULL') {
+						$output = ' ' . trim($v['modifier']) . ' IFNULL(';
+						$output .= ($v['func']['table'] ? $v['func']['table'] . '.' : '') . $v['func']['field'];
+						$output .= ', ' . $v['func']['default'][1] . $this->compileAddslashes($v['func']['default'][0]) . $v['func']['default'][1];
+						$output .= ')';
 					} else {
 						
 							// Set field/table with modifying prefix if any:
@@ -1823,6 +1939,12 @@ class t3lib_sqlparser {
 								}
 								$output .= ' (' . trim(implode(',', $valueBuffer)) . ')';
 							}
+						} else if (t3lib_div::inList('BETWEEN,NOT BETWEEN', $v['comparator'])) {
+							$lbound = $v['values'][0];
+							$ubound = $v['values'][1];
+							$output .= ' ' . $lbound[1] . $this->compileAddslashes($lbound[0]) . $lbound[1];
+							$output .= ' AND ';
+							$output .= $ubound[1] . $this->compileAddslashes($ubound[0]) . $ubound[1];
 						} else if (isset($v['value']['operator'])) {
 							$values = array();
 							foreach ($v['value']['args'] as $fieldDef) {

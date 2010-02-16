@@ -73,15 +73,18 @@ class tx_scheduler_CronCmd {
 	 * Constructor
 	 *
 	 * @param	string		$cmd: the cron command
+	 * @param	integer		$tstamp: optional start time
 	 * @return	void
 	 */
-	public function __construct($cmd) {
+	public function __construct($cmd, $tstamp = FALSE) {
 			// Explode cmd in sections
 		$this->cmd_sections = t3lib_div::trimExplode(' ', $cmd);
 
 			// Initialize the values with the starting time
 			// This takes care that the calculated time is always in the future
-		$tstamp = strtotime('+1 minute');
+		if ($tstamp === FALSE) {
+			$tstamp = strtotime('+1 minute');
+		}
 		$this->values = array(
 				// Minute
 			intval(date('i', $tstamp)),
@@ -190,7 +193,15 @@ class tx_scheduler_CronCmd {
 		$validDays = $this->getList($this->cmd_sections[2], 1, $max_days);
 
 			// Consider special field 'day of week'
-		if ($this->cmd_sections[2] != '*' && (strpos($this->cmd_sections[4], '*') === false && preg_match('/[1-7]{1}/', $this->cmd_sections[4]) !== false)) {
+			// @TODO: Implement lists and ranges for day of week (2,3 and 1-5 and */2,3 and 1,1-5/2)
+			// @TODO: Support usage of day names in day of week field ("mon", "sun", etc.)
+		if ((strpos($this->cmd_sections[4], '*') === FALSE && preg_match('/[1-7]{1}/', $this->cmd_sections[4]) !== FALSE)) {
+				// Unset days from 'day of month' if * is given
+				// * * * * 1 results to every monday of this month
+				// * * 1,2 * 1 results to every monday, plus first and second day of month
+			if ($this->cmd_sections[2] == '*') {
+				$validDays = array();
+			}
 				// Get list
 			for ($i = 1; $i <= $max_days; $i++) {
 				if (strftime('%u', mktime(0, 0, 0, $currentMonth, $i, $currentYear)) == $this->cmd_sections[4]) {
@@ -246,7 +257,7 @@ class tx_scheduler_CronCmd {
 				// Get list for range definitions
 
 				// Get list definition parts
-			list($def_min, $def_max) = t3lib::trimExplode('-', $definition);
+			list($def_min, $def_max) = t3lib_div::trimExplode('-', $definition);
 
 			if ($def_min < $min) {
 				$def_min = $min;

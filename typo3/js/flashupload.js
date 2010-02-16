@@ -34,6 +34,7 @@ Ext.onReady(function() {
 	TYPO3.FileUploadWindow = Ext.extend(Ext.Window, {
 		completedUploads: 0,	// number of successfully completed uploads in this current instance, could be useful for some applications
 		activeUploads: {},		// holds all TYPO3.FileUpload instances currently uploading or in queue
+		lastError: null,	// last error occured
 		swf: null,	// holds the SWFUpload instance
 		deniedFileTypes: '',	// internal, local check to see if the uploading file is not allowed
 		swfDefaultConfig: {	// includes all default options the SWFUpload needs
@@ -92,6 +93,14 @@ Ext.onReady(function() {
 			}
 		},
 
+		/**
+		 * actions which are executed when the uploader window should be closed (actually, it's hidden)
+		 */
+		closeWindow: function() {
+			this.cleanup();
+			this.hide();
+		},
+
 		// component constructor
 		// private
 		initComponent: function() {
@@ -103,7 +112,6 @@ Ext.onReady(function() {
 				modal: true,
 				tools: [],
 				id: 't3-upload-window',
-				closeAction: 'hide',
 				title: String.format(TYPO3.LLL.fileUpload.windowTitle),
 				shadow: false,
 				hideBorders: true,
@@ -116,10 +124,7 @@ Ext.onReady(function() {
 					}, {
 						id: 't3-file-upload-window-button-cancel',
 						text: String.format(TYPO3.LLL.fileUpload.buttonCancelAll),
-						handler: function() {
-							this.cleanup();
-							this.hide();
-						},
+						handler: this.closeWindow,
 						scope: this,
 						iconCls: 't3icon-ext-cancel'
 					}
@@ -130,7 +135,8 @@ Ext.onReady(function() {
 
 			// set default options that cannot be overriden from outside
 			var staticConfig = {
-				closable: false,
+				closable: true,
+				closeAction: 'closeWindow',
 				resizable: false
 			};
 			Ext.apply(this, staticConfig);
@@ -225,9 +231,14 @@ Ext.onReady(function() {
 			if (!Ext.fly(swfConfig.button_placeholder_id)) {
 				var button = Ext.DomQuery.selectNode('#t3-file-upload-window-button-selectfiles button');
 				Ext.DomHelper.insertBefore(button, '<div id="' + swfConfig.button_placeholder_id + '"></div>');
+				// set the width of the swf-button in background according to the user-visible button
+				swfConfig.button_width = button.clientWidth;
 			}
 			this.swf = new SWFUpload(swfConfig);
 			this.swf.fileUploadWindow = this;
+
+			// disable the "Cancel all uploads" button
+			Ext.getCmp('t3-file-upload-window-button-cancel').disable();
 
 			// add some info to the dialog
 			// you can replace this by adding your own component with this ID in the constructor
@@ -319,7 +330,6 @@ Ext.onReady(function() {
 				this.setupFlash();
 				this.doLayout();
 			}.bind(this));
-			
 			// show the window, and disable the cancel button (only gets enabled when files are selected)
 			this.show();
 		},
@@ -342,6 +352,11 @@ Ext.onReady(function() {
 		// they also provide basic functionality for the file upload process
 		// private
 		uploadSelectFiles: function(numFilesSelected, numFilesQueued, numFilesInQueue) {
+			if (numFilesSelected > 0) {
+				// enable the "Cancel all uploads" button
+				Ext.getCmp('t3-file-upload-window-button-cancel').enable();
+			}
+
 			this.swf.startUpload();
 			this.fireEvent('uploadSelectFiles', this, [numFilesSelected, numFilesQueued, numFilesInQueue]);
 		},
@@ -383,6 +398,7 @@ Ext.onReady(function() {
 		// private
 		uploadError: function(fileObj, errorCode, message) {
 			this.activeUploads[fileObj.id].error(errorCode, message);
+			this.lastError = {'errorCode': errorCode, 'message': message};
 			this.fireEvent('uploadError', this, [this.activeUploads[fileObj.id], errorCode, message]);
 			delete this.activeUploads[fileObj.id];
 		},
@@ -402,11 +418,50 @@ Ext.onReady(function() {
 
 		// private
 		totalComplete: function() {
+			// disable the "Cancel all uploads" button (for the next use)
+			Ext.getCmp('t3-file-upload-window-button-cancel').disable();
+
 			if (this.completedUploads > 0) {
 				this.fireEvent('totalComplete', this);
+			} else {
+					// if all our uploads fail, we try to provide some reasons
+				this.totalError();
 			}
 			this.cleanup();
 			this.hide();
+		},
+
+		// private
+		// this handler is only called by totalComplete, not by swfupload itself
+		totalError: function() {
+			if (this.lastError == null) {
+				return;
+			}
+
+			var errorCode = this.lastError.errorCode;
+			var message = this.lastError.message;
+			var messageText = null;
+
+				// provide a more detailed problem description for the well known bugs
+			switch (errorCode) {
+				case SWFUpload.UPLOAD_ERROR.HTTP_ERROR:
+					if (message == '401') {
+						messageText = String.format(TYPO3.LLL.fileUpload.allError401);
+					}
+				break;
+
+				case SWFUpload.UPLOAD_ERROR.IO_ERROR:
+					if (message == 'Error #2038') {
+						messageText = String.format(TYPO3.LLL.fileUpload.allError2038);
+					}
+				break;
+			}
+			Ext.MessageBox.show({
+				title: String.format(TYPO3.LLL.fileUpload.allErrorMessageTitle),
+				msg: String.format(TYPO3.LLL.fileUpload.allErrorMessageText + (messageText ? messageText : message)),
+				buttons: Ext.MessageBox.OK,
+				icon: Ext.MessageBox.ERROR
+			});
 		},
 		
 		/**
@@ -568,7 +623,7 @@ Ext.onReady(function() {
 				break;
 
 				case SWFUpload.UPLOAD_ERROR.HTTP_ERROR:
-					txt = String.format(TYPO3.LLL.fileUpload.errorUploadHttp);
+					txt = String.format(TYPO3.LLL.fileUpload.errorUploadHttp, message);
 				break;
 				case SWFUpload.UPLOAD_ERROR.MISSING_UPLOAD_URL:
 					txt = String.format(TYPO3.LLL.fileUpload.errorUploadMissingUrl);

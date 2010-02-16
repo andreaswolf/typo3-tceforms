@@ -1524,7 +1524,7 @@ class t3lib_TCEmain	{
 					);
 				break;
 				case 'db':
-					$valueArray = $this->checkValue_group_select_processDBdata($valueArray,$tcaFieldConf,$id,$status,'group', $table);
+					$valueArray = $this->checkValue_group_select_processDBdata($valueArray, $tcaFieldConf, $id, $status, 'group', $table, $field);
 				break;
 			}
 		}
@@ -1535,13 +1535,13 @@ class t3lib_TCEmain	{
 				$this->remapStackRecords[$table][$id] = array('remapStackIndex' => count($this->remapStack));
 				$this->remapStack[] = array(
 					'func' => 'checkValue_group_select_processDBdata',
-					'args' => array($valueArray,$tcaFieldConf,$id,$status,'select',$table),
+					'args' => array($valueArray, $tcaFieldConf, $id, $status, 'select', $table, $field),
 					'pos' => array('valueArray' => 0, 'tcaFieldConf' => 1, 'id' => 2, 'table' => 5),
 					'field' => $field
 				);
 				$unsetResult = true;
 			} else {
-				$valueArray = $this->checkValue_group_select_processDBdata($valueArray,$tcaFieldConf,$id,$status,'select', $table);
+				$valueArray = $this->checkValue_group_select_processDBdata($valueArray, $tcaFieldConf, $id, $status, 'select', $table, $field);
 			}
 		}
 
@@ -1637,6 +1637,7 @@ class t3lib_TCEmain	{
 					} else {
 						$theFileValues=t3lib_div::trimExplode(',',$curValue,1);
 					}
+					$currentFilesForHistory = implode(',', $theFileValues);
 
 						// DELETE files: If existing files were found, traverse those and register files for deletion which has been removed:
 					if (count($theFileValues))	{
@@ -1721,6 +1722,15 @@ class t3lib_TCEmain	{
 				}
 				if ($status=='update')	{
 					$dbAnalysis->writeMM($tcaFieldConf['MM'],$id,0);
+					$newFiles = implode(',', $dbAnalysis->getValueArray());
+					list(,,$recFieldName) = explode(':', $recFID);
+					if ($currentFilesForHistory != $newFiles) {
+						$this->mmHistoryRecords[$currentTable . ':' . $id]['oldRecord'][$recFieldName] = $currentFilesForHistory;
+						$this->mmHistoryRecords[$currentTable . ':' . $id]['newRecord'][$recFieldName] = $newFiles;
+					} else {
+						$this->mmHistoryRecords[$currentTable . ':' . $id]['oldRecord'][$currentField] = '';
+						$this->mmHistoryRecords[$currentTable . ':' . $id]['newRecord'][$currentField] = '';
+					}
 				} else {
 					$this->dbAnalysisStore[] = array($dbAnalysis, $tcaFieldConf['MM'], $id, 0);	// This will be traversed later to execute the actions
 				}
@@ -2175,20 +2185,35 @@ class t3lib_TCEmain	{
 	 * @param	string		Status string ('update' or 'new')
 	 * @param	string		The type, either 'select', 'group' or 'inline'
 	 * @param	string		Table name, needs to be passed to t3lib_loadDBGroup
+	 * @param	string		field name, needs to be set for writing to sys_history
 	 * @return	array		Modified value array
 	 */
-	function checkValue_group_select_processDBdata($valueArray,$tcaFieldConf,$id,$status,$type,$currentTable)	{
+	function checkValue_group_select_processDBdata($valueArray, $tcaFieldConf, $id, $status, $type, $currentTable, $currentField) {
 		$tables = $type=='group'?$tcaFieldConf['allowed']:$tcaFieldConf['foreign_table'].','.$tcaFieldConf['neg_foreign_table'];
 		$prep = $type=='group'?$tcaFieldConf['prepend_tname']:$tcaFieldConf['neg_foreign_table'];
+		$newRelations = implode(',', $valueArray);
 
 		$dbAnalysis = t3lib_div::makeInstance('t3lib_loadDBGroup');
 		/* @var $dbAnalysis t3lib_loadDBGroup */
 		$dbAnalysis->registerNonTableValues=$tcaFieldConf['allowNonIdValues'] ? 1 : 0;
-		$dbAnalysis->start(implode(',',$valueArray),$tables, '', 0, $currentTable, $tcaFieldConf);
+		$dbAnalysis->start($newRelations, $tables, '', 0, $currentTable, $tcaFieldConf);
 
 		if ($tcaFieldConf['MM'])	{
 			if ($status=='update')	{
+				$oldRelations_dbAnalysis = t3lib_div::makeInstance('t3lib_loadDBGroup');
+				/* @var $oldRelations_dbAnalysis t3lib_loadDBGroup */
+				$oldRelations_dbAnalysis->registerNonTableValues=$tcaFieldConf['allowNonIdValues'] ? 1 : 0;
+					// db analysis with $id will initialize with the existing relations
+				$oldRelations_dbAnalysis->start('', $tables, $tcaFieldConf['MM'], $id, $currentTable, $tcaFieldConf);
+				$oldRelations = implode(',', $oldRelations_dbAnalysis->getValueArray());
 				$dbAnalysis->writeMM($tcaFieldConf['MM'],$id,$prep);
+				if ($oldRelations != $newRelations) {
+					$this->mmHistoryRecords[$currentTable . ':' . $id]['oldRecord'][$currentField] = $oldRelations;
+					$this->mmHistoryRecords[$currentTable . ':' . $id]['newRecord'][$currentField] = $newRelations;
+				} else {
+					$this->mmHistoryRecords[$currentTable . ':' . $id]['oldRecord'][$currentField] = '';
+					$this->mmHistoryRecords[$currentTable . ':' . $id]['newRecord'][$currentField] = '';
+				}
 			} else {
 				$this->dbAnalysisStore[] = array($dbAnalysis,$tcaFieldConf['MM'],$id,$prep,$currentTable);	// This will be traversed later to execute the actions
 			}
@@ -2733,7 +2758,7 @@ class t3lib_TCEmain	{
 				// Now, the $uid is the actual record we will copy while $origUid is the record we asked to get copied - but that could be a live version.
 */
 			if ($this->doesRecordExist($table,$uid,'show'))	{		// This checks if the record can be selected which is all that a copy action requires.
-				if ($this->BE_USER->recordEditAccessInternals($table,$uid, false, false, true)) { //Used to check language and general editing rights
+				if (($language > 0 && $this->BE_USER->checkLanguageAccess($language) ) || $this->BE_USER->recordEditAccessInternals($table, $uid, false, false, true)) { //Used to check language and general editing rights
 					$data = Array();
 
 					$nonFields = array_unique(t3lib_div::trimExplode(',','uid,perms_userid,perms_groupid,perms_user,perms_group,perms_everybody,t3ver_oid,t3ver_wsid,t3ver_id,t3ver_label,t3ver_state,t3ver_swapmode,t3ver_count,t3ver_stage,t3ver_tstamp,'.$excludeFields,1));
@@ -4504,7 +4529,7 @@ class t3lib_TCEmain	{
 	 */
 	function deleteL10nOverlayRecords($table, $uid) {
 			// Check whether table can be localized or has a different table defined to store localizations:
-		if (!t3lib_BEfunc::isTableLocalizable($table) || !empty($GLOBALS['TCA'][$table]['ctrl']['transForeignTable'])) {
+		if (!t3lib_BEfunc::isTableLocalizable($table) || !empty($GLOBALS['TCA'][$table]['ctrl']['transForeignTable']) || !empty($GLOBALS['TCA'][$table]['ctrl']['transOrigPointerTable'])) {
 			return;
 		}
 
@@ -6458,13 +6483,23 @@ $this->log($table,$id,6,0,0,'Stage raised...',30,array('comment'=>$comment,'stag
 				// Unset the fields which are similar:
 			foreach($fieldArray as $col => $val)	{
 				if (
-						!strcmp($val,$currentRecord[$col]) ||	// Unset fields which matched exactly.
-						($cRecTypes[$col]=='int' && $currentRecord[$col]==0 && !strcmp($val,''))	// Now, a situation where TYPO3 tries to put an empty string into an integer field, we should not strcmp the integer-zero and '', but rather accept them to be similar.
-					)	{
+					!$GLOBALS['TCA'][$table]['columns'][$col]['config']['MM'] && // Do not unset MM relation fields, since equality of the MM count doesn't always mean that relations haven't changed.
+					( !strcmp($val,$currentRecord[$col]) ||	// Unset fields which matched exactly.
+					  ($cRecTypes[$col]=='int' && $currentRecord[$col]==0 && !strcmp($val,''))	// Now, a situation where TYPO3 tries to put an empty string into an integer field, we should not strcmp the integer-zero and '', but rather accept them to be similar.
+					)
+				) {
 					unset($fieldArray[$col]);
 				} else {
-					$this->historyRecords[$table.':'.$id]['oldRecord'][$col] = $currentRecord[$col];
-					$this->historyRecords[$table.':'.$id]['newRecord'][$col] = $fieldArray[$col];
+					if (!isset($this->mmHistoryRecords[$table . ':' . $id]['oldRecord'][$col])) {
+						$this->historyRecords[$table . ':' . $id]['oldRecord'][$col] = $currentRecord[$col];
+					} elseif ($this->mmHistoryRecords[$table . ':' . $id]['oldRecord'][$col] != $this->mmHistoryRecords[$table . ':' . $id]['newRecord'][$col]) {
+						$this->historyRecords[$table . ':' . $id]['oldRecord'][$col] = $this->mmHistoryRecords[$table . ':' . $id]['oldRecord'][$col];
+					}
+					if (!isset($this->mmHistoryRecords[$table . ':' . $id]['newRecord'][$col])) {
+						$this->historyRecords[$table . ':' . $id]['newRecord'][$col] = $fieldArray[$col];
+					} elseif ($this->mmHistoryRecords[$table . ':' . $id]['newRecord'][$col] != $this->mmHistoryRecords[$table . ':' . $id]['oldRecord'][$col]) {
+						$this->historyRecords[$table . ':' . $id]['newRecord'][$col] = $this->mmHistoryRecords[$table . ':' . $id]['newRecord'][$col];
+					}
 				}
 			}
 		} else {	// If the current record does not exist this is an error anyways and we just return an empty array here.
@@ -7580,7 +7615,7 @@ State was change by %s (username: %s)
 	 */
 	function findPageIdsForVersionStateChange($table, $idList, $workspaceId, &$pageIdList, &$elementList) {
 		if ($workspaceId != 0) {
-			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT(B.pid)',
+			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT B.pid',
 				$table . ' A,' . $table . ' B',
 				'A.pid=-1' .		// Offline version
 				' AND A.t3ver_wsid=' . $workspaceId .
@@ -7619,7 +7654,7 @@ State was change by %s (username: %s)
 			foreach($TCA as $table => $cfg)	{
 				if ($TCA[$table]['ctrl']['versioningWS'] && $table != 'pages')	{
 					// Using SELECTquery for better debugging
-					$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT(A.uid)',
+					$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT A.uid',
 						$table . ' A,' . $table . ' B',
 						'A.pid=-1' .		// Offline version
 						' AND A.t3ver_wsid=' . $workspaceId .
