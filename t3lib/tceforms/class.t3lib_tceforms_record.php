@@ -253,7 +253,12 @@ class t3lib_TCEforms_Record {
 	}
 
 	public function getFieldList() {
-		return $this->fieldList;
+		// TODO check if this works if a "type" is set (from the 'types' TCA entry)
+		if (count($this->fieldList) > 0) {
+			return $this->fieldList;
+		} else {
+			return $this->dataStructure->getFieldNames();
+		}
 	}
 
 	public function setFieldList($fieldList) {

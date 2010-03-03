@@ -53,6 +53,10 @@ class t3lib_TCA_DataStructure {
 		return $this->control[$key];
 	}
 
+	public function getFieldNames() {
+		return array_keys($this->fields);
+	}
+
 	public function getFieldConfiguration($fieldName) {
 		return $this->fields[$fieldName];
 	}
