@@ -190,7 +190,7 @@ class t3lib_TCEforms_Record {
 
 		$this->createFieldsList();
 
-		$this->setExcludeElements();
+		$this->setExcludedElements();
 
 		$this->registerDefaultLanguageData();
 
@@ -365,14 +365,14 @@ class t3lib_TCEforms_Record {
 	}
 
 	/**
-	 * Returns if a given element is among the elements set via setExcludeElements(), i.e.
+	 * Returns if a given element is among the elements set via setExcludedElements(), i.e.
 	 * not displayed in the form
 	 *
 	 * @param  string  $elementName  The name of the element to check
 	 * @return boolean
 	 */
-	public function isExcludeElement($elementName) {
-		return t3lib_div::inArray($this->excludeElements, $elementName);
+	public function isExcludedElement($elementName) {
+		return t3lib_div::inArray($this->excludedElements, $elementName);
 	}
 
 	/**
@@ -380,8 +380,8 @@ class t3lib_TCEforms_Record {
 	 *
 	 * @return array
 	 */
-	public function getExcludeElements() {
-		return $this->excludeElements;
+	public function getExcludedElements() {
+		return $this->excludedElements;
 	}
 
 	/**
@@ -390,20 +390,20 @@ class t3lib_TCEforms_Record {
 	 *
 	 * NOTICE: This list is in NO way related to the "excludeField" flag
 	 *
-	 * Sets $this->excludeElements to an array with fieldnames as values. The fieldnames are
+	 * Sets $this->excludedElements to an array with fieldnames as values. The fieldnames are
 	 * those which should NOT be displayed "anyways"
 	 *
 	 * @return void
 	 */
-	protected function setExcludeElements() {
+	protected function setExcludedElements() {
 			// Init:
-		$this->excludeElements = array();
+		$this->excludedElements = array();
 
 			// If a subtype field is defined for the type
 		if ($this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field']) {
 			$subtypeField = $this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field'];
 			if (trim($this->TCAdefinition['types'][$this->typeNumber]['subtypes_excludelist'][$this->recordData[$subtypeField]])) {
-				$this->excludeElements=t3lib_div::trimExplode(',',$this->TCAdefinition['types'][$this->typeNumber]['subtypes_excludelist'][$this->recordData[$subtypeField]],1);
+				$this->excludedElements=t3lib_div::trimExplode(',',$this->TCAdefinition['types'][$this->typeNumber]['subtypes_excludelist'][$this->recordData[$subtypeField]],1);
 			}
 		}
 
@@ -422,7 +422,7 @@ class t3lib_TCEforms_Record {
 								(substr($bitKey,0,1)=='-' && !($subtypeValue&pow(2,$bit))) ||
 								(substr($bitKey,0,1)=='+' && ($subtypeValue&pow(2,$bit)))
 							) {
-							$this->excludeElements = array_merge($this->excludeElements,t3lib_div::trimExplode(',',$eList,1));
+							$this->excludedElements = array_merge($this->excludedElements,t3lib_div::trimExplode(',',$eList,1));
 						}
 					}
 				}

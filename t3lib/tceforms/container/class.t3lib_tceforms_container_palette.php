@@ -69,10 +69,10 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 
 		$TCAdefinition = $this->recordObject->getTCAdefinitionForTable();
 
-			// Getting excludeElements, if any.
-		// TODO: check if there was a possibility to define own exclude elements for a palette in the past
-		/*if (!is_array($this->excludeElements))	{
-			$this->excludeElements = $this->parentFormObject->getExcludeElements();
+			// Getting excluded elements, if any.
+		// TODO: check if there was a possibility to define own excluded elements for a palette in the past
+		/*if (!is_array($this->excludedElements))	{
+			$this->excludedElements = $this->parentFormObject->getExcludedElements();
 		}*/
 
 			// Load the palette TCEform elements
