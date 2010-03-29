@@ -122,8 +122,19 @@ class t3lib_TCEforms_Record {
 	 */
 	protected $parentFormObject;
 
-	protected $sheetIdentString;
-	protected $sheetIdentStringMD5;
+	/**
+	 * Long identification string for the sheets.
+	 *
+	 * @var string
+	 */
+	protected $sheetIdentifier;
+
+	/**
+	 * Short identification string for the sheets. This is guaranteed to be not longer than 8 characters.
+	 *
+	 * @var unknown_type
+	 */
+	protected $shortSheetIdentifier;
 	protected $sheetCounter = 0;
 
 	/**
@@ -211,12 +222,36 @@ class t3lib_TCEforms_Record {
 			++$c;
 		}
 		if (count($tabContents) > 1) {
-			$content = $this->formBuilder->getDynTabMenu($tabContents, $this->sheetIdentString);
+			$content = $this->getDynTabMenu($tabContents);
 		} else {
 			$content = $tabContents[0]['content'];
 		}
 
 		return $content;
+	}
+
+	/**
+	 * Create dynamic tab menu
+	 *
+	 * @param	array		Parts for the tab menu, fed to template::getDynTabMenu()
+	 * @param	string		ID string for the tab menu
+	 * @param	integer		If set to '1' empty tabs will be removed, If set to '2' empty tabs will be disabled
+	 * @return	string		HTML for the menu
+	 */
+	public function getDynTabMenu($parts, $dividersToTabsBehaviour = 1) {
+		if (is_object($GLOBALS['TBE_TEMPLATE'])) {
+			return $GLOBALS['TBE_TEMPLATE']->getDynTabMenu($parts, $this->sheetIdentifier, 0, false, 50, 1, false, 1, $dividersToTabsBehaviour);
+		} else {
+			$output = '';
+			foreach($parts as $singlePad) {
+				$output .= '
+				<h3>' . htmlspecialchars($singlePad['label']) . '</h3>
+				' . ($singlePad['description'] ? '<p class="c-descr">' . nl2br(htmlspecialchars($singlePad['description'])) . '</p>' : '') . '
+				' . $singlePad['content'];
+			}
+
+			return '<div class="typo3-dyntabmenu-divs">' . $output . '</div>';
+		}
 	}
 
 
@@ -286,6 +321,20 @@ class t3lib_TCEforms_Record {
 	 */
 	public function getIdentifier() {
 		return $this->getTable() . ':' . $this->recordData['uid'];
+	}
+
+	public function getShortSheetIdentifier() {
+		// TODO replace this by call to this method in init()
+		if (!$this->shortSheetIdentifier) {
+			$this->buildSheetIdentifiers();
+		}
+
+		return $this->shortSheetIdentifier;
+	}
+
+	protected function buildSheetIdentifiers() {
+		$this->sheetIdentifier = 'TCEforms:'.$this->getIdentifier();
+		$this->shortSheetIdentifier = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($this->sheetIdentifier);
 	}
 
 	/**

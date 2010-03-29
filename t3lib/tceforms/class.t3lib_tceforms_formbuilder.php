@@ -209,44 +209,11 @@ class t3lib_TCEforms_FormBuilder {
 	 * @return  t3lib_TCEforms_Sheet
 	 */
 	public function createSheetObject($number, $header) {
-		if ($this->sheetIdentString == '') {
-			$this->sheetIdentString = $this->getSheetIdentString();
-			$this->sheetIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($this->getSheetIdentString());
-		}
-
-		$sheetIdentString = $this->sheetIdentStringMD5 . '-' . $number;
+		$sheetIdentString = $this->recordObject->getShortSheetIdentifier() . '-' . $number;
 
 		$sheetObject = new t3lib_TCEforms_Container_Sheet($sheetIdentString, $header);
 
 		return $sheetObject;
-	}
-
-	protected function getSheetIdentString() {
-		return 'TCEforms:'.$this->recordObject->getTable().':'.$this->recordObject->getValue('uid');
-	}
-
-	/**
-	 * Create dynamic tab menu
-	 *
-	 * @param	array		Parts for the tab menu, fed to template::getDynTabMenu()
-	 * @param	string		ID string for the tab menu
-	 * @param	integer		If set to '1' empty tabs will be removed, If set to '2' empty tabs will be disabled
-	 * @return	string		HTML for the menu
-	 */
-	public function getDynTabMenu($parts, $idString, $dividersToTabsBehaviour = 1) {
-		if (is_object($GLOBALS['TBE_TEMPLATE'])) {
-			return $GLOBALS['TBE_TEMPLATE']->getDynTabMenu($parts, $idString, 0, false, 50, 1, false, 1, $dividersToTabsBehaviour);
-		} else {
-			$output = '';
-			foreach($parts as $singlePad) {
-				$output .= '
-				<h3>' . htmlspecialchars($singlePad['label']) . '</h3>
-				' . ($singlePad['description'] ? '<p class="c-descr">' . nl2br(htmlspecialchars($singlePad['description'])) . '</p>' : '') . '
-				' . $singlePad['content'];
-			}
-
-			return '<div class="typo3-dyntabmenu-divs">' . $output . '</div>';
-		}
 	}
 
 	/**
