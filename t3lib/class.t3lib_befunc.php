@@ -724,31 +724,24 @@ final class t3lib_BEfunc {
 
 		$loopCheck = 100;
 		$output = $fullOutput = '/';
-		while ($uid!=0 && $loopCheck>0) {
-			$loopCheck--;
-			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-						'uid,pid,title,t3ver_oid,t3ver_wsid,t3ver_swapmode',
-						'pages',
-						'uid='.intval($uid).
-							t3lib_BEfunc::deleteClause('pages').
-							(strlen(trim($clause)) ? ' AND '.$clause : '')
-					);
-			if ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-				t3lib_BEfunc::workspaceOL('pages', $row);
-				if (is_array($row)) {
-					t3lib_BEfunc::fixVersioningPid('pages', $row);
 
-					if ($row['_ORIG_pid'] && $row['t3ver_swapmode']>0)	{	// Branch points
-						$output = ' [#VEP#]'.$output;		// Adding visual token - Versioning Entry Point - that tells that THIS position was where the versionized branch got connected to the main tree. I will have to find a better name or something...
-					}
-					$uid = $row['pid'];
-					$output = '/'.t3lib_div::fixed_lgd_cs(strip_tags($row['title']), $titleLimit).$output;
-					if ($fullTitleLimit)	$fullOutput = '/'.t3lib_div::fixed_lgd_cs(strip_tags($row['title']), $fullTitleLimit).$fullOutput;
-				} else break;
-			} else {
-				break;
+		$clause = trim($clause);
+		if ($clause !== '' && substr($clause, 0, 3) !== 'AND') {
+			$clause = 'AND ' . $clause;
+		}
+		$data = self::BEgetRootLine($uid, $clause);
+
+		foreach ($data as $record) {
+			if ($record['uid'] === 0) {
+				continue;
 			}
-			$GLOBALS['TYPO3_DB']->sql_free_result($res);
+			if ($record['_ORIG_pid'] && $record['t3ver_swapmode'] > 0) {		// Branch points
+				$output = ' [#VEP#]' . $output;		// Adding visual token - Versioning Entry Point - that tells that THIS position was where the versionized branch got connected to the main tree. I will have to find a better name or something...
+			}
+			$output = '/' . t3lib_div::fixed_lgd_cs(strip_tags($record['title']), $titleLimit) . $output;
+			if ($fullTitleLimit) {
+				$fullOutput = '/' . t3lib_div::fixed_lgd_cs(strip_tags($record['title']), $fullTitleLimit) . $fullOutput;
+			}
 		}
 
 		if ($fullTitleLimit) {
@@ -2626,15 +2619,6 @@ final class t3lib_BEfunc {
 			$viewScriptPreviewEnabled = $viewScriptPreviewDisabled = $altUrl;
 		}
 
-			// check alternate Domains
-		if ($rootLine)  {
-			$parts = parse_url(t3lib_div::getIndpEnv('TYPO3_SITE_URL'));
-			if (t3lib_BEfunc::getDomainStartPage($parts['host'],$parts['path'])) {
-				$preUrl_temp = t3lib_BEfunc::firstDomainRecord($rootLine);
-			}
-		}
-		$preUrl = $preUrl_temp ? (t3lib_div::getIndpEnv('TYPO3_SSL') ? 'https://' : 'http://') . $preUrl_temp : $backPath . '..';
-
 			// Look if a fixed preview language should be added:
 		$viewLanguageOrder = $GLOBALS['BE_USER']->getTSConfigVal('options.view.languageOrder');
 		if (strlen($viewLanguageOrder))	{
@@ -2659,20 +2643,49 @@ final class t3lib_BEfunc {
 					break;
 				}
 			}
-
 				// Add it:
 			$addGetVars .= $suffix;
 		}
 
-		$urlPreviewEnabled  = $preUrl . $viewScriptPreviewEnabled . $id . $addGetVars . $anchor;
-		$urlPreviewDisabled = $preUrl . $viewScriptPreviewDisabled . $id . $addGetVars . $anchor;
-
+		$viewDomain = t3lib_BEfunc::getViewDomain($id, $rootLine);
+		$urlPreviewEnabled  = $viewDomain . $viewScriptPreviewEnabled . $id . $addGetVars . $anchor;
+		$urlPreviewDisabled = $viewDomain . $viewScriptPreviewDisabled . $id . $addGetVars . $anchor;		
 
 		return "previewWin=window.open(top.WorkspaceFrontendPreviewEnabled?'" .
 			$urlPreviewDisabled . "':'" . $urlPreviewEnabled .
 			"','newTYPO3frontendWindow');" . ( $switchFocus ? 'previewWin.focus();' : '');
 	}
 
+	/**
+	 * Builds the frontend view domain for a given page ID with a given root
+	 * line.
+	 *
+	 * @param integer $pageId the page ID to use, must be > 0
+	 * @param array $rootLine the root line structure to use
+	 *
+	 * @return string the full domain including the protocol http:// or https://
+	 *
+	 * @author Michael Klapper <michael.klapper@aoemedia.de>
+	 */
+	public static function getViewDomain($pageId, $rootLine = null) {
+		$domain = t3lib_div::getIndpEnv('TYPO3_SITE_URL');
+
+		if (!is_array($rootLine)) {
+			$rootLine = t3lib_BEfunc::BEgetRootLine($pageId);
+		}
+		
+			// checks alternate domains
+		if (count($rootLine) > 0) {
+			$urlParts = parse_url($domain);
+			if (t3lib_BEfunc::getDomainStartPage($urlParts['host'], $urlParts['path'])) {
+				$protocol = t3lib_div::getIndpEnv('TYPO3_SSL') ? 'https://' : 'http://';
+				$domain = $protocol . t3lib_BEfunc::firstDomainRecord($rootLine);
+			}
+		}
+
+		return $domain;
+	}	
+	
 	/**
 	 * Returns the merged User/Page TSconfig for page id, $id.
 	 * Please read details about module programming elsewhere!
@@ -4162,7 +4175,7 @@ final class t3lib_BEfunc {
 				$url = "alt_doc.php?returnUrl=index.php&edit[be_users][".$row['uid']."]=edit";
 				$warnings["backend_admin"] = sprintf(
 					$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:warning.backend_admin'),
-					'<a href="'.$url.'">',
+					'<a href="' . htmlspecialchars($url) . '">',
 					'</a>');
 
 			}

@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2009-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,21 +30,18 @@
  * TYPO3 SVN ID: $Id$
  */
 EditorMode = HTMLArea.Plugin.extend({
-
 	constructor : function(editor, pluginName) {
 		this.base(editor, pluginName);
 	},
-
 	/*
 	 * This function gets called by the class constructor
 	 */
 	configurePlugin : function (editor) {
-
 		/*
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: "0.1",
+			version		: "2.0",
 			developer	: "Stanislas Rolland",
 			developerUrl	: "http://www.sjbr.ca/",
 			copyrightOwner	: "Stanislas Rolland",
@@ -53,7 +50,6 @@ EditorMode = HTMLArea.Plugin.extend({
 			license		: "GPL"
 		};
 		this.registerPluginInformation(pluginInformation);
-
 		/*
 		 * Registering the buttons
 		 */
@@ -71,64 +67,13 @@ EditorMode = HTMLArea.Plugin.extend({
 			this.registerButton(buttonConfiguration);
 		}
 		return true;
-	 },
-
-	/* The list of buttons added by this plugin */
-	buttonList : [
-		["TextMode", null]
+	},
+	/**
+	 * The list of buttons added by this plugin
+	 */
+	buttonList: [
+		['TextMode', null]
 	],
-
-	/*
-	 * This function gets called during the editor generation and initializes the editor mode
-	 *
-	 * @return	void
-	 */
-	init : function () {
-		var doc = this.editor._doc;
-			// Catch error if html content is invalid
-		var documentIsWellFormed = true;
-		try {
-			doc.body.innerHTML = this.editor._textArea.value;
-		} catch(e) {
-			this.appendToLog("init", "The HTML document is not well-formed.");
-			alert(this.localize("HTML-document-not-well-formed"));
-			documentIsWellFormed = false;
-		}
-			// Set contents editable
-		if (documentIsWellFormed) {
-			if (HTMLArea.is_gecko && !HTMLArea.is_safari && !HTMLArea.is_opera && !this.editor._initEditMode()) {
-				return false;
-			}
-			if (HTMLArea.is_ie || HTMLArea.is_safari) {
-				doc.body.contentEditable = true;
-			}
-			if (HTMLArea.is_opera || HTMLArea.is_safari) {
-				doc.designMode = "on";
-				this.setGeckoOptions();
-			}
-			this.editorMode = "wysiwyg";
-			if (doc.body.contentEditable || doc.designMode == "on") {
-				this.appendToLog("init", "Design mode successfully set.");
-			}
-		} else {
-			this.editorMode = "textmode";
-			this.setEditorMode("docnotwellformedmode");
-			this.appendToLog("init", "Design mode could not be set.");
-		}
-		return true;
-	},
-
-	/*
-	 * This function gets called when the editor is generated
-	 *
-	 * @return 	void
-	 */
-	onGenerate : function () {
-			// Set some references
-		this.textArea = this.editor._textArea;
-		this.editorBody = this.editor._doc.body;
-	},
-
 	/*
 	 * This function gets called when a button was pressed.
 	 *
@@ -137,173 +82,19 @@ EditorMode = HTMLArea.Plugin.extend({
 	 *
 	 * @return	boolean		false if action is completed
 	 */
-	onButtonPress : function (editor, id, target) {
+	onButtonPress: function (editor, id, target) {
 			// Could be a button or its hotkey
 		var buttonId = this.translateHotKey(id);
 		buttonId = buttonId ? buttonId : id;
-		this.setEditorMode((this.getEditorMode() == buttonId.toLowerCase()) ? "wysiwyg" : buttonId.toLowerCase());
+		this.editor.setMode((this.editor.getMode() == buttonId.toLowerCase()) ? 'wysiwyg' : buttonId.toLowerCase());
 		return false;
 	},
-
-	/*
-	 * Switch editor mode
-	 *
-	 * @param	string	"textmode" or "wysiwyg"; if no parameter was passed, toggle between modes.
-	 * @return	void
-	 */
-	setEditorMode : function (mode) {
-		var editor = this.editor;
-		switch (mode) {
-			case "textmode":
-			case "docnotwellformedmode":
-				this.textArea.value = this.getHTML();
-				editor._iframe.style.display = "none";
-				var dimensions = editor.getDimensions();
-				editor.htmlArea.setStyle('height', (dimensions.toolbar.height + dimensions.statusbar.height) + 'px');
-				editor.htmlArea.removeClass('resizable');
-				this.textArea.style.display = "block";
-				this.editorMode = "textmode";
-				break;
-			case "wysiwyg":
-				if (HTMLArea.is_gecko && !HTMLArea.is_safari && !HTMLArea.is_opera) {
-					editor._doc.designMode = "off";
-				}
-				try {
-					this.editorBody.innerHTML = this.getHTML();
-				} catch(e) {
-					alert(HTMLArea.I18N.msg["HTML-document-not-well-formed"]);
-					break;
-				}
-				this.textArea.style.display = "none";
-				editor._iframe.style.display = "block";
-				var dimensions = editor.getDimensions();
-				editor.htmlArea.setStyle('height', (parseInt(editor.iframe.getStyle('height')) + dimensions.toolbar.height + dimensions.statusbar.height) + 'px');
-				editor.htmlArea.addClass('resizable');
-				if (HTMLArea.is_gecko && !HTMLArea.is_safari && !HTMLArea.is_opera) {
-					editor._doc.designMode = "on";
-				}
-				this.editorMode = "wysiwyg";
-				this.setGeckoOptions();
-				break;
-			case "htmlmode":
-				this.editorMode = "htmlmode";
-				break;
-			default:
-				return false;
-		}
-		if (mode !== "docnotwellformedmode") {
-			editor.focusEditor();
-		}
-		for (var pluginId in editor.plugins) {
-			if (editor.plugins.hasOwnProperty(pluginId)) {
-				var pluginInstance = this.getPluginInstance(pluginId);
-				if (typeof(pluginInstance.onMode) === "function") {
-					pluginInstance.onMode(mode);
-				}
-			}
-		}
-	},
-
-	/*
-	 * Set gecko editing mode options (if we can... raises exception in Firefox 3)
-	 *
-	 * @return	void
-	 */
-	setGeckoOptions : function () {
-		if (HTMLArea.is_gecko) {
-			var doc = this.editor._doc;
-			var config = this.editor.config;
-			try {
-				if (doc.queryCommandEnabled("insertbronreturn")) {
-					doc.execCommand("insertbronreturn", false, config.disableEnterParagraphs);
-				}
-				if (doc.queryCommandEnabled("styleWithCSS")) {
-					doc.execCommand("styleWithCSS", false, config.useCSS);
-				} else if (!HTMLArea.is_opera && !HTMLArea.is_safari && doc.queryCommandEnabled("useCSS")) {
-					doc.execCommand("useCSS", false, !config.useCSS);
-				}
-				if (!HTMLArea.is_opera && !HTMLArea.is_safari) {
-					if (doc.queryCommandEnabled("enableObjectResizing")) {
-						doc.execCommand("enableObjectResizing", false, !config.disableObjectResizing);
-					}
-					if (doc.queryCommandEnabled("enableInlineTableEditing")) {
-						doc.execCommand("enableInlineTableEditing", false, (config.buttons.table && config.buttons.table.enableHandles) ? true : false);
-					}
-				}
-			} catch(e) {}
-		}
-	},
-
-	/*
-	 * Get editor mode
-	 *
-	 * @return	string	the current editor mode
-	 */
-	getEditorMode : function() {
-		return this.editorMode;
-	},
-
 	/*
 	 * This function gets called when the toolbar is updated
 	 *
 	 * @return	void
 	 */
-	onUpdateToolbar : function () {
-		var buttonList = this.buttonList, buttonId;
-		for (var i = 0, n = buttonList.length; i < n; ++i) {
-			buttonId = buttonList[i][0];
-			if (this.isButtonInToolbar(buttonId)) {
-				this.editor._toolbarObjects[buttonId].state("active", (this.getEditorMode() == buttonId.toLowerCase()));
-			}
-		}
-	},
-
-	/*
-	 * Retrieve the HTML
-	 * In the case of the wysiwyg mode, the html content is parsed
-	 *
-	 * @return	string	the textual html content from the current editing mode
-	 */
-	getHTML : function () {
-		switch (this.editorMode) {
-			case "wysiwyg":
-				return HTMLArea.getHTML(this.editorBody, false, this.editor);
-			case "textmode":
-				return this.textArea.value;
-		}
-		return "";
-	},
-
-	/*
-	 * Retrieve raw HTML
-	 *
-	 * @return	string	the textual html content from the current editing mode
-	 */
-	getInnerHTML : function () {
-		switch (this.editorMode) {
-			case "wysiwyg":
-				return this.editorBody.innerHTML;
-			case "textmode":
-				return this.textArea.value;
-		}
-		return "";
-	},
-
-	/*
-	 * Replace the HTML inside
-	 *
-	 * @param	string	html: the textual html
-	 * @return	boolean	false
-	 */
-	setHTML : function (html) {
-		switch (this.editorMode) {
-			case "wysiwyg":
-				this.editorBody.innerHTML = html;
-				break;
-			case "textmode":
-				this.textArea.value = html;
-				break;
-		}
-		return false;
+	onUpdateToolbar: function (button, mode, selectionEmpty, ancestors) {
+		button.setInactive(mode !== button.itemId.toLowerCase());
 	}
 });

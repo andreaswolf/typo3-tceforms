@@ -2496,6 +2496,11 @@ class t3lib_TCEmain	{
 				// update record in intermediate table (sorting & pointer uid to parent record)
 			$dbAnalysis->writeForeignField($tcaFieldConf, $id, 0, $skipSorting);
 			$newValue = ($keepTranslation ? 0 : $dbAnalysis->countItems(false));
+			// IRRE with MM relation:
+		} else if ($this->getInlineFieldType($tcaFieldConf) == 'mm') {
+				// in order to fully support all the MM stuff, directly call checkValue_group_select_processDBdata instead of repeating the needed code here
+			$valueArray = $this->checkValue_group_select_processDBdata($valueArray, $tcaFieldConf, $id, $status, 'select', $table, $field);
+			$newValue = ($keepTranslation ? 0 : $valueArray[0]);
 			// IRRE with comma separated values:
 		} else {
 			$valueArray = $dbAnalysis->getValueArray();
@@ -3410,7 +3415,7 @@ class t3lib_TCEmain	{
 	 */
 	function copyL10nOverlayRecords($table, $uid, $destPid, $first=0, $overrideValues=array(), $excludeFields='') {
 			//there's no need to perform this for page-records
-		if (!t3lib_BEfunc::isTableLocalizable($table) || !empty($GLOBALS['TCA'][$table]['ctrl']['transForeignTable'])) {
+		if (!t3lib_BEfunc::isTableLocalizable($table) || !empty($GLOBALS['TCA'][$table]['ctrl']['transForeignTable']) || !empty($GLOBALS['TCA'][$table]['ctrl']['transOrigPointerTable'])) {
 			return;
 		}
 
@@ -3831,7 +3836,7 @@ class t3lib_TCEmain	{
 	 */
 	function moveL10nOverlayRecords($table, $uid, $destPid) {
 			//there's no need to perform this for page-records or not localizeable tables
-		if (!t3lib_BEfunc::isTableLocalizable($table) || !empty($GLOBALS['TCA'][$table]['ctrl']['transForeignTable'])) {
+		if (!t3lib_BEfunc::isTableLocalizable($table) || !empty($GLOBALS['TCA'][$table]['ctrl']['transForeignTable']) || !empty($GLOBALS['TCA'][$table]['ctrl']['transOrigPointerTable'])) {
 			return;
 		}
 
@@ -6645,7 +6650,10 @@ $this->log($table,$id,6,0,0,'Stage raised...',30,array('comment'=>$comment,'stag
 	 */
 	function dbAnalysisStoreExec()	{
 		foreach ($this->dbAnalysisStore as $action) {
-			$id = t3lib_BEfunc::wsMapId($action[4], $this->substNEWwithIDs[$action[2]]);
+			$id = t3lib_BEfunc::wsMapId(
+				$action[4],
+				(t3lib_div::testInt($action[2]) ? $action[2] : $this->substNEWwithIDs[$action[2]])
+			);
 			if ($id)	{
 				$action[0]->writeMM($action[1], $id, $action[3]);
 			}

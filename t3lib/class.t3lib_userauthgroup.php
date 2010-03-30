@@ -444,12 +444,13 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	 * @param	string		String to search for in the groupData-list
 	 * @return	boolean		True if permission is granted (that is, the value was found in the groupData list - or the BE_USER is "admin")
 	 */
-	function check($type,$value)	{
-		if (isset($this->groupData[$type]))	{
-			if ($this->isAdmin() || $this->inList($this->groupData[$type],$value)) {
-				return 1;
+	function check($type, $value) {
+		if (isset($this->groupData[$type])) {
+			if ($this->isAdmin() || $this->inList($this->groupData[$type], $value)) {
+				return TRUE;
 			}
 		}
+		return FALSE;
 	}
 
 	/**
@@ -1232,9 +1233,11 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			}
 
 				// Processing filemounts
+			t3lib_div::loadTCA('sys_filemounts');
+			$orderBy = $GLOBALS['TCA']['sys_filemounts']['ctrl']['default_sortby'] ? $GLOBALS['TYPO3_DB']->stripOrderBy($GLOBALS['TCA']['sys_filemounts']['ctrl']['default_sortby']) : 'sorting';
 			$this->dataLists['filemount_list'] = t3lib_div::uniqueList($this->dataLists['filemount_list']);
 			if ($this->dataLists['filemount_list'])	{
-				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', 'sys_filemounts', 'deleted=0 AND hidden=0 AND pid=0 AND uid IN ('.$this->dataLists['filemount_list'].')');
+				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', 'sys_filemounts', 'deleted=0 AND hidden=0 AND pid=0 AND uid IN ('.$this->dataLists['filemount_list'].')', '', $orderBy);
 				while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
 					$this->addFileMount($row['title'], $row['path'], $row['path'], $row['base']?1:0, '');
 				}

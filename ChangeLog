@@ -1,3 +1,147 @@
+2010-02-27  Andreas Otto  <andreas@otto-hanika.de>
+
+	* Fixed bug #13685: Recursive copy and move of alternative page languages (thanks to Albrecht Köhnlein)
+
+2010-02-27  Oliver Hader  <oliver@typo3.org>
+
+	* Fixed bug #8191: IRRE - Storing data crashes somehow with MM tables (thanks to Peter Kuehn & Franz Koch)
+
+2010-02-27  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #12874: Tool>Log date fields does not work
+	* Fixed bug #7896: Hide the page browser if not enough entries are available (Thanks to Stefan Galinski)
+
+2010-02-26  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Fixed bug #11562: Main module does not load different navFrames in submodules (Thanks to Erik Frister)
+	* Follow-up to #13675: Added testcase for t3lib_div::intExplode()
+	* Follow-up to #13675: Use array_map() instead of array_walk()
+	* Fixed bug #13675: Performance improvement: Use array_walk() for t3lib_div::intExplode (Thanks to Georg Ringer)
+
+2010-02-26  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #13419: sys_action: Suggest wizard doesn't work with * as table (Thanks to Georg Ringer)
+	* Added feature #13519: Added a new iconset to t3skin (Thanks to Steffen Gebert and the T3UXW09 team)
+	* Fixed bug #13262: replace hardcoded typo3/ with TYPO3_mainDir (Thanks to Georg Ringer)
+	* Fixed bug #11507: tt_content's TCA spaceBefore and spaceAfter got a hardcoded limit of 50 (Thanks to Georg Ringer)
+	* Fixed bug #13591: Full search causes error if TCA has tables without any columns (Thanks to Fabrizio Branca)
+	* Fixed bug #13493: Cleanup return value in t3lib_userauthgroup check() (Thanks to Georg Ringer)
+	* Fixed bug #12849: Element wizard & web_list.allowedNewTables doesn't respect hiding pages (Thanks to Georg Ringer)
+	* Fixed bug #13611: Replace calls to t3lib_div:: within t3lib_div to self:: due to performance reasons (Thanks to Georg Ringer)
+
+2010-02-25  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #13651: htmlArea RTE: Table insertion is broken in IE8
+	* Added feature #13667: htmlArea RTE: Make toolbar dropdown size configurable in Page TSConfig
+	* Cleanup #13668: htmlArea RTE: Cleanup some unused code (acronym, color, font)
+	* Fixed bug #13671: htmlArea RTE: Invalid reference to font options in WebKit browsers
+	* Fixed bug #13672: htmlArea RTE: Conflicting configuration property name
+	* Cleanup #13673: htmlArea RTE: url to acronym module is not used anymore
+
+2010-02-24  Ernesto Baschny  <ernst@cron-it.de>
+
+	* Fixed bug #13470: Session/Login not working in IE8 across subdomains 
+
+2010-02-24  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #13637: [EM] Upload to TER is broken
+
+2010-02-23  Benjamin Mack  <benni@typo3.org>
+
+	* Release of TYPO3 4.4.0alpha1
+
+2010-02-23  Oliver Hader  <oliver@typo3.org>
+
+	* Fixed bug #13372: saltedpasswords - Authentication Bypass in frontend user authentication (thanks to Marcus Krause & Dmitry Dulepov)
+	* Fixed bug #13394: Information disclosure in sysext:sys_actions (thanks to Georg Ringer)
+	* Fixed bug #13042: XSS in index.php (thanks to Georg Ringer)
+	* Fixed bug #11617: XSS in template module (thanks to Georg Ringer)
+	* Fixed bug #13249: XSS in TS Object Browser (thanks to Marcus Krause)
+	* Fixed bug #11621: XSS vulnerabilities in workspace module (thanks to Georg Ringer)
+	* Fixed bug #11620: XSS vulnerability in task center module (thanks to Georg Ringer)
+	* Fixed bug #12628: XSS in sysext sys_action (thanks to Georg Ringer)
+	* Fixed bug #12634: XSS in the access module (thanks to Georg Ringer)
+	* Fixed bug #13558: XSS in t3lib_querygenerator (thanks to Georg Ringer)
+	* Fixed bug #12630: XSS in filelist module (thanks to Marcus Krause & Georg Ringer)
+
+2010-02-22  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #13243: Small speedup improvements to t3lib_page by removing superfluous intval() statements (Thanks to Georg Ringer)
+
+2010-02-22  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #13608: htmlArea RTE: Make height of the context menu configurable
+	* Updated NEWS.txt as follow-up to #13580: htmlArea RTE: Extjize the RTE
+	* Fixed bug #13618: htmlArea RTE: RTE iframe is sometimes collapsed
+	* Fixed bug #13619: htmlArea RTE: url not detected on enter
+
+2010-02-22  Dmitry Dulepov <dmitry.dulepov@gmail.com>
+
+	* Fixed bug #12958: Catchable fatal error in indexed_search
+
+2010-02-22  Oliver Hader  <oliver@typo3.org>
+
+	* Added feature #11950: Support for SSL and absolute links
+
+2010-02-21  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #13252: default CSS only loadable for media screen / changed behaviour in 4.3 (Thanks to Ralf Hettinger)
+	* Fixed bug #12179: Section "Help" is shown even with no subelements (Thanks to Georg Ringer)
+	* Fixed bug #13570: Bug: HTML validation error in the BE with the ajax.php inclusion (Thanks to Oliver Klee)
+	* Fixed bug #13289: Usage of deprecated method - getSetUpdateSignal() (Thanks to Stefan Galinski)
+	* Fixed bug #13444: Filemounts are unsorted
+
+2010-02-21  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #13580: htmlArea RTE: Extjize the RTE
+	* Fixed bug #13596: htmlArea RTE: Styling dropdowns grow on every use
+	* Fixed bug #13597: htmlArea RTE: Toolbar select box does not close on click in editing area
+	* Fixed bug #13310: htmlArea RTE: Additional Inline Elements issue with overlapping ranges
+	* Fixed bug #13599: htmlArea RTE: Annoying mouse-over effect on context menu items
+
+2010-02-21  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #13406: thumbs.php: Thumbnails for images with transparent background look ugly (Thanks to Andreas Wolf and Steffen Ritter)
+	* Fixed bug / Cleanup #12052: Restructure output of module "DB check" -> "Reference Index" (Thanks to Steffen Gebert)
+	* Added feature #13204: Flash can now use the session veriCode in the FE as well (Thanks to Stephan Lucas and Steffen Ritter)
+	* Fixed bug #12343: Installer - Missing message when creation of admin user fails due to missing data (Thanks to Marcus Krause)
+	* Fixed bug #13423: Bug/Feature: Make ext_tables.sql syntax parsing more compliable (Thanks to Joachim Mathes)
+	* Fixed bug #13201: Repots module - Use same install tool check for reports as used in About module (Thanks to Moreno Feltscher)
+	* Fixed bug #13574: html warning, because a plain & inside an url (Thanks to Stefan Galinski)
+	* Added feature #12180: Speedup t3lib_BEfunc::getRecordPath by using rootline cache (Thanks to Steffen Gebert)
+	* Fixed bug #13593: Remove calls to and log usage of deprecated global function fw() (Thanks to Steffen Gebert)
+	* Fixed bug #12625: JSMENU's fallback menu name is not unique
+	* Fixed bug #12259: Use labels in the page wizard for the page title fields (Thanks to Georg Ringer)
+	* Fixed bug / Cleanup #11206: Cleaned up test "t3lib_extmgm_testcase" (Thanks to Oliver Klee)
+	* Fixed bug / Cleanup #11608: t3lib_beFunc::viewOnClick - Extract logic to find the right frontend domain (Thanks to Michael Klapper)
+	* Fixed bug / Cleanup #12201: Replace header(Location:) with t3lib_div::redirect() (Thanks to Steffen Gebert)
+	* Followup to cleanup #7501: Remove Static-Templates from standard installation (Update class was declared twice, thanks to Susanne Moog)
+
+2010-02-21  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Fixed bug #12220: String literals quoted as identifiers
+
+2010-02-20  Steffen Kamper  <info@sk-typo3.de>
+
+	* Fixed bug #13568: ExtDirect - API generator should built absolute links (Thanks to Stefan Galinski)
+	* Fixed bug #13333: Datepicker button color is wrong
+
+2010-02-20  Benjamin Mack  <benni@typo3.org>
+
+	* Removed dependency / Cleanup #7501: Remove Static-Templates from standard installation (Thanks to Steffen Ritter)
+
+2010-02-20  Oliver Hader  <oliver@typo3.org>
+
+	* Added feature #13428: Caching of the ExtDirect API configuration (Thanks to Stefan Galinski)
+	* Follow-up to feature #13428: Extended generation of the caching hash
+	* Added feature #13164: CLI processes cannot be executed when adminOnly mode is enabled
+
+2010-02-19  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #12007: Docblock comments in TCEforms suggest class are wrong (Thanks to Andreas Wolf)
+	* Fixed bug #12870: Login News missing styling for links (Thanks to Steffen Gebert)
+	* Added feature #13131: Add API to add stylesheet directories (Thanks to Steffen Gebert)
+
 2010-02-14  Christian Kuhn  <lolli@schwarzbu.ch>
 
 	* Follow-up to #13448: Do not unset $typo3CacheFactory singleton

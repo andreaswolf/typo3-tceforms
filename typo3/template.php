@@ -132,7 +132,8 @@ if (!defined('TYPO3_MODE'))	die("Can't include this file directly.");
  * @return	string		Output string (in the old days this was wrapped in <font> tags)
  * @deprecated since TYPO3 3.6
  */
-function fw($str)	{
+function fw($str) {
+	t3lib_div::logDeprecatedFunction();
 	return $str;
 }
 
@@ -268,6 +269,27 @@ class template {
 		if ($TBE_STYLES['stylesheet2'])	$this->styleSheetFile2 = $TBE_STYLES['stylesheet2'];
 		if ($TBE_STYLES['styleSheetFile_post'])	$this->styleSheetFile_post = $TBE_STYLES['styleSheetFile_post'];
 		if ($TBE_STYLES['inDocStyles_TBEstyle'])	$this->inDocStyles_TBEstyle = $TBE_STYLES['inDocStyles_TBEstyle'];
+
+			// Stylesheets from skins:
+			// stylesheet directories have to be registered this way in ext_tables.php:
+			// $TBE_STYLES['stylesheetDirectories'][$_EXTKEY][] = 'EXT:myext/stylesheets/visual/'
+		if (is_array($TBE_STYLES['stylesheetDirectories'])) {
+				// loop over all extensions registering stylesheetDirectories
+			foreach ($TBE_STYLES['stylesheetDirectories'] as $key => $directories) {
+					// loop over all stylesheetDirectories of this extension
+				foreach ($directories as $directory) {
+						// we expect EXT:myext/.../ here
+					$extKey = substr($directory, 4, strpos($directory, '/') - 4);
+					$styleDirectory = substr($directory, strpos($directory, '/') + 1);
+						// ensure that we have a trailing /
+					$styleDirectory = rtrim($styleDirectory, '/') . '/';
+						// add stylesheets
+					if (is_readable(t3lib_extMgm::extPath($extKey) . $styleDirectory)) {
+						$this->addStyleSheetDirectory(t3lib_extMgm::extRelPath($extKey) . $styleDirectory);
+					}
+				}
+			}
+		}
 
 			// Background image
 		if ($TBE_STYLES['background'])	$this->backGroundImage = $TBE_STYLES['background'];
@@ -1026,7 +1048,26 @@ $str.=$this->docBodyTagBegin().
 		} else {
 			$file = $this->backPath . $href;
 		}
-		$this->pageRenderer->addCssFile($file, $relation, $title);
+		$this->pageRenderer->addCssFile($file, $relation, 'screen', $title);
+	}
+
+	/**
+	 * Add all *.css files of the directory $path to the stylesheets
+	 *
+	 * @param	string		directory to add
+	 * @return	void
+	 */
+	function addStyleSheetDirectory($path) {
+			// calculation needed, when TYPO3 source is used via a symlink
+			// absolute path to the stylesheets
+		$filePath = dirname(t3lib_div::getIndpEnv('SCRIPT_FILENAME')) . '/' . $GLOBALS['BACK_PATH'] . $path;
+			// clean the path
+		$resolvedPath = t3lib_div::resolveBackPath($filePath);
+			// read all files in directory and sort them alphabetically
+		$files = t3lib_div::getFilesInDir($resolvedPath, 'css', FALSE, 1);
+		foreach ($files as $file) {
+			$this->pageRenderer->addCssFile($GLOBALS['BACK_PATH'] . $path . $file, 'stylesheet', 'all');
+		}
 	}
 
 	/**
@@ -2126,8 +2167,8 @@ class frontendDoc extends template {
 		if (count($this->JScodeArray)) {
 			foreach ($this->JScodeArray as $name => $code) {
 				$pageRenderer->addJsInlineCode($name, $code);
-	}
-}
+			}
+		}
 
 		if ($this->addPrototype) {
 			$pageRenderer->loadPrototype();

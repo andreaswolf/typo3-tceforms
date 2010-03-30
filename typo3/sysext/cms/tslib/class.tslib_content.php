@@ -2822,10 +2822,10 @@ class tslib_cObj {
 		$typeConf = $conf[$conf['type'] . '.'];
 
 			//add SWFobject js-file
-		$GLOBALS['TSFE']->getPageRenderer()->addJsFile('typo3/contrib/flashmedia/swfobject/swfobject.js');
+		$GLOBALS['TSFE']->getPageRenderer()->addJsFile(TYPO3_mainDir . 'contrib/flashmedia/swfobject/swfobject.js');
 
 		$player = $this->stdWrap($conf[$conf['type'] . '.']['player'], $conf[$conf['type'] . '.']['player.']);
-		$installUrl = $conf['installUrl'] ? $conf['installUrl'] : $prefix . 'typo3/contrib/flashmedia/swfobject/expressInstall.swf';
+		$installUrl = $conf['installUrl'] ? $conf['installUrl'] : $prefix . TYPO3_mainDir . 'contrib/flashmedia/swfobject/expressInstall.swf';
 		$filename = $this->stdWrap($conf['file'], $conf['file.']);
 		if ($filename && $conf['forcePlayer']) {
 			if (strpos($filename, '://') !== FALSE) {
@@ -2931,7 +2931,7 @@ class tslib_cObj {
 		$typeConf = $conf[$conf['type'] . '.'];
 
 			//add QTobject js-file
-		$GLOBALS['TSFE']->getPageRenderer()->addJsFile('typo3/contrib/flashmedia/qtobject/qtobject.js');
+		$GLOBALS['TSFE']->getPageRenderer()->addJsFile(TYPO3_mainDir . 'contrib/flashmedia/qtobject/qtobject.js');
 		$replaceElementIdString = uniqid('mmqt');
 		$GLOBALS['TSFE']->register['MMQTID'] = $replaceElementIdString;
 		$qtObject = 'QTObject' . $replaceElementIdString;
@@ -6102,8 +6102,21 @@ class tslib_cObj {
 							}
 						}
 
+						$absoluteUrlScheme = 'http';
+						// URL shall be absolute:
+						if (isset($conf['forceAbsoluteUrl']) && $conf['forceAbsoluteUrl']) {
+							// If no domain records are defined, use current domain:
+							if ($targetDomain === '') {
+								$targetDomain = $currentDomain;
+							}
+							// Override scheme:
+							if (isset($conf['forceAbsoluteUrl.']['scheme']) && $conf['forceAbsoluteUrl.']['scheme']) {
+								$absoluteUrlScheme = $conf['forceAbsoluteUrl.']['scheme'];
+							}
+						}
+
 						// If target page has a different domain and the current domain's linking scheme (e.g. simulateStaticDocuments/RealURL/...) should not be used
-						if (strlen($targetDomain) && !$enableLinksAcrossDomains) {
+						if (strlen($targetDomain) && $targetDomain !== $currentDomain && !$enableLinksAcrossDomains) {
 							$target = isset($conf['extTarget']) ? $conf['extTarget'] : $GLOBALS['TSFE']->extTarget;
 							if ($conf['extTarget.']) {
 								$target = $this->stdWrap($target, $conf['extTarget.']);
@@ -6112,7 +6125,7 @@ class tslib_cObj {
 								$target = $forceTarget;
 							}
 							$LD['target'] = $target;
-							$this->lastTypoLinkUrl = $this->URLqMark('http://' . $targetDomain . '/index.php?id=' . $page['uid'], $addQueryParams) . $sectionMark;
+							$this->lastTypoLinkUrl = $this->URLqMark($absoluteUrlScheme . '://' . $targetDomain . '/index.php?id=' . $page['uid'], $addQueryParams) . $sectionMark;
 						} else {	// Internal link or current domain's linking scheme should be used
 							if ($forceTarget) {
 								$target = $forceTarget;
@@ -6133,7 +6146,7 @@ class tslib_cObj {
 								}
 								$urlParts = parse_url($LD['totalURL']);
 								if ($urlParts['host'] == '') {
-									$LD['totalURL'] = 'http://' . $targetDomain . ($LD['totalURL']{0} == '/' ? '' : '/') . $LD['totalURL'];
+									$LD['totalURL'] = $absoluteUrlScheme . '://' . $targetDomain . ($LD['totalURL']{0} == '/' ? '' : '/') . $LD['totalURL'];
 								}
 							}
 							$this->lastTypoLinkUrl = $this->URLqMark($LD['totalURL'],'').$sectionMark;

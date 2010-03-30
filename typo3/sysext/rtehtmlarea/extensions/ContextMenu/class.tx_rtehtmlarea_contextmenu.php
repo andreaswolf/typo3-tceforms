@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2009 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2008-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the Typo3 project. The Typo3 project is
@@ -22,7 +22,7 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 /**
- * About Editor plugin for htmlArea RTE
+ * Context Menu plugin for htmlArea RTE
  *
  * @author Stanislas Rolland <typo3(arobas)sjbr.ca>
  *
@@ -49,7 +49,6 @@ class tx_rtehtmlarea_contextmenu extends tx_rtehtmlareaapi {
 	public function main($parentObject) {
 		return parent::main($parentObject) && !($this->htmlAreaRTE->client['BROWSER'] == 'opera' || $this->thisConfig['disableContextMenu'] || $this->thisConfig['disableRightClick']);
 	}
-
 	/**
 	 * Return JS configuration of the htmlArea plugins registered by the extension
 	 *
@@ -59,17 +58,26 @@ class tx_rtehtmlarea_contextmenu extends tx_rtehtmlareaapi {
 	 *
 	 * The returned string will be a set of JS instructions defining the configuration that will be provided to the plugin(s)
 	 * Each of the instructions should be of the form:
-	 * 	RTEarea['.$RTEcounter.']["buttons"]["button-id"]["property"] = "value";
+	 * 	RTEarea['.$editorId.']["buttons"]["button-id"]["property"] = "value";
 	 */
-	public function buildJavascriptConfiguration($RTEcounter) {
+	public function buildJavascriptConfiguration($editorId) {
 		$registerRTEinJavascriptString = '';
+		if (is_array($this->thisConfig['contextMenu.'])) {
+			$registerRTEinJavascriptString .= '
+	RTEarea['.$editorId.'].contextMenu =  ' . $this->htmlAreaRTE->buildNestedJSArray($this->thisConfig['contextMenu.']) . ';';
+			if ($this->thisConfig['contextMenu.']['showButtons']) {
+				$registerRTEinJavascriptString .= '
+	RTEarea['.$editorId.'].contextMenu.showButtons = ' . json_encode(t3lib_div::trimExplode(',', $this->htmlAreaRTE->cleanList(t3lib_div::strtolower($this->thisConfig['contextMenu.']['showButtons'])), 1)) . ';';
+			}
+			if ($this->thisConfig['contextMenu.']['hideButtons']) {
+				$registerRTEinJavascriptString .= '
+	RTEarea['.$editorId.'].contextMenu.hideButtons = ' . json_encode(t3lib_div::trimExplode(',', $this->htmlAreaRTE->cleanList(t3lib_div::strtolower($this->thisConfig['contextMenu.']['hideButtons'])), 1)) . ';';
+			}
+		}
 		return $registerRTEinJavascriptString;
 	}
-
-} // end of class
-
+}
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/extensions/ContextMenu/class.tx_rtehtmlarea_contextmenu.php']) {
 	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/extensions/ContextMenu/class.tx_rtehtmlarea_contextmenu.php']);
 }
-
 ?>

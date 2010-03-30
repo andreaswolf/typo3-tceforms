@@ -155,6 +155,7 @@ require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_imag
 require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_installversioning.php');
 require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_installnewsysexts.php');
 require_once(t3lib_extMgm::extPath('install') . 'mod/class.tx_install_session.php');
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_statictemplates.php');
 
 /**
  * Install Tool module
@@ -341,7 +342,7 @@ BTW: This Install Tool will only work if cookies are accepted by your web browse
 			}
 
 			if($this->redirect_url)	{
-				header('Location: '.$this->redirect_url);
+				t3lib_utility_Http::redirect($this->redirect_url);
 			}
 		} else {
 			$this->loginForm();
@@ -3763,8 +3764,7 @@ From sub-directory:
 							",1,1);
 							if (t3lib_div::_GP('goto_step'))	{
 								$this->action.='&step='.t3lib_div::_GP('goto_step');
-								Header('Location: '.t3lib_div::locationHeaderUrl($this->action));
-								exit;
+								t3lib_utility_Http::redirect($this->action);
 							}
 						} elseif (is_array($this->INSTALL['database_import']))	{
 								// Traverse the tables
@@ -3856,9 +3856,10 @@ From sub-directory:
 					if ($whichTables['be_users'])	{
 						if (is_array($this->INSTALL['database_adminUser']))	{
 							$username = preg_replace('/[^\da-z._-]/i', '', trim($this->INSTALL['database_adminUser']['username']));
-							$pass = trim($this->INSTALL['database_adminUser']['password2']);
-							if ($username && $pass)	{
-								if ($pass != trim($this->INSTALL['database_adminUser']['password'])) {
+							$pass = trim($this->INSTALL['database_adminUser']['password']);
+							$pass2 = trim($this->INSTALL['database_adminUser']['password2']);
+							if ($username && $pass && $pass2)	{
+								if ($pass != $pass2) {
 									$this->message($headCode, 'Passwords are not equal!', '
 										The passwords entered twice are not equal.',2,1);
 								} else {
@@ -3893,6 +3894,9 @@ From sub-directory:
 									The username, <strong>'.htmlspecialchars($username).'</strong>, was not unique.',2,1);
 								}
 							}
+						} else {
+							$this->message($headCode,'Missing data!','
+								Not all required form fields have been filled.',2,1);
 						}
 						}
 						$content = '

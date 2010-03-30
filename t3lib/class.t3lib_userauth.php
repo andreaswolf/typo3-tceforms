@@ -218,7 +218,7 @@ class t3lib_userAuth {
 		$mode = '';
 		$this->newSessionID = FALSE;
 			// $id is set to ses_id if cookie is present. Else set to false, which will start a new session
-		$id = isset($_COOKIE[$this->name]) ? stripslashes($_COOKIE[$this->name]) : '';
+		$id = $this->getCookie($this->name);
 		$this->svConfig = $TYPO3_CONF_VARS['SVCONF']['auth'];
 
 			// if we have a flash client, take the ID from the GP
@@ -383,6 +383,36 @@ class t3lib_userAuth {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Get the value of a specified cookie.
+	 *
+	 * Uses HTTP_COOKIE, if available, to avoid a IE8 bug where multiple
+	 * cookies with the same name might be returned if the user accessed
+	 * the site without "www." first and switched to "www." later:
+	 *   Cookie: fe_typo_user=AAA; fe_typo_user=BBB
+	 * In this case PHP will set _COOKIE as the first cookie, when we
+	 * would need the last one (which is what this function then returns).
+	 *
+	 * @param	string		The cookie ID
+	 * @return	string		The value stored in the cookie
+	 */
+	protected function getCookie($cookieName) {
+		if (isset($_SERVER['HTTP_COOKIE'])) {
+			$cookies = t3lib_div::trimExplode(';', $_SERVER['HTTP_COOKIE']);
+			foreach ($cookies as $cookie) {
+				list ($name, $value) = t3lib_div::trimExplode('=', $cookie);
+				if ($name == $cookieName) {
+					// Use the last one
+					$cookieValue = stripslashes($value);
+				}
+			}
+		} else {
+			// Fallback if there is no HTTP_COOKIE, use original method:
+			$cookieValue = isset($_COOKIE[$cookieName]) ? stripslashes($_COOKIE[$cookieName]) : '';
+		}
+		return $cookieValue;
 	}
 
 	/**
@@ -629,8 +659,7 @@ class t3lib_userAuth {
 						$sslPortSuffix = ':'.intval($TYPO3_CONF_VARS['BE']['lockSSLPort']);
 						$server = str_replace($sslPortSuffix,'',$server);	// strip port from server
 					}
-					header('Location: http://'.$server.'/'.$address.TYPO3_mainDir.$backendScript);
-					exit;
+					t3lib_utility_Http::redirect('http://' . $server . '/' . $address . TYPO3_mainDir . $backendScript);
 				}
 			}
 
@@ -842,11 +871,33 @@ class t3lib_userAuth {
 	/**
 	 * The session_id is used to find user in the database.
 	 * Two tables are joined: The session-table with user_id of the session and the usertable with its primary key
+	 * if the client is flash (e.g. from a flash application inside TYPO3 that does a server request)
+	 * then don't evaluate with the hashLockClause, as the client/browser is included in this hash
+	 * and thus, the flash request would be rejected
+	 * 
 	 * @return DB result object or false on error
 	 * @access private
 	 */
 	protected function fetchUserSessionFromDB() {
-		$dbres = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+		
+		if ($GLOBALS['CLIENT']['BROWSER'] == 'flash') {
+			// if on the flash client, the veri code is valid, then the user session is fetched
+			// from the DB without the hashLock clause
+			if (t3lib_div::_GP('vC') == $this->veriCode()) {
+				$dbres = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+						'*',
+						$this->session_table.','.$this->user_table,
+						$this->session_table.'.ses_id = '.$GLOBALS['TYPO3_DB']->fullQuoteStr($this->id, $this->session_table).'
+							AND '.$this->session_table.'.ses_name = '.$GLOBALS['TYPO3_DB']->fullQuoteStr($this->name, $this->session_table).'
+							AND '.$this->session_table.'.ses_userid = '.$this->user_table.'.'.$this->userid_column.'
+							'.$this->ipLockClause().'
+							'.$this->user_where_clause()
+				);
+			} else {
+				$dbres = false;
+			}
+		} else {
+			$dbres = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 					'*',
 					$this->session_table.','.$this->user_table,
 					$this->session_table.'.ses_id = '.$GLOBALS['TYPO3_DB']->fullQuoteStr($this->id, $this->session_table).'
@@ -855,7 +906,8 @@ class t3lib_userAuth {
 						'.$this->ipLockClause().'
 						'.$this->hashLockClause().'
 						'.$this->user_where_clause()
-		);
+			);
+		}
 		return $dbres;
 	}
 
@@ -913,6 +965,16 @@ class t3lib_userAuth {
 		}
 	}
 
+	/**
+	 * VeriCode returns 10 first chars of a md5 hash of the session cookie AND the encryptionKey from TYPO3_CONF_VARS.
+	 * This code is used as an alternative verification when the JavaScript interface executes cmd's to tce_db.php from eg. MSIE 5.0 because the proper referer is not passed with this browser...
+	 *
+	 * @return	string
+	 */
+	public function veriCode() {
+		return substr(md5($this->id . $GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey']), 0, 10);
+	}
+	
 	/**
 	 * This returns the where-clause needed to lock a user to a hash integer
 	 *

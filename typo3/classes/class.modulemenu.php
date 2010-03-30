@@ -139,28 +139,30 @@ class ModuleMenu {
 		$rawModuleData = $this->getRawModuleData();
 
 		foreach($rawModuleData as $moduleKey => $moduleData) {
-			$menuState   = $GLOBALS['BE_USER']->uc['moduleData']['menuState'][$moduleKey];
-			$moduleLabel = $moduleData['title'];
+			if($moduleData['link'] != 'dummy.php' || ($moduleData['link'] == 'dummy.php' && is_array($moduleData['subitems'])) ) {
+				$menuState   = $GLOBALS['BE_USER']->uc['moduleData']['menuState'][$moduleKey];
+				$moduleLabel = $moduleData['title'];
 
-			if($moduleData['link'] && $this->linkModules) {
-				$moduleLabel = '<a href="#" onclick="top.goToModule(\''.$moduleData['name'].'\');'.$onBlur.'return false;">'.$moduleLabel.'</a>';
+				if($moduleData['link'] && $this->linkModules) {
+					$moduleLabel = '<a href="#" onclick="top.goToModule(\'' . $moduleData['name'] . '\');'.$onBlur . 'return false;">' . $moduleLabel . '</a>';
+				}
+
+				$menu .= '<li id="modmenu_' . $moduleData['name'] . '" '.
+					($collapsable ? 'class="menuSection"' : '') .
+					' title="' . $moduleData['description'] . '">
+					<div class="' . ($menuState ? 'collapsed' : 'expanded') . '">' .
+					$moduleData['icon']['html'] . ' ' . $moduleLabel . '</div>';
+
+					// traverse submodules
+				if (is_array($moduleData['subitems'])) {
+					$menu .= $this->renderSubModules($moduleData['subitems'], $menuState);
+				}
+
+				$menu .= '</li>' . "\n";
 			}
-
-			$menu .= '<li id="modmenu_' . $moduleData['name'] . '" '.
-				($collapsable ? 'class="menuSection"' : '') .
-				' title="' . $moduleData['description'] . '">
-				<div class="' . ($menuState ? 'collapsed' : 'expanded') . '">' .
-				$moduleData['icon']['html'] . ' ' . $moduleLabel . '</div>';
-
-				// traverse submodules
-			if(is_array($moduleData['subitems'])) {
-				$menu .= $this->renderSubModules($moduleData['subitems'], $menuState);
-			}
-
-			$menu .= '</li>'."\n";
 		}
 
-		return ($wrapInUl ? '<ul id="typo3-menu">'."\n".$menu.'</ul>'."\n" : $menu);
+		return ($wrapInUl ? '<ul id="typo3-menu">' . "\n".$menu.'</ul>' . "\n" : $menu);
 	}
 
 	/**
@@ -450,6 +452,12 @@ class ModuleMenu {
 				top.currentSubScript = "'.$subModuleData['originalLink'].'";
 				if (top.content.list_frame && top.fsMod.currentMainLoaded == mainModName) {
 					modScriptURL = "'.$this->appendQuestionmarkToLink($subModuleData['originalLink']).'"'.$additionalJavascript.';
+					';
+								// Change link to navigation frame if submodule has it's own navigation
+							if ($submoduleNavigationFrameScript) {
+								$javascriptCommand .= 'navFrames["' . $parentModuleName . '"] = "'. $submoduleNavigationFrameScript . '";';
+							}
+							$javascriptCommand .= '
 				} else if (top.nextLoadModuleUrl) {
 					modScriptURL = "'.($subModuleData['prefix'] ? $this->appendQuestionmarkToLink($subModuleData['link']) . '&exScript=' : '') . 'listframe_loader.php";
 				} else {
@@ -478,7 +486,16 @@ class ModuleMenu {
 		var additionalGetVariables = "";
 		if (addGetVars)	{
 			additionalGetVariables = addGetVars;
+		}';
+
+		$javascriptCode .= '
+		var navFrames = {};';
+		foreach ($navFrameScripts as $mainMod => $frameScript) {
+			$javascriptCode .= '
+				navFrames["'.$mainMod.'"] = "'.$frameScript.'";';
 		}
+
+		$javascriptCode .= '
 
 		var cMR = (cMR_flag ? 1 : 0);
 		var modScriptURL = "";
@@ -486,12 +503,8 @@ class ModuleMenu {
 		switch(modName)	{'
 			."\n".implode("\n", $moduleJavascriptCommands)."\n".'
 		}
+		';
 
-		var navFrames = {};';
-		foreach ($navFrameScripts as $mainMod => $frameScript) {
-			$javascriptCode .= '
-		navFrames["'.$mainMod.'"] = "'.$frameScript.'";';
-		}
 		$javascriptCode .= '
 
 		if (!useCondensedMode && navFrames[mainModName]) {

@@ -34,13 +34,28 @@
  */
 class t3lib_extjs_ExtDirectApi {
 	/**
-	 * Parses the ExtDirect configuration array "$GLOBALS['TYPO3_CONF_VARS']['BE']['ExtDirect']"
-	 * and feeds the given typo3ajax instance with the resulting informations. The get parameter
+	 * @var array
+	 */
+	protected $settings = array();
+
+	/**
+	 * Constructs this object.
+	 */
+	public function __construct() {
+		if (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect']) && is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'])) {
+			$this->settings = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'];
+		}
+	}
+
+	/**
+	 * Parses the ExtDirect configuration array "$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect']"
+	 * and feeds the given typo3ajax instance with the resulting information. The get parameter
 	 * "namespace" will be used to filter the configuration.
 	 *
 	 * This method makes usage of the reflection mechanism to fetch the methods inside the
-	 * defined classes together with their amount of parameters. This informations are building
-	 * the API and are required by ExtDirect.
+	 * defined classes together with their amount of parameters. This information are building
+	 * the API and are required by ExtDirect. The result is cached to improve the overall
+	 * performance.
 	 *
 	 * @param array $ajaxParams ajax parameters
 	 * @param TYPO3AJAX $ajaxObj typo3ajax instance
@@ -49,9 +64,59 @@ class t3lib_extjs_ExtDirectApi {
 	public function getAPI($ajaxParams, TYPO3AJAX $ajaxObj) {
 		$filterNamespace = t3lib_div::_GET('namespace');
 
+		// look up into the cache
+		$cacheIdentifier = 'ExtDirectApi';
+		$cacheHash = md5($cacheIdentifier . $filterNamespace . serialize($this->settings));
+		$cacheContent = t3lib_pageSelect::getHash($cacheHash);
+
+		// generate the javascript content if it wasn't found inside the cache and cache it!
+		if (!$cacheContent) {
+			$javascriptNamespaces = $this->generateAPI($filterNamespace);
+			t3lib_pageSelect::storeHash(
+				$cacheHash,
+				serialize($javascriptNamespaces),
+				$cacheIdentifier
+			);
+		} else {
+			$javascriptNamespaces = unserialize($cacheContent);
+		}
+
+		// return the generated javascript API configuration
+		if (count($javascriptNamespaces)) {
+			$setup = '
+				if (typeof Ext.app.ExtDirectAPI !== "object") {
+					Ext.app.ExtDirectAPI = {};
+				}
+
+				if (typeof Object.extend !== "function") {
+					Object.extend = function(destination, source) {
+						for (var property in source) {
+							destination[property] = source[property];
+						}
+						return destination;
+					};
+				}
+			';
+
+			$ajaxObj->setContent($javascriptNamespaces);
+			$ajaxObj->setContentFormat('javascript');
+			$ajaxObj->setJavascriptCallbackWrap(
+				$setup . 'Ext.app.ExtDirectAPI = Object.extend(Ext.app.ExtDirectAPI, |);'
+			);
+		}
+	}
+
+	/**
+	 * Generates the API that is configured inside the ExtDirect configuration
+	 * array "$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect']".
+	 *
+	 * @param string $filerNamespace namespace that should be loaded like TYPO3.Backend
+	 * @return array javascript API configuration
+	 */
+	protected function generateAPI($filterNamespace) {
 		$javascriptNamespaces = array();
-		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'])) {
-			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'] as $javascriptName => $className) {
+		if (is_array($this->settings)) {
+			foreach ($this->settings as $javascriptName => $className) {
 				$splittedJavascriptName = explode('.', $javascriptName);
 				$javascriptObjectName = array_pop($splittedJavascriptName);
 				$javascriptNamespace = implode('.', $splittedJavascriptName);
@@ -63,10 +128,10 @@ class t3lib_extjs_ExtDirectApi {
 
 				if (!isset($javascriptNamespaces[$javascriptNamespace])) {
 					$javascriptNamespaces[$javascriptNamespace] = array(
-					    'url' => 'ajax.php?ajaxID=ExtDirect::route&namespace=' . rawurlencode($javascriptNamespace),
-					    'type' => 'remoting',
-					    'actions' => array(),
-					    'namespace' => $javascriptNamespace
+						'url' => t3lib_div::locationHeaderUrl('ajax.php?ajaxID=ExtDirect::route&namespace=') . rawurlencode($javascriptNamespace),
+						'type' => 'remoting',
+						'actions' => array(),
+						'namespace' => $javascriptNamespace
 					);
 				}
 
@@ -84,27 +149,7 @@ class t3lib_extjs_ExtDirectApi {
 			}
 		}
 
-		if (count($javascriptNamespaces)) {
-			$setup = '
-				if (typeof Ext.app.ExtDirectAPI != "object") {
-					Ext.app.ExtDirectAPI = {};
-				}
-
-
-				if (typeof Object.extend != "function") {
-					Object.extend = function(destination, source) {
-						for (var property in source) {
-							destination[property] = source[property];
-						}
-						return destination;
-					}
-				}
-			';
-
-			$ajaxObj->setContent($javascriptNamespaces);
-			$ajaxObj->setContentFormat('javascript');
-			$ajaxObj->setJavascriptCallbackWrap($setup . 'Ext.app.ExtDirectAPI = Object.extend(Ext.app.ExtDirectAPI, |);');
-		}
+		return $javascriptNamespaces;
 	}
 }
 
