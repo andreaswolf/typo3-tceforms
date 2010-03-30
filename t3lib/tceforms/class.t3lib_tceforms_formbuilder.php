@@ -16,9 +16,16 @@ class t3lib_TCEforms_FormBuilder {
 	/**
 	 * The data structure the target record is based on
 	 *
-	 * @var unknown_type
+	 * @var t3lib_TCA_DataStructure
 	 */
 	protected $dataStructure;
+
+	/**
+	 * The record object this form builder belongs to
+	 *
+	 * @var t3lib_TCEforms_Record
+	 */
+	protected $recordObject;
 
 
 	protected function __construct(t3lib_TCEforms_Record $recordObject) {
@@ -41,95 +48,34 @@ class t3lib_TCEforms_FormBuilder {
 	public function buildObjectStructure() {
 		t3lib_div::devLog('Started building object tree for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		$fieldList = $this->recordObject->getFieldList();
+		// TODO use the data structure object here -- URGENT
+		$sheets = $this->recordObject->getDisplayConfiguration();
+		//$fieldList = $this->recordObject->getFieldList();
 
-		$sheetCounter = 0;
-
-		if (isset($fieldList[0]) && strpos($fieldList[0], '--div--') !== 0) {
-			++$sheetCounter;
-			$this->currentSheet = $this->createSheetObject($sheetCounter, $this->getLL('l_generalTab'));
-			$this->recordObject->addSheetObject($this->currentSheet);
+		foreach ($sheets as $sheet) {
+			$sheetObject = $this->createSheetObjectFromDefinition($sheet);
 		}
+	}
 
-		foreach ($fieldList as $fieldInfo) {
-			// Exploding subparts of the field configuration:
-			$parts = explode(';', $fieldInfo);
+	protected function createSheetObjectFromDefinition($sheetDefinition) {
+		$sheetObject = $this->createSheetObject($this->recordObject->getSheetCount() + 1, $sheetDefinition->getLabel());
+		$this->recordObject->addSheetObject($sheetObject);
 
-			$theField = $parts[0];
-			if ($this->recordObject->isExcludeElement($theField)) {
-				continue;
-			}
+		foreach ($sheetDefinition->getElements() as $element) {
+			if (is_a($element, 't3lib_TCA_DataStructure_Field')) {
+				$elementObject = $this->getSingleField($element->getName(), $element->getConfiguration(), $element->getLabel());
+				$elementObject->setContextObject($this->contextObject)
+				              ->setContextRecordObject($this->recordObject->getContextRecordObject())
+				              ->setRecordObject($this->recordObject)
+				              ->setParentFormObject($this->recordObject->getParentFormObject())
+				              ->setTable($this->recordObject->getTable())
+				              ->setRecord($this->recordObject->getRecordData())
+				              ->injectFormBuilder($this)
+				              ->init();
 
-			if ($theField == '--div--') {
-				++$sheetCounter;
-
-				$this->currentSheet = $this->createSheetObject($sheetCounter, $this->sL($parts[1]));
-				$this->recordObject->addSheetObject($this->currentSheet);
-			} else {
-				if ($theField !== '') {
-					if ($theField == '--palette--') {
-						t3lib_div::devLog('Adding palette element for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
-
-						$formFieldObject = $this->createPaletteElement($parts[2], $this->sL($parts[1]));
-					} elseif ($this->dataStructure->hasField($theField)) {
-						t3lib_div::devLog('Adding standard element for field "' . $theField . '" in record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
-
-						// TODO: Handle field configuration here.
-						$formFieldObject = $this->getSingleField($theField, $this->dataStructure->getFieldConfiguration($theField), $parts[1], $parts[3]);
-					} else {
-						// if this is no field, just continue with the next entry in the field list.
-						continue;
-					}
-
-					$this->currentSheet->addChildObject($formFieldObject);
-
-					$formFieldObject->setContextObject($this->contextObject)
-					                ->setContextRecordObject($this->recordObject->getContextRecordObject())
-					                ->setRecordObject($this->recordObject)
-					                ->setParentFormObject($this->recordObject->getParentFormObject())
-					                ->setTable($this->recordObject->getTable())
-					                ->setRecord($this->recordObject->getRecordData())
-					                ->injectFormBuilder($this)
-					                ->init();
-
-					if (isset($parts[2]) && t3lib_div::testInt($parts[2])) {
-						$formFieldObject->initializePalette($parts[2]);
-					}
-				}
-
-				// Getting the style information out:
-				// TODO: Make this really object oriented
-				if (isset($parts[4])) {
-					$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
-				} else {
-					$color_style_parts = array();
-				}
-				if (strcmp($color_style_parts[0], '')) {
-					$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
-					if (!isset($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])])) {
-						$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][0]);
-					}
-				}
-				// TODO: add getter and setter for _wrapBorder
-				if (strcmp($color_style_parts[1], '')) {
-					$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])]);
-					// TODO check if this check is still neccessary
-					if (!isset($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])])) {
-						$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][0]);
-					}
-				}
-				if (strcmp($color_style_parts[2], '')) {
-					if (isset($parts[4])) $formFieldObject->_wrapBorder = true;
-					$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])]);
-					// TODO check if this check is still neccessary
-					if (!isset($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])])) {
-						$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][0]);
-					}
-				}
+				$sheetObject->addChildObject($elementObject);
 			}
 		}
-
-		$this->resolveMainPalettes();
 	}
 
 	public function getFormFieldNamePrefix() {

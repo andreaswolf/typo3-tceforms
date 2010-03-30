@@ -166,6 +166,13 @@ class t3lib_TCEforms_Record {
 	 */
 	protected $createdPalettes = array();
 
+	/**
+	 *
+	 *
+	 * @var t3lib_TCA_DataStructure_Type
+	 */
+	protected $typeConfiguration;
+
 
 	public function __construct($table, array $recordData, array $TCAdefinition, t3lib_TCA_DataStructure $dataStructure) {
 		$this->table = $table;
@@ -287,13 +294,28 @@ class t3lib_TCEforms_Record {
 		return $this->dataStructure;
 	}
 
-	public function getFieldList() {
-		// TODO check if this works if a "type" is set (from the 'types' TCA entry)
-		if (count($this->fieldList) > 0) {
-			return $this->fieldList;
-		} else {
-			return $this->dataStructure->getFieldNames();
-		}
+	public function getDisplayConfiguration() {
+		/*
+		 * TODO change the way this method works. It should first check if a list of fields is set
+		 * for our table (by calling the context object or form object [which in turn would call the
+		 * context object]).
+		 * If not, it has to calculate the list of fields. For this, do the following:
+		 *  - get the list from the data structure object
+		 *  - check for a subtype, if there is one, take subtypes_addlist/subtypes_excludelist into account
+		 */
+		// Temporarily commented out because otherwise form rendering breaks
+		//if (count($this->fieldList) > 0) {
+			// FIXME this won't work right now. We have to deliver a DataStructure_Sheet object with the
+			// fields in it
+		//	return $this->fieldList;
+		//} else {
+			$subtypeValue = '';
+			if ($this->typeConfiguration->hasSubtypeValueField()) {
+				$subtypeField = $this->typeConfiguration->getSubtypeValueField();
+				$subtypeValue = $this->recordData[$subtypeField];
+			}
+			return $this->typeConfiguration->getSheets($subtypeValue);
+		//}
 	}
 
 	public function setFieldList($fieldList) {
@@ -411,6 +433,8 @@ class t3lib_TCEforms_Record {
 		if (!$this->TCAdefinition['types'][$this->typeNumber]) {
 			$this->typeNumber = 1;
 		}
+
+		$this->typeConfiguration = $this->dataStructure->getTypeConfiguration($this->typeNumber);
 	}
 
 	/**
@@ -590,6 +614,10 @@ class t3lib_TCEforms_Record {
 		$this->sheetObjects[] = $sheetObject;
 
 		t3lib_div::devLog('Added sheet no. ' . count($this->sheetObjects) . ' to record ' . $this->getIdentifier() . '.', 't3lib_TCEforms_Record', t3lib_div::SYSLOG_SEVERITY_INFO);
+	}
+
+	public function getSheetCount() {
+		return count($this->sheetObjects);
 	}
 
 
