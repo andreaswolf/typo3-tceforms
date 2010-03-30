@@ -272,11 +272,8 @@ class t3lib_TCA_DataStructure_Type {
 
 
 	public function getSheets($subtypeNumber = '') {
-		if (!$this->hasSubtypeValueField()) {
+		if (!$this->hasSubtypeValueField() || empty($subtypeNumber)) {
 			return $this->sheets;
-		}
-		if (empty($subtypeNumber)) {
-			throw new InvalidArgumentException('No subtype given, but record type has subtypes.');
 		}
 		if ($this->sheetsForSubtype[$subtypeNumber]) {
 			return $this->sheetsForSubtype[$subtypeNumber];
