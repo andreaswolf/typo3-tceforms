@@ -33,10 +33,48 @@ class t3lib_TCA_DataStructure {
 	 */
 	protected $sheets;
 
+	/**
+	 * The raw information on the types for this data structure. See $types for a parsed version.
+	 * Parsing is done automatically on access.
+	 *
+	 * @var array
+	 */
+	protected $rawTypes = array();
+
+	/**
+	 * The different types defined for this data structure.
+	 * The array contains a subarray for each defined type, which contains the sheet definitions for the type
+	 *
+	 * @var array
+	 */
+	protected $types = array();
+
+	protected $definedTypeValues = array();
+
+	/**
+	 *
+	 *
+	 * @param array $TCAinformation
+	 * @return void
+	 */
 	public function __construct($TCAinformation) {
 		$this->fields = $TCAinformation['columns'];
 		$this->control = $TCAinformation['ctrl'];
-		$this->sheets = $TCAinformation['sheets'];
+			// do we have a flexforms data structure
+		if (isset($TCAinformation['sheets'])) {
+			$typeObject = $this->createTypeObjectFromSheets($TCAinformation['sheets']);
+			$this->types[1] = $typeObject;
+			$this->definedTypeValues = array(1);
+		} else {
+			$this->rawTypes = $TCAinformation['types'];
+			$this->definedTypeValues = array_keys($this->rawTypes);
+		}
+	}
+
+	protected function createTypeObjectFromSheets($sheets) {
+		$typeObject = new t3lib_TCA_DataStructure_Type($this, 1, array(), $sheets);
+
+		return $typeObject;
 	}
 
 	/**
@@ -44,9 +82,9 @@ class t3lib_TCA_DataStructure {
 	 * @param string $key
 	 * @return mixed/string
 	 *
-	 * @TODO define access to [ctrl][enablecolumns]
-	 * @TODO define access to ['EXT']['myext']
-	 * @TODO define if this function only returns strings or also arrays (connected to previous questions)
+	 * TODO define access to [ctrl][enablecolumns]
+	 * TODO define access to ['EXT']['myext']
+	 * TODO define if this function only returns strings or also arrays (connected to previous questions)
 	 *
 	 */
 	public function getControlValue($key) {
@@ -80,17 +118,45 @@ class t3lib_TCA_DataStructure {
 	}
 
 	/**
-	 * Returns the configuration for a record subtype.
+	 * Returns TRUE if a field for differentiating between different types of the record exists
+	 *
+	 * @return boolean
+	 */
+	public function hasTypeField() {
+		return (array_key_exists($this->control['type']) && $this->control['type'] !== '');
+	}
+
+	public function getTypeField() {
+		return $this->control['type'];
+	}
+
+	/**
+	 * Returns the configuration for a record type.
 	 *
 	 * These are defined in the [types]-section of the TCA.
-	 * This method returns the "unfiltered" information from the TCA. See .... for methods
-	 * that return more usable and structured information.
 	 *
 	 * @param string/integer $typeNum
 	 * @return array
 	 */
-	public function getTypeConfiguration($typeKey) {
-		//
+	public function getTypeConfiguration($typeNum = 0) {
+			// See "TYPO3 Core APIs, section "$TCA array reference", subsection "['types'][key] section"
+		if (!in_array($typeNum, $this->getPossibleTypeValues())) {
+			$typeNum = 1;
+		}
+
+		if (!array_key_exists($typeNum, $this->types)) {
+			$this->createTypeObject($typeNum);
+		}
+
+		return $this->types[$typeNum];
+	}
+
+	public function getPossibleTypeValues() {
+		return $this->definedTypeValues;
+	}
+
+	protected function createTypeObject($typeNum) {
+		$this->types[$typeNum] = new t3lib_TCA_DataStructure_Type($this, $typeNum, $this->rawTypes[$typeNum]);
 	}
 }
 
