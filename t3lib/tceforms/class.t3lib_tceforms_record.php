@@ -31,6 +31,8 @@
  * @author  Andreas Wolf <andreas.wolf@ikt-werk.de>
  */
 
+require_once(PATH_t3lib.'tca/class.t3lib_tca_datastructure.php');
+
 /**
  * This class serves as a record abstraction for TCEforms. Is instantiated by a form object and
  * responsible for creating and rendering its own HTML form.
@@ -62,6 +64,13 @@ class t3lib_TCEforms_Record {
 	 * @var array
 	 */
 	protected $TCAdefinition;
+
+	/**
+	 * The data structure object for the record
+	 *
+	 * @var t3lib_TCA_DataStructure
+	 */
+	protected $dataStructure;
 
 	/**
 	 * An array holding the names of all fields to be rendered
@@ -113,8 +122,19 @@ class t3lib_TCEforms_Record {
 	 */
 	protected $parentFormObject;
 
-	protected $sheetIdentString;
-	protected $sheetIdentStringMD5;
+	/**
+	 * Long identification string for the sheets.
+	 *
+	 * @var string
+	 */
+	protected $sheetIdentifier;
+
+	/**
+	 * Short identification string for the sheets. This is guaranteed to be not longer than 8 characters.
+	 *
+	 * @var unknown_type
+	 */
+	protected $shortSheetIdentifier;
 	protected $sheetCounter = 0;
 
 	/**
@@ -146,11 +166,19 @@ class t3lib_TCEforms_Record {
 	 */
 	protected $createdPalettes = array();
 
+	/**
+	 *
+	 *
+	 * @var t3lib_TCA_DataStructure_Type
+	 */
+	protected $typeConfiguration;
 
-	public function __construct($table, array $recordData, array $TCAdefinition) {
+
+	public function __construct($table, array $recordData, array $TCAdefinition, t3lib_TCA_DataStructure $dataStructure) {
 		$this->table = $table;
 		$this->recordData = $recordData;
 		$this->TCAdefinition = $TCAdefinition;
+		$this->dataStructure = $dataStructure;
 		$this->contextRecordObject = $this;
 
 		$this->setRecordTypeNumber();
@@ -167,7 +195,7 @@ class t3lib_TCEforms_Record {
 
 		return $this;
 	}
-	
+
 	public function getParentFormObject() {
 		return $this->parentFormObject;
 	}
@@ -180,7 +208,7 @@ class t3lib_TCEforms_Record {
 
 		$this->createFieldsList();
 
-		$this->setExcludeElements();
+		$this->setExcludedElements();
 
 		$this->registerDefaultLanguageData();
 
@@ -201,12 +229,36 @@ class t3lib_TCEforms_Record {
 			++$c;
 		}
 		if (count($tabContents) > 1) {
-			$content = $this->formBuilder->getDynTabMenu($tabContents, $this->sheetIdentString);
+			$content = $this->getDynTabMenu($tabContents);
 		} else {
 			$content = $tabContents[0]['content'];
 		}
 
 		return $content;
+	}
+
+	/**
+	 * Create dynamic tab menu
+	 *
+	 * @param	array		Parts for the tab menu, fed to template::getDynTabMenu()
+	 * @param	string		ID string for the tab menu
+	 * @param	integer		If set to '1' empty tabs will be removed, If set to '2' empty tabs will be disabled
+	 * @return	string		HTML for the menu
+	 */
+	public function getDynTabMenu($parts, $dividersToTabsBehaviour = 1) {
+		if (is_object($GLOBALS['TBE_TEMPLATE'])) {
+			return $GLOBALS['TBE_TEMPLATE']->getDynTabMenu($parts, $this->sheetIdentifier, 0, false, 50, 1, false, 1, $dividersToTabsBehaviour);
+		} else {
+			$output = '';
+			foreach($parts as $singlePad) {
+				$output .= '
+				<h3>' . htmlspecialchars($singlePad['label']) . '</h3>
+				' . ($singlePad['description'] ? '<p class="c-descr">' . nl2br(htmlspecialchars($singlePad['description'])) . '</p>' : '') . '
+				' . $singlePad['content'];
+			}
+
+			return '<div class="typo3-dyntabmenu-divs">' . $output . '</div>';
+		}
 	}
 
 
@@ -231,8 +283,39 @@ class t3lib_TCEforms_Record {
 		$this->fieldList = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd());
 	}
 
-	public function getFieldList() {
-		return $this->fieldList;
+	/**
+	 * Returns the object representation of the data structure for this record.
+	 * The source for this data structure could have been PHP-based TCA or an XML-based Flexform
+	 * data structure
+	 *
+	 * @return t3lib_TCA_DataStructure
+	 */
+	public function getDataStructure() {
+		return $this->dataStructure;
+	}
+
+	public function getDisplayConfiguration() {
+		/*
+		 * TODO change the way this method works. It should first check if a list of fields is set
+		 * for our table (by calling the context object or form object [which in turn would call the
+		 * context object]).
+		 * If not, it has to calculate the list of fields. For this, do the following:
+		 *  - get the list from the data structure object
+		 *  - check for a subtype, if there is one, take subtypes_addlist/subtypes_excludelist into account
+		 */
+		// Temporarily commented out because otherwise form rendering breaks
+		//if (count($this->fieldList) > 0) {
+			// FIXME this won't work right now. We have to deliver a DataStructure_Sheet object with the
+			// fields in it
+		//	return $this->fieldList;
+		//} else {
+			$subtypeValue = '';
+			if ($this->typeConfiguration->hasSubtypeValueField()) {
+				$subtypeField = $this->typeConfiguration->getSubtypeValueField();
+				$subtypeValue = $this->recordData[$subtypeField];
+			}
+			return $this->typeConfiguration->getSheets($subtypeValue);
+		//}
 	}
 
 	public function setFieldList($fieldList) {
@@ -260,6 +343,20 @@ class t3lib_TCEforms_Record {
 	 */
 	public function getIdentifier() {
 		return $this->getTable() . ':' . $this->recordData['uid'];
+	}
+
+	public function getShortSheetIdentifier() {
+		// TODO replace this by call to this method in init()
+		if (!$this->shortSheetIdentifier) {
+			$this->buildSheetIdentifiers();
+		}
+
+		return $this->shortSheetIdentifier;
+	}
+
+	protected function buildSheetIdentifiers() {
+		$this->sheetIdentifier = 'TCEforms:'.$this->getIdentifier();
+		$this->shortSheetIdentifier = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($this->sheetIdentifier);
 	}
 
 	/**
@@ -336,17 +433,19 @@ class t3lib_TCEforms_Record {
 		if (!$this->TCAdefinition['types'][$this->typeNumber]) {
 			$this->typeNumber = 1;
 		}
+
+		$this->typeConfiguration = $this->dataStructure->getTypeConfiguration($this->typeNumber);
 	}
 
 	/**
-	 * Returns if a given element is among the elements set via setExcludeElements(), i.e.
+	 * Returns if a given element is among the elements set via setExcludedElements(), i.e.
 	 * not displayed in the form
 	 *
 	 * @param  string  $elementName  The name of the element to check
 	 * @return boolean
 	 */
-	public function isExcludeElement($elementName) {
-		return t3lib_div::inArray($this->excludeElements, $elementName);
+	public function isExcludedElement($elementName) {
+		return t3lib_div::inArray($this->excludedElements, $elementName);
 	}
 
 	/**
@@ -354,8 +453,8 @@ class t3lib_TCEforms_Record {
 	 *
 	 * @return array
 	 */
-	public function getExcludeElements() {
-		return $this->excludeElements;
+	public function getExcludedElements() {
+		return $this->excludedElements;
 	}
 
 	/**
@@ -364,20 +463,20 @@ class t3lib_TCEforms_Record {
 	 *
 	 * NOTICE: This list is in NO way related to the "excludeField" flag
 	 *
-	 * Sets $this->excludeElements to an array with fieldnames as values. The fieldnames are
+	 * Sets $this->excludedElements to an array with fieldnames as values. The fieldnames are
 	 * those which should NOT be displayed "anyways"
 	 *
 	 * @return void
 	 */
-	protected function setExcludeElements() {
+	protected function setExcludedElements() {
 			// Init:
-		$this->excludeElements = array();
+		$this->excludedElements = array();
 
 			// If a subtype field is defined for the type
 		if ($this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field']) {
 			$subtypeField = $this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field'];
 			if (trim($this->TCAdefinition['types'][$this->typeNumber]['subtypes_excludelist'][$this->recordData[$subtypeField]])) {
-				$this->excludeElements=t3lib_div::trimExplode(',',$this->TCAdefinition['types'][$this->typeNumber]['subtypes_excludelist'][$this->recordData[$subtypeField]],1);
+				$this->excludedElements=t3lib_div::trimExplode(',',$this->TCAdefinition['types'][$this->typeNumber]['subtypes_excludelist'][$this->recordData[$subtypeField]],1);
 			}
 		}
 
@@ -396,7 +495,7 @@ class t3lib_TCEforms_Record {
 								(substr($bitKey,0,1)=='-' && !($subtypeValue&pow(2,$bit))) ||
 								(substr($bitKey,0,1)=='+' && ($subtypeValue&pow(2,$bit)))
 							) {
-							$this->excludeElements = array_merge($this->excludeElements,t3lib_div::trimExplode(',',$eList,1));
+							$this->excludedElements = array_merge($this->excludedElements,t3lib_div::trimExplode(',',$eList,1));
 						}
 					}
 				}
@@ -515,6 +614,10 @@ class t3lib_TCEforms_Record {
 		$this->sheetObjects[] = $sheetObject;
 
 		t3lib_div::devLog('Added sheet no. ' . count($this->sheetObjects) . ' to record ' . $this->getIdentifier() . '.', 't3lib_TCEforms_Record', t3lib_div::SYSLOG_SEVERITY_INFO);
+	}
+
+	public function getSheetCount() {
+		return count($this->sheetObjects);
 	}
 
 

@@ -5,79 +5,86 @@ require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.
 
 
 class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
-	protected function renderField() {
-		/*$formObject = new t3lib_TCEforms_Flexform($this->table, $this->record, $this->fieldConfig['config']);
-		$formObject->setTCEformsObject($this->TCEformsObject);
-		$formObject->registerDefaultLanguageData();
-		$formObject->setFormFieldNamePrefix($this->itemFormElName);
-		$formObject->setParentFormObject($this->_TCEformsObject);
-		$formObject->PA = $this->PA; // TODO remove this ugly hack
-
-		$output = $formObject->render();
-
-		return $output;*/
-
-		return 'Flexforms are not implemented yet.';
-	}
 
 	/**
-	 * Recursive rendering of flexforms
+	 * The record(s) stored inside this element, already converted from XML to arrays.
 	 *
-	 * @param	array		(part of) Data Structure for which to render. Keys on first level is flex-form fields
-	 * @param	array		(part of) Data array of flexform corresponding to the input DS. Keys on first level is flex-form field names
-	 * @param	array		Array of standard information for rendering of a form field in TCEforms, see other rendering functions too
-	 * @param	string		Form field prefix, eg. "[data][sDEF][lDEF][...][...]"
-	 * @param	integer		Indicates nesting level for the function call
-	 * @param	string		Prefix for ID-values
-	 * @param	boolean		Defines whether the next flexform level is open or closed. Comes from _TOGGLE pseudo field in FlexForm xml.
-	 * @return	string		HTMl code for form.
+	 * NOTE: We only have more than one record if we have some section/container structure inside our
+	 *       DataStructure
+	 *
+	 * @var array
 	 */
-	public function resolveDatastructureIntoObjects($dataStructArray,$editData,$formPrefix='',$level=0,$idPrefix='ID',$toggleClosed=FALSE) {
+	protected $recordData = array();
 
-		$output = '';
-		$mayRestructureFlexforms = $GLOBALS['BE_USER']->checkLanguageAccess(0);
+	/**
+	 * @var t3lib_TCEforms_FlexForm
+	 */
+	protected $formObject;
 
+	/**
+	 *
+	 * @var t3lib_TCA_DataStructure
+	 */
+	protected $dataStructure;
 
-		//print_r($dataStructArray['sheets']);
-		foreach ($dataStructArray as $sheetTitle => $sheetDefinition) {
-			echo $sheetTitle;
-			/*if (is_array($sheetDefinition)) {
-					// ********************
-					// Making the row:
-					// ********************
-					// Title of field:
-				$theTitle = htmlspecialchars(t3lib_div::fixed_lgd_cs($this->TCEformsObject->sL($sheetDefinition['tx_templavoila']['title']),30));
+	public function init() {
+		parent::init();
+		/**
+		 * TODO in this method:
+		 *  - create an instance of t3lib_TCEforms_FlexForm
+		 *  - create an instance of t3lib_TCA_DataStructure_FlexFormsResolver and call it with this
+		 *    element as a parameter (maybe this call should be moved to FormBuilder, to separate concerns)
+		 *  - create Record objects from the data the FlexFormsResolver injected via setFlexRecordData()
+		 *  - take care of initializing the FlexForm object and hand our records to it
+		 */
 
-					// If it's a "section" or "container":
-				if ($sheetDefinition['type']=='array')	{
+		$this->dataStructureResolver = new t3lib_TCA_DataStructure_FlexFormsResolver();
+		$this->dataStructure = $this->dataStructureResolver->resolveDataStructure($this);
 
-						// Creating IDs for form fields:
-						// It's important that the IDs "cascade" - otherwise we can't dynamically expand the flex form because this relies on simple string substitution of the first parts of the id values.
-					$thisId = t3lib_div::shortMd5(uniqid('id',true));	// This is a suffix used for forms on this level
-					$idTagPrefix = $idPrefix.'-'.$thisId;	// $idPrefix is the prefix for elements on lower levels in the hierarchy and we combine this with the thisId value to form a new ID on this level.
+		$this->formObject = new t3lib_TCEforms_Flexform();
+		$this->formObject->setContainingElement($this)
+		                 ->setDataStructure($this->dataStructure)
+		                 ->setContextObject($this->contextObject)
+		                 ->init();
 
-						// If it's a "section" containing other elements:
-					if ($sheetDefinition['section'])	{
-						// TODO: create _flexformsection
-
-						// If it's a container:
-					} else {
-						// TODO: create _flexformcontainer here
-
-					}
-
-					// If it's a "single form element":
-				} elseif (is_array($sheetDefinition['TCEforms']['config'])) {	// Rendering a single form element:
-					$formObject = new t3lib_TCEforms_Flexform($this->table, $this->record, $dataStructArray);
-					$formObject->setTCEformsObject($this->TCEformsObject);
-					$formObject->registerDefaultLanguageData();
-					$formObject->PA = $this->PA; // TODO remove this ugly hack
-				}
-				$formObject->setKey($sheetTitle);
-
-				$output .= $formObject->render();
-			}*/
+		// Code copied from t3lib_TCEforms::getSingleField_typeFlex()
+		$xmlData = $this->itemFormElValue;
+		$xmlHeaderAttributes = t3lib_div::xmlGetHeaderAttribs($xmlData);
+		$storeInCharset = strtolower($xmlHeaderAttributes['encoding']);
+		if ($storeInCharset)	{
+			$currentCharset = $GLOBALS['LANG']->charSet;
+			$xmlData = $GLOBALS['LANG']->csConvObj->conv($xmlData, $storeInCharset, $currentCharset,1);
 		}
+		$editData = t3lib_div::xml2array($xmlData);
+		if (!is_array($editData))	{	// Must be XML parsing error...
+			//throw new RuntimeException('Parsing error. ' . $editData);
+			$editData = array();
+		} elseif (!isset($editData['meta']) || !is_array($editData['meta']))	{
+		    $editData['meta'] = array();
+		}
+
+		if (count($editData) == 0) {
+			$recordKeys = $this->dataStructure->getFieldNames();
+			$recordValues = array_pad(array(), count($recordKeys), '');
+			$emptyRecord = array_combine($recordKeys, $recordValues);
+			//$this->records[] = new t3lib_TCEforms_Record($this->table . ':' . $this->field, array(), array(), $this->dataStructure);
+			$this->formObject->addRecord($emptyRecord);
+		} else {
+			print_r($editData);
+			throw new RuntimeException('Editing existing flex records is not implemented yet.');
+			// Traverse records and create objects for them
+		}
+
+		print_r($editData);
+	}
+
+	protected function renderField() {
+		/**
+		 * TODO in this method:
+		 *  - render language menu (see t3lib_TCEforms::getSingleField_typeFlex())
+		 */
+
+		return $this->formObject->render();
 	}
 }
 

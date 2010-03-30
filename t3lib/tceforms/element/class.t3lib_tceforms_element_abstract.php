@@ -520,7 +520,18 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	}
 
 	/**
-	 * Create a JavaScript code line which will ask the user to save/update the form due to changing 
+	 * Returns the config array from the TCA definition of this field.
+	 *
+	 * This access is required for FlexForm datastructure traversal to work.
+	 *
+	 * @return array
+	 */
+	public function getFieldConfig() {
+		return $this->fieldConfig;
+	}
+
+	/**
+	 * Create a JavaScript code line which will ask the user to save/update the form due to changing
 	 * the element. This is used for eg. "type" fields and others configured with "requestUpdate".
 	 *
 	 * @return string;

@@ -1,8 +1,9 @@
 <?php
 
 require_once (PATH_t3lib.'tceforms/class.t3lib_tceforms_record.php');
-require_once (PATH_t3lib.'tceforms/class.t3lib_tceforms_formbuilder.php');
 require_once (PATH_t3lib.'interfaces/interface.t3lib_tceforms_context.php');
+require_once (PATH_t3lib.'tca/class.t3lib_tca_datastructure.php');
+require_once (PATH_t3lib.'tca/datastructure/class.t3lib_tca_datastructure_tcaresolver.php');
 
 // TODO: check if docLarge is needed
 class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
@@ -32,13 +33,6 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	protected $formFieldFileNamePrefix;
 
 	protected $formFieldIdPrefix;
-
-	/**
-	 * The form builder object constructing the
-	 *
-	 * @var t3lib_TCEforms_FormBuilder
-	 */
-	protected $formBuilder;
 
 	/**
 	 *
@@ -175,20 +169,6 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	}
 
 
-	public function injectFormBuilder(t3lib_TCEforms_FormBuilder $formBuilder) {
-		$this->formBuilder = $formBuilder;
-		$this->formBuilder->setContextObject($this);
-
-		$this->setFormFieldNamePrefix($this->formFieldNamePrefix);
-
-		return $this;
-	}
-
-	public function getFormBuilder() {
-		return $this->formBuilder;
-	}
-
-
 	public function addRecord($table, $record) {
 		t3lib_div::devLog('Added record ' . $table . ':' . $record['uid'] . ' to TCEforms form.', 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
 
@@ -196,10 +176,12 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			t3lib_div::loadTCA($table);
 		}
 
+		$dataStructure = t3lib_TCA_DataStructure_TCAResolver::resolveDataStructure($table);
+
 			// TODO move this to a more appropriate place
 		$GLOBALS['LANG']->loadSingleTableDescription($table);
 
-		$recordObject = new t3lib_TCEforms_Record($table, $record, $GLOBALS['TCA'][$table]);
+		$recordObject = new t3lib_TCEforms_Record($table, $record, $GLOBALS['TCA'][$table], $dataStructure);
 
 		if (count($this->fieldList) > 0) {
 			$recordObject->setFieldList($this->fieldList);
@@ -222,10 +204,6 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	public function setFormFieldNamePrefix($prefix) {
 		$this->formFieldNamePrefix = $prefix;
 		$this->formFieldFileNamePrefix = $prefix;
-
-		if (is_object($this->formBuilder)) {
-			$this->formBuilder->setFormFieldNamePrefix($prefix);
-		}
 
 		return $this;
 	}

@@ -13,12 +13,27 @@ class t3lib_TCEforms_FormBuilder {
 
 	protected $formFieldNamePrefix;
 
+	/**
+	 * The data structure the target record is based on
+	 *
+	 * @var t3lib_TCA_DataStructure
+	 */
+	protected $dataStructure;
+
+	/**
+	 * The record object this form builder belongs to
+	 *
+	 * @var t3lib_TCEforms_Record
+	 */
+	protected $recordObject;
+
+
 	protected function __construct(t3lib_TCEforms_Record $recordObject) {
 		t3lib_div::devLog('Created new formbuilder object for record ' . $recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
 		$this->recordObject = $recordObject;
 		$this->contextObject = $recordObject->getContextObject();
-		$this->TCAdefinition = $recordObject->getTCAdefinitionForTable();
+		$this->dataStructure = $recordObject->getDataStructure();
 	}
 
 	public static function createInstanceForRecordObject(t3lib_TCEforms_Record $recordObject) {
@@ -33,96 +48,34 @@ class t3lib_TCEforms_FormBuilder {
 	public function buildObjectStructure() {
 		t3lib_div::devLog('Started building object tree for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		$fieldList = $this->recordObject->getFieldList();
+		// TODO use the data structure object here -- URGENT
+		$sheets = $this->recordObject->getDisplayConfiguration();
+		//$fieldList = $this->recordObject->getFieldList();
 
-		$sheetCounter = 0;
-
-		if (isset($fieldList[0]) && strpos($fieldList[0], '--div--') !== 0) {
-			++$sheetCounter;
-			$this->currentSheet = $this->createSheetObject($sheetCounter, $this->getLL('l_generalTab'));
-			$this->recordObject->addSheetObject($this->currentSheet);
+		foreach ($sheets as $sheet) {
+			$sheetObject = $this->createSheetObjectFromDefinition($sheet);
 		}
+	}
 
-		foreach ($fieldList as $fieldInfo) {
-			// Exploding subparts of the field configuration:
-			$parts = explode(';', $fieldInfo);
+	protected function createSheetObjectFromDefinition($sheetDefinition) {
+		$sheetObject = $this->createSheetObject($this->recordObject->getSheetCount() + 1, $sheetDefinition->getLabel());
+		$this->recordObject->addSheetObject($sheetObject);
 
-			$theField = $parts[0];
-			if ($this->recordObject->isExcludeElement($theField)) {
-				continue;
-			}
+		foreach ($sheetDefinition->getElements() as $element) {
+			if (is_a($element, 't3lib_TCA_DataStructure_Field')) {
+				$elementObject = $this->getSingleField($element->getName(), $element->getConfiguration(), $element->getLabel());
+				$elementObject->setContextObject($this->contextObject)
+				              ->setContextRecordObject($this->recordObject->getContextRecordObject())
+				              ->setRecordObject($this->recordObject)
+				              ->setParentFormObject($this->recordObject->getParentFormObject())
+				              ->setTable($this->recordObject->getTable())
+				              ->setRecord($this->recordObject->getRecordData())
+				              ->injectFormBuilder($this)
+				              ->init();
 
-			if ($theField == '--div--') {
-				++$sheetCounter;
-
-				$this->currentSheet = $this->createSheetObject($sheetCounter, $this->sL($parts[1]));
-				$this->recordObject->addSheetObject($this->currentSheet);
-			} else {
-				if ($theField !== '') {
-					if ($this->TCAdefinition['columns'][$theField]) {
-						t3lib_div::devLog('Adding standard element for field "' . $theField . '" in record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
-
-						// TODO: Handle field configuration here.
-						$formFieldObject = $this->getSingleField($theField, $this->TCAdefinition['columns'][$theField], $parts[1], $parts[3]);
-
-					} elseif ($theField == '--palette--') {
-						t3lib_div::devLog('Adding palette element for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
-
-						$formFieldObject = $this->createPaletteElement($parts[2], $this->sL($parts[1]));
-					} else {
-						// if this is no field, just continue with the next entry in the field list.
-						continue;
-					}
-
-					$this->currentSheet->addChildObject($formFieldObject);
-
-					$formFieldObject->setContextObject($this->contextObject)
-					                ->setContextRecordObject($this->recordObject->getContextRecordObject())
-					                ->setRecordObject($this->recordObject)
-					                ->setParentFormObject($this->recordObject->getParentFormObject())
-					                ->setTable($this->recordObject->getTable())
-					                ->setRecord($this->recordObject->getRecordData())
-					                ->injectFormBuilder($this)
-					                ->init();
-
-					if (isset($parts[2]) && t3lib_div::testInt($parts[2])) {
-						$formFieldObject->initializePalette($parts[2]);
-					}
-				}
-
-				// Getting the style information out:
-				// TODO: Make this really object oriented
-				if (isset($parts[4])) {
-					$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
-				} else {
-					$color_style_parts = array();
-				}
-				if (strcmp($color_style_parts[0], '')) {
-					$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
-					if (!isset($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])])) {
-						$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][0]);
-					}
-				}
-				// TODO: add getter and setter for _wrapBorder
-				if (strcmp($color_style_parts[1], '')) {
-					$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])]);
-					// TODO check if this check is still neccessary
-					if (!isset($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])])) {
-						$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][0]);
-					}
-				}
-				if (strcmp($color_style_parts[2], '')) {
-					if (isset($parts[4])) $formFieldObject->_wrapBorder = true;
-					$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])]);
-					// TODO check if this check is still neccessary
-					if (!isset($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])])) {
-						$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][0]);
-					}
-				}
+				$sheetObject->addChildObject($elementObject);
 			}
 		}
-
-		$this->resolveMainPalettes();
 	}
 
 	public function getFormFieldNamePrefix() {
@@ -202,44 +155,11 @@ class t3lib_TCEforms_FormBuilder {
 	 * @return  t3lib_TCEforms_Sheet
 	 */
 	public function createSheetObject($number, $header) {
-		if ($this->sheetIdentString == '') {
-			$this->sheetIdentString = $this->getSheetIdentString();
-			$this->sheetIdentStringMD5 = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($this->getSheetIdentString());
-		}
-
-		$sheetIdentString = $this->sheetIdentStringMD5 . '-' . $number;
+		$sheetIdentString = $this->recordObject->getShortSheetIdentifier() . '-' . $number;
 
 		$sheetObject = new t3lib_TCEforms_Container_Sheet($sheetIdentString, $header);
 
 		return $sheetObject;
-	}
-
-	protected function getSheetIdentString() {
-		return 'TCEforms:'.$this->recordObject->getTable().':'.$this->recordObject->getValue('uid');
-	}
-
-	/**
-	 * Create dynamic tab menu
-	 *
-	 * @param	array		Parts for the tab menu, fed to template::getDynTabMenu()
-	 * @param	string		ID string for the tab menu
-	 * @param	integer		If set to '1' empty tabs will be removed, If set to '2' empty tabs will be disabled
-	 * @return	string		HTML for the menu
-	 */
-	public function getDynTabMenu($parts, $idString, $dividersToTabsBehaviour = 1) {
-		if (is_object($GLOBALS['TBE_TEMPLATE'])) {
-			return $GLOBALS['TBE_TEMPLATE']->getDynTabMenu($parts, $idString, 0, false, 50, 1, false, 1, $dividersToTabsBehaviour);
-		} else {
-			$output = '';
-			foreach($parts as $singlePad) {
-				$output .= '
-				<h3>' . htmlspecialchars($singlePad['label']) . '</h3>
-				' . ($singlePad['description'] ? '<p class="c-descr">' . nl2br(htmlspecialchars($singlePad['description'])) . '</p>' : '') . '
-				' . $singlePad['content'];
-			}
-
-			return '<div class="typo3-dyntabmenu-divs">' . $output . '</div>';
-		}
 	}
 
 	/**
@@ -252,7 +172,7 @@ class t3lib_TCEforms_FormBuilder {
 	protected function resolveMainPalettes() {
 		t3lib_div::devLog('Building top-level palette elements for ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		$mainPalettesArray = t3lib_div::trimExplode(',', $this->TCAdefinition['ctrl']['mainpalette'], TRUE);
+		$mainPalettesArray = t3lib_div::trimExplode(',', $this->dataStructure->getControlValue('mainpalette'), TRUE);
 
 		$i = 0;
 		foreach ($mainPalettesArray as $paletteNumber) {
