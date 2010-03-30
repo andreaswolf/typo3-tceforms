@@ -124,6 +124,7 @@ return array(
 	't3lib_matchcondition_frontend' => PATH_t3lib . 'matchcondition/class.t3lib_matchcondition_frontend.php',
 	't3lib_tca_datastructure' => PATH_t3lib . 'tca/class.t3lib_tca_datastructure.php',
 	't3lib_tca_datastructure_field' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_field.php',
+	't3lib_tca_datastructure_flexformsresolver' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_flexformsresolver.php',
 	't3lib_tca_datastructure_palette' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_palette.php',
 	't3lib_tca_datastructure_resolver' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_resolver.php',
 	't3lib_tca_datastructure_sheet' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_sheet.php',
