@@ -47,11 +47,18 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 	 */
 	protected $startNewRowInTabmenu;
 
+	/**
+	 * The name of this sheet. This is only relevant for FlexForm sheets.
+	 *
+	 * @var string
+	 */
+	protected $name = '';
 
-	public function __construct($identString, $header) {
+
+	public function __construct($identString, $header, $name = '') {
 		$this->identString = $identString;
-
 		$this->header = $header;
+		$this->name = $name;
 	}
 
 	public function init() {
@@ -197,6 +204,22 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 			'tab',
 			$this->identString
 		);
+	}
+
+	public function getFormFieldNamePrefix() {
+		if ($this->name == '') {
+			return $this->recordObject->getFormFieldNamePrefix();
+		} else {
+			return $this->recordObject->getFormFieldNamePrefix() . "[$this->name]";
+		}
+	}
+
+	public function getFormFieldIdPrefix() {
+		if ($this->name == '') {
+			return $this->recordObject->getFormFieldIdPrefix();
+		} else {
+			return $this->recordObject->getFormFieldIdPrefix() . "_$this->name";
+		}
 	}
 }
 

@@ -58,7 +58,7 @@ class t3lib_TCEforms_FormBuilder {
 	}
 
 	protected function createSheetObjectFromDefinition($sheetDefinition) {
-		$sheetObject = $this->createSheetObject($this->recordObject->getSheetCount() + 1, $sheetDefinition->getLabel());
+		$sheetObject = $this->createSheetObject($this->recordObject->getSheetCount() + 1, $sheetDefinition);
 		$this->recordObject->addSheetObject($sheetObject);
 
 		foreach ($sheetDefinition->getElements() as $element) {
@@ -151,13 +151,14 @@ class t3lib_TCEforms_FormBuilder {
 	 *
 	 * @param   string  $sheetIdentString  The identifier of the sheet. Must be unique for the whole form
 	 *                                     (and all sub-forms!)
-	 * @param   string  $header  The name of the sheet (e.g. displayed as the title in tabs
+	 * @param   t3lib_TCA_DataStructure_Sheet  $sheetDefinition
 	 * @return  t3lib_TCEforms_Sheet
 	 */
-	public function createSheetObject($number, $header) {
+	public function createSheetObject($number, t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
 		$sheetIdentString = $this->recordObject->getShortSheetIdentifier() . '-' . $number;
 
-		$sheetObject = new t3lib_TCEforms_Container_Sheet($sheetIdentString, $header);
+		$sheetObject = new t3lib_TCEforms_Container_Sheet($sheetIdentString, $sheetDefinition->getLabel(),
+		  $sheetDefinition->getName());
 
 		return $sheetObject;
 	}

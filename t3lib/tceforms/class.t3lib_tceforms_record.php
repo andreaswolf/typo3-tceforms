@@ -203,8 +203,7 @@ class t3lib_TCEforms_Record {
 	public function init() {
 		$this->formBuilder = t3lib_TCEforms_Formbuilder::createInstanceForRecordObject($this);
 
-		$this->formFieldNamePrefix = $this->parentFormObject->getFormFieldNamePrefix().'[' . $this->getTable() . '][' . $this->recordData['uid'] . ']';
-		$this->formFieldIdPrefix = $this->parentFormObject->getFormFieldIdPrefix() . '_' . $this->getTable() . '_' . $this->recordData['uid'];
+		$this->buildFormFieldPrefixes();
 
 		$this->createFieldsList();
 
@@ -213,6 +212,11 @@ class t3lib_TCEforms_Record {
 		$this->registerDefaultLanguageData();
 
 		$this->formBuilder->buildObjectStructure($this);
+	}
+
+	protected function buildFormFieldPrefixes() {
+		$this->formFieldNamePrefix = $this->parentFormObject->getFormFieldNamePrefix().'[' . $this->getTable() . '][' . $this->recordData['uid'] . ']';
+		$this->formFieldIdPrefix = $this->parentFormObject->getFormFieldIdPrefix() . '_' . $this->getTable() . '_' . $this->recordData['uid'];
 	}
 
 

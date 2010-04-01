@@ -18,6 +18,12 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 
 	protected $dataStructureArray;
 
+	public function init() {
+		parent::init();
+
+		$this->setFormFieldNamePrefix($this->containingElement->getFormFieldName() . '[data]');
+	}
+
 	/**
 	 * Creates the language menu for FlexForms:
 	 *

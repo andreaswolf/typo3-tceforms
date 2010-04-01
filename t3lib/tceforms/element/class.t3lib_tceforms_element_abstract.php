@@ -180,9 +180,15 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
 		// TODO: rename this to formFieldNamePrefix/formFieldFileNamePrefix
-		$this->prependFormFieldNames = $this->recordObject->getFormFieldNamePrefix();
-		$this->prependFormFieldNames_file = $this->recordObject->getFormFieldNamePrefix();
-		$this->formFieldIdPrefix = $this->recordObject->getFormFieldIdPrefix();
+		if (isset($this->container)) {
+			$this->prependFormFieldNames = $this->container->getFormFieldNamePrefix();
+			$this->prependFormFieldNames_file = $this->container->getFormFieldNamePrefix();
+			$this->formFieldIdPrefix = $this->container->getFormFieldIdPrefix();
+		} else {
+			$this->prependFormFieldNames = $this->recordObject->getFormFieldNamePrefix();
+			$this->prependFormFieldNames_file = $this->recordObject->getFormFieldNamePrefix();
+			$this->formFieldIdPrefix = $this->recordObject->getFormFieldIdPrefix();
+		}
 
 			// Init variables:
 		$this->itemFormElName = $this->prependFormFieldNames.'['.$this->field.']'; // Form field name
@@ -583,6 +589,14 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 	public function getFieldname() {
 		return $this->field;
+	}
+
+	public function getFormFieldNamePrefix() {
+		return $this->prependFormFieldNames;
+	}
+
+	public function getFormFieldName() {
+		return $this->itemFormElName;
 	}
 
 	/**
