@@ -77,7 +77,7 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 
 		// TODO: remove the third parameter from this call once we have moved to using the data structure objects
 		//       instead of the weird arrays
-		$recordObject = new t3lib_TCEforms_FlexRecord($this->containingElement->getIdentifier(), $recordData, array(), $this->dataStructure);
+		$recordObject = new t3lib_TCEforms_FlexRecord($recordData, $this->dataStructure);
 
 		if (count($this->fieldList) > 0) {
 			$recordObject->setFieldList($this->fieldList);
