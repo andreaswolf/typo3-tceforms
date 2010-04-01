@@ -27,6 +27,13 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 	protected $formObject;
 
 	/**
+	 * The record this sheet belongs to
+	 *
+	 * @var t3lib_TCEforms_Record
+	 */
+	protected $recordObject;
+
+	/**
 	 * @var array
 	 */
 	protected $requiredFields = array();
@@ -65,6 +72,12 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 
 	public function getFormObject() {
 		return $this->formObject;
+	}
+
+	public function setRecordObject(t3lib_TCEforms_Record $recordObject) {
+		$this->recordObject = $recordObject;
+
+		return $this;
 	}
 
 	public function addChildObject(t3lib_TCEforms_Element $childObject) {
