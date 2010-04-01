@@ -141,6 +141,8 @@ return array(
 	't3lib_tceforms_multifieldform' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_multifieldform.php',
 	't3lib_tceforms_flexrecord' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_flexrecord.php',
 	't3lib_tceforms_record' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_record.php',
+	't3lib_tceforms_suggest' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_suggest.php',
+	't3lib_tceforms_suggest_defaultreceiver' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_suggest_defaultreceiver.php',
 	't3lib_tceforms_container_palette' => PATH_t3lib . 'tceforms/container/class.t3lib_tceforms_container_palette.php',
 	't3lib_tceforms_container_sheet' => PATH_t3lib . 'tceforms/container/class.t3lib_tceforms_container_sheet.php',
 	't3lib_tceforms_element_abstract' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_abstract.php',
