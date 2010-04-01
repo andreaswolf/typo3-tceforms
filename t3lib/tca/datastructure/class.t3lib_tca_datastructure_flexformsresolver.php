@@ -46,7 +46,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolver extends t3lib_TCA_DataStructure_
 			'sheets' => $TCAsheetsArray
 		);
 
-		$dataStructureObject = new t3lib_TCA_DataStructure($TCAentry);
+		$dataStructureObject = new t3lib_TCA_FlexFormDataStructure($TCAentry);
 
 		return $dataStructureObject;
 	}

@@ -60,21 +60,10 @@ class t3lib_TCA_DataStructure {
 	public function __construct($TCAinformation) {
 		$this->fields = $TCAinformation['columns'];
 		$this->control = $TCAinformation['ctrl'];
-			// do we have a flexforms data structure
-		if (isset($TCAinformation['sheets'])) {
-			$typeObject = $this->createTypeObjectFromSheets($TCAinformation['sheets']);
-			$this->types[1] = $typeObject;
-			$this->definedTypeValues = array(1);
-		} else {
-			$this->rawTypes = $TCAinformation['types'];
-			$this->definedTypeValues = array_keys($this->rawTypes);
-		}
-	}
+		$this->palettes = $TCAinformation['palettes'];
 
-	protected function createTypeObjectFromSheets($sheets) {
-		$typeObject = t3lib_TCA_DataStructure_Type::createFromSheets($this, 1, $sheets);
-
-		return $typeObject;
+		$this->rawTypes = $TCAinformation['types'];
+		$this->definedTypeValues = array_keys($this->rawTypes);
 	}
 
 	/**
