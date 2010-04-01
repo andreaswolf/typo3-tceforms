@@ -72,7 +72,7 @@ class t3lib_TCA_DataStructure {
 	}
 
 	protected function createTypeObjectFromSheets($sheets) {
-		$typeObject = new t3lib_TCA_DataStructure_Type($this, 1, array(), $sheets);
+		$typeObject = t3lib_TCA_DataStructure_Type::createFromSheets($this, 1, $sheets);
 
 		return $typeObject;
 	}
@@ -156,7 +156,7 @@ class t3lib_TCA_DataStructure {
 	}
 
 	protected function createTypeObject($typeNum) {
-		$this->types[$typeNum] = new t3lib_TCA_DataStructure_Type($this, $typeNum, $this->rawTypes[$typeNum]);
+		$this->types[$typeNum] = t3lib_TCA_DataStructure_Type::createFromConfiguration($this, $typeNum, $this->rawTypes[$typeNum]);
 	}
 }
 

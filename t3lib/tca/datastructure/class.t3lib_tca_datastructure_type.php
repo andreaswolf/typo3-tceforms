@@ -87,16 +87,23 @@ class t3lib_TCA_DataStructure_Type {
 	 *
 	 * TODO create some kind of cache here (or let the data structure object do the caching)
 	 */
-	public function __construct(t3lib_TCA_DataStructure $dataStructure, $typeNum, array $configuration = array(), array $sheets = array()) {
+	protected function __construct(t3lib_TCA_DataStructure $dataStructure, $typeNum) {
 		$this->dataStructure = $dataStructure;
 		$this->typeNum = $typeNum;
+	}
 
-		if (!empty($sheets)) {
-			$this->resolveSheetsDefinition($sheets);
-		}
-		if (!empty($configuration)) {
-			$this->resolveConfiguration($configuration);
-		}
+	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, $typeNum, array $configuration) {
+		$obj = new t3lib_TCA_DataStructure_Type($dataStructure, $typeNum);
+		$obj->resolveConfiguration($configuration);
+
+		return $obj;
+	}
+
+	public static function createFromSheets(t3lib_TCA_DataStructure $dataStructure, $typeNum, array $sheets) {
+		$obj = new t3lib_TCA_DataStructure_Type($dataStructure, $typeNum);
+		$obj->resolveSheetsDefinition($sheets);
+
+		return $obj;
 	}
 
 	/**
