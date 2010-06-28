@@ -291,17 +291,6 @@ class t3lib_TCEforms_Record {
 		$this->fieldList = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd());
 	}
 
-	/**
-	 * Returns the object representation of the data structure for this record.
-	 * The source for this data structure could have been PHP-based TCA or an XML-based Flexform
-	 * data structure
-	 *
-	 * @return t3lib_TCA_DataStructure
-	 */
-	public function getDataStructure() {
-		return $this->dataStructure;
-	}
-
 	public function getDisplayConfiguration() {
 		/*
 		 * TODO change the way this method works. It should first check if a list of fields is set
@@ -563,11 +552,18 @@ class t3lib_TCEforms_Record {
 	}
 
 	public function getTCAdefinitionForField($fieldName) {
-		return $this->TCAdefinition['columns'][$fieldName];
+		return $this->dataStructure->getFieldConfiguration($fieldName);
 	}
 
-	public function getTCAdefinitionForTable() {
-		return $this->TCAdefinition;
+	/**
+	 * Returns the object representation of the data structure for this record.
+	 * The source for this data structure could have been PHP-based TCA or an XML-based Flexform
+	 * data structure
+	 *
+	 * @return t3lib_TCA_DataStructure
+	 */
+	public function getDataStructure() {
+		return $this->dataStructure;
 	}
 
 	public function getTable() {

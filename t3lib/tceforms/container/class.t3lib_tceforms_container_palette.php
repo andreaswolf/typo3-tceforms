@@ -240,7 +240,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	 * @return	boolean
 	 */
 	public function isCollapsed()	{
-		$tableTCAdefinition = $this->recordObject->getTCAdefinitionForTable();
+		$tableDataStructure = $this->recordObject->getDataStructure();
 
 		if ($this->displayed)
 			return 0;
