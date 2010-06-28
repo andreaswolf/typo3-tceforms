@@ -18,30 +18,42 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 
 	protected $dataStructureArray;
 
+	/**
+	 * If true, localization of the records on this form is enabled.
+	 *
+	 * @var boolean
+	 */
+	protected $localizationEnabled = FALSE;
+
+	/**
+	 * The localization method for this record. This is determined by the value meta->langChildren
+	 * of the FlexForm data structure.
+	 *
+	 * value 0 means one record for each language
+	 * value 1 means all languages in one record
+	 *
+	 * @var integer
+	 */
+	protected $localizationMethod = 0;
+
+	/**
+	 *
+	 *
+	 * @var array
+	 */
+	protected $languages = array();
+
 	public function init() {
 		parent::init();
 
 		$this->setFormFieldNamePrefix($this->containingElement->getFormFieldName() . '[data]');
-	}
 
-	/**
-	 * Creates the language menu for FlexForms:
-	 *
-	 * @param	[type]		$languages: ...
-	 * @param	[type]		$elName: ...
-	 * @param	[type]		$selectedLanguage: ...
-	 * @param	[type]		$multi: ...
-	 * @return	string		HTML for menu
-	 */
-	protected function getLanguageMenu($languages,$elName,$selectedLanguage,$multi=1) {
-		$opt=array();
-		foreach($languages as $lArr) {
-			$opt[]='<option value="'.htmlspecialchars($lArr['ISOcode']).'"'.(in_array($lArr['ISOcode'],$selectedLanguage)?' selected="selected"':'').'>'.htmlspecialchars($lArr['title']).'</option>';
+		if ($this->localizationEnabled) {
+			$languages = $this->getAvailableLanguages();
+			foreach ($languages as $language) {
+				$this->languages[] = $language['ISOcode'];
+			}
 		}
-
-		$output = '<select name="'.$elName.'[]"'.($multi ? ' multiple="multiple" size="'.count($languages).'"' : '').'>'.implode('',$opt).'</select>';
-
-		return $output;
 	}
 
 	/**
@@ -75,10 +87,28 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	public function addRecord($recordData) {
 		t3lib_div::devLog('Added flex record to form in element ' . $this->containingElement->getIdentifier(), 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		// TODO: remove the third parameter from this call once we have moved to using the data structure objects
-		//       instead of the weird arrays
-		$recordObject = new t3lib_TCEforms_FlexRecord($recordData, $this->dataStructure);
+		if ($this->localizationEnabled) {
+			if ($this->localizationMethod == 0) {
+				foreach ($this->languages as $lang) {
+					$recordObject = new t3lib_TCEforms_FlexRecord($recordData, $this->dataStructure, $lang);
 
+					$this->insertRecordObject($recordObject);
+				}
+			} else {
+				$recordObject = new t3lib_TCEforms_FlexRecord($recordData, $this->dataStructure, $this->languages);
+
+				$this->insertRecordObject($recordObject);
+			}
+		} else {
+			$recordObject = new t3lib_TCEforms_FlexRecord($recordData, $this->dataStructure);
+
+			$this->insertRecordObject($recordObject);
+		}
+
+		return $recordObject;
+	}
+
+	protected function insertRecordObject(t3lib_TCEforms_FlexRecord $recordObject) {
 		if (count($this->fieldList) > 0) {
 			$recordObject->setFieldList($this->fieldList);
 		}
@@ -88,8 +118,6 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		             ->init();
 
 		$this->recordObjects[] = $recordObject;
-
-		return $recordObject;
 	}
 
 	/**
@@ -126,6 +154,20 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	 */
 	public function getContainingElement() {
 		return $this->containingElement;
+	}
+
+	public function setLocalizationEnabled($localization) {
+		$this->localizationEnabled = $localization;
+		return $this;
+	}
+
+	public function isLocalizationEnabled() {
+		return $this->localizationEnabled;
+	}
+
+	public function setLocalizationMethod($localizationMethod) {
+		$this->localizationMethod = $localizationMethod;
+		return $this;
 	}
 }
 

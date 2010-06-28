@@ -142,6 +142,13 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	protected $doNotRender;
 
+	/**
+	 *
+	 *
+	 * @var t3lib_TCEforms_Language
+	 */
+	protected $language;
+
 
 
 
@@ -189,6 +196,16 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$this->prependFormFieldNames_file = $this->recordObject->getFormFieldNamePrefix();
 			$this->formFieldIdPrefix = $this->recordObject->getFormFieldIdPrefix();
 		}
+
+		/**
+		 * TODO reenable this block as soon as the FormBuilder is localization-aware and able to set
+		 * the correct language for fields
+		if ($this->language != '') {
+			$this->prependFormFieldNames .= '[l' . $this->recordObject->getLanguage() . ']';
+			$this->prependFormFieldNames_file .= '[l' . $this->recordObject->getLanguage() . ']';
+			$this->formFieldIdPrefix .= '_l' . $this->recordObject->getLanguage();
+		}
+		 */
 
 			// Init variables:
 		$this->itemFormElName = $this->prependFormFieldNames.'['.$this->field.']'; // Form field name

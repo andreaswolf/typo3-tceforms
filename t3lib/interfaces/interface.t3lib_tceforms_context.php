@@ -42,6 +42,15 @@ interface t3lib_TCEforms_Context {
 	 * @return boolean
 	 */
 	public function hasInlineElements();
+
+	/**
+	 * Returns an array of all languages configured for the TYPO3 website.
+	 *
+	 * Technically speaking, these are all languages that have a record in sys_language.
+	 *
+	 * @return array
+	 */
+	public function getAvailableLanguages($onlyIsoCoded = TRUE, $setDefault = TRUE);
 }
 
 ?>

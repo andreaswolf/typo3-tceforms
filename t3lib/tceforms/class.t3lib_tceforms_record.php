@@ -200,6 +200,10 @@ class t3lib_TCEforms_Record {
 		return $this->parentFormObject;
 	}
 
+	public function hasLanguage() {
+		return FALSE;
+	}
+
 	public function init() {
 		$this->formBuilder = t3lib_TCEforms_Formbuilder::createInstanceForRecordObject($this);
 

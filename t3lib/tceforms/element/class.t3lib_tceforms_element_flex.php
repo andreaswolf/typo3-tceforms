@@ -45,6 +45,8 @@ class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 		$this->formObject->setContainingElement($this)
 		                 ->setDataStructure($this->dataStructure)
 		                 ->setContextObject($this->contextObject)
+		                 ->setLocalizationEnabled(!(boolean)$this->dataStructure->getMetaValue('langDisable'))
+		                 ->setLocalizationMethod((int)$this->dataStructure->getMetaValue('langChildren'))
 		                 ->init();
 
 		// Code copied from t3lib_TCEforms::getSingleField_typeFlex()

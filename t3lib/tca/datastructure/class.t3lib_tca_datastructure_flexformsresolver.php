@@ -43,7 +43,8 @@ class t3lib_TCA_DataStructure_FlexFormsResolver extends t3lib_TCA_DataStructure_
 		$TCAentry = array(
 			'ctrl' => $TCAcontrolArray,
 			'columns' => $TCAcolumnsArray,
-			'sheets' => $TCAsheetsArray
+			'sheets' => $TCAsheetsArray,
+			'meta' => $dataStructureArray['meta']
 		);
 
 		$dataStructureObject = new t3lib_TCA_FlexFormDataStructure($TCAentry);

@@ -910,14 +910,14 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 * @param	boolean		If set, an array entry for a default language is set.
 	 * @return	array
 	 */
-	function getAvailableLanguages($onlyIsoCoded = TRUE, $setDefault = TRUE) {
+	public function getAvailableLanguages($onlyIsoCoded = TRUE, $setDefault = TRUE) {
 		$isL = t3lib_extMgm::isLoaded('static_info_tables');
 
 			// Find all language records in the system:
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('static_lang_isocode,title,uid', 'sys_language', 'pid=0 AND hidden=0'.t3lib_BEfunc::deleteClause('sys_language'), '', 'title');
+		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('static_lang_isocode, title, uid', 'sys_language', 'pid=0 AND hidden=0'.t3lib_BEfunc::deleteClause('sys_language'), '', 'title');
 
 			// Traverse them:
-		$output=array();
+		$output = array();
 		if ($setDefault) {
 			$output[0] = array(
 				'uid' => 0,
@@ -925,15 +925,19 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 				'ISOcode' => 'DEF'
 			);
 		}
-		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$output[$row['uid']] = $row;
 
 			if ($isL && $row['static_lang_isocode']) {
-				$rr = t3lib_BEfunc::getRecord('static_languages', $row['static_lang_isocode'], 'lg_iso_2');
-				if ($rr['lg_iso_2']) $output[$row['uid']]['ISOcode']=$rr['lg_iso_2'];
+				$rr = t3lib_BEfunc::getRecord('static_languages',$row['static_lang_isocode'],'lg_iso_2');
+				if ($rr['lg_iso_2']) {
+					$output[$row['uid']]['ISOcode']=$rr['lg_iso_2'];
+				}
 			}
 
-			if ($onlyIsoCoded && !$output[$row['uid']]['ISOcode']) unset($output[$row['uid']]);
+			if ($onlyIsoCoded && !$output[$row['uid']]['ISOcode']) {
+				unset($output[$row['uid']]);
+			}
 		}
 		return $output;
 	}
