@@ -112,11 +112,15 @@ class t3lib_TCA_DataStructure {
 	 * @return boolean
 	 */
 	public function hasTypeField() {
-		return (array_key_exists($this->control['type']) && $this->control['type'] !== '');
+		return (array_key_exists('type', $this->control) && $this->control['type'] !== '');
 	}
 
 	public function getTypeField() {
 		return $this->control['type'];
+	}
+
+	public function typeExists($typeNumber) {
+		return in_array($typeNumber, $this->definedTypeValues);
 	}
 
 	/**

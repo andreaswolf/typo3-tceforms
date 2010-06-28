@@ -418,10 +418,10 @@ class t3lib_TCEforms_Record {
 	 */
 	protected function setRecordTypeNumber() {
 			// If there is a "type" field configured...
-		if ($this->TCAdefinition['ctrl']['type']) {
-			$typeFieldName = $this->TCAdefinition['ctrl']['type'];
+		if ($this->dataStructure->hasTypeField()) {
+			$typeFieldName = $this->dataStructure->getTypeField();
 				// Get value of the row from the record which contains the type value.
-			$typeFieldConfig = $this->TCAdefinition['columns'][$typeFieldName];
+			$typeFieldConfig = $this->dataStructure->getFieldConfiguration($typeFieldName);
 			if (isset($typeFieldConfig['l10n_mode']) && $typeFieldConfig['l10n_mode'] == 'exclude') {
 					// retrieve the typeNum from the original records's type field
 				$typeNum = $this->defaultLanguageData[$typeFieldName];
@@ -438,7 +438,7 @@ class t3lib_TCEforms_Record {
 			// Force to string. Necessary for eg '-1' to be recognized as a type value.
 		$this->typeNumber = (string)$this->typeNumber;
 			// However, if the type "0" is not found in the "types" array, then default to "1" (for historical reasons)
-		if (!$this->TCAdefinition['types'][$this->typeNumber]) {
+		if (!$this->dataStructure->typeExists($this->typeNumber)) {
 			$this->typeNumber = 1;
 		}
 
