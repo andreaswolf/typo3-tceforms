@@ -77,6 +77,10 @@ class t3lib_TCA_DataStructure_Sheet {
 	public function getLabel() {
 		return $this->label;
 	}
+
+	public function getName() {
+		return $this->name;
+	}
 }
 
 ?>
