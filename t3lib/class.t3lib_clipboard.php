@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -195,8 +195,7 @@ class t3lib_clipboard {
 	 */
 	function setCmd($cmd)	{
 		if (is_array($cmd['el']))	{
-			reset($cmd['el']);
-			while(list($k,$v)=each($cmd['el']))	{
+			foreach ($cmd['el'] as $k => $v) {
 				if ($this->current=='normal')	{
 					unset($this->clipData['normal']);
 				}
@@ -270,8 +269,7 @@ class t3lib_clipboard {
 	 */
 	function cleanUpCBC($CBarr,$table,$removeDeselected=0)	{
 		if (is_array($CBarr))	{
-			reset($CBarr);
-			while(list($k,$v)=each($CBarr))	{
+			foreach ($CBarr as $k => $v) {
 				$p=explode('|',$k);
 				if ((string)$p[0]!=(string)$table || ($removeDeselected && !$v))	{
 					unset($CBarr[$k]);
@@ -311,8 +309,8 @@ class t3lib_clipboard {
 
 			// Upper header
 		$out[]='
-			<tr class="bgColor2">
-				<td colspan="3" nowrap="nowrap" align="center"><span class="uppercase"><strong>'.$this->clLabel('clipboard','buttons').'</strong></span></td>
+			<tr class="t3-row-header">
+				<td colspan="3" nowrap="nowrap" align="center"><strong>' . $this->clLabel('clipboard', 'buttons') . '</strong></td>
 			</tr>';
 
 			// Button/menu header:
@@ -368,8 +366,8 @@ class t3lib_clipboard {
 				'</td>
 				<td>'.
 				'<a href="'.htmlspecialchars($rmall_url).'#clip_head">'.
-					'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/closedok_2.gif','width="21" height="16"').' vspace="2" border="0" title="'.$LANG->sL('LLL:EXT:lang/locallang_core.php:buttons.clear',1).'" alt="" />'.
-					'</a></td>
+					t3lib_iconWorks::getSpriteIcon('actions-document-close', array('title' => $LANG->sL('LLL:EXT:lang/locallang_core.php:buttons.clear', TRUE))) . 
+				'</a></td>
 			</tr>';
 
 
@@ -377,7 +375,7 @@ class t3lib_clipboard {
 		$out[]='
 			<tr class="bgColor5">
 				<td colspan="3"><a href="'.htmlspecialchars(t3lib_div::linkThisScript(array('CB'=>array('setP'=>'normal')))).'#clip_head">'.
-					'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/'.($this->current=='normal'?'minus':'plus').'bullet.gif','width="18" height="16"').' border="0" align="top" alt="" />'.
+					t3lib_iconWorks::getSpriteIcon('actions-view-table-' . (($this->current == 'normal') ? 'collapse' : 'expand')) .
 					$this->padTitleWrap('Normal','normal').
 					'</a></td>
 			</tr>';
@@ -388,7 +386,7 @@ class t3lib_clipboard {
 			$out[]='
 				<tr class="bgColor5">
 					<td colspan="3"><a href="'.htmlspecialchars(t3lib_div::linkThisScript(array('CB'=>array('setP'=>'tab_'.$a)))).'#clip_head">'.
-						'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/'.($this->current=='tab_'.$a?'minus':'plus').'bullet.gif','width="18" height="16"').' border="0" align="top" alt="" />'.
+						t3lib_iconWorks::getSpriteIcon('actions-view-table-' . (($this->current == 'tab_' . $a) ? 'collapse' : 'expand')) .
 						$this->padTitleWrap($this->clLabel('cliptabs').$a,'tab_'.$a).
 						'</a></td>
 				</tr>';
@@ -424,8 +422,7 @@ class t3lib_clipboard {
 
 		$lines=array();
 		if (is_array($this->clipData[$pad]['el']))	{
-			reset($this->clipData[$pad]['el']);
-			while(list($k,$v)=each($this->clipData[$pad]['el']))	{
+			foreach ($this->clipData[$pad]['el'] as $k => $v) {
 				if ($v)	{
 					list($table,$uid) = explode('|',$k);
 					$bgColClass = ($table=='_FILE'&&$this->fileMode)||($table!='_FILE'&&!$this->fileMode) ? 'bgColor4-20' : 'bgColor4';
@@ -435,7 +432,7 @@ class t3lib_clipboard {
 							$fI = pathinfo($v);
 							$icon = is_dir($v) ? 'folder.gif' : t3lib_BEfunc::getFileIcon(strtolower($fI['extension']));
 							$size = ' ('.t3lib_div::formatSize(filesize($v)).'bytes)';
-							$icon = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/fileicons/'.$icon,'width="18" height="16"').' border="0" hspace="20" class="absmiddle" title="'.htmlspecialchars($fI['basename'].$size).'" alt="" />';
+							$icon = t3lib_iconWorks::getSpriteIconForFile(is_dir($v) ? 'folder' : strtolower($fI['extension']), array('style' => 'margin: 0 20px;', 'title' => htmlspecialchars($fI['basename'] . $size)));
 							$thumb = $this->clipData['_setThumb'] ? (t3lib_div::inList($GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'],$fI['extension']) ? t3lib_BEfunc::getThumbNail($this->backPath.'thumbs.php',$v,' vspace="4"') : '') :'';
 
 							$lines[]='
@@ -444,8 +441,8 @@ class t3lib_clipboard {
 									<td class="'.$bgColClass.'" nowrap="nowrap" width="95%">&nbsp;'.$this->linkItemText(htmlspecialchars(t3lib_div::fixed_lgd_cs(basename($v),$GLOBALS['BE_USER']->uc['titleLen'])),$v).
 										($pad=='normal'?(' <strong>('.($this->clipData['normal']['mode']=='copy'?$this->clLabel('copy','cm'):$this->clLabel('cut','cm')).')</strong>'):'').'&nbsp;'.($thumb?'<br />'.$thumb:'').'</td>
 									<td class="'.$bgColClass.'" align="center" nowrap="nowrap">'.
-									'<a href="#" onclick="'.htmlspecialchars('top.launchView(\''.$v.'\', \'\'); return false;').'"><img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/zoom2.gif','width="12" height="12"').' hspace="2" border="0" title="'.$this->clLabel('info','cm').'" alt="" /></a>'.
-									'<a href="'.htmlspecialchars($this->removeUrl('_FILE',t3lib_div::shortmd5($v))).'#clip_head"><img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/close_12h.gif','width="11" height="12"').' border="0" title="'.$this->clLabel('removeItem').'" alt="" /></a>'.
+										'<a href="#" onclick="' . htmlspecialchars('top.launchView(\'' . $v . '\', \'\'); return false;') . '">' . t3lib_iconWorks::getSpriteIcon('actions-document-info', array('title' => $this->clLabel('info', 'cm'))) . '</a>'.
+										'<a href="' . htmlspecialchars($this->removeUrl('_FILE', t3lib_div::shortmd5($v))) . '#clip_head">' . t3lib_iconWorks::getSpriteIcon('actions-selection-delete', array('title' => $this->clLabel('removeItem'))) .  '</a>'.
 									'</td>
 								</tr>';
 						} else {
@@ -458,12 +455,12 @@ class t3lib_clipboard {
 						if (is_array($rec))	{
 							$lines[]='
 								<tr>
-									<td class="'.$bgColClass.'">'.$this->linkItemText(t3lib_iconWorks::getIconImage($table,$rec,$this->backPath,'hspace="20" title="'.htmlspecialchars(t3lib_BEfunc::getRecordIconAltText($rec,$table)).'"'),$rec,$table).'</td>
+									<td class="' . $bgColClass . '">' . $this->linkItemText(t3lib_iconWorks::getSpriteIconForRecord($table, $rec, array('style' => 'margin: 0 20px;', 'title' => htmlspecialchars(t3lib_BEfunc::getRecordIconAltText($rec, $table)))), $rec, $table) . '</td>
 									<td class="'.$bgColClass.'" nowrap="nowrap" width="95%">&nbsp;'.$this->linkItemText(htmlspecialchars(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle($table,$rec),$GLOBALS['BE_USER']->uc['titleLen'])),$rec,$table).
 										($pad=='normal'?(' <strong>('.($this->clipData['normal']['mode']=='copy'?$this->clLabel('copy','cm'):$this->clLabel('cut','cm')).')</strong>'):'').'&nbsp;</td>
 									<td class="'.$bgColClass.'" align="center" nowrap="nowrap">'.
-									'<a href="#" onclick="'.htmlspecialchars('top.launchView(\''.$table.'\', \''.intval($uid).'\'); return false;').'"><img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/zoom2.gif','width="12" height="12"').' hspace="2" border="0" title="'.$this->clLabel('info','cm').'" alt="" /></a>'.
-									'<a href="'.htmlspecialchars($this->removeUrl($table,$uid)).'#clip_head"><img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/close_12h.gif','width="11" height="12"').' border="0" title="'.$this->clLabel('removeItem').'" alt="" /></a>'.
+										'<a href="#" onclick="' . htmlspecialchars('top.launchView(\'' . $table . '\', \'' . intval($uid) . '\'); return false;') . '">' . t3lib_iconWorks::getSpriteIcon('actions-document-info', array('title' => $this->clLabel('info','cm'))) . '</a>'.
+										'<a href="' . htmlspecialchars($this->removeUrl($table, $uid)) . '#clip_head">' . t3lib_iconWorks::getSpriteIcon('actions-selection-delete', array('title' => $this->clLabel('removeItem'))) . '</a>'.
 									'</td>
 								</tr>';
 
@@ -664,9 +661,8 @@ class t3lib_clipboard {
 	 */
 	function editUrl()	{
 		$elements = $this->elFromTable('');	// all records
-		reset($elements);
 		$editCMDArray=array();
-		while(list($tP)=each($elements))	{
+		foreach ($elements as $tP => $value) {
 			list($table,$uid) = explode('|',$tP);
 			$editCMDArray[] = '&edit['.$table.']['.$uid.']=edit';
 		}
@@ -762,8 +758,7 @@ class t3lib_clipboard {
 
 			// Traverse items:
 		if (is_array($this->clipData[$pad]['el']))	{
-			reset($this->clipData[$pad]['el']);
-			while(list($k,$v)=each($this->clipData[$pad]['el']))	{
+			foreach ($this->clipData[$pad]['el'] as $k => $v) {
 				if ($v)	{
 					list($table,$uid) = explode('|',$k);
 
@@ -837,8 +832,7 @@ class t3lib_clipboard {
 	 */
 	function cleanCurrent()	{
 		if (is_array($this->clipData[$this->current]['el']))	{
-			reset($this->clipData[$this->current]['el']);
-			while(list($k,$v)=each($this->clipData[$this->current]['el']))	{
+			foreach ($this->clipData[$this->current]['el'] as $k => $v) {
 				list($table,$uid) = explode('|',$k);
 				if ($table!='_FILE')	{
 					if (!$v || !is_array(t3lib_BEfunc::getRecord($table,$uid,'uid')))	{
@@ -866,8 +860,7 @@ class t3lib_clipboard {
 		$pad = $pad ? $pad : $this->current;
 		$list=array();
 		if (is_array($this->clipData[$pad]['el']))	{
-			reset($this->clipData[$pad]['el']);
-			while(list($k,$v)=each($this->clipData[$pad]['el']))	{
+			foreach ($this->clipData[$pad]['el'] as $k => $v) {
 				if ($v)	{
 					list($table,$uid) = explode('|',$k);
 					if ($table!='_FILE')	{
@@ -977,8 +970,7 @@ class t3lib_clipboard {
 			$mode = $this->currentMode()=='copy' ? 'copy' : 'move';
 
 				// Traverse elements and make CMD array
-			reset($elements);
-			while(list($tP)=each($elements))	{
+			foreach ($elements as $tP => $value) {
 				list($table,$uid) = explode('|',$tP);
 				if (!is_array($CMD[$table]))	$CMD[$table]=array();
 				$CMD[$table][$uid][$mode]=$pUid;
@@ -997,8 +989,7 @@ class t3lib_clipboard {
 	 */
 	function makeDeleteCmdArray($CMD)	{
 		$elements = $this->elFromTable('');	// all records
-		reset($elements);
-		while(list($tP)=each($elements))	{
+		foreach ($elements as $tP => $value) {
 			list($table,$uid) = explode('|',$tP);
 			if (!is_array($CMD[$table]))	$CMD[$table]=array();
 			$CMD[$table][$uid]['delete']=1;
@@ -1044,8 +1035,7 @@ class t3lib_clipboard {
 		$mode = $this->currentMode()=='copy' ? 'copy' : 'move';
 
 			// Traverse elements and make CMD array
-		reset($elements);
-		while(list($tP,$path)=each($elements))	{
+		foreach ($elements as $tP => $path) {
 			$FILE[$mode][]=array('data'=>$path,'target'=>$pUid,'altName'=>1);
 			if ($mode=='move')	$this->removeElement($tP);
 		}
@@ -1063,8 +1053,7 @@ class t3lib_clipboard {
 	function makeDeleteCmdArray_file($FILE)	{
 		$elements = $this->elFromTable('_FILE');
 			// Traverse elements and make CMD array
-		reset($elements);
-		while(list($tP,$path)=each($elements))	{
+		foreach ($elements as $tP => $path) {
 			$FILE['delete'][]=array('data'=>$path);
 			$this->removeElement($tP);
 		}

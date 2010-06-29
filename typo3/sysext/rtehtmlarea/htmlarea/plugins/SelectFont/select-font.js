@@ -29,20 +29,16 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-SelectFont = HTMLArea.Plugin.extend({
-		
-	constructor : function(editor, pluginName) {
+HTMLArea.SelectFont = HTMLArea.Plugin.extend({
+	constructor: function(editor, pluginName) {
 		this.base(editor, pluginName);
 	},
-	
 	/*
 	 * This function gets called by the class constructor
 	 */
-	configurePlugin : function (editor) {
-
+	configurePlugin: function (editor) {
 		this.buttonsConfiguration = this.editorConfiguration.buttons;
 		this.disablePCexamples = this.editorConfiguration.disablePCexamples;
-
 			// Font formating will use the style attribute
 		if (this.getPluginInstance("TextStyle")) {
 			this.getPluginInstance("TextStyle").addAllowedAttribute("style");
@@ -59,98 +55,111 @@ SelectFont = HTMLArea.Plugin.extend({
 		}
 		if (!this.allowedAttributes) {
 			this.allowedAttributes = new Array("id", "title", "lang", "xml:lang", "dir", "class", "style");
-			if (HTMLArea.is_ie) {
+			if (Ext.isIE) {
 				this.allowedAttributes.push("className");
 			}
 		}
-
 		/*
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: "1.0",
-			developer	: "Stanislas Rolland",
-			developerUrl	: "http://www.sjbr.ca/",
-			copyrightOwner	: "Stanislas Rolland",
-			sponsor		: "SJBR",
-			sponsorUrl	: "http://www.sjbr.ca/",
-			license		: "GPL"
+			version		: '2.0',
+			developer	: 'Stanislas Rolland',
+			developerUrl	: 'http://www.sjbr.ca/',
+			copyrightOwner	: 'Stanislas Rolland',
+			sponsor		: 'SJBR',
+			sponsorUrl	: 'http://www.sjbr.ca/',
+			license		: 'GPL'
 		};
 		this.registerPluginInformation(pluginInformation);
-		
 		/*
 		 * Registering the dropdowns
 		 */
 		Ext.each(this.dropDownList, function (dropDown) {
 			var buttonId = dropDown[0];
-				// Load the options var
-			var options = [];
-			if (this.buttonsConfiguration[dropDown[2]] && this.buttonsConfiguration[dropDown[2]].dataUrl) {
-				var optionsData = this.getJavascriptFile(this.buttonsConfiguration[dropDown[2]].dataUrl, "noEval");
-				if (optionsData) {
-					eval(optionsData);
+			if (this.isButtonInToolbar(buttonId)) {
+				var dropDownConfiguration = {
+					id: buttonId,
+					tooltip: this.localize(buttonId.toLowerCase()),
+					storeUrl: this.buttonsConfiguration[dropDown[2]].dataUrl,
+					action: 'onChange',
+					tpl: this.disablePCexamples ? '' : '<tpl for="."><div ext:qtip="{value}" style="' + dropDown[3] + '" class="x-combo-list-item">{text}</div></tpl>'
+				};
+				if (this.buttonsConfiguration[dropDown[2]]) {
+					if (this.editorConfiguration.buttons[dropDown[2]].width) {
+						dropDownConfiguration.width = parseInt(this.editorConfiguration.buttons[dropDown[2]].width, 10);
+					}
+					if (this.editorConfiguration.buttons[dropDown[2]].listWidth) {
+						dropDownConfiguration.listWidth = parseInt(this.editorConfiguration.buttons[dropDown[2]].listWidth, 10);
+					}
+					if (this.editorConfiguration.buttons[dropDown[2]].maxHeight) {
+						dropDownConfiguration.maxHeight = parseInt(this.editorConfiguration.buttons[dropDown[2]].maxHeight, 10);
+					}
 				}
+				this.registerDropDown(dropDownConfiguration);
 			}
-			var dropDownConfiguration = {
-				id: buttonId,
-				tooltip: this.localize(buttonId.toLowerCase()),
-				options: options,
-				action: "onChange",
-				tpl: this.disablePCexamples ? '' : '<tpl for="."><div ext:qtip="{value}" style="' + dropDown[3] + '" class="x-combo-list-item">{text}</div></tpl>'
-			};
-			if (this.buttonsConfiguration[dropDown[2]]) {
-				if (this.editorConfiguration.buttons[dropDown[2]].width) {
-					dropDownConfiguration.width = parseInt(this.editorConfiguration.buttons[dropDown[2]].width, 10);
-				}
-				if (this.editorConfiguration.buttons[dropDown[2]].listWidth) {
-					dropDownConfiguration.listWidth = parseInt(this.editorConfiguration.buttons[dropDown[2]].listWidth, 10);
-				}
-				if (this.editorConfiguration.buttons[dropDown[2]].maxHeight) {
-					dropDownConfiguration.maxHeight = parseInt(this.editorConfiguration.buttons[dropDown[2]].maxHeight, 10);
-				}
-			}
-			this.registerDropDown(dropDownConfiguration);
 			return true;
 		}, this);
 		return true;
 	 },
-	 
 	/*
 	 * The list of buttons added by this plugin
 	 */
-	dropDownList : [
+	dropDownList: [
 		['FontName', null, 'fontstyle', 'font-family:{value};text-align:left;font-size:11px;'],
 		['FontSize', null, 'fontsize', 'text-align:left;font-size:{value};']
 	],
-	
 	/*
 	 * Conversion object: button name to corresponding style property name
 	 */
-	styleProperty : {
+	styleProperty: {
 		FontName	: "fontFamily",
 		FontSize	: "fontSize"
 	},
-	
 	/*
 	 * Conversion object: button name to corresponding css property name
 	 */
-	cssProperty : {
+	cssProperty: {
 		FontName	: "font-family",
 		FontSize	: "font-size"
 	},
-	 
+	/*
+	 * This funcion is invoked by the editor when it is being generated
+	 */
+	onGenerate: function () {
+			// Load the dropdowns
+		Ext.each(this.dropDownList, function (dropDown) {
+			if (this.getButton(dropDown[0])) {
+				this.getButton(dropDown[0]).getStore().load({
+					callback: function () { this.getButton(dropDown[0]).setValue('none'); },
+					scope: this
+				})
+			}
+		}, this);
+	},
 	/*
 	 * This function gets called when some font style or font size was selected from the dropdown lists
 	 */
-	onChange : function (editor, combo, record, index) {
+	onChange: function (editor, combo, record, index) {
 		var param = combo.getValue();
-		editor.focusEditor();
-		var selection = editor._getSelection(),
-			range = editor._createRange(selection),
-			statusBarSelection = editor.statusBar ? editor.statusBar.getSelection() : null,
-			element;
-		if (editor._selectionEmpty(selection)) {
-			element = editor.getParentElement(selection, range);
+		editor.focus();
+		var 	element,
+			fullNodeSelected = false;
+		var selection = editor._getSelection();
+		var range = editor._createRange(selection);
+		var parent = editor.getParentElement(selection, range);
+		var selectionEmpty = editor._selectionEmpty(selection);
+		var statusBarSelection = editor.statusBar ? editor.statusBar.getSelection() : null;
+		if (!selectionEmpty) {
+			var ancestors = editor.getAllAncestors();
+			var fullySelectedNode = editor.getFullySelectedNode(selection, range, ancestors);
+			if (fullySelectedNode) {
+				fullNodeSelected = true;
+				parent = fullySelectedNode;
+			}
+		}
+		if (selectionEmpty || fullNodeSelected) {
+			element = parent;
 				// Set the style attribute
 			this.setStyle(element, combo.itemId, param);
 				// Remove the span tag if it has no more attribute
@@ -171,13 +180,12 @@ SelectFont = HTMLArea.Plugin.extend({
 			this.setStyle(element, combo.itemId, param);
 				// Wrap the selection with span tag with the style attribute
 			editor.wrapWithInlineElement(element, selection, range);
-			if (HTMLArea.is_gecko) {
+			if (!Ext.isIE) {
 				range.detach();
 			}
 		}
 		return false;
 	},
-
 	/*
 	 * This function sets the style attribute on the element
 	 *
@@ -187,13 +195,13 @@ SelectFont = HTMLArea.Plugin.extend({
 	 *
 	 * @return	void
 	 */
-	setStyle : function (element, buttonId, value) {
+	setStyle: function (element, buttonId, value) {
 		element.style[this.styleProperty[buttonId]] = (value && value !== 'none') ? value : '';
 			// In IE, we need to remove the empty attribute in order to unset it
-		if (HTMLArea.is_ie && (!value || value == 'none')) {
+		if (Ext.isIE && (!value || value == 'none')) {
 			element.style.removeAttribute(this.styleProperty[buttonId], false);
 		}
-		if (HTMLArea.is_opera) {
+		if (Ext.isOpera) {
 				// Opera 9.60 replaces single quotes with double quotes
 			element.style.cssText = element.style.cssText.replace(/\"/g, "\'");
 				// Opera 9.60 removes from the list of fonts any fonts that are not installed on the client system
@@ -204,7 +212,6 @@ SelectFont = HTMLArea.Plugin.extend({
 			}
 		}
 	},
-
 	/*
 	 * This function gets called when the toolbar is updated
 	 */
@@ -215,9 +222,9 @@ SelectFont = HTMLArea.Plugin.extend({
 			var parentElement = statusBarSelection ? statusBarSelection : editor.getParentElement();
 			var value = parentElement.style[this.styleProperty[select.itemId]];
 			if (!value) {
-				if (HTMLArea.is_gecko) {
-					if (editor._doc.defaultView.getComputedStyle(parentElement, null)) {
-						value = editor._doc.defaultView.getComputedStyle(parentElement, null).getPropertyValue(this.cssProperty[select.itemId]);
+				if (!Ext.isIE) {
+					if (editor.document.defaultView.getComputedStyle(parentElement, null)) {
+						value = editor.document.defaultView.getComputedStyle(parentElement, null).getPropertyValue(this.cssProperty[select.itemId]);
 					}
 				} else {
 					value = parentElement.currentStyle[this.styleProperty[select.itemId]];
@@ -234,7 +241,7 @@ SelectFont = HTMLArea.Plugin.extend({
 			}
 			if (index != -1) {
 				select.setValue(store.getAt(index).get('value'));
-			} else {
+			} else if (store.getCount()) {
 				select.setValue('none');
 			}
 			select.setDisabled(!endPointsInSameBlock || (selectionEmpty && /^body$/i.test(parentElement.nodeName)));

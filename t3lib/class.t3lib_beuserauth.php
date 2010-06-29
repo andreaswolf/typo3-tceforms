@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -239,10 +239,10 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 					if ($this->user['uid'])	{
 						if (!$this->isAdmin())	{
 							return TRUE;
-						} else die('ERROR: CLI backend user "'.$userName.'" was ADMIN which is not allowed!'.chr(10).chr(10));
-					} else die('ERROR: No backend user named "'.$userName.'" was found! [Database: '.TYPO3_db.']'.chr(10).chr(10));
-				} else die('ERROR: Module name, "'.$GLOBALS['MCONF']['name'].'", was not prefixed with "_CLI_"'.chr(10).chr(10));
-			} else die('ERROR: Another user was already loaded which is impossible in CLI mode!'.chr(10).chr(10));
+						} else die('ERROR: CLI backend user "'.$userName.'" was ADMIN which is not allowed!'.LF.LF);
+					} else die('ERROR: No backend user named "'.$userName.'" was found! [Database: '.TYPO3_db.']'.LF.LF);
+				} else die('ERROR: Module name, "'.$GLOBALS['MCONF']['name'].'", was not prefixed with "_CLI_"'.LF.LF);
+			} else die('ERROR: Another user was already loaded which is impossible in CLI mode!'.LF.LF);
 		}
 	}
 
@@ -280,6 +280,11 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 		if (!isset($this->uc['lang']))	{
 			$this->uc['lang']=$this->user['lang'];
 			$U=1;
+		}
+			// Setting the time of the first login:
+		if (!isset($this->uc['firstLoginTimeStamp'])) {
+			$this->uc['firstLoginTimeStamp'] = $GLOBALS['EXEC_TIME'];
+			$U = TRUE;
 		}
 
 			// Saving if updated.
@@ -345,7 +350,7 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 					$prefix='[AdminLoginWarning]';
 				}
 				if ($warn)	{
-					mail($GLOBALS['TYPO3_CONF_VARS']['BE']['warning_email_addr'],
+					t3lib_utility_Mail::mail($GLOBALS['TYPO3_CONF_VARS']['BE']['warning_email_addr'],
 						$prefix.' '.$subject,
 						$msg,
 						$this->notifyHeader
@@ -355,7 +360,7 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 
 				// If An email should be sent to the current user, do that:
 			if ($this->uc['emailMeAtLogin'] && strstr($this->user['email'],'@'))	{
-				mail($this->user['email'],
+				t3lib_utility_Mail::mail($this->user['email'],
 					$subject,
 					$msg,
 					$this->notifyHeader

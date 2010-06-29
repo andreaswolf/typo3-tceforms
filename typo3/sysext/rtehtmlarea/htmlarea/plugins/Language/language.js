@@ -29,7 +29,7 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-Language = HTMLArea.Plugin.extend({
+HTMLArea.Language = HTMLArea.Plugin.extend({
 
 	constructor : function(editor, pluginName) {
 		this.base(editor, pluginName);
@@ -63,25 +63,23 @@ Language = HTMLArea.Plugin.extend({
 		}
 		if (!this.allowedAttributes) {
 			this.allowedAttributes = new Array("id", "title", "lang", "xml:lang", "dir", "class");
-			if (HTMLArea.is_ie) {
+			if (Ext.isIE) {
 				this.allowedAttributes.push("className");
 			}
 		}
-
 		/*
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: "1.0",
-			developer	: "Stanislas Rolland",
-			developerUrl	: "http://www.sjbr.ca/",
-			copyrightOwner	: "Stanislas Rolland",
-			sponsor		: this.localize("Technische Universitat Ilmenau"),
-			sponsorUrl	: "http://www.tu-ilmenau.de/",
-			license		: "GPL"
+			version		: '2.0',
+			developer	: 'Stanislas Rolland',
+			developerUrl	: 'http://www.sjbr.ca/',
+			copyrightOwner	: 'Stanislas Rolland',
+			sponsor		: this.localize('Technische Universitat Ilmenau'),
+			sponsorUrl	: 'http://www.tu-ilmenau.de/',
+			license		: 'GPL'
 		};
 		this.registerPluginInformation(pluginInformation);
-
 		/*
 		 * Registering the buttons
 		 */
@@ -91,54 +89,49 @@ Language = HTMLArea.Plugin.extend({
 			buttonId = button[0];
 			var buttonConfiguration = {
 				id		: buttonId,
-				tooltip		: this.localize(buttonId + "-Tooltip"),
-				action		: "onButtonPress",
+				tooltip		: this.localize(buttonId + '-Tooltip'),
+				iconCls		: 'htmlarea-action-' + button[2],
+				action		: 'onButtonPress',
 				context		: button[1]
 			};
 			this.registerButton(buttonConfiguration);
 		}
-
 		/*
 		 * Registering the dropdown list
 		 */
 		var buttonId = 'Language';
 		if (this.buttonsConfiguration[buttonId.toLowerCase()] && this.buttonsConfiguration[buttonId.toLowerCase()].dataUrl) {
-				// Load the options var
-			var optionsData = this.getJavascriptFile(this.buttonsConfiguration[buttonId.toLowerCase()].dataUrl, "noEval");
-			if (optionsData) {
-				eval(optionsData);
+			var dropDownConfiguration = {
+				id		: buttonId,
+				tooltip		: this.localize(buttonId + '-Tooltip'),
+				storeUrl	: this.buttonsConfiguration[buttonId.toLowerCase()].dataUrl,
+				action		: 'onChange'
+			};
+			if (this.buttonsConfiguration.language) {
+				dropDownConfiguration.width = this.buttonsConfiguration.language.width ? parseInt(this.buttonsConfiguration.language.width, 10) : 200;
+				if (this.buttonsConfiguration.language.listWidth) {
+					dropDownConfiguration.listWidth = parseInt(this.buttonsConfiguration.language.listWidth, 10);
+				}
+				if (this.buttonsConfiguration.language.maxHeight) {
+					dropDownConfiguration.maxHeight = parseInt(this.buttonsConfiguration.language.maxHeight, 10);
+				}
 			}
+			this.registerDropDown(dropDownConfiguration);
 		}
-		var dropDownConfiguration = {
-			id		: buttonId,
-			tooltip		: this.localize(buttonId + "-Tooltip"),
-			options		: options,
-			action		: "onChange"
-		};
-		if (this.buttonsConfiguration.language) {
-			dropDownConfiguration.width = this.buttonsConfiguration.language.width ? parseInt(this.buttonsConfiguration.language.width, 10) : 200;
-			if (this.buttonsConfiguration.language.listWidth) {
-				dropDownConfiguration.listWidth = parseInt(this.buttonsConfiguration.language.listWidth, 10);
-			}
-			if (this.buttonsConfiguration.language.maxHeight) {
-				dropDownConfiguration.maxHeight = parseInt(this.buttonsConfiguration.language.maxHeight, 10);
-			}
-		}
-		this.registerDropDown(dropDownConfiguration);
 		return true;
-	 },
-
-	/* The list of buttons added by this plugin */
-	buttonList : [
-		["LeftToRight", null],
-		["RightToLeft", null],
-		["ShowLanguageMarks", null]
+	},
+	/*
+	 * The list of buttons added by this plugin
+	 */
+	buttonList: [
+		['LeftToRight', null, 'text-direction-left-to-right'],
+		['RightToLeft', null, 'text-direction-right-to-left'],
+		['ShowLanguageMarks', null, 'language-marks-show']
 	],
-
 	/*
 	 * This function gets called when the editor is generated
 	 */
-	onGenerate : function () {
+	onGenerate: function () {
 			// Add rules to the stylesheet for language mark highlighting
 			// Model: body.htmlarea-show-language-marks *[lang=en]:before { content: "en: "; }
 			// Works in IE8, but not in earlier versions of IE
@@ -149,7 +142,7 @@ Language = HTMLArea.Plugin.extend({
 				var selector = 'body.htmlarea-show-language-marks *[' + 'lang="' + option.get('value') + '"]:before';
 				var style = 'content: "' + option.get('value') + ': ";';
 				var rule = selector + ' { ' + style + ' }';
-				if (HTMLArea.is_gecko) {
+				if (!Ext.isIE) {
 					try {
 						styleSheet.insertRule(rule, styleSheet.cssRules.length);
 					} catch (e) {
@@ -159,10 +152,14 @@ Language = HTMLArea.Plugin.extend({
 					styleSheet.addRule(selector, style);
 				}
 				return true;
+			}, this);
+				// Load the language dropdown
+			select.getStore().load({
+				callback: function () { this.getButton('Language').setValue('none'); },
+				scope: this
 			});
 		}
 	},
-
 	/*
 	 * This function gets called when a button was pressed.
 	 *
@@ -249,14 +246,14 @@ Language = HTMLArea.Plugin.extend({
 				var ancestors = this.editor.getAllAncestors();
 				for (var i = 0; i < ancestors.length; ++i) {
 					fullNodeSelected = (statusBarSelection === ancestors[i])
-						&& ((HTMLArea.is_gecko && ancestors[i].textContent === range.toString()) || (HTMLArea.is_ie && ((selection.type !== "Control" && ancestors[i].innerText === range.text) || (selection.type === "Control" && ancestors[i].innerText === range.item(0).text))));
+						&& ((!Ext.isIE && ancestors[i].textContent === range.toString()) || (Ext.isIE && ((selection.type !== "Control" && ancestors[i].innerText === range.text) || (selection.type === "Control" && ancestors[i].innerText === range.item(0).text))));
 					if (fullNodeSelected) {
 						parent = ancestors[i];
 						break;
 					}
 				}
 					// Working around bug in Safari selectNodeContents
-				if (!fullNodeSelected && HTMLArea.is_safari && statusBarSelection && statusBarSelection.textContent === range.toString()) {
+				if (!fullNodeSelected && Ext.isWebKit && statusBarSelection && statusBarSelection.textContent === range.toString()) {
 					fullNodeSelected = true;
 					parent = statusBarSelection;
 				}
@@ -275,7 +272,7 @@ Language = HTMLArea.Plugin.extend({
 				var newElement = this.editor._doc.createElement("span");
 				this.setLanguageAttributes(newElement, language);
 				this.editor.wrapWithInlineElement(newElement, selection, range);
-				if (HTMLArea.is_gecko) {
+				if (!Ext.isIE) {
 					range.detach();
 				}
 			}
@@ -405,6 +402,9 @@ Language = HTMLArea.Plugin.extend({
 					if (parent) {
 						var direction = (button.itemId === 'RightToLeft') ? 'rtl' : 'ltr';
 						button.setInactive(parent.dir != direction && parent.style.direction != direction);
+						button.setDisabled(/^body$/i.test(parent.nodeName));
+					} else {
+						button.setDisabled(true);
 					}
 					break;
 				case 'ShowLanguageMarks':
@@ -418,14 +418,14 @@ Language = HTMLArea.Plugin.extend({
 						if (endPointsInSameBlock) {
 							for (var i = 0; i < ancestors.length; ++i) {
 								fullNodeSelected = (statusBarSelection === ancestors[i])
-									&& ((HTMLArea.is_gecko && ancestors[i].textContent === range.toString()) || (HTMLArea.is_ie && ((selection.type !== "Control" && ancestors[i].innerText === range.text) || (selection.type === "Control" && ancestors[i].innerText === range.item(0).text))));
+									&& ((!Ext.isIE && ancestors[i].textContent === range.toString()) || (Ext.isIE && ((selection.type !== "Control" && ancestors[i].innerText === range.text) || (selection.type === "Control" && ancestors[i].innerText === range.item(0).text))));
 								if (fullNodeSelected) {
 									parent = ancestors[i];
 									break;
 								}
 							}
 								// Working around bug in Safari selectNodeContents
-							if (!fullNodeSelected && HTMLArea.is_safari && statusBarSelection && statusBarSelection.textContent === range.toString()) {
+							if (!fullNodeSelected && Ext.isWebKit && statusBarSelection && statusBarSelection.textContent === range.toString()) {
 								fullNodeSelected = true;
 								parent = statusBarSelection;
 							}

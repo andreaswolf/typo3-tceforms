@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -547,14 +547,27 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	 */
 	function checkFullLanguagesAccess($table, $record) {
 		$recordLocalizationAccess = $this->checkLanguageAccess(0);
-		if ($recordLocalizationAccess && t3lib_BEfunc::isTableLocalizable($table)) {
+		if ($recordLocalizationAccess
+				 && (
+					t3lib_BEfunc::isTableLocalizable($table)
+					|| isset($GLOBALS['TCA'][$table]['ctrl']['transForeignTable'])
+				)
+		) {
 
-			$pointerField = $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'];
+			if (isset($GLOBALS['TCA'][$table]['ctrl']['transForeignTable'])) {
+				$l10nTable = $GLOBALS['TCA'][$table]['ctrl']['transForeignTable'];
+				$pointerField = $GLOBALS['TCA'][$l10nTable]['ctrl']['transOrigPointerField'];
+				$pointerValue = $record['uid'];
+			} else {
+				$l10nTable = $table;
+				$pointerField = $GLOBALS['TCA'][$l10nTable]['ctrl']['transOrigPointerField'];
+				$pointerValue = $record[$pointerField] > 0 ? $record[$pointerField] : $record['uid'];
+			}
 
 			$recordLocalizations = t3lib_BEfunc::getRecordsByField(
-				$table,
+				$l10nTable,
 				$pointerField,
-				$record[$pointerField] > 0 ? $record[$pointerField] : $record['uid'],
+				$pointerValue,
 				'',
 				'',
 				'',
@@ -563,7 +576,8 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 
 			if (is_array($recordLocalizations)) {
 				foreach($recordLocalizations as $localization) {
-					$recordLocalizationAccess = $recordLocalizationAccess && $this->checkLanguageAccess($localization[$GLOBALS['TCA'][$table]['ctrl']['languageField']]);
+					$recordLocalizationAccess = $recordLocalizationAccess
+						&& $this->checkLanguageAccess($localization[$GLOBALS['TCA'][$l10nTable]['ctrl']['languageField']]);
 					if (!$recordLocalizationAccess) {
 						break;
 					}
@@ -624,15 +638,17 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 					$this->errorMsg = 'ERROR: The "languageField" field named "'.$TCA[$table]['ctrl']['languageField'].'" was not found in testing record!';
 					return FALSE;
 				}
+			} elseif (isset($TCA[$table]['ctrl']['transForeignTable']) && $checkFullLanguageAccess && !$this->checkFullLanguagesAccess($table, $idOrRow)) {
+				return FALSE;
 			}
 
 				// Checking authMode fields:
 			if (is_array($TCA[$table]['columns']))	{
-				foreach($TCA[$table]['columns'] as $fN => $fV)	{
-					if (isset($idOrRow[$fN]))	{	//
-						if ($fV['config']['type']=='select' && $fV['config']['authMode'] && !strcmp($fV['config']['authMode_enforce'],'strict')) {
-							if (!$this->checkAuthMode($table,$fN,$idOrRow[$fN],$fV['config']['authMode']))	{
-								$this->errorMsg = 'ERROR: authMode "'.$fV['config']['authMode'].'" failed for field "'.$fN.'" with value "'.$idOrRow[$fN].'" evaluated';
+				foreach ($TCA[$table]['columns'] as $fieldName => $fieldValue) {
+					if (isset($idOrRow[$fieldName])) {
+						if ($fieldValue['config']['type'] == 'select' && $fieldValue['config']['authMode'] && !strcmp($fieldValue['config']['authMode_enforce'], 'strict')) {
+							if (!$this->checkAuthMode($table, $fieldName, $idOrRow[$fieldName], $fieldValue['config']['authMode'])) {
+								$this->errorMsg = 'ERROR: authMode "' . $fieldValue['config']['authMode'] . '" failed for field "' . $fieldName . '" with value "' . $idOrRow[$fieldName] . '" evaluated';
 								return FALSE;
 							}
 						}
@@ -676,24 +692,40 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	}
 
 	/**
-	 * Will check a type of permission against the compiled permission integer, $lCP, and in relation to table, $table
+	 * Checks a type of permission against the compiled permission integer, $compiledPermissions, and in relation to table, $tableName
 	 *
-	 * @param	integer		$lCP could typically be the "compiled permissions" integer returned by ->calcPerms
-	 * @param	string		$table is the tablename to check: If "pages" table then edit,new,delete and editcontent permissions can be checked. Other tables will be checked for "editcontent" only (and $type will be ignored)
-	 * @param	string		For $table='pages' this can be 'edit' (2), 'new' (8 or 16), 'delete' (4), 'editcontent' (16). For all other tables this is ignored. (16 is used)
+	 * @param	integer		$compiledPermissions could typically be the "compiled permissions" integer returned by ->calcPerms
+	 * @param	string		$tableName is the tablename to check: If "pages" table then edit,new,delete and editcontent permissions can be checked. Other tables will be checked for "editcontent" only (and $type will be ignored)
+	 * @param	string		For $tableName='pages' this can be 'edit' (2), 'new' (8 or 16), 'delete' (4), 'editcontent' (16). For all other tables this is ignored. (16 is used)
 	 * @return	boolean
-	 * @access private
+	 * @access public (used by typo3/alt_clickmenu.php)
 	 */
-	function isPSet($lCP,$table,$type='')	{
-		if ($this->isAdmin())	return true;
-		if ($table=='pages')	{
-			if ($type=='edit')	return $lCP & 2;
-			if ($type=='new')	return ($lCP & 8) || ($lCP & 16);	// Create new page OR pagecontent
-			if ($type=='delete')	return $lCP & 4;
-			if ($type=='editcontent')	return $lCP & 16;
-		} else {
-			return $lCP & 16;
+	public function isPSet($compiledPermissions, $tableName, $actionType = '') {
+		if ($this->isAdmin()) {
+			$result = TRUE;
 		}
+		elseif ($tableName == 'pages') {
+			switch($actionType) {
+				case 'edit':
+					$result = ($compiledPermissions & 2) !== 0;
+					break;
+				case 'new':
+					// Create new page OR page content
+					$result = ($compiledPermissions & (8 + 16)) !== 0;
+					break;
+				case 'delete':
+					$result = ($compiledPermissions & 4) !== 0;
+					break;
+				case 'editcontent':
+					$result = ($compiledPermissions & 16) !== 0;
+					break;
+				default:
+					$result = FALSE;
+			}
+		} else {
+			$result = ($compiledPermissions & 16) !== 0;
+		}
+		return $result;
 	}
 
 	/**
@@ -702,19 +734,8 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	 * @return	boolean
 	 */
 	function mayMakeShortcut()	{
-			// If the old BE is used (maybe with some parameters),
-			// check for options.enableShortcuts and options.shortcutFrame being set.
-		if (substr($this->getTSConfigVal('auth.BE.redirectToURL'), 0, 12) == 'alt_main.php') {
-			return $this->getTSConfigVal('options.enableShortcuts') &&
-				$this->getTSConfigVal('options.shortcutFrame') &&
-				!$this->getTSConfigVal('options.mayNotCreateEditShortcuts');
-		}
-			// If the new BE is used, don't check options.shortcutFrame,
-			// because this is not used there anymore.
-		else {
-			return $this->getTSConfigVal('options.enableShortcuts') &&
-				!$this->getTSConfigVal('options.mayNotCreateEditShortcuts');
-		}
+		return $this->getTSConfigVal('options.enableShortcuts') &&
+			!$this->getTSConfigVal('options.mayNotCreateEditShortcuts');
 	}
 
 	/**
@@ -909,9 +930,14 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	}
 
 	/**
-	 * Workspace Versioning type access?
+	 * Workspace Versioning type access. Check wether the requsted type of versioning (element/page/branch) is allowd in current workspace
+	 *   (element/pages/branches type of versioning can/could be set on custom workspaces on filed "vtype")
 	 *
+	 * @todo workspacecleanup: this seems mostly obsolete and should be removed
 	 * @param	integer		Versioning type to evaluation: -1, 0, >1
+	 *						0 = page (deprecated)
+	 *						-1 = element
+	 *						>1 = branch (deprecated), indicating the "nesting" level
 	 * @return	boolean		TRUE if OK
 	 */
 	function workspaceVersioningTypeAccess($type)	{
@@ -948,6 +974,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	/**
 	 * Finding "closest" versioning type, used for creation of new records.
 	 *
+	 * @see workspaceVersioningTypeAccess() for hints on $type
 	 * @param	integer		Versioning type to evaluation: -1, 0, >1
 	 * @return	integer		Returning versioning type
 	 */
@@ -1160,7 +1187,6 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			if ($this->isAdmin())	{
 				$this->TSdataArray[]=$this->addTScomment('"admin" user presets:').'
 					admPanel.enable.all = 1
-					options.shortcutFrame = 1
 				';
 				if (t3lib_extMgm::isLoaded('sys_note'))	{
 					$this->TSdataArray[]='
@@ -1201,7 +1227,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 				// Check include lines.
 			$this->TSdataArray = t3lib_TSparser::checkIncludeLines_array($this->TSdataArray);
 
-			$this->userTS_text = implode(chr(10).'[GLOBAL]'.chr(10),$this->TSdataArray);	// Imploding with "[global]" will make sure that non-ended confinements with braces are ignored.
+			$this->userTS_text = implode(LF.'[GLOBAL]'.LF,$this->TSdataArray);	// Imploding with "[global]" will make sure that non-ended confinements with braces are ignored.
 
 			if ($GLOBALS['TYPO3_CONF_VARS']['BE']['TSconfigConditions'] && !$this->userTS_dontGetCached) {
 					// Perform TS-Config parsing with condition matching
@@ -1315,8 +1341,8 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 
 			// Traversing records in the correct order
 		$include_staticArr = t3lib_div::intExplode(',',$grList);
-		reset($include_staticArr);
-		while(list(,$uid)=each($include_staticArr))	{	// traversing list
+			// traversing list
+		foreach ($include_staticArr as $key => $uid) {
 
 				// Get row:
 			$row=$this->userGroups[$uid];
@@ -1459,12 +1485,12 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	function addTScomment($str)	{
 		$delimiter = '# ***********************************************';
 
-		$out = $delimiter.chr(10);
-		$lines = t3lib_div::trimExplode(chr(10),$str);
+		$out = $delimiter.LF;
+		$lines = t3lib_div::trimExplode(LF,$str);
 		foreach($lines as $v)	{
-			$out.= '# '.$v.chr(10);
+			$out.= '# '.$v.LF;
 		}
-		$out.= $delimiter.chr(10);
+		$out.= $delimiter.LF;
 		return $out;
 	}
 
@@ -1542,7 +1568,23 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	 */
 	function checkWorkspace($wsRec,$fields='uid,title,adminusers,members,reviewers,publish_access,stagechg_notification')	{
 		$retVal = FALSE;
-
+		
+			// Show draft workspace only if it's enabled in version extension
+		if (t3lib_extMgm::isLoaded('version')) {
+			$versionExtConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['version']);
+			if (!$versionExtConf['showDraftWorkspace']) {
+				if (!is_array($wsRec)) {
+					if ((string) $wsRec === '-1') {
+						return FALSE;
+					} 
+				} else {
+					if ((string) $wsRec['uid'] === '-1') {
+						return FALSE;
+					} 
+				}
+			} 
+		} 
+		
 			// If not array, look up workspace record:
 		if (!is_array($wsRec))	{
 			switch((string)$wsRec)	{
@@ -1809,9 +1851,9 @@ This is a dump of the failures:
 				while($testRows = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
 					$theData = unserialize($testRows['log_data']);
 					$email_body.= date($GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'].' '.$GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'],$testRows['tstamp']).':  '.@sprintf($testRows['details'],''.$theData[0],''.$theData[1],''.$theData[2]);
-					$email_body.= chr(10);
+					$email_body.= LF;
 				}
-				mail(	$email,
+				t3lib_utility_Mail::mail($email,
 					$subject,
 					$email_body,
 					'From: TYPO3 Login WARNING<>'

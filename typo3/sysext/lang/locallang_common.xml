@@ -18,15 +18,18 @@
 			<label index="descending">Descending</label>
 			<label index="details">Details</label>
 			<label index="disable">Disable</label>
+			<label index="disabled">Disabled</label>
 			<label index="down">Down</label>
 			<label index="download">Download</label>
 			<label index="edit">Edit</label>
 			<label index="editField">Edit field</label>
 			<label index="editFile">Edit file</label>
 			<label index="enable">Enable</label>
+			<label index="enabled">Enabled</label>
 			<label index="file">File</label>
 			<label index="files">Files</label>
 			<label index="first">First</label>
+			<label index="from">From</label>
 			<label index="go">Go</label>
 			<label index="goTo">Go to</label>
 			<label index="help">Help</label>
@@ -59,6 +62,7 @@
 			<label index="start">Start</label>
 			<label index="stop">Stop</label>
 			<label index="submit">Submit</label>
+			<label index="to">To</label>
 			<label index="tsRef">TSref reference</label>
 			<label index="up">Up</label>
 			<label index="upload">Upload</label>

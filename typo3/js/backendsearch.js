@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -37,27 +37,27 @@ var BackendSearch = Class.create({
 	initialize: function() {
 		Event.observe(window, 'resize', this.positionMenu);
 
-		Event.observe(window, 'load', function(){
+		Ext.onReady(function() {
 			this.positionMenu();
-			this.toolbarItemIcon = $$('#backend-search-menu .toolbar-item img')[0].src;
+			this.toolbarItemIcon = $$('#backend-search-menu .toolbar-item span.t3-icon')[0];
 
 			$('search-query').observe('keypress', function(event) {
 				var keyCode;
 
-				if(!event) {
+				if (!event) {
 					var event = window.event;
 				}
 
-				if(event.keyCode) {
+				if (event.keyCode) {
 					keyCode = event.keyCode;
-				} else if(event.which) {
+				} else if (event.which) {
 					keyCode = event.which;
 				}
 
-				if(keyCode == Event.KEY_RETURN) {
-					this.invokeSearch();
+				if (keyCode === Event.KEY_RETURN) {
+					TYPO3BackendSearchMenu.invokeSearch();
 				}
-			}.bindAsEventListener(this));
+			});
 
 			$$('#backend-search-menu .toolbar-item')[0].observe('click', this.toggleMenu)
 		}.bindAsEventListener(this));
@@ -69,7 +69,9 @@ var BackendSearch = Class.create({
 	positionMenu: function() {
 		var calculatedOffset = 0;
 		var parentWidth      = $('backend-search-menu').getWidth();
-		var ownWidth         = $$('#backend-search-menu div')[0].getWidth();
+		var currentToolbarItemLayer = $$('#backend-search-menu div')[0];
+		var ownWidth         = currentToolbarItemLayer.getWidth();
+
 		var parentSiblings   = $('backend-search-menu').previousSiblings();
 
 		parentSiblings.each(function(toolbarItem) {
@@ -77,12 +79,16 @@ var BackendSearch = Class.create({
 			// -1 to compensate for the margin-right -1px of the list items,
 			// which itself is necessary for overlaying the separator with the active state background
 
-			if(toolbarItem.down().hasClassName('no-separator')) {
+			if (toolbarItem.down().hasClassName('no-separator')) {
 				calculatedOffset -= 1;
 			}
 		});
 		calculatedOffset = calculatedOffset - ownWidth + parentWidth;
 
+		// border correction
+	if (currentToolbarItemLayer.getStyle('display') !== 'none') {
+		calculatedOffset += 2;
+	}
 
 		$$('#backend-search-menu div')[0].setStyle({
 			left: calculatedOffset + 'px'
@@ -97,7 +103,7 @@ var BackendSearch = Class.create({
 		var menu        = $$('#backend-search-menu .toolbar-item-menu')[0];
 		toolbarItem.blur();
 
-		if(!toolbarItem.hasClassName('toolbar-item-active')) {
+		if (!toolbarItem.hasClassName('toolbar-item-active')) {
 			toolbarItem.addClassName('toolbar-item-active');
 			Effect.Appear(menu, {duration: 0.2});
 			TYPO3BackendToolbarManager.hideOthers(toolbarItem);
@@ -134,7 +140,7 @@ var BackendSearch = Class.create({
 						top.loadEditId(jsonResponse.editRecord);
 						break;
 					case 'alternative':
-						this.jump( 
+						this.jump(
 							unescape('alt_doc.php?returnUrl=dummy.php&edit[' + jsonResponse.alternativeTable + '][' + jsonResponse.alternativeUid + ']=edit'),
 							'web_list',
 							'web'
@@ -165,7 +171,7 @@ var BackendSearch = Class.create({
 	jump: function(url, modName, mainModName) {
 			// Clear information about which entry in nav. tree that might have been highlighted.
 		top.fsMod.navFrameHighlightedID = new Array();
-		if(top.content && top.content.nav_frame && top.content.nav_frame.refresh_nav) {
+		if (top.content && top.content.nav_frame && top.content.nav_frame.refresh_nav) {
 			top.content.nav_frame.refresh_nav();
 		}
 

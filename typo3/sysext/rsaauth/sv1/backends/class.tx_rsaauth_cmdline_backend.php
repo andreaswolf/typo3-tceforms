@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Dmitry Dulepov <dmitry@typo3.org>
+*  (c) 2009-2010 Dmitry Dulepov <dmitry@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -150,7 +150,7 @@ class tx_rsaauth_cmdline_backend extends tx_rsaauth_abstract_backend {
 		@unlink($privateKeyFile);
 		@unlink($dataFile);
 
-		return implode(chr(10), $output);
+		return implode(LF, $output);
 	}
 
 	/**

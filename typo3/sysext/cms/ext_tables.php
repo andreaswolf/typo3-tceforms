@@ -536,7 +536,7 @@ if (TYPO3_MODE=='BE')	{
 		'),
 			// shortcut
 		'4' => array('showitem' =>
-				'doktype;;2;;1-1-1, hidden, nav_hide, title;;3;;2-2-2, subtitle,
+				'doktype;;2;;1-1-1, hidden, nav_hide, title;;3;;2-2-2, subtitle, nav_title,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.shortcut,
 				shortcut;;;;3-3-3, shortcut_mode,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.files,
@@ -675,6 +675,28 @@ $TCA['tt_content'] = array (
 			'fe_group' => 'fe_group',
 		),
 		'typeicon_column' => 'CType',
+		'typeicon_classes' => array(
+			'header' => 'mimetypes-x-content-header',
+			'textpic' => 'mimetypes-x-content-text-picture',
+			'image' => 'mimetypes-x-content-image',
+			'bullets' => 'mimetypes-x-content-list-bullets',
+			'table' => 'mimetypes-x-content-table',
+			'splash' => 'mimetypes-x-content-splash',
+			'uploads' => 'mimetypes-x-content-uploads',
+			'multimedia' => 'mimetypes-x-content-multimedia',
+			'media' => 'mimetypes-x-content-multimedia',
+			'menu' => 'mimetypes-x-content-menu',
+			'list' => 'mimetypes-x-content-plugin',
+			'mailform' => 'mimetypes-x-content-form',
+			'search' => 'mimetypes-x-content-search',
+			'login' => 'mimetypes-x-content-login',
+			'shortcut' => 'mimetypes-x-content-link',
+			'script' => 'mimetypes-x-content-script',
+			'div' => 'mimetypes-x-content-divider',
+			'html' => 'mimetypes-x-content-html',
+			'text' => 'mimetypes-x-content-text',
+			'default' => 'mimetypes-x-content-text',
+		),
 		'typeicons' => array (
 			'header' => 'tt_content_header.gif',
 			'textpic' => 'tt_content_textpic.gif',
@@ -695,7 +717,6 @@ $TCA['tt_content'] = array (
 			'div' => 'tt_content_div.gif',
 			'html' => 'tt_content_html.gif'
 		),
-		'mainpalette' => '15',
 		'thumbnail' => 'image',
 		'requestUpdate' => 'list_type,rte_enabled',
 		'dynamicConfigFile' => t3lib_extMgm::extPath($_EXTKEY).'tbl_tt_content.php',
@@ -719,6 +740,9 @@ $TCA['fe_users'] = array (
 			'disabled' => 'disable',
 			'starttime' => 'starttime',
 			'endtime' => 'endtime'
+		),
+		'typeicon_classes' => array(
+			'default' => 'status-user-frontend',
 		),
 		'useColumnsForDefaultValues' => 'usergroup,lockToDomain,disable,starttime,endtime',
 		'dynamicConfigFile' => t3lib_extMgm::extPath($_EXTKEY).'tbl_cms.php',
@@ -744,6 +768,9 @@ $TCA['fe_groups'] = array (
 			'disabled' => 'hidden'
 		),
 		'title' => 'LLL:EXT:cms/locallang_tca.xml:fe_groups',
+		'typeicon_classes' => array(
+			'default' => 'status-user-group-frontend',
+		),
 		'useColumnsForDefaultValues' => 'lockToDomain',
 		'dynamicConfigFile' => t3lib_extMgm::extPath($_EXTKEY).'tbl_cms.php',
 		'dividers2tabs' => 1
@@ -764,6 +791,9 @@ $TCA['sys_domain'] = array (
 		'iconfile' => 'domain.gif',
 		'enablecolumns' => array (
 			'disabled' => 'hidden'
+		),
+		'typeicon_classes' => array(
+			'default' => 'mimetypes-x-content-domain',
 		),
 		'dynamicConfigFile' => t3lib_extMgm::extPath($_EXTKEY).'tbl_cms.php'
 	)
@@ -796,6 +826,10 @@ $TCA['pages_language_overlay'] = array (
 		'mainpalette'                     => 1,
 		'dynamicConfigFile'               => t3lib_extMgm::extPath($_EXTKEY) . 'tbl_cms.php',
 		'type'                            => 'doktype',
+		'typeicon_classes' => array(
+			'default' => 'mimetypes-x-content-page-language-overlay',
+		),
+
 		'dividers2tabs'                   => true
 	)
 );
@@ -825,6 +859,10 @@ $TCA['sys_template'] = array (
 			'endtime' => 'endtime'
 		),
 		'typeicon_column' => 'root',
+		'typeicon_classes' => array(
+			'default' => 'mimetypes-x-content-template-extension',
+			'1' => 'mimetypes-x-content-template',
+		),
 		'typeicons' => array (
 			'0' => 'template_add.gif'
 		),

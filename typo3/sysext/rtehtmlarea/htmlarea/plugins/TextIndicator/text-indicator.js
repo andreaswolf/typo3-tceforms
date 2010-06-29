@@ -29,7 +29,7 @@
  *
  * TYPO3 SVN ID: $Id: text-indicator.js 6539 2009-11-25 14:49:14Z stucki $
  */
-TextIndicator = HTMLArea.Plugin.extend({
+HTMLArea.TextIndicator = HTMLArea.Plugin.extend({
 		
 	constructor : function(editor, pluginName) {
 		this.base(editor, pluginName);
@@ -76,7 +76,7 @@ TextIndicator = HTMLArea.Plugin.extend({
 			var doc = editor._doc;
 			try {
 				var style = {
-					backgroundColor: HTMLArea._makeColor(doc.queryCommandValue((HTMLArea.is_ie || HTMLArea.is_safari) ? 'BackColor' : 'HiliteColor')),
+					backgroundColor: HTMLArea._makeColor(doc.queryCommandValue((Ext.isIE || Ext.isWebKit) ? 'BackColor' : 'HiliteColor')),
 					color: HTMLArea._makeColor(doc.queryCommandValue('ForeColor')),
 					fontFamily: doc.queryCommandValue('FontName'),
 					fontWeight: 'normal',

@@ -6,7 +6,7 @@
  *
  * Copyright notice
  *
- * (c) 2007-2009 Oliver Hader <oh@inpublica.de>
+ * (c) 2007-2010 Oliver Hader <oh@inpublica.de>
  * All rights reserved
  *
  * This script is part of the TYPO3 project. The TYPO3 project is
@@ -40,18 +40,17 @@ var BrowseLinks = {
 			parent.close();
 		}
 	}
-}
+};
 
 BrowseLinks.File = {
 	insertElement: function(index, close) {
 		var result = false;
-		if (typeof BrowseLinks.elements[index] != 'undefined') {
+		if (typeof BrowseLinks.elements[index] !== undefined) {
 			var element = BrowseLinks.elements[index];
 			result = insertElement(
 				'', element.md5, element.type,
 				element.fileName, element.filePath, element.fileExt,
-				element.fileIcon, '', close
-			);
+				element.fileIcon, '', close);
 		}
 		return result;
 	}

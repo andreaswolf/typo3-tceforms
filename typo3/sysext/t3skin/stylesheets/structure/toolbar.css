@@ -1,0 +1,48 @@
+/* - - - - - - - - - - - - - - - - - - - - -
+Toolbar inside the Topbar
+
+$Id$
+- - - - - - - - - - - - - - - - - - - - - */
+
+.typo3-top-toolbar {
+	margin-top: 9px;
+	padding-right: 15px;
+	position: absolute;
+	right: 0px;
+}
+
+#typo3-toolbar {
+	display: inline;
+	margin: 0px;
+	padding: 0px;
+}
+
+#typo3-toolbar li {
+	display: inline;
+	float: left;
+	margin-right: -1px; /* necessary for overlaying the separators with the active state background */
+}
+
+#typo3-toolbar * li {
+	display: list-item;
+}
+
+#typo3-toolbar div {
+	overflow: visible !important;
+}
+
+#typo3-toolbar span.spinner {
+	background-image: url('../../images/spinner/3f3f3f.gif');
+}
+
+.toolbar-item {
+	display: block;
+	padding-bottom: 9px;
+	padding-top: 2px;
+}
+
+.toolbar-item-menu {
+	position: absolute;
+	top: 25px;
+	z-index: 100;
+}

@@ -21,6 +21,8 @@
  *                                                                        */
 
 /**
+ * DEPRECATED: Use <f:form.textfield> instead!
+ *
  * View Helper which creates a simple Text Box (<input type="text">).
  *
   * = Examples =
@@ -32,12 +34,13 @@
  * Output:
  * <input type="text" name="myTextBox" value="default value" />
  *
- * @version $Id: TextboxViewHelper.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: TextboxViewHelper.php 2043 2010-03-16 08:49:45Z sebastian $
  * @package Fluid
  * @subpackage ViewHelpers\Form
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
  * @api
  * @scope prototype
+ * @deprecated since 1.0.0 alpha 7
  */
 class Tx_Fluid_ViewHelpers_Form_TextboxViewHelper extends Tx_Fluid_ViewHelpers_Form_AbstractFormFieldViewHelper {
 

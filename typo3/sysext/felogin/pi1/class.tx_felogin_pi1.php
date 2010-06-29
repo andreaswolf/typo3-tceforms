@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Steffen Kamper <info@sk-typo3.de>
+*  (c) 2007-2010 Steffen Kamper <info@sk-typo3.de>
 *  Based on Newloginbox (c) 2002-2004 Kasper Skaarhoj <kasper@typo3.com>
 *
 *  All rights reserved
@@ -126,17 +126,26 @@ class tx_felogin_pi1 extends tslib_pibase {
 				$content .= $this->showLogin();
 			}
 		}
-
-
-
+		
 			// Process the redirect
 		if (($this->logintype === 'login' || $this->logintype === 'logout') && $this->redirectUrl && !$this->noRedirect) {
 			if (!$GLOBALS['TSFE']->fe_user->cookieId) {
-				$content .= '<p style="color:red; font-weight:bold;">' . $this->pi_getLL('cookie_warning', '', 1) . '</p>';
+				$content .= $this->cObj->stdWrap($this->pi_getLL('cookie_warning', '', 1), $this->conf['cookieWarning_stdWrap.']);
 			} else {
 				t3lib_utility_Http::redirect($this->redirectUrl);
 			}
 		}
+
+			// Adds hook for processing of extra item markers / special
+		if (isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['felogin']['postProcContent']) && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['felogin']['postProcContent'])) {
+			$_params = array(
+				'content' => $content
+			);
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['felogin']['postProcContent'] as $_funcRef) {
+				$content = t3lib_div::callUserFunction($_funcRef, $_params, $this);
+			}
+		}
+
 		return $this->conf['wrapContentInBaseClass'] ? $this->pi_wrapInBaseClass($content) : $content;
 
 	}
@@ -260,7 +269,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 					// all is fine, continue with new password
 				$postData = t3lib_div::_POST($this->prefixId);
 
-				if ($postData['changepasswordsubmit']) {
+				if (isset($postData['changepasswordsubmit'])) {
 					if (strlen($postData['password1']) < $minLength) {
 			 			$markerArray['###STATUS_MESSAGE###'] = sprintf($this->getDisplayText('change_password_tooshort_message', $this->conf['changePasswordMessage_stdWrap.']), $minLength);
 					} elseif ($postData['password1'] != $postData['password2']) {
@@ -465,7 +474,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 		if (t3lib_div::inList($this->conf['redirectMode'], 'referer') || t3lib_div::inList($this->conf['redirectMode'], 'refererDomains')) {
 			$referer = $this->referer ? $this->referer : t3lib_div::getIndpEnv('HTTP_REFERER');
 			if ($referer) {
-				$extraHiddenAr[] = '<input type="hidden" name="referer" value="' . rawurlencode($referer) . '" />';
+				$extraHiddenAr[] = '<input type="hidden" name="referer" value="' . htmlspecialchars($referer) . '" />';
 			}
 		}
 
@@ -481,10 +490,10 @@ class tx_felogin_pi1 extends tslib_pibase {
 			$onSubmit = implode('; ', $onSubmitAr).'; return true;';
 		}
 		if (count($extraHiddenAr)) {
-			$extraHidden = implode(chr(10), $extraHiddenAr);
+			$extraHidden = implode(LF, $extraHiddenAr);
 		}
 
-		if (!$gpRedirectUrl && $this->redirectUrl && $this->logintype === 'login') {
+		if (!$gpRedirectUrl && $this->redirectUrl) {
 			$gpRedirectUrl = $this->redirectUrl;
 		}
 
@@ -547,7 +556,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 								'felogin_redirectPid!="" AND uid IN (' . implode(',', $groupData['uid']) . ')'
 							);
 							if ($row = $GLOBALS['TYPO3_DB']->sql_fetch_row($res))	{
-								$redirect_url[] = $this->pi_getPageLink($row[0], array(), TRUE); // take the first group with a redirect page
+								$redirect_url[] = $this->pi_getPageLink($row[0]); // take the first group with a redirect page
 							}
 						break;
 						case 'userLogin':
@@ -557,12 +566,12 @@ class tx_felogin_pi1 extends tslib_pibase {
 								$GLOBALS['TSFE']->fe_user->userid_column . '=' . $GLOBALS['TSFE']->fe_user->user['uid'] . ' AND felogin_redirectPid!=""'
 							);
 							if ($row = $GLOBALS['TYPO3_DB']->sql_fetch_row($res))	{
-								$redirect_url[] = $this->pi_getPageLink($row[0], array(), TRUE);
+								$redirect_url[] = $this->pi_getPageLink($row[0]);
 							}
 						break;
 						case 'login':
 							if ($this->conf['redirectPageLogin']) {
-								$redirect_url[] = $this->pi_getPageLink(intval($this->conf['redirectPageLogin']), array(), TRUE);
+								$redirect_url[] = $this->pi_getPageLink(intval($this->conf['redirectPageLogin']));
 							}
 						break;
 						case 'getpost':
@@ -606,7 +615,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 					switch ($redirMethod) {
 						case 'loginError':
 							if ($this->conf['redirectPageLoginError']) {
-								$redirect_url[] = $this->pi_getPageLink(intval($this->conf['redirectPageLoginError']), array(), TRUE);
+								$redirect_url[] = $this->pi_getPageLink(intval($this->conf['redirectPageLoginError']));
 							}
 						break;
 					}
@@ -620,7 +629,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 
 				} elseif (($this->logintype == '') && ($redirMethod == 'logout') && $this->conf['redirectPageLogout'] && $GLOBALS['TSFE']->loginUser) {
 						// if logout and page not accessible
-					$redirect_url[] = $this->pi_getPageLink(intval($this->conf['redirectPageLogout']), array(), TRUE);
+					$redirect_url[] = $this->pi_getPageLink(intval($this->conf['redirectPageLogout']));
 
 				} elseif ($this->logintype === 'logout') { // after logout
 
@@ -637,7 +646,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 					switch ($redirMethod) {
 						case 'logout':
 							if ($this->conf['redirectPageLogout']) {
-								$redirect_url[] = $this->pi_getPageLink(intval($this->conf['redirectPageLogout']), array(), TRUE);
+								$redirect_url[] = $this->pi_getPageLink(intval($this->conf['redirectPageLogout']));
 							}
 						break;
 					}

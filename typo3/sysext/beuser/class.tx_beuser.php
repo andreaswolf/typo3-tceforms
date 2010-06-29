@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -78,7 +78,7 @@ class tx_beuser {
 			$url = 'mod.php?M=tools_beuser&SwitchUser='.rawurlencode($uid).'&switchBackUser=1';
 			$localItems[] = $backRef->linkItem(
 				'Switch To User',
-				$backRef->excludeIcon('<img '.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/su_back.gif').' border="0" align="top" title="" alt="" />'),
+				$backRef->excludeIcon(t3lib_iconWorks::getSpriteIcon('actions-system-backend-user-emulate')),
 				$backRef->urlRefForCM($url,'',1,'top'),
 				1
 			);

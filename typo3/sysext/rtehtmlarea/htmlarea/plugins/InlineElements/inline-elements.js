@@ -32,7 +32,7 @@
 /*
  * Creation of the class of InlineElements plugins
  */
-InlineElements = HTMLArea.Plugin.extend({
+HTMLArea.InlineElements = HTMLArea.Plugin.extend({
 	/*
 	 * Let the base class do some initialization work
 	 */
@@ -50,7 +50,7 @@ InlineElements = HTMLArea.Plugin.extend({
 			this.allowedAttributes = this.editor.plugins.TextStyle.instance.allowedAttributes;
 		} else {
 			this.allowedAttributes = new Array("id", "title", "lang", "xml:lang", "dir", "class");
-			if (HTMLArea.is_ie) {
+			if (Ext.isIE) {
 				this.addAllowedAttribute("className");
 			}
 		}
@@ -109,68 +109,67 @@ InlineElements = HTMLArea.Plugin.extend({
 				action		: "onButtonPress",
 				context		: button[1],
 				hide		: false,
-				selection	: false
+				selection	: false,
+				iconCls		: 'htmlarea-action-' + button[2]
 			};
 			this.registerButton(buttonConfiguration);
 		}
 	},
-	
 	/*
 	 * The list of buttons added by this plugin
 	 */
-	buttonList : [
-		["BiDiOverride", null],
-		["Big", null],
-		["Bold", null],
-		["Citation", null],
-		["Code", null],
-		["Definition", null],
-		["DeletedText", null],
-		["Emphasis", null],
-		["InsertedText", null],
-		["Italic", null],
-		["Keyboard", null],
-		//["Label", null],
-		["MonoSpaced", null],
-		["Quotation", null],
-		["Sample", null],
-		["Small", null],
-		["Span", null],
-		["StrikeThrough", null],
-		["Strong", null],
-		["Subscript", null],
-		["Superscript", null],
-		["Underline", null],
-		["Variable", null]
+	buttonList: [
+		['BiDiOverride', null, 'bidi-override'],
+		['Big', null, 'big'],
+		['Bold', null, 'bold'],
+		['Citation', null, 'citation'],
+		['Code', null, 'code'],
+		['Definition', null, 'definition'],
+		['DeletedText', null, 'deleted-text'],
+		['Emphasis', null, 'emphasis'],
+		['InsertedText', null, 'inserted-text'],
+		['Italic', null, 'italic'],
+		['Keyboard', null, 'keyboard'],
+		//['Label', null, 'Label'],
+		['MonoSpaced', null, 'mono-spaced'],
+		['Quotation', null, 'quotation'],
+		['Sample', null, 'sample'],
+		['Small', null, 'small'],
+		['Span', null, 'span'],
+		['StrikeThrough', null, 'strike-through'],
+		['Strong', null, 'strong'],
+		['Subscript', null, 'subscript'],
+		['Superscript', null, 'superscript'],
+		['Underline', null, 'underline'],
+		['Variable', null, 'variable']
 	],
-	
 	/*
 	 * Conversion object: button names to corresponding tag names
 	 */
-	convertBtn : {
-		BiDiOverride	: "bdo",
-		Big		: "big",
-		Bold		: "b",
-		Citation	: "cite",
-		Code		: "code",
-		Definition	: "dfn",
-		DeletedText	: "del",
-		Emphasis	: "em",
-		InsertedText	: "ins",
-		Italic		: "i",
-		Keyboard	: "kbd",
-		//Label		: "label",
-		MonoSpaced	: "tt",
-		Quotation	: "q",
-		Sample		: "samp",
-		Small		: "small",
-		Span		: "span",
-		StrikeThrough	: "strike",
-		Strong		: "strong",
-		Subscript	: "sub",
-		Superscript	: "sup",
-		Underline	: "u",
-		Variable	: "var"
+	convertBtn: {
+		BiDiOverride	: 'bdo',
+		Big		: 'big',
+		Bold		: 'b',
+		Citation	: 'cite',
+		Code		: 'code',
+		Definition	: 'dfn',
+		DeletedText	: 'del',
+		Emphasis	: 'em',
+		InsertedText	: 'ins',
+		Italic		: 'i',
+		Keyboard	: 'kbd',
+		//Label		: 'label',
+		MonoSpaced	: 'tt',
+		Quotation	: 'q',
+		Sample		: 'samp',
+		Small		: 'small',
+		Span		: 'span',
+		StrikeThrough	: 'strike',
+		Strong		: 'strong',
+		Subscript	: 'sub',
+		Superscript	: 'sup',
+		Underline	: 'u',
+		Variable	: 'var'
 	 },
 	
 	/*
@@ -224,14 +223,14 @@ InlineElements = HTMLArea.Plugin.extend({
 	 * This function applies to the selection the markup chosen in the drop-down list or corresponding to the button pressed
 	 */
 	applyInlineElement : function (editor, element) {
-		editor.focusEditor();
+		editor.focus();
 		var selection = editor._getSelection();
 		var range = editor._createRange(selection);
 		var parent = editor.getParentElement(selection, range);
 		var ancestors = editor.getAllAncestors();
 		var elementIsAncestor = false;
-		var selectionEmpty = editor._selectionEmpty(selection);
-		if (HTMLArea.is_ie) {
+		var fullNodeSelected = false;
+		if (Ext.isIE) {
 			var bookmark = editor.getBookmark(range);
 		}
 			// Check if the chosen element is among the ancestors
@@ -242,49 +241,32 @@ InlineElements = HTMLArea.Plugin.extend({
 				break;
 			}
 		}
-		if (!selectionEmpty) {
+		if (!editor._selectionEmpty(selection)) {
+			var fullySelectedNode = editor.getFullySelectedNode(selection, range, ancestors);
+			fullNodeSelected = this.isInlineElement(fullySelectedNode);
+			if (fullNodeSelected) {
+				parent = fullySelectedNode;
+			}
 			var statusBarSelection = (editor.statusBar ? editor.statusBar.getSelection() : null);
-				// The selection is not empty.
-			for (var i = 0; i < ancestors.length; ++i) {
-				fullNodeSelected = (HTMLArea.is_ie && ((selection.type !== "Control" && ancestors[i].innerText === range.text) || (selection.type === "Control" && ancestors[i].innerText === range.item(0).text)))
-							|| (HTMLArea.is_gecko && ((statusBarSelection === ancestors[i] && ancestors[i].textContent === range.toString()) || (!statusBarSelection && ancestors[i].textContent === range.toString())));
-				if (fullNodeSelected) {
-					if (!HTMLArea.isBlockElement(ancestors[i])) {
-						parent = ancestors[i];
-					}
-					break;
-				}
-			}
-				// Working around bug in Safari selectNodeContents
-			if (!fullNodeSelected && HTMLArea.is_safari && statusBarSelection && this.isInlineElement(statusBarSelection) && statusBarSelection.textContent === range.toString()) {
-				fullNodeSelected = true;
-				parent = statusBarSelection;
-			}
-			
-			var fullNodeTextSelected = (HTMLArea.is_gecko && parent.textContent === range.toString())
-							|| (HTMLArea.is_ie && parent.innerText === range.text);
-			if (fullNodeTextSelected && elementIsAncestor) {
-				fullNodeSelected = true;
-			}
 			if (element !== "none" && !(fullNodeSelected && elementIsAncestor)) {
 					// Add markup
 				var newElement = editor._doc.createElement(element);
 				if (element === "bdo") {
 					newElement.setAttribute("dir", "rtl");
 				}
-				if (HTMLArea.is_gecko) {
+				if (!Ext.isIE) {
 					if (fullNodeSelected && statusBarSelection) {
-						if (HTMLArea.is_safari) {
-							editor.selectNode(parent);
-							selection = editor._getSelection();
-							range = editor._createRange(selection);
+						if (Ext.isWebKit) {
+							newElement = parent.parentNode.insertBefore(newElement, statusBarSelection);
+							newElement.appendChild(statusBarSelection);
+							newElement.normalize();
 						} else {
 							range.selectNode(parent);
+							editor.wrapWithInlineElement(newElement, selection, range);
 						}
-					}
-					editor.wrapWithInlineElement(newElement, selection, range);
-					if (fullNodeSelected && statusBarSelection && !HTMLArea.is_safari) {
 						editor.selectNodeContents(newElement.lastChild, false);
+					} else {
+						editor.wrapWithInlineElement(newElement, selection, range);
 					}
 					range.detach();
 				} else {
@@ -313,7 +295,11 @@ InlineElements = HTMLArea.Plugin.extend({
 					if (elementIsAncestor) {
 						parent = ancestors[elementAncestorIndex];
 					}
+					var parentElement = parent.parentNode;
 					editor.removeMarkup(parent);
+					if (Ext.isWebKit && this.isInlineElement(parentElement)) {
+						editor.selectNodeContents(parentElement, false);
+					}
 				}
 			}
 		} else {
@@ -348,7 +334,7 @@ InlineElements = HTMLArea.Plugin.extend({
 			}
 		}
 			// In IE, the above fails to update the class and style attributes.
-		if (HTMLArea.is_ie) {
+		if (Ext.isIE) {
 			if (element.style.cssText) {
 				newElement.style.cssText = element.style.cssText;
 			}
@@ -378,36 +364,25 @@ InlineElements = HTMLArea.Plugin.extend({
 		}
 		return newElement;
 	},
-	
 	/*
 	* This function gets called when the toolbar is updated
 	*/
 	onUpdateToolbar : function (button, mode, selectionEmpty, ancestors, endPointsInSameBlock) {
 		var editor = this.editor;
 		if (mode === "wysiwyg" && editor.isEditable()) {
-			var tagName = false, fullNodeSelected = false;
-			var sel = editor._getSelection();
-			var range = editor._createRange(sel);
-			var parent = editor.getParentElement(sel);
+			var 	tagName = false,
+				fullNodeSelected = false;
+			var selection = editor._getSelection();
+			var range = editor._createRange(selection);
+			var parent = editor.getParentElement(selection);
 			if (parent && !HTMLArea.isBlockElement(parent)) {
 				tagName = parent.nodeName.toLowerCase();
 			}
 			if (!selectionEmpty) {
-				var statusBarSelection = editor.statusBar ? editor.statusBar.getSelection() : null;
-				for (var i = 0, n = ancestors.length; i < n; ++i) {
-					fullNodeSelected = (statusBarSelection === ancestors[i])
-						&& ((HTMLArea.is_gecko && ancestors[i].textContent === range.toString()) || (HTMLArea.is_ie && ((sel.type !== "Control" && ancestors[i].innerText === range.text) || (sel.type === "Control" && ancestors[i].innerText === range.item(0).text))));
-					if (fullNodeSelected) {
-						if (!HTMLArea.isBlockElement(ancestors[i])) {
-							tagName = ancestors[i].nodeName.toLowerCase();
-						}
-						break;
-					}
-				}
-					// Working around bug in Safari selectNodeContents
-				if (!fullNodeSelected && HTMLArea.is_safari && statusBarSelection && this.isInlineElement(statusBarSelection) && statusBarSelection.textContent === range.toString()) {
-					fullNodeSelected = true;
-					tagName = statusBarSelection.nodeName.toLowerCase();
+				var fullySelectedNode = editor.getFullySelectedNode(selection, range, ancestors);
+				fullNodeSelected = this.isInlineElement(fullySelectedNode);
+				if (fullNodeSelected) {
+					tagName = fullySelectedNode.nodeName.toLowerCase();
 				}
 			}
 			var selectionInInlineElement = tagName && this.REInlineElements.test(tagName);
@@ -426,13 +401,12 @@ InlineElements = HTMLArea.Plugin.extend({
 							return true;
 						}
 					}, this);
-					button.setInactive(!activeButton);
+					button.setInactive(!activeButton && this.convertBtn[button.itemId] !== tagName);
 					button.setDisabled(disabled);
 					break;
 			}
 		}
 	},
-	
 	/*
 	* This function updates the drop-down list of inline elemenents
 	*/

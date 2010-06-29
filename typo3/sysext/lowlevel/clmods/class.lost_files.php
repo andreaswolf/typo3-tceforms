@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -107,7 +107,7 @@ Will report lost files.';
 
 			// Initialize result array:
 		$resultArray = array(
-			'message' => $this->cli_help['name'].chr(10).chr(10).$this->cli_help['description'],
+			'message' => $this->cli_help['name'].LF.LF.$this->cli_help['description'],
 			'headers' => array(
 				'managedFiles' => array('Files related to TYPO3 records and managed by TCEmain','These files you definitely want to keep.',0),
 				'ignoredFiles' => array('Ignored files (index.html, .htaccess etc.)','These files are allowed in uploads/ folder',0),
@@ -213,7 +213,7 @@ Will report lost files.';
 					echo '	ERROR: File "'.$absFileName.'" was not found!';
 				}
 			}
-			echo chr(10);
+			echo LF;
 		}
 	}
 }

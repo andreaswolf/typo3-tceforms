@@ -23,22 +23,13 @@
 /**
  * Interface of Fluids Template view
  *
- * @version $Id: TemplateViewInterface.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: TemplateViewInterface.php 2043 2010-03-16 08:49:45Z sebastian $
  * @package Fluid
  * @subpackage View
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
  * @api
  */
 interface Tx_Fluid_View_TemplateViewInterface extends Tx_Extbase_MVC_View_ViewInterface {
-
-	/**
-	 * Inject the template parser
-	 *
-	 * @param Tx_Fluid_Core_Parser_TemplateParser $templateParser The template parser
-	 * @return void
-	 * @api
-	 */
-	public function injectTemplateParser(Tx_Fluid_Core_Parser_TemplateParser $templateParser);
 
 	/**
 	 * Sets the path and name of of the template file. Effectively overrides the

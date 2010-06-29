@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
-*  (c) 2004-2009 Karsten Dambekalns (karsten@typo3.org)
+*  (c) 2004-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2004-2010 Karsten Dambekalns (karsten@typo3.org)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -387,8 +387,8 @@ updateQryForm(\'' . $input['QUERY'] . '\');
 		$cmd = (string)t3lib_div::_GP('cmd');
 		switch ($cmd) {
 			case 'flush':
-				$res = $GLOBALS['TYPO3_DB']->exec_DELETEquery('tx_dbal_debuglog', '');
-				$res = $GLOBALS['TYPO3_DB']->exec_DELETEquery('tx_dbal_debuglog_where', '');
+				$res = $GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('tx_dbal_debuglog');
+				$res = $GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('tx_dbal_debuglog_where');
 				$outStr = 'Log FLUSHED!';
 				break;
 			case 'joins':

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -457,9 +457,8 @@ class t3lib_superadmin {
 			if (@is_dir($dir))	{
 				$in_dirs = t3lib_div::get_dirs($dir);
 				asort($in_dirs);
-				reset($in_dirs);
 				$dirArr=array();
-				while(list($k,$v)=each($in_dirs))	{
+				foreach ($in_dirs as $k => $v) {
 					if (substr($v,0,9)!='typo3_src')	{
 						$this->currentUrl = $baseUrl.'/'.$v;
 						$content.= $this->headerSiteDir($v);
@@ -787,8 +786,7 @@ class t3lib_superadmin {
 				$mtimes = array();
 
 					// Find most recent mtime of the options:
-				reset($instances);
-				while(list($k,$eInfo)=each($instances))	{
+				foreach ($instances as $k => $eInfo) {
 					$mtimes[] = $eInfo['mtime'];
 				}
 					// Max mtime:
@@ -848,7 +846,7 @@ class t3lib_superadmin {
 				// List of those extension keys in a form field:
 			$extensionKeysCollect = array_unique($extensionKeysCollect);
 			asort($extensionKeysCollect);
-			$out.='<form action=""><textarea cols="80" rows="10">'.implode(chr(10),$extensionKeysCollect).'</textarea></form>';
+			$out.='<form action=""><textarea cols="80" rows="10">'.implode(LF,$extensionKeysCollect).'</textarea></form>';
 
 				// USER extension (prefixed "user_")
 			$out.='<br />
@@ -999,8 +997,7 @@ class t3lib_superadmin {
 	 * @return	array		Modified file array (or error string)
 	 */
 	function removePrefixPathFromList($fileArr,$extPath)	{
-		reset($fileArr);
-		while(list($k,$absFileRef)=each($fileArr))	{
+		foreach ($fileArr as $k => $absFileRef) {
 			if(t3lib_div::isFirstPartOfStr($absFileRef,$extPath))	{
 				$fileArr[$k]=substr($absFileRef,strlen($extPath));
 			} else return 'ERROR: One or more of the files was NOT prefixed with the prefix-path!';
@@ -1094,7 +1091,7 @@ class t3lib_superadmin {
 
 			// debug($row);
 		}
-		return '<pre>'.implode(chr(10),$lines).'</pre>';
+		return '<pre>'.implode(LF,$lines).'</pre>';
 	}
 
 	/**
@@ -1175,7 +1172,7 @@ class t3lib_superadmin {
 						$label = $all['siteInfo']['sitename'] ? $all['siteInfo']['sitename'] : '(DB: '.$all['siteInfo']['TYPO3_db'].')';
 						$lines[] = '
 							<hr />
-							<b>'.htmlspecialchars($label).'</b> ('.htmlspecialchars(substr($all['siteInfo']['SA_PATH'],strlen($all['siteInfo']['MAIN_DIR'])+1)).')<br />';
+							<strong>'.htmlspecialchars($label).'</strong> ('.htmlspecialchars(substr($all['siteInfo']['SA_PATH'],strlen($all['siteInfo']['MAIN_DIR'])+1)).')<br />';
 
 								// To avoid "visited links" display on next hit:
 							$tempVal='&_someUniqueValue=' . $GLOBALS['EXEC_TIME'];

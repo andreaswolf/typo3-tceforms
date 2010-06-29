@@ -29,7 +29,7 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-BlockElements = HTMLArea.Plugin.extend({
+HTMLArea.BlockElements = HTMLArea.Plugin.extend({
 		
 	constructor : function(editor, pluginName) {
 		this.base(editor, pluginName);
@@ -70,7 +70,7 @@ BlockElements = HTMLArea.Plugin.extend({
 			}
 		}
 		this.allowedAttributes = new Array("id", "title", "lang", "xml:lang", "dir", "class");
-		if (HTMLArea.is_ie) {
+		if (Ext.isIE) {
 			this.addAllowedAttribute("className");
 		}
 		this.indentedList = null;
@@ -167,7 +167,6 @@ BlockElements = HTMLArea.Plugin.extend({
 				this.registerHotKey(hotKeyConfiguration);
 			}
 		}, this);
-
 		/*
 		 * Registering the buttons
 		 */
@@ -177,47 +176,45 @@ BlockElements = HTMLArea.Plugin.extend({
 				var buttonConfiguration = {
 					id		: buttonId,
 					tooltip		: this.localize(buttonId + '-Tooltip') || this.localize(button[2]),
+					iconCls		: 'htmlarea-action-' + button[3],
 					contextMenuTitle: this.localize(buttonId + '-contextMenuTitle'),
-					action		: "onButtonPress",
-					hotKey		: (this.buttonsConfiguration[button[2]] ? this.buttonsConfiguration[button[2]].hotKey : (button[1] ? button[1] : null))
+					action		: 'onButtonPress',
+					hotKey		: ((this.buttonsConfiguration[button[2]] && this.buttonsConfiguration[button[2]].hotKey) ? this.buttonsConfiguration[button[2]].hotKey : (button[1] ? button[1] : null))
 				};
 				this.registerButton(buttonConfiguration);
 			}
 		}
 		return true;
-	 },
-	 
+	},
 	/*
 	 * The list of buttons added by this plugin
 	 */
 	buttonList: {
-		Indent			: [null, "TAB", "indent"],
-		Outdent			: [null, "SHIFT-TAB", "outdent"],
-		Blockquote		: [null, null, "blockquote"],
-		InsertParagraphBefore	: [null, null, "insertparagraphbefore"],
-		InsertParagraphAfter	: [null, null, "insertparagraphafter"],
-		JustifyLeft		: [null, "l", "left"],
-		JustifyCenter		: [null, "e", "center"],
-		JustifyRight		: [null, "r", "right"],
-		JustifyFull		: [null, "j", "justifyfull"],
-		InsertOrderedList	: [null, null, "orderedlist"],
-		InsertUnorderedList	: [null, null, "unorderedlist"],
-		InsertHorizontalRule	: [null, null, "inserthorizontalrule"]
+		Indent			: [null, 'TAB', 'indent', 'indent'],
+		Outdent			: [null, 'SHIFT-TAB', 'outdent', 'outdent'],
+		Blockquote		: [null, null, 'blockquote', 'blockquote'],
+		InsertParagraphBefore	: [null, null, 'insertparagraphbefore', 'paragraph-insert-before'],
+		InsertParagraphAfter	: [null, null, 'insertparagraphafter', 'paragraph-insert-after'],
+		JustifyLeft		: [null, 'l', 'left', 'justify-left'],
+		JustifyCenter		: [null, 'e', 'center', 'justify-center'],
+		JustifyRight		: [null, 'r', 'right', 'justify-right'],
+		JustifyFull		: [null, 'j', 'justifyfull', 'justify-full'],
+		InsertOrderedList	: [null, null, 'orderedlist', 'ordered-list'],
+		InsertUnorderedList	: [null, null, 'unorderedlist', 'unordered-list'],
+		InsertHorizontalRule	: [null, null, 'inserthorizontalrule', 'horizontal-rule-insert']
 	},
-	
 	/*
 	 * The list of hotkeys associated with block elements and registered by default by this plugin
 	 */
-	defaultHotKeys : {
-			"p"	: "n",
-			"h1"	: "1",
-			"h2"	: "2",
-			"h3"	: "3",
-			"h4"	: "4",
-			"h5"	: "5",
-			"h6"	: "6"
+	defaultHotKeys: {
+			'p'	: 'n',
+			'h1'	: '1',
+			'h2'	: '2',
+			'h3'	: '3',
+			'h4'	: '4',
+			'h5'	: '5',
+			'h6'	: '6'
 	},
-	
 	/*
 	 * The function returns true if the type of block element is allowed in the current configuration
 	 */
@@ -266,12 +263,16 @@ BlockElements = HTMLArea.Plugin.extend({
 					break;
 				default	:
 					var element = tagName;
-					if (HTMLArea.is_ie) {
+					if (Ext.isIE) {
 						element = "<" + element + ">";
 					}
-					this.editor.focusEditor();
-					if (HTMLArea.is_safari && !this.editor._doc.body.hasChildNodes()) {
-						this.editor._doc.body.appendChild((this.editor._doc.createElement("br")));
+					this.editor.focus();
+					if (Ext.isWebKit) {
+						if (!this.editor._doc.body.hasChildNodes()) {
+							this.editor._doc.body.appendChild((this.editor._doc.createElement("br")));
+						}
+							// WebKit sometimes leaves empty block at the end of the selection
+						this.editor._doc.body.normalize();
 					}
 					try {
 						this.editor._doc.execCommand(buttonId, false, element);
@@ -297,7 +298,7 @@ BlockElements = HTMLArea.Plugin.extend({
 			// Could be a button or its hotkey
 		var buttonId = this.translateHotKey(id);
 		buttonId = buttonId ? buttonId : id;
-		this.editor.focusEditor();
+		this.editor.focus();
 		var selection = editor._getSelection();
 		var range = editor._createRange(selection);
 		var statusBarSelection = this.editor.statusBar ? this.editor.statusBar.getSelection() : null;
@@ -318,11 +319,11 @@ BlockElements = HTMLArea.Plugin.extend({
 				}
 			}
 		}
-		var fullNodeTextSelected = (HTMLArea.is_gecko && parentElement.textContent === range.toString()) || (HTMLArea.is_ie && parentElement.innerText === range.text);
+		var fullNodeTextSelected = (!Ext.isIE && parentElement.textContent === range.toString()) || (Ext.isIE && parentElement.innerText === range.text);
 		switch (buttonId) {
 			case "Indent" :
 				if (/^(ol|ul)$/i.test(parentElement.nodeName) && !(fullNodeTextSelected && !/^(li)$/i.test(parentElement.parentNode.nodeName))) {
-					if (HTMLArea.is_opera) {
+					if (Ext.isOpera) {
 						try {
 							this.editor._doc.execCommand(buttonId, false, null);
 						} catch(e) {
@@ -388,7 +389,7 @@ BlockElements = HTMLArea.Plugin.extend({
 			case "Outdent" :
 				if (/^(ol|ul)$/i.test(parentElement.nodeName) && !HTMLArea._hasClass(parentElement, this.useClass.Indent)) {
 					if (/^(li)$/i.test(parentElement.parentNode.nodeName)) {
-						if (HTMLArea.is_opera) {
+						if (Ext.isOpera) {
 							try {
 								this.editor._doc.execCommand(buttonId, false, null);
 							} catch(e) {
@@ -637,7 +638,7 @@ BlockElements = HTMLArea.Plugin.extend({
 			blockElement = contextElement.appendChild(blockElement);
 		}
 			// Things go wrong in some browsers when the node is empty
-		if (HTMLArea.is_safari && !blockElement.hasChildNodes()) {
+		if (Ext.isWebKit && !blockElement.hasChildNodes()) {
 			blockElement = blockElement.appendChild(this.editor._doc.createElement("br"));
 		}
 		return blockElement;
@@ -658,37 +659,39 @@ BlockElements = HTMLArea.Plugin.extend({
 		if (endBlocks.start === endBlocks.end) {
 			--index;
 		}
-		for (var block = startAncestors[index]; block; block = block.nextSibling) {
-			if (HTMLArea.isBlockElement(block)) {
-				switch (buttonId) {
-					case "Indent" :
-						if (!HTMLArea._hasClass(block, this.useClass[buttonId])) {
-							HTMLArea._addClass(block, this.useClass[buttonId]);
-						}
-						break;
-					case "Outdent" :
-						if (HTMLArea._hasClass(block, this.useClass["Indent"])) {
-							HTMLArea._removeClass(block, this.useClass["Indent"]);
-						}
-						break;
-					case "JustifyLeft"   :
-					case "JustifyCenter" :
-					case "JustifyRight"  :
-					case "JustifyFull"   :
-						this.toggleAlignmentClass(block, buttonId);
-						break;
-					default :
-						if (this.standardBlockElements.test(buttonId.toLowerCase()) && buttonId.toLowerCase() == block.nodeName.toLowerCase()) {
-							this.cleanClasses(block);
-							if (className) {
-								HTMLArea._addClass(block, className);
+		if (!/^(body)$/i.test(startAncestors[index].nodeName)) {
+			for (var block = startAncestors[index]; block; block = block.nextSibling) {
+				if (HTMLArea.isBlockElement(block)) {
+					switch (buttonId) {
+						case "Indent" :
+							if (!HTMLArea._hasClass(block, this.useClass[buttonId])) {
+								HTMLArea._addClass(block, this.useClass[buttonId]);
 							}
-						}
-						break;
+							break;
+						case "Outdent" :
+							if (HTMLArea._hasClass(block, this.useClass["Indent"])) {
+								HTMLArea._removeClass(block, this.useClass["Indent"]);
+							}
+							break;
+						case "JustifyLeft"   :
+						case "JustifyCenter" :
+						case "JustifyRight"  :
+						case "JustifyFull"   :
+							this.toggleAlignmentClass(block, buttonId);
+							break;
+						default :
+							if (this.standardBlockElements.test(buttonId.toLowerCase()) && buttonId.toLowerCase() == block.nodeName.toLowerCase()) {
+								this.cleanClasses(block);
+								if (className) {
+									HTMLArea._addClass(block, className);
+								}
+							}
+							break;
+					}
 				}
-			}
-			if (block == endAncestors[index]) {
-				break;
+				if (block == endAncestors[index]) {
+					break;
+				}
 			}
 		}
 	},
@@ -754,7 +757,7 @@ BlockElements = HTMLArea.Plugin.extend({
 			} catch(e) {
 				this.appendToLog("onButtonPress", e + "\n\nby execCommand(" + buttonId + ");");
 			}
-			if (HTMLArea.is_safari) {
+			if (Ext.isWebKit) {
 				this.editor.cleanAppleStyleSpans(parentNode);
 			}
 		}
@@ -916,7 +919,7 @@ BlockElements = HTMLArea.Plugin.extend({
 		if (endElement) {
 			var parent = endElement.parentNode;
 			var paragraph = this.editor._doc.createElement("p");
-			if (HTMLArea.is_ie) {
+			if (Ext.isIE) {
 				paragraph.innerHTML = "&nbsp";
 			} else {
 				paragraph.appendChild(this.editor._doc.createElement("br"));
@@ -1107,7 +1110,38 @@ BlockElements = HTMLArea.Plugin.extend({
 						break;
 					default	:
 						break;
-		
+				}
+			} else {
+					// The selection is not contained in any block
+				switch (button.itemId) {
+					case 'FormatBlock':
+						this.updateDropDown(button);
+						break;
+					case 'Outdent' :
+						button.setDisabled(true);
+						break;
+					case 'Indent' :
+						break;
+					case 'InsertParagraphBefore' :
+					case 'InsertParagraphAfter'  :
+						button.setDisabled(true);
+						break;
+					case 'Blockquote' :
+						button.setInactive(true);
+						break;
+					case 'JustifyLeft'   :
+					case 'JustifyCenter' :
+					case 'JustifyRight'  :
+					case 'JustifyFull'   :
+						button.setInactive(true);
+						button.setDisabled(true);
+						break;
+					case 'InsertOrderedList':
+					case 'InsertUnorderedList':
+						button.setInactive(true);
+						break;
+					default	:
+						break;
 				}
 			}
 		}

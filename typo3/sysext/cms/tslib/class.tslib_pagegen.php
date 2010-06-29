@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -244,9 +244,12 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 					$GLOBALS['TSFE']->xhtmlVersion = 200;
 				break;
 				default:
+					$GLOBALS['TSFE']->getPageRenderer()->setRenderXhtml(FALSE);
 					$GLOBALS['TSFE']->xhtmlDoctype = '';
 					$GLOBALS['TSFE']->xhtmlVersion = 0;
 			}
+		} else {
+			$GLOBALS['TSFE']->getPageRenderer()->setRenderXhtml(FALSE);
 		}
 	}
 
@@ -302,7 +305,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 			}
 		}
 
-		return array(count($functions)? implode(chr(10), $functions) . chr(10) . implode(chr(10), $setEvents) : '', $setBody);
+		return array(count($functions)? implode(LF, $functions) . LF . implode(LF, $setEvents) : '', $setBody);
 	}
 
 	/**
@@ -357,7 +360,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 
 		$headerComment = $GLOBALS['TSFE']->config['config']['headerComment'];
 		if (trim($headerComment)) {
-			$pageRenderer->addInlineComment("\t" . str_replace("\n", "\n\t", trim($headerComment)) . "\n");
+			$pageRenderer->addInlineComment(TAB . str_replace(LF, LF . TAB, trim($headerComment)) . LF);
 		}
 
 			// Setting charset:
@@ -425,6 +428,9 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 	PUBLIC "-//W3C//DTD XHTML 2.0//EN"
 	"http://www.w3.org/TR/xhtml2/DTD/xhtml2.dtd">';
 					break;
+				case 'html_5' :
+					$docTypeParts[] = '<!DOCTYPE html>';
+					break;
 				case 'none' :
 					break;
 				default :
@@ -452,7 +458,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 
 			// Adding doctype parts:
 		if (count($docTypeParts)) {
-			$pageRenderer->setXmlPrologAndDocType(implode(chr(10), $docTypeParts));
+			$pageRenderer->setXmlPrologAndDocType(implode(LF, $docTypeParts));
 		}
 
 			// Begin header section:
@@ -472,7 +478,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 
 		$pageRenderer->addInlineComment('	This website is powered by TYPO3 - inspiring people to share!
 	TYPO3 is a free open source Content Management Framework initially created by Kasper Skaarhoj and licensed under GNU/GPL.
-	TYPO3 is copyright 1998-2009 of Kasper Skaarhoj. Extensions are copyright of their respective owners.
+	TYPO3 is copyright ' . TYPO3_copyright_year . ' of Kasper Skaarhoj. Extensions are copyright of their respective owners.
 	Information and contribution at http://typo3.com/ and http://typo3.org/
 ');
 
@@ -499,14 +505,14 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 			$temp_styleLines = array ();
 			foreach ($GLOBALS['TSFE']->tmpl->setup['plugin.'] as $key => $iCSScode) {
 				if (is_array($iCSScode) && $iCSScode['_CSS_DEFAULT_STYLE']) {
-					$temp_styleLines[] = '/* default styles for extension "' . substr($key, 0, - 1) . '" */' . chr(10) . $iCSScode['_CSS_DEFAULT_STYLE'];
+					$temp_styleLines[] = '/* default styles for extension "' . substr($key, 0, - 1) . '" */' . LF . $iCSScode['_CSS_DEFAULT_STYLE'];
 				}
 			}
 			if (count($temp_styleLines)) {
 				if ($GLOBALS['TSFE']->config['config']['inlineStyle2TempFile']) {
-					$pageRenderer->addCssFile(TSpagegen::inline2TempFile(implode(chr(10), $temp_styleLines), 'css'));
+					$pageRenderer->addCssFile(TSpagegen::inline2TempFile(implode(LF, $temp_styleLines), 'css'));
 				} else {
-					$pageRenderer->addCssInlineBlock('TSFEinlineStyle', implode(chr(10), $temp_styleLines));
+					$pageRenderer->addCssInlineBlock('TSFEinlineStyle', implode(LF, $temp_styleLines));
 				}
 			}
 		}
@@ -545,7 +551,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 							$pageRenderer->addCssFile(
 								htmlspecialchars($ss),
 								$GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['alternate'] ? 'alternate stylesheet' : 'stylesheet',
-								$GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['media'] ? $GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['media'] : 'screen',
+								$GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['media'] ? $GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['media'] : 'all',
 								$GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['title'] ? $GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['title'] : '',
 								$GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['compress'] ? TRUE : FALSE,
 								$GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['forceOnTop'] ? TRUE : FALSE,
@@ -776,7 +782,10 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 			$pageRenderer->setTitle($titleTagContent);
 		}
 
-		$pageRenderer->addMetaTag('<meta name="generator" content="TYPO3 ' . TYPO3_branch . ' CMS" />');
+			// add ending slash only to documents rendered as xhtml
+		$endingSlash = $GLOBALS['TSFE']->xhtmlVersion ? ' /' : '';
+
+		$pageRenderer->addMetaTag('<meta name="generator" content="TYPO3 ' . TYPO3_branch . ' CMS"' . $endingSlash . '>');
 
 		$conf = $GLOBALS['TSFE']->pSetup['meta.'];
 		if (is_array($conf)) {
@@ -792,7 +801,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 						if (strtolower($key) == 'refresh') {
 							$a = 'http-equiv';
 						}
-						$pageRenderer->addMetaTag('<meta ' . $a . '="' . $key . '" content="' . htmlspecialchars(trim($val)) . '" />');
+						$pageRenderer->addMetaTag('<meta ' . $a . '="' . $key . '" content="' . htmlspecialchars(trim($val)) . '"' . $endingSlash . '>');
 					}
 				}
 			}
@@ -875,7 +884,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 		if (is_array($GLOBALS['TSFE']->inlineJS)) {
 			foreach ($GLOBALS['TSFE']->inlineJS as $key => $val) {
 				if (! is_array($val)) {
-					$inlineJS .= chr(10) . $val . chr(10);
+					$inlineJS .= LF . $val . LF;
 				}
 			}
 		}
@@ -884,7 +893,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 			// Javascript inline code
 		$inline = $GLOBALS['TSFE']->cObj->cObjGet($GLOBALS['TSFE']->pSetup['jsInline.'], 'jsInline.');
 		if ($inline) {
-			$inlineJS .= chr(10) . $inline . chr(10);
+			$inlineJS .= LF . $inline . LF;
 		}
 
 			// Javascript inline code for Footer
@@ -925,9 +934,23 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 				$pageRenderer->addJsFooterInlineCode('TS_inlineFooter', $inlineFooterJs, $GLOBALS['TSFE']->config['config']['minifyJS']);
 			}
 		} elseif ($GLOBALS['TSFE']->config['config']['removeDefaultJS'] === 'external') {
-				// put default and inlineJS in external file
+			/*
+			 This keeps inlineJS from *_INT Objects from being moved to external files.
+			 At this point in frontend rendering *_INT Objects only have placeholders instead
+			 of actual content so moving these placeholders to external files would
+			 	a) break the JS file (syntax errors due to the placeholders)
+			 	b) the needed JS would never get included to the page
+			 Therefore inlineJS from *_INT Objects must not be moved to external files but
+			 kept internal.
+			*/
+			$inlineJSint = '';
+			self::stripIntObjectPlaceholder($inlineJS, $inlineJSint);
+			$pageRenderer->addJsInlineCode('TS_inlineJSint', $inlineJSint, $GLOBALS['TSFE']->config['config']['minifyJS']);
 			$pageRenderer->addJsFile(TSpagegen::inline2TempFile($scriptJsCode . $inlineJS, 'js'), 'text/javascript', $GLOBALS['TSFE']->config['config']['minifyJS']);
 			if ($inlineFooterJs) {
+				$inlineFooterJSint = '';
+				self::stripIntObjectPlaceholder($inlineFooterJs, $inlineFooterJSint);
+				$pageRenderer->addJsFooterInlineCode('TS_inlineFooterJSint', $inlineFooterJSint, $GLOBALS['TSFE']->config['config']['minifyJS']);
 				$pageRenderer->addJsFooterFile(TSpagegen::inline2TempFile($inlineFooterJs, 'js'), 'text/javascript', $GLOBALS['TSFE']->config['config']['minifyJS']);
 			}
 		} else {
@@ -966,12 +989,12 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 
 			// add header data block
 		if ($GLOBALS['TSFE']->additionalHeaderData) {
-			$pageRenderer->addHeaderData(implode(chr(10), $GLOBALS['TSFE']->additionalHeaderData));
+			$pageRenderer->addHeaderData(implode(LF, $GLOBALS['TSFE']->additionalHeaderData));
 		}
 
 			// add footer data block
 		if ($GLOBALS['TSFE']->additionalFooterData) {
-			$pageRenderer->addFooterData(implode(chr(10), $GLOBALS['TSFE']->additionalFooterData));
+			$pageRenderer->addFooterData(implode(LF, $GLOBALS['TSFE']->additionalFooterData));
 		}
 
 		// Header complete, now add content
@@ -980,7 +1003,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 		if ($GLOBALS['TSFE']->pSetup['frameSet.']) {
 			$fs = t3lib_div::makeInstance('tslib_frameset');
 			$pageRenderer->addBodyContent($fs->make($GLOBALS['TSFE']->pSetup['frameSet.']));
-			$pageRenderer->addBodyContent(chr(10) . '<noframes>' . chr(10));
+			$pageRenderer->addBodyContent(LF . '<noframes>' . LF);
 		}
 
 			// Bodytag:
@@ -1008,22 +1031,22 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 		if (count($JSef[1])) { // Event functions:
 			$bodyTag = preg_replace('/>$/', '', trim($bodyTag)) . ' ' . trim(implode(' ', $JSef[1])) . '>';
 		}
-		$pageRenderer->addBodyContent(chr(10) . $bodyTag);
+		$pageRenderer->addBodyContent(LF . $bodyTag);
 
 			// Div-sections
 		if ($GLOBALS['TSFE']->divSection) {
-			$pageRenderer->addBodyContent(chr(10) . $GLOBALS['TSFE']->divSection);
+			$pageRenderer->addBodyContent(LF . $GLOBALS['TSFE']->divSection);
 		}
 
 			// Page content
-		$pageRenderer->addBodyContent(chr(10) . $pageContent);
+		$pageRenderer->addBodyContent(LF . $pageContent);
 
 			// Render complete page
 		$GLOBALS['TSFE']->content = $pageRenderer->render();
 
 			// Ending page
 		if ($GLOBALS['TSFE']->pSetup['frameSet.']) {
-			$GLOBALS['TSFE']->content .= chr(10) . '</noframes>';
+			$GLOBALS['TSFE']->content .= LF . '</noframes>';
 		}
 
 	}
@@ -1046,6 +1069,20 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 	 * Remember: Calls internally must still be done on the non-instantiated class: TSpagegen::inline2TempFile()
 	 *
 	 *************************/
+
+	/**
+	 * Searches for placeholder created from *_INT cObjects, removes them from
+	 * $searchString and merges them to $intObjects
+	 *
+	 * @param	string		$searchString: the String which should be cleaned from int-object markers
+	 * @param	string		$intObjects: the String the found int-placeholders are moved to (for further processing)
+	 */
+	protected static function stripIntObjectPlaceholder(&$searchString, &$intObjects) {
+		$tempArray = array();
+		preg_match_all('/\<\!--INT_SCRIPT.[a-z0-9]*--\>/', $searchString, $tempArray);
+		$searchString = preg_replace('/\<\!--INT_SCRIPT.[a-z0-9]*--\>/', '', $searchString);
+		$intObjects = implode('', $tempArray[0]);
+	}
 
 	/**
 	 * Writes string to a temporary file named after the md5-hash of the string

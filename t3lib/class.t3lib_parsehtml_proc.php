@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -275,7 +275,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 
 			// Line breaks of content is unified into char-10 only (removing char 13)
 		if (!$this->procOptions['disableUnifyLineBreaks'])	{
-			$value = str_replace(chr(13).chr(10),chr(10),$value);
+			$value = str_replace(CRLF,LF,$value);
 		}
 
 			// In an entry-cleaner was configured, pass value through the HTMLcleaner with that:
@@ -309,7 +309,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 						break;
 						case 'ts_transform':
 						case 'css_transform':
-							$value = str_replace(chr(13),'',$value);	// Has a very disturbing effect, so just remove all '13' - depend on '10'
+							$value = str_replace(CR,'',$value);	// Has a very disturbing effect, so just remove all '13' - depend on '10'
 							$this->allowedClasses = t3lib_div::trimExplode(',', $this->procOptions['allowedClasses'], 1);
 							$value = $this->TS_transform_db($value,$cmd=='css_transform');
 						break;
@@ -344,7 +344,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 						break;
 						case 'ts_transform':
 						case 'css_transform':
-							$value = str_replace(chr(13),'',$value);	// Has a very disturbing effect, so just remove all '13' - depend on '10'
+							$value = str_replace(CR,'',$value);	// Has a very disturbing effect, so just remove all '13' - depend on '10'
 							$value = $this->TS_transform_rte($value,$cmd=='css_transform');
 						break;
 						default:
@@ -361,8 +361,8 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 
 			// Final clean up of linebreaks:
 		if (!$this->procOptions['disableUnifyLineBreaks'])	{
-			$value = str_replace(chr(13).chr(10),chr(10),$value);	// Make sure no \r\n sequences has entered in the meantime...
-			$value = str_replace(chr(10),chr(13).chr(10),$value);	// ... and then change all \n into \r\n
+			$value = str_replace(CRLF,LF,$value);	// Make sure no \r\n sequences has entered in the meantime...
+			$value = str_replace(LF,CRLF,$value);	// ... and then change all \n into \r\n
 		}
 
 			// Return value:
@@ -601,8 +601,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 			case 'db':
 				$siteURL = $this->siteUrl();
 				$blockSplit = $this->splitIntoBlock('A',$value);
-				reset($blockSplit);
-				while(list($k,$v)=each($blockSplit))	{
+				foreach ($blockSplit as $k => $v) {
 					if ($k%2)	{	// block:
 						$attribArray=$this->get_tag_attributes_classic($this->getFirstTag($v),1);
 							// If the url is local, remove url-prefix
@@ -643,23 +642,32 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 				unset($attribArray_copy['target']);
 				unset($attribArray_copy['class']);
 				unset($attribArray_copy['title']);
+				unset($attribArray_copy['external']);
 				if ($attribArray_copy['rteerror'])	{	// Unset "rteerror" and "style" attributes if "rteerror" is set!
 					unset($attribArray_copy['style']);
 					unset($attribArray_copy['rteerror']);
 				}
 				if (!count($attribArray_copy))	{	// Only if href, target and class are the only attributes, we can alter the link!
+						// Quoting class and title attributes if they contain spaces
+					$attribArray['class'] = preg_match('/ /', $attribArray['class']) ? '"' . $attribArray['class'] . '"' : $attribArray['class'];
+					$attribArray['title'] = preg_match('/ /', $attribArray['title']) ? '"' . $attribArray['title'] . '"' : $attribArray['title'];
 						// Creating the TYPO3 pseudo-tag "<LINK>" for the link (includes href/url, target and class attributes):
-					$bTag='<link '.$info['url'].($info['query']?',0,'.$info['query']:'').($attribArray['target']?' '.$attribArray['target']:(($attribArray['class'] || $attribArray['title'])?' -':'')).($attribArray['class']?' '.$attribArray['class']:($attribArray['title']?' -':'')).($attribArray['title']?' "'.$attribArray['title'].'"':'').'>';
+						// If external attribute is set, keep the href unchanged
+					$href = $attribArray['external'] ? $attribArray['href'] : $info['url'].($info['query']?',0,'.$info['query']:'');
+					$bTag='<link '. $href . ($attribArray['target']?' '.$attribArray['target']:(($attribArray['class'] || $attribArray['title'])?' -':'')).($attribArray['class']?' '.$attribArray['class']:($attribArray['title']?' -':'')).($attribArray['title']?' '.$attribArray['title']:'').'>';
 					$eTag='</link>';
 					$blockSplit[$k] = $bTag.$this->TS_links_db($this->removeFirstAndLastTag($blockSplit[$k])).$eTag;
 				} else {	// ... otherwise store the link as a-tag.
 						// Unsetting 'rtekeep' attribute if that had been set.
 					unset($attribArray['rtekeep']);
-						// If the url is local, remove url-prefix
-					$siteURL = $this->siteUrl();
-					if ($siteURL && substr($attribArray['href'],0,strlen($siteURL))==$siteURL)	{
-						$attribArray['href']=$this->relBackPath.substr($attribArray['href'],strlen($siteURL));
+					if (!$attribArray['external']) {
+							// If the url is local, remove url-prefix
+						$siteURL = $this->siteUrl();
+						if ($siteURL && substr($attribArray['href'],0,strlen($siteURL))==$siteURL)	{
+							$attribArray['href']=$this->relBackPath.substr($attribArray['href'],strlen($siteURL));
+						}
 					}
+					unset($attribArray['external']);
 					$bTag='<a '.t3lib_div::implodeAttributes($attribArray,1).'>';
 					$eTag='</a>';
 					$blockSplit[$k] = $bTag.$this->TS_links_db($this->removeFirstAndLastTag($blockSplit[$k])).$eTag;
@@ -682,30 +690,36 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 
 			// Split content by the TYPO3 pseudo tag "<link>":
 		$blockSplit = $this->splitIntoBlock('link',$value,1);
+		$siteUrl = $this->siteUrl();
 		foreach($blockSplit as $k => $v)	{
 			$error = '';
 			if ($k%2)	{	// block:
 				$tagCode = t3lib_div::unQuoteFilenames(trim(substr($this->getFirstTag($v),0,-1)),true);
 				$link_param = $tagCode[1];
 				$href = '';
-				$siteUrl = $this->siteUrl();
 					// Parsing the typolink data. This parsing is roughly done like in tslib_content->typolink()
-				if(strstr($link_param,'@'))	{		// mailadr
+				if (strstr($link_param,'@')) {		// mailadr
 					$href = 'mailto:'.preg_replace('/^mailto:/i','',$link_param);
 				} elseif (substr($link_param,0,1)=='#') {	// check if anchor
 					$href = $siteUrl.$link_param;
 				} else {
 					$fileChar=intval(strpos($link_param, '/'));
 					$urlChar=intval(strpos($link_param, '.'));
-
+					$external = FALSE;
+						// Parse URL:
+					$pU = parse_url($link_param);
 						// Detects if a file is found in site-root OR is a simulateStaticDocument.
 					list($rootFileDat) = explode('?',$link_param);
 					$rFD_fI = pathinfo($rootFileDat);
 					if (trim($rootFileDat) && !strstr($link_param,'/') && (@is_file(PATH_site.$rootFileDat) || t3lib_div::inList('php,html,htm',strtolower($rFD_fI['extension']))))	{
 						$href = $siteUrl.$link_param;
-					} elseif($urlChar && (strstr($link_param,'//') || !$fileChar || $urlChar<$fileChar))	{	// url (external): If doubleSlash or if a '.' comes before a '/'.
-						if (!preg_match('/^[a-z]*:\/\//',trim(strtolower($link_param))))	{$scheme='http://';} else {$scheme='';}
-						$href = $scheme.$link_param;
+					} elseif ($pU['scheme'] || ($urlChar && (!$fileChar || $urlChar < $fileChar))) {
+							// url (external): if has scheme or if a '.' comes before a '/'.
+						$href = $link_param;
+						if (!$pU['scheme']) {
+							$href = 'http://' . $href;
+						}
+						$external = TRUE;
 					} elseif($fileChar)	{	// file (internal)
 						$href = $siteUrl.$link_param;
 					} else {	// integer or alias (alias is without slashes or periods or commas, that is 'nospace,alphanum_x,lower,unique' according to tables.php!!)
@@ -740,6 +754,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 							($tagCode[2]&&$tagCode[2]!='-' ? ' target="'.htmlspecialchars($tagCode[2]).'"' : '').
 							($tagCode[3]&&$tagCode[3]!='-' ? ' class="'.htmlspecialchars($tagCode[3]).'"' : '').
 							($tagCode[4] ? ' title="'.htmlspecialchars($tagCode[4]).'"' : '').
+							($external ? ' external="1"' : '').
 							($error ? ' rteerror="'.htmlspecialchars($error).'" style="background-color: yellow; border:2px red solid; color: black;"' : '').	// Should be OK to add the style; the transformation back to databsae will remove it...
 							'>';
 				$eTag = '</a>';
@@ -823,7 +838,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 			// Traverse the blocks
 		foreach($blockSplit as $k => $v)	{
 			$cc++;
-			$lastBR = $cc==$aC ? '' : chr(10);
+			$lastBR = $cc==$aC ? '' : LF;
 
 			if ($k%2)	{	// Inside block:
 
@@ -843,24 +858,24 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 						if (!$css)	{
 							if (!isset($this->procOptions['typolist']) || $this->procOptions['typolist'])	{
 								$parts = $this->getAllParts($this->splitIntoBlock('LI',$this->removeFirstAndLastTag($blockSplit[$k])),1,0);
-								while(list($k2)=each($parts))	{
-									$parts[$k2]=preg_replace('/['.preg_quote(chr(10).chr(13)).']+/','',$parts[$k2]);	// remove all linesbreaks!
+								foreach ($parts as $k2 => $value) {
+									$parts[$k2]=preg_replace('/['.preg_quote(LF.CR).']+/','',$parts[$k2]);	// remove all linesbreaks!
 									$parts[$k2]=$this->defaultTStagMapping($parts[$k2],'db');
 									$parts[$k2]=$this->cleanFontTags($parts[$k2],0,0,0);
 									$parts[$k2] = $this->HTMLcleaner_db($parts[$k2],strtolower($this->procOptions['allowTagsInTypolists']?$this->procOptions['allowTagsInTypolists']:'br,font,b,i,u,a,img,span,strong,em'));
 								}
 								if ($tagName=='ol')	{ $params=' type="1"'; } else { $params=''; }
-								$blockSplit[$k]='<typolist'.$params.'>'.chr(10).implode(chr(10),$parts).chr(10).'</typolist>'.$lastBR;
+								$blockSplit[$k]='<typolist'.$params.'>'.LF.implode(LF,$parts).LF.'</typolist>'.$lastBR;
 							}
 						} else {
-							$blockSplit[$k]=preg_replace('/['.preg_quote(chr(10).chr(13)).']+/',' ',$this->transformStyledATags($blockSplit[$k])).$lastBR;
+							$blockSplit[$k]=preg_replace('/['.preg_quote(LF.CR).']+/',' ',$this->transformStyledATags($blockSplit[$k])).$lastBR;
 						}
 					break;
 					case 'table':	// Tables are NOT allowed in any form (unless preserveTables is set or CSS is the mode)
 						if (!$this->procOptions['preserveTables'] && !$css)	{
 							$blockSplit[$k]=$this->TS_transform_db($this->removeTables($blockSplit[$k]));
 						} else {
-							$blockSplit[$k]=preg_replace('/['.preg_quote(chr(10).chr(13)).']+/',' ',$this->transformStyledATags($blockSplit[$k])).$lastBR;
+							$blockSplit[$k]=preg_replace('/['.preg_quote(LF.CR).']+/',' ',$this->transformStyledATags($blockSplit[$k])).$lastBR;
 						}
 					break;
 					case 'h1':
@@ -895,17 +910,17 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 							}
 						} else {
 								// Eliminate true linebreaks inside Hx tags
-							$blockSplit[$k]=preg_replace('/['.preg_quote(chr(10).chr(13)).']+/',' ',$this->transformStyledATags($blockSplit[$k])).$lastBR;
+							$blockSplit[$k]=preg_replace('/['.preg_quote(LF.CR).']+/',' ',$this->transformStyledATags($blockSplit[$k])).$lastBR;
 						}
 					break;
 					default:
 							// Eliminate true linebreaks inside other headlist tags and after hr tag
-						$blockSplit[$k]=preg_replace('/['.preg_quote(chr(10).chr(13)).']+/',' ',$this->transformStyledATags($blockSplit[$k])).$lastBR;
+						$blockSplit[$k]=preg_replace('/['.preg_quote(LF.CR).']+/',' ',$this->transformStyledATags($blockSplit[$k])).$lastBR;
 					break;
 				}
 			} else {	// NON-block:
 				if (strcmp(trim($blockSplit[$k]),''))	{
-					$blockSplit[$k]=$this->divideIntoLines(preg_replace('/['.preg_quote(chr(10).chr(13)).']+/',' ',$blockSplit[$k])).$lastBR;
+					$blockSplit[$k]=$this->divideIntoLines(preg_replace('/['.preg_quote(LF.CR).']+/',' ',$blockSplit[$k])).$lastBR;
 					$blockSplit[$k]=$this->transformStyledATags($blockSplit[$k]);
 				} else unset($blockSplit[$k]);
 			}
@@ -973,12 +988,12 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 					case 'typolist':	// Transform typolist blocks into OL/UL lists. Type 1 is expected to be numerical block
 						if (!isset($this->procOptions['typolist']) || $this->procOptions['typolist'])	{
 							$tListContent = $this->removeFirstAndLastTag($blockSplit[$k]);
-							$tListContent = preg_replace('/^[ ]*'.chr(10).'/','',$tListContent);
-							$tListContent = preg_replace('/'.chr(10).'[ ]*$/','',$tListContent);
-							$lines = explode(chr(10),$tListContent);
+							$tListContent = preg_replace('/^[ ]*'.LF.'/','',$tListContent);
+							$tListContent = preg_replace('/'.LF.'[ ]*$/','',$tListContent);
+							$lines = explode(LF,$tListContent);
 							$typ = $attribArray['type']==1 ? 'ol' : 'ul';
-							$blockSplit[$k] = '<'.$typ.'>'.chr(10).
-												'<li>'.implode('</li>'.chr(10).'<li>',$lines).'</li>'.
+							$blockSplit[$k] = '<'.$typ.'>'.LF.
+												'<li>'.implode('</li>'.LF.'<li>',$lines).'</li>'.
 												'</'.$typ.'>';
 						}
 					break;
@@ -995,12 +1010,12 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 						}
 					break;
 				}
-				$blockSplit[$k+1] = preg_replace('/^[ ]*'.chr(10).'/','',$blockSplit[$k+1]);	// Removing linebreak if typohead
+				$blockSplit[$k+1] = preg_replace('/^[ ]*'.LF.'/','',$blockSplit[$k+1]);	// Removing linebreak if typohead
 			} else {	// NON-block:
 				$nextFTN = $this->getFirstTagName($blockSplit[$k+1]);
-				$singleLineBreak = $blockSplit[$k]==chr(10);
+				$singleLineBreak = $blockSplit[$k]==LF;
 				if (t3lib_div::inList('TABLE,BLOCKQUOTE,TYPOLIST,TYPOHEAD,'.($this->procOptions['preserveDIVSections']?'DIV,':'').$this->blockElementList,$nextFTN))	{	// Removing linebreak if typolist/typohead
-					$blockSplit[$k] = preg_replace('/'.chr(10).'[ ]*$/','',$blockSplit[$k]);
+					$blockSplit[$k] = preg_replace('/'.LF.'[ ]*$/','',$blockSplit[$k]);
 				}
 					// If $blockSplit[$k] is blank then unset the line. UNLESS the line happend to be a single line break.
 				if (!strcmp($blockSplit[$k],'') && !$singleLineBreak)	{
@@ -1010,7 +1025,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 				}
 			}
 		}
-		return implode(chr(10),$blockSplit);
+		return implode(LF,$blockSplit);
 	}
 
 	/**
@@ -1196,7 +1211,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 	}
 
 	/**
-	 * This resolves the $value into parts based on <div></div>-sections and <p>-sections and <br />-tags. These are returned as lines separated by chr(10).
+	 * This resolves the $value into parts based on <div></div>-sections and <p>-sections and <br />-tags. These are returned as lines separated by LF.
 	 * This point is to resolve the HTML-code returned from RTE into ordinary lines so it's 'human-readable'
 	 * The function ->setDivTags does the opposite.
 	 * This function processes content to go into the database.
@@ -1244,8 +1259,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 					}
 
 						// Traverse sublines (there is typically one, except if <br/> has been converted to lines as well!)
-					reset($subLines);
-					while(list($sk)=each($subLines))	{
+					foreach ($subLines as $sk => $value) {
 
 							// Clear up the subline for DB.
 						$subLines[$sk]=$this->HTMLcleaner_db($subLines[$sk]);
@@ -1287,7 +1301,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 						}
 
 							// Remove any line break char (10 or 13)
-						$subLines[$sk]=preg_replace('/'.chr(10).'|'.chr(13).'/','',$subLines[$sk]);
+						$subLines[$sk]=preg_replace('/'.LF.'|'.CR.'/','',$subLines[$sk]);
 
 							// If there are any attributes or if we are supposed to remap the tag, then do so:
 						if (count($newAttribs) && strcmp($remapParagraphTag,'1'))		{
@@ -1298,7 +1312,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 					}
 				}
 					// Add the processed line(s)
-				$divSplit[$k] = implode(chr(10),$subLines);
+				$divSplit[$k] = implode(LF,$subLines);
 
 					// If it turns out the line is just blank (containing a &nbsp; possibly) then just make it pure blank.
 					// But, prevent filtering of lines that are blank in sense above, but whose tags contain attributes.
@@ -1314,7 +1328,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 		}
 
 			// Return value:
-		return $returnArray ? $divSplit : implode(chr(10),$divSplit);
+		return $returnArray ? $divSplit : implode(LF,$divSplit);
 	}
 
 	/**
@@ -1334,8 +1348,8 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 		$hSC = $this->procOptions['dontHSC_rte'] ? 0 : 1;	// Default: re-convert literals to characters (that is &lt; to <)
 		$convNBSP = !$this->procOptions['dontConvAmpInNBSP_rte']?1:0;
 
-			// Divide the content into lines, based on chr(10):
-		$parts = explode(chr(10),$value);
+			// Divide the content into lines, based on LF:
+		$parts = explode(LF,$value);
 		foreach($parts as $k => $v)	{
 
 				// Processing of line content:
@@ -1357,7 +1371,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 		}
 
 			// Implode result:
-		return implode(chr(10),$parts);
+		return implode(LF,$parts);
 	}
 
 	/**
@@ -1543,7 +1557,9 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 					$info['url']=$info['relUrl'];
 					$info['type']='anchor';
 				} elseif (!trim($uP['path']) || !strcmp($uP['path'],'index.php'))	{
-					$pp = explode('id=',$uP['query']);
+						// URL is a page (id parameter)
+					$pp = preg_split('/^id=/', $uP['query']);
+					$pp[1] = preg_replace( '/&id=[^&]*/', '', $pp[1]);
 					$parameters = explode('&', $pp[1]);
 					$id = array_shift($parameters);
 					if ($id)	{
@@ -1574,8 +1590,7 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 	 */
 	function TS_AtagToAbs($value,$dontSetRTEKEEP=FALSE)	{
 		$blockSplit = $this->splitIntoBlock('A',$value);
-		reset($blockSplit);
-		while(list($k,$v)=each($blockSplit))	{
+		foreach ($blockSplit as $k => $v) {
 			if ($k%2)	{	// block:
 				$attribArray = $this->get_tag_attributes_classic($this->getFirstTag($v),1);
 
@@ -1584,6 +1599,8 @@ class t3lib_parsehtml_proc extends t3lib_parsehtml {
 					$uP = parse_url(strtolower($attribArray['href']));
 					if (!$uP['scheme'])	{
 						$attribArray['href'] = $this->siteUrl().substr($attribArray['href'],strlen($this->relBackPath));
+					} elseif ($uP['scheme'] != 'mailto') {
+						$attribArray['external'] = 1;
 					}
 				} else {
 					$attribArray['rtekeep'] = 1;

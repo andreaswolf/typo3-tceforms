@@ -135,7 +135,7 @@ class t3lib_sqlparser {
 			// Finding starting keyword of string:
 		$_parseString = $parseString;	// Protecting original string...
 		$keyword = $this->nextPart($_parseString, '^(SELECT|UPDATE|INSERT[[:space:]]+INTO|DELETE[[:space:]]+FROM|EXPLAIN|DROP[[:space:]]+TABLE|CREATE[[:space:]]+TABLE|CREATE[[:space:]]+DATABASE|ALTER[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE)[[:space:]]+');
-		$keyword = strtoupper(str_replace(array(' ',"\t","\r","\n"),'',$keyword));
+		$keyword = strtoupper(str_replace(array(' ',TAB,CR,LF),'',$keyword));
 
 		switch($keyword)	{
 			case 'SELECT':
@@ -481,7 +481,7 @@ class t3lib_sqlparser {
 				// While the parseString is not yet empty:
 			while(strlen($parseString)>0)	{
 				if ($key = $this->nextPart($parseString, '^(KEY|PRIMARY KEY|UNIQUE KEY|UNIQUE)([[:space:]]+|\()'))	{	// Getting key
-					$key = strtoupper(str_replace(array(' ',"\t","\r","\n"),'',$key));
+					$key = strtoupper(str_replace(array(' ',TAB,CR,LF),'',$key));
 
 					switch($key)	{
 						case 'PRIMARYKEY':
@@ -553,14 +553,18 @@ class t3lib_sqlparser {
 		$result['type'] = 'ALTERTABLE';
 
 			// Get table:
-		$result['TABLE'] = $this->nextPart($parseString, '^([[:alnum:]_]+)[[:space:]]+');
+		$hasBackquote = ($this->nextPart($parseString, '^(`)') === '`');
+		$result['TABLE'] = $this->nextPart($parseString, '^([[:alnum:]_]+)' . ($hasBackquote ? '`' : '') . '[[:space:]]+');
+		if ($hasBackquote && $this->nextPart($parseString, '^(`)') !== '`') {
+			return $this->parseError('No end backquote found!', $parseString);
+		}
 
 		if ($result['TABLE'])	{
-			if ($result['action'] = $this->nextPart($parseString, '^(CHANGE|DROP[[:space:]]+KEY|DROP[[:space:]]+PRIMARY[[:space:]]+KEY|ADD[[:space:]]+KEY|ADD[[:space:]]+PRIMARY[[:space:]]+KEY|DROP|ADD|RENAME)([[:space:]]+|\()'))	{
-				$actionKey = strtoupper(str_replace(array(' ',"\t","\r","\n"),'',$result['action']));
+			if ($result['action'] = $this->nextPart($parseString, '^(CHANGE|DROP[[:space:]]+KEY|DROP[[:space:]]+PRIMARY[[:space:]]+KEY|ADD[[:space:]]+KEY|ADD[[:space:]]+PRIMARY[[:space:]]+KEY|ADD[[:space:]]+UNIQUE|DROP|ADD|RENAME|DEFAULT[[:space:]]+CHARACTER[[:space:]]+SET|ENGINE)([[:space:]]+|\(|=)'))	{
+				$actionKey = strtoupper(str_replace(array(' ',TAB,CR,LF),'',$result['action']));
 
 					// Getting field:
-				if (t3lib_div::inList('ADDPRIMARYKEY,DROPPRIMARYKEY',$actionKey) || $fieldKey = $this->nextPart($parseString, '^([[:alnum:]_]+)[[:space:]]+'))	{
+				if (t3lib_div::inList('ADDPRIMARYKEY,DROPPRIMARYKEY,ENGINE', $actionKey) || $fieldKey = $this->nextPart($parseString, '^([[:alnum:]_]+)[[:space:]]+')) {
 
 					switch($actionKey)	{
 						case 'ADD':
@@ -582,6 +586,7 @@ class t3lib_sqlparser {
 
 						case 'ADDKEY':
 						case 'ADDPRIMARYKEY':
+						case 'ADDUNIQUE':
 							$result['KEY'] = $fieldKey;
 							$result['fields'] = $this->getValue($parseString, '_LIST', 'INDEX');
 							if ($this->parse_error)	{ return $this->parse_error; }
@@ -591,6 +596,12 @@ class t3lib_sqlparser {
 						break;
 						case 'DROPPRIMARYKEY':
 							// ??? todo!
+						break;
+						case 'DEFAULTCHARACTERSET':
+							$result['charset'] = $fieldKey;
+						break;
+						case 'ENGINE':
+							$result['engine'] = $this->nextPart($parseString, '^=[[:space:]]*([[:alnum:]]+)[[:space:]]+', TRUE);
 						break;
 					}
 				} else return $this->parseError('No field name found',$parseString);
@@ -832,7 +843,7 @@ class t3lib_sqlparser {
 
 					// Looking for stop-keywords:
 				if ($stopRegex && $this->lastStopKeyWord = $this->nextPart($parseString, $stopRegex))	{
-					$this->lastStopKeyWord = strtoupper(str_replace(array(' ',"\t","\r","\n"),'',$this->lastStopKeyWord));
+					$this->lastStopKeyWord = strtoupper(str_replace(array(' ',TAB,CR,LF),'',$this->lastStopKeyWord));
 					return $stack;
 				}
 
@@ -917,7 +928,7 @@ class t3lib_sqlparser {
 			if ($stack[$pnt]['table'] = $this->nextPart($parseString,'^([[:alnum:]_]+)(,|[[:space:]]+)')) {
 					// Looking for stop-keywords before fetching potential table alias:
 				if ($stopRegex && ($this->lastStopKeyWord = $this->nextPart($parseString, $stopRegex))) {
-					$this->lastStopKeyWord = strtoupper(str_replace(array(' ',"\t","\r","\n"), '', $this->lastStopKeyWord));
+					$this->lastStopKeyWord = strtoupper(str_replace(array(' ',TAB,CR,LF), '', $this->lastStopKeyWord));
 					return $stack;
 				}
 				if (!preg_match('/^(LEFT|RIGHT|JOIN|INNER)[[:space:]]+/i', $parseString)) {
@@ -938,38 +949,54 @@ class t3lib_sqlparser {
 					if (!$this->nextPart($parseString, '^(ON[[:space:]]+)')) {
 						return $this->parseError('No join condition found in parseFromTables()!', $parseString);
 					}
-					$field1 = $this->nextPart($parseString,'^([[:alnum:]_.]+)[[:space:]]*=[[:space:]]*', 1);
-					$field2 = $this->nextPart($parseString,'^([[:alnum:]_.]+)[[:space:]]+');
-					if ($field1 && $field2) {
-
-						// Explode fields into field and table:
-						$tableField = explode('.', $field1, 2);
-						$field1 = array();
-						if (count($tableField) != 2) {
-							$field1['table'] = '';
-							$field1['field'] = $tableField[0];
+					$stack[$pnt]['JOIN'][$joinCnt]['ON'] = array();
+					$condition = array('operator' => '');
+					$parseCondition = TRUE;
+					while ($parseCondition) {
+						if (($fieldName = $this->nextPart($parseString, '^([[:alnum:]._]+)[[:space:]]*(<=|>=|<|>|=|!=)')) !== '') {
+								// Parse field name into field and table:
+							$tableField = explode('.', $fieldName, 2);
+							$condition['left'] = array();
+							if (count($tableField) == 2) {
+								$condition['left']['table'] = $tableField[0];
+								$condition['left']['field'] = $tableField[1];
+							} else {
+								$condition['left']['table'] = '';
+								$condition['left']['field'] = $tableField[0];
+							}
 						} else {
-							$field1['table'] = $tableField[0];
-							$field1['field'] = $tableField[1];
+							return $this->parseError('No join field found in parseFromTables()!', $parseString);
 						}
-						$tableField = explode('.', $field2, 2);
-						$field2 = array();
-						if (count($tableField) != 2) {
-							$field2['table'] = '';
-							$field2['field'] = $tableField[0];
+							// Find "comparator":
+						$condition['comparator'] = $this->nextPart($parseString, '^(<=|>=|<|>|=|!=)');
+						if (($fieldName = $this->nextPart($parseString, '^([[:alnum:]._]+)')) !== '') {
+								// Parse field name into field and table:
+							$tableField = explode('.', $fieldName, 2);
+							$condition['right'] = array();
+							if (count($tableField) == 2) {
+								$condition['right']['table'] = $tableField[0];
+								$condition['right']['field'] = $tableField[1];
+							} else {
+								$condition['right']['table'] = '';
+								$condition['right']['field'] = $tableField[0];
+							}
 						} else {
-							$field2['table'] = $tableField[0];
-							$field2['field'] = $tableField[1];
+							return $this->parseError('No join field found in parseFromTables()!', $parseString);
 						}
-						$stack[$pnt]['JOIN'][$joinCnt]['ON'] = array($field1, $field2);
-						$joinCnt++;
-					} else return $this->parseError('No join fields found in parseFromTables()!', $parseString);
+						$stack[$pnt]['JOIN'][$joinCnt]['ON'][] = $condition;
+						if (($operator = $this->nextPart($parseString, '^(AND|OR)')) !== '') {
+							$condition = array('operator' => $operator);
+						} else {
+							$parseCondition = FALSE;
+						}
+					}
+					$joinCnt++;
 				} else return $this->parseError('No join table found in parseFromTables()!', $parseString);
 			}
 
 				// Looking for stop-keywords:
 			if ($stopRegex && $this->lastStopKeyWord = $this->nextPart($parseString, $stopRegex)) {
-				$this->lastStopKeyWord = strtoupper(str_replace(array(' ',"\t","\r","\n"), '', $this->lastStopKeyWord));
+				$this->lastStopKeyWord = strtoupper(str_replace(array(' ',TAB,CR,LF), '', $this->lastStopKeyWord));
 				return $stack;
 			}
 
@@ -1230,7 +1257,7 @@ class t3lib_sqlparser {
 
 						// Looking for stop-keywords:
 					if ($stopRegex && $this->lastStopKeyWord = $this->nextPart($parseString, $stopRegex)) {
-						$this->lastStopKeyWord = strtoupper(str_replace(array(' ',"\t","\r","\n"), '', $this->lastStopKeyWord));
+						$this->lastStopKeyWord = strtoupper(str_replace(array(' ',TAB,CR,LF), '', $this->lastStopKeyWord));
 						return $stack[0];
 					} else {
 						return $this->parseError('No operator, but parsing not finished in parseWhereClause().', $parseString);
@@ -1278,7 +1305,7 @@ class t3lib_sqlparser {
 
 				// Looking for keywords
 			while($keyword = $this->nextPart($parseString,'^(DEFAULT|NOT[[:space:]]+NULL|AUTO_INCREMENT|UNSIGNED)([[:space:]]+|,|\))'))	{
-				$keywordCmp = strtoupper(str_replace(array(' ',"\t","\r","\n"),'',$keyword));
+				$keywordCmp = strtoupper(str_replace(array(' ',TAB,CR,LF),'',$keyword));
 
 				$result['featureIndex'][$keywordCmp]['keyword'] = $keyword;
 
@@ -1326,6 +1353,8 @@ class t3lib_sqlparser {
 			$parseString = ltrim(substr($parseString,strlen($reg[$trimAll?0:1])));
 			return $reg[1];
 		}
+			// No match found
+		return '';
 	}
 
 	/**
@@ -1339,7 +1368,7 @@ class t3lib_sqlparser {
 	protected function getValue(&$parseString, $comparator = '', $mode = '') {
 		$value = '';
 
-		if (t3lib_div::inList('NOTIN,IN,_LIST',strtoupper(str_replace(array(' ',"\n","\r","\t"),'',$comparator))))	{	// List of values:
+		if (t3lib_div::inList('NOTIN,IN,_LIST',strtoupper(str_replace(array(' ',LF,CR,TAB),'',$comparator))))	{	// List of values:
 			if ($this->nextPart($parseString,'^([(])'))	{
 				$listValues = array();
 				$comma=',';
@@ -1694,7 +1723,7 @@ class t3lib_sqlparser {
 		$query = 'ALTER TABLE '.$components['TABLE'].' '.$components['action'].' '.($components['FIELD']?$components['FIELD']:$components['KEY']);
 
 			// Based on action, add the final part:
-		switch(strtoupper(str_replace(array(' ',"\t","\r","\n"),'',$components['action'])))	{
+		switch(strtoupper(str_replace(array(' ',TAB,CR,LF),'',$components['action'])))	{
 			case 'ADD':
 				$query.=' '.$this->compileFieldCfg($components['definition']);
 			break;
@@ -1706,7 +1735,14 @@ class t3lib_sqlparser {
 			break;
 			case 'ADDKEY':
 			case 'ADDPRIMARYKEY':
+			case 'ADDUNIQUE':
 				$query.=' ('.implode(',',$components['fields']).')';
+			break;
+			case 'DEFAULTCHARACTERSET':
+				$query .= $components['charset'];
+			break;
+			case 'ENGINE':
+				$query .= '= ' . $components['engine'];
 			break;
 		}
 
@@ -1862,11 +1898,16 @@ class t3lib_sqlparser {
 							$outputParts[$k] .= ' ' . $join['as_keyword'] . ' ' . $join['as'];
 						}
 						$outputParts[$k] .= ' ON ';
-						$outputParts[$k] .= ($join['ON'][0]['table']) ? $join['ON'][0]['table'] . '.' : '';
-						$outputParts[$k] .= $join['ON'][0]['field'];
-						$outputParts[$k] .= '=';
-						$outputParts[$k] .= ($join['ON'][1]['table']) ? $join['ON'][1]['table'] . '.' : '';
-						$outputParts[$k] .= $join['ON'][1]['field'];
+						foreach ($join['ON'] as $condition) {
+							if ($condition['operator'] !== '') {
+								$outputParts[$k] .= ' ' . $condition['operator'] . ' ';
+							}
+							$outputParts[$k] .= ($condition['left']['table']) ? $condition['left']['table'] . '.' : '';
+							$outputParts[$k] .= $condition['left']['field'];
+							$outputParts[$k] .= $condition['comparator'];
+							$outputParts[$k] .= ($condition['right']['table']) ? $condition['right']['table'] . '.' : '';
+							$outputParts[$k] .= $condition['right']['field'];
+						}
 					}
 				}
 			}
@@ -1929,7 +1970,7 @@ class t3lib_sqlparser {
 						$output .= ' ' . $v['comparator'];
 
 							// Detecting value type; list or plain:
-						if (t3lib_div::inList('NOTIN,IN', strtoupper(str_replace(array(' ', "\t", "\r", "\n"), '', $v['comparator'])))) {
+						if (t3lib_div::inList('NOTIN,IN', strtoupper(str_replace(array(' ', TAB, CR, LF), '', $v['comparator'])))) {
 							if (isset($v['subquery'])) {
 								$output .= ' (' . $this->compileSELECT($v['subquery']) . ')';	
 							} else {
@@ -2062,10 +2103,10 @@ class t3lib_sqlparser {
 #		$str1 = stripslashes($str1);
 #		$str2 = stripslashes($str2);
 
-		if (strcmp(str_replace(array(' ',"\t","\r","\n"),'',$this->trimSQL($str1)),str_replace(array(' ',"\t","\r","\n"),'',$this->trimSQL($str2))))	{
+		if (strcmp(str_replace(array(' ',TAB,CR,LF),'',$this->trimSQL($str1)),str_replace(array(' ',TAB,CR,LF),'',$this->trimSQL($str2))))	{
 			return array(
-					str_replace(array(' ',"\t","\r","\n"),' ',$str),
-					str_replace(array(' ',"\t","\r","\n"),' ',$newStr),
+					str_replace(array(' ',TAB,CR,LF),' ',$str),
+					str_replace(array(' ',TAB,CR,LF),' ',$newStr),
 				);
 		}
 	}

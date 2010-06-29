@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2009 Dmitry Dulepov <dmitry@typo3.org>
+*  (c) 2008-2010 Dmitry Dulepov <dmitry@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -194,7 +194,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 			// we must change the password in the record to a long random string so
 			// that this user cannot be authenticated with other service.
 			if (is_array($userRecord)) {
-				$userRecord[$this->authenticationInformation['db_user']['userident_column']] = uniqid($this->prefixId . chr(10), true);
+				$userRecord[$this->authenticationInformation['db_user']['userident_column']] = uniqid($this->prefixId . LF, true);
 			}
 		}
 		return $userRecord;

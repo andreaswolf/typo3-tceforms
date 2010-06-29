@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Stephane Schitter <stephane.schitter@free.fr>
+*  (c) 2007-2010 Stephane Schitter <stephane.schitter@free.fr>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -185,9 +185,9 @@ class tx_tsconfighelp_module1 extends t3lib_SCbase {
 				$content = '<div align="left"><strong>'.$LANG->getLL('referenceExplanation').'</strong></div>';
 				$content .= '<p>'.$LANG->getLL('referenceExplanationDetailed').'</p><br />';
 				$this->content .= $this->doc->section($LANG->getLL('displayReferences'),$content,0,1);
-				$this->content .= '<a href="#" onclick="vHWin=window.open(\''.$BACK_PATH.'wizard_tsconfig.php?mode=tsref&amp;P[formName]=editForm\',\'popUp\',\'height=500,width=780,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;"><img '.t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/wizard_tsconfig.gif', 'width="22" height="27"').' border="0" title="TSref reference" alt="TSref reference" /> TSREF</a><br />';
-				$this->content .= '<a href="#" onclick="vHWin=window.open(\''.$BACK_PATH.'wizard_tsconfig.php?mode=beuser&amp;P[formName]=editForm\',\'popUp\',\'height=500,width=780,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;"><img '.t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/wizard_tsconfig.gif', 'width="22" height="27"').' border="0" title="TSref reference" alt="TSref reference" /> USER TSCONFIG</a><br />';
-				$this->content .= '<a href="#" onclick="vHWin=window.open(\''.$BACK_PATH.'wizard_tsconfig.php?mode=page&amp;P[formName]=editForm\',\'popUp\',\'height=500,width=780,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;"><img '.t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/wizard_tsconfig.gif', 'width="22" height="27"').' border="0" title="TSref reference" alt="TSref reference" /> PAGE TSCONFIG</a><br />';
+				$this->content .= '<a href="#" onclick="vHWin=window.open(\''.$BACK_PATH.'wizard_tsconfig.php?mode=tsref&amp;P[formName]=editForm\',\'popUp\',\'height=500,width=780,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;" title="TSref reference">'.t3lib_iconWorks::getSpriteIcon('actions-system-typoscript-documentation-open').'TSREF</a><br />';
+				$this->content .= '<a href="#" onclick="vHWin=window.open(\''.$BACK_PATH.'wizard_tsconfig.php?mode=beuser&amp;P[formName]=editForm\',\'popUp\',\'height=500,width=780,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;" title="TSref reference">'.t3lib_iconWorks::getSpriteIcon('actions-system-typoscript-documentation-open').'USER TSCONFIG</a><br />';
+				$this->content .= '<a href="#" onclick="vHWin=window.open(\''.$BACK_PATH.'wizard_tsconfig.php?mode=page&amp;P[formName]=editForm\',\'popUp\',\'height=500,width=780,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;" title="TSref reference">'.t3lib_iconWorks::getSpriteIcon('actions-system-typoscript-documentation-open').'PAGE TSCONFIG</a><br />';
 			break;
 
 			case 2:
@@ -309,7 +309,7 @@ class tx_tsconfighelp_module1 extends t3lib_SCbase {
 
 	/**
 	 * Parses the whole XML file in order to understand the Styles structure. This function is mostly looking at the styles
-	 * that create bold or italic characters in the document, as these will later on need to be translated to <i> and <b> tags
+	 * that create bold or italic characters in the document, as these will later on need to be translated to <i> and <strong> tags
 	 * This function takes into account the hierarchy of the styles, as created by OpenOffice. This means that if a style has
 	 * a parant, this function will make it inherit the styles of the parent. Therefore bold and italic styles are propagated
 	 * to children as well.
@@ -469,7 +469,7 @@ class tx_tsconfighelp_module1 extends t3lib_SCbase {
 	 *
 	 * @param	array		an array containing all the style tags
 	 * @param	string		either '' or '/' depending on whether the style definition is to open or close the style
-	 * @return	string		the sequence of tags to open or close the style, for example <b><i>
+	 * @return	string		the sequence of tags to open or close the style, for example <strong><i>
 	 */
 	function styleHTML($style, $char)	{
 		$string = '';
@@ -541,10 +541,10 @@ class tx_tsconfighelp_module1 extends t3lib_SCbase {
 			$node = $vals[$id];
 
 			// sanity check
-			if ($sectionHeader < 0)	die ('Malformed XML (header-rows)'."\n");
-			if ($sectionRow < 0)	die ('Malformed XML (row)'."\n");
-			if ($sectionCell < 0)	die ('Malformed XML (cell)'."\n");
-			if ($sectionP < 0)		die ('Malformed XML (P)'."\n");
+			if ($sectionHeader < 0)	die ('Malformed XML (header-rows)'.LF);
+			if ($sectionRow < 0)	die ('Malformed XML (row)'.LF);
+			if ($sectionCell < 0)	die ('Malformed XML (cell)'.LF);
+			if ($sectionP < 0)		die ('Malformed XML (P)'.LF);
 
 			switch ($node['type'])	{
 				case 'open':
@@ -727,7 +727,7 @@ class tx_tsconfighelp_module1 extends t3lib_SCbase {
 		if ($extension != '')	{
 			$GLOBALS['TYPO3_DB']->exec_DELETEquery('static_tsconfig_help', 'guide='.$guide);
 		} else {
-			$GLOBALS['TYPO3_DB']->exec_DELETEquery('static_tsconfig_help', '');
+			$GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('static_tsconfig_help');
 		}
 	}
 

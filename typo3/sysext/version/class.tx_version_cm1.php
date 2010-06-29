@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2004-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -95,9 +95,8 @@ class tx_version_cm1 {
 			);
 
 				// Find position of "delete" element:
-			reset($menuItems);
 			$c=0;
-			while(list($k)=each($menuItems))	{
+			foreach ($menuItems as $k => $value) {
 				$c++;
 				if (!strcmp($k,'delete'))	break;
 			}

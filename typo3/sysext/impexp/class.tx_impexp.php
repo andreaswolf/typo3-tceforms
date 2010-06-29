@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -398,8 +398,7 @@ class tx_impexp {
 	 */
 	function unsetExcludedSections($idH)	{
 		if (is_array($idH))	{
-			reset($idH);
-			while(list($k,$v) = each($idH))	{
+			foreach ($idH as $k => $v) {
 				if ($this->excludeMap['pages:'.$idH[$k]['uid']])	{
 					unset($idH[$k]);
 				} elseif (is_array($idH[$k]['subrow']))	{
@@ -421,8 +420,7 @@ class tx_impexp {
 	function flatInversePageTree($idH,$a=array())	{
 		if (is_array($idH))	{
 			$idH = array_reverse($idH);
-			reset($idH);
-			while(list($k,$v) = each($idH))	{
+			foreach ($idH as $k => $v) {
 				$a[$v['uid']] = $v['uid'];
 				if (is_array($v['subrow']))	{
 					$a = $this->flatInversePageTree($v['subrow'],$a);
@@ -444,8 +442,7 @@ class tx_impexp {
 	function flatInversePageTree_pid($idH,$a=array(),$pid=-1)	{
 		if (is_array($idH))	{
 			$idH = array_reverse($idH);
-			reset($idH);
-			while(list($k,$v) = each($idH))	{
+			foreach ($idH as $k => $v) {
 				$a[$v['uid']] = $pid;
 				if (is_array($v['subrow']))	{
 					$a = $this->flatInversePageTree_pid($v['subrow'],$a,$v['uid']);
@@ -546,11 +543,9 @@ class tx_impexp {
 
 			// Traverse all "rels" registered for "records"
 		if (is_array($this->dat['records']))	{
-			reset($this->dat['records']);
-			while(list($k) = each($this->dat['records']))	{
+			foreach ($this->dat['records'] as $k => $value) {
 				if (is_array($this->dat['records'][$k]))	{
-					reset($this->dat['records'][$k]['rels']);
-					while(list($fieldname,$vR) = each($this->dat['records'][$k]['rels']))	{
+					foreach ($this->dat['records'][$k]['rels'] as $fieldname => $vR) {
 #debug($vR);
 							// For all DB types of relations:
 						if ($vR['type']=='db')	{
@@ -670,11 +665,9 @@ class tx_impexp {
 
 			// Traverse all "rels" registered for "records"
 		if (is_array($this->dat['records']))	{
-			reset($this->dat['records']);
-			while(list($k)=each($this->dat['records']))	{
+			foreach ($this->dat['records'] as $k => $value) {
 				if (is_array($this->dat['records'][$k]['rels']))	{
-					reset($this->dat['records'][$k]['rels']);
-					while(list($fieldname,$vR)=each($this->dat['records'][$k]['rels']))	{
+					foreach ($this->dat['records'][$k]['rels'] as $fieldname => $vR) {
 
 							// For all file type relations:
 						if ($vR['type']=='file')	{
@@ -1091,7 +1084,7 @@ class tx_impexp {
 
 			// Creating XML file from $outputArray:
 		$charset = $this->dat['header']['charset'] ? $this->dat['header']['charset'] : 'iso-8859-1';
-		$XML = '<?xml version="1.0" encoding="'.$charset.'" standalone="yes" ?>'.chr(10);
+		$XML = '<?xml version="1.0" encoding="'.$charset.'" standalone="yes" ?>'.LF;
 		$XML.= t3lib_div::array2xml($this->dat,'',0,'T3RecordDocument',0,$options);
 
 		return $XML;
@@ -1196,7 +1189,7 @@ class tx_impexp {
 				// $pageRecords is a copy of the pages array in the imported file. Records here are unset one by one when the addSingle function is called.
 			$pageRecords = $this->dat['header']['records']['pages'];
 			$this->import_data = array();
-#debug($pageRecords);
+
 				// First add page tree if any
 			if (is_array($this->dat['header']['pagetree']))	{
 				$pagesFromTree = $this->flatInversePageTree($this->dat['header']['pagetree']);
@@ -1208,7 +1201,7 @@ class tx_impexp {
 					unset($pageRecords[$uid]);
 				}
 			}
-#debug($pageRecords);
+
 				// Then add all remaining pages not in tree on root level:
 			if (count($pageRecords))	{
 				$remainingPageUids = array_keys($pageRecords);
@@ -1219,10 +1212,16 @@ class tx_impexp {
 
 				// Now write to database:
 			$tce = $this->getNewTCE();
+			$this->callHook('before_writeRecordsPages', array(
+				'tce' => &$tce,
+				'data' => &$this->import_data,
+			));
 			$tce->suggestedInsertUids = $this->suggestedInsertUids;
 			$tce->start($this->import_data,Array());
 			$tce->process_datamap();
-#debug($this->import_data,'PAGES');
+			$this->callHook('after_writeRecordsPages', array(
+				'tce' => &$tce
+			));
 
 				// post-processing: Registering new ids (end all tcemain sessions with this)
 			$this->addToMapId($tce->substNEWwithIDs);
@@ -1248,9 +1247,7 @@ class tx_impexp {
 
 			// Get uid-pid relations and traverse them in order to map to possible new IDs
 		$pidsFromTree = $this->flatInversePageTree_pid($this->dat['header']['pagetree']);
-#debug($this->dat['header']['pagetree'],'pagetree');
-#debug($pidsFromTree,'$pidsFromTree');
-#debug($this->import_newId_pids,'import_newId_pids');
+
 		foreach($pidsFromTree as $origPid => $newPid)	{
 			if ($newPid>=0 && $this->dontIgnorePid('pages', $origPid))	{
 				if (substr($this->import_newId_pids[$origPid],0,3)==='NEW')	{	// If the page had a new id (because it was created) use that instead!
@@ -1268,10 +1265,17 @@ class tx_impexp {
 			// Execute the move commands if any:
 		if (count($cmd_data))	{
 			$tce = $this->getNewTCE();
+			$this->callHook('before_writeRecordsPagesOrder', array(
+				'tce' => &$tce,
+				'data' => &$cmd_data,
+			));
 			$tce->start(Array(),$cmd_data);
 			$tce->process_cmdmap();
+			$this->callHook('after_writeRecordsPagesOrder', array(
+				'tce' => &$tce,
+			));
 		}
-#debug($cmd_data,'$cmd_data');
+
 	}
 
 	/**
@@ -1287,11 +1291,9 @@ class tx_impexp {
 			// Write the rest of the records
 		$this->import_data = array();
 		if (is_array($this->dat['header']['records']))	{
-			reset($this->dat['header']['records']);
-			while(list($table,$recs) = each($this->dat['header']['records']))	{
+			foreach ($this->dat['header']['records'] as $table => $recs) {
 				if ($table!='pages')	{
-					reset($recs);
-					while(list($uid,$thisRec)=each($recs))	{
+					foreach ($recs as $uid => $thisRec) {
 							// PID: Set the main $pid, unless a NEW-id is found
 						$setPid = isset($this->import_mapId['pages'][$thisRec['pid']]) ? $this->import_mapId['pages'][$thisRec['pid']] : $pid;
 						if (is_array($TCA[$table]) && $TCA[$table]['ctrl']['rootLevel'])	{
@@ -1307,11 +1309,17 @@ class tx_impexp {
 
 			// Now write to database:
 		$tce = $this->getNewTCE();
+		$this->callHook('before_writeRecordsRecords', array(
+			'tce' => &$tce,
+			'data' => &$this->import_data,
+		));
 		$tce->suggestedInsertUids = $this->suggestedInsertUids;
 		$tce->reverseOrder=1;	// Because all records are being submitted in their correct order with positive pid numbers - and so we should reverse submission order internally.
 		$tce->start($this->import_data,Array());
 		$tce->process_datamap();
-#debug($this->import_data,'RECORDS');
+		$this->callHook('after_writeRecordsRecords', array(
+			'tce' => &$tce,
+		));
 
 			// post-processing: Removing files and registering new ids (end all tcemain sessions with this)
 		$this->addToMapId($tce->substNEWwithIDs);
@@ -1338,11 +1346,9 @@ class tx_impexp {
 			$pagesFromTree = $this->flatInversePageTree($this->dat['header']['pagetree']);
 		} else $pagesFromTree = array();
 
-#debug($this->dat['header']['pid_lookup'],'pid_lookup');
 		if (is_array($this->dat['header']['pid_lookup']))	{
 			foreach($this->dat['header']['pid_lookup'] as $pid => $recList)	{
 				$newPid = isset($this->import_mapId['pages'][$pid]) ? $this->import_mapId['pages'][$pid] : $mainPid;
-#debug(array($pid,$newPid),'$pid / $newPid');
 
 				if (t3lib_div::testInt($newPid))	{
 					foreach($recList as $tableName => $uidList)	{
@@ -1352,7 +1358,7 @@ class tx_impexp {
 								if ($this->dontIgnorePid($tableName, $uid))	{
 									$cmd_data[$tableName][$uid]['move'] = $newPid;
 								} else {
-#debug($tableName.':'.$uid,'removed');
+									// nothing
 								}
 							}
 						}
@@ -1364,10 +1370,16 @@ class tx_impexp {
 			// Execute the move commands if any:
 		if (count($cmd_data))	{
 			$tce = $this->getNewTCE();
+			$this->callHook('before_writeRecordsRecordsOrder', array(
+				'tce' => &$tce,
+				'data' => &$cmd_data,
+			));
 			$tce->start(Array(),$cmd_data);
 			$tce->process_cmdmap();
+			$this->callHook('after_writeRecordsRecordsOrder', array(
+				'tce' => &$tce,
+			));
 		}
-#debug($cmd_data,'$cmd_data');
 	}
 
 	/**
@@ -1425,8 +1437,7 @@ class tx_impexp {
 				}
 
 					// Setting db/file blank:
-				reset($this->dat['records'][$table.':'.$uid]['rels']);
-				while(list($field,$config) = each($this->dat['records'][$table.':'.$uid]['rels']))	{
+				foreach ($this->dat['records'][$table.':'.$uid]['rels'] as $field => $config) {
 					switch((string)$config['type'])	{
 						case 'db':
 						case 'file':
@@ -1455,10 +1466,8 @@ class tx_impexp {
 	 * @see writeRecords()
 	 */
 	function addToMapId($substNEWwithIDs)	{
-		reset($this->import_data);
-		while(list($table,$recs)=each($this->import_data))	{
-			reset($recs);
-			while(list($id)=each($recs))	{
+		foreach ($this->import_data as $table => $recs) {
+			foreach ($recs as $id => $value) {
 				$old_uid = $this->import_newId[$table.':'.$id]['uid'];
 				if (isset($substNEWwithIDs[$id]))	{
 					$this->import_mapId[$table][$old_uid] = $substNEWwithIDs[$id];
@@ -1533,8 +1542,7 @@ class tx_impexp {
 		$updateData = array();
 
 			// import_newId contains a register of all records that was in the import memorys "records" key
-		reset($this->import_newId);
-		while(list($nId,$dat) = each($this->import_newId))	{
+		foreach ($this->import_newId as $nId => $dat) {
 			$table = $dat['table'];
 			$uid = $dat['uid'];	// original UID - NOT the new one!
 
@@ -1543,10 +1551,9 @@ class tx_impexp {
 				$thisNewUid = t3lib_BEfunc::wsMapId($table,$this->import_mapId[$table][$uid]);
 
 				if (is_array($this->dat['records'][$table.':'.$uid]['rels']))	{
-					reset($this->dat['records'][$table.':'.$uid]['rels']);
 
 						// Traverse relation fields of each record
-					while(list($field,$config) = each($this->dat['records'][$table.':'.$uid]['rels']))	{
+					foreach ($this->dat['records'][$table.':'.$uid]['rels'] as $field => $config) {
 						switch((string)$config['type'])	{
 							case 'db':
 								if (is_array($config['itemArray']) && count($config['itemArray']))	{
@@ -1570,9 +1577,15 @@ class tx_impexp {
 		}
 		if (count($updateData))	{
 			$tce = $this->getNewTCE();
+			$this->callHook('before_setRelation', array(
+				'tce' => &$tce,
+				'data' => &$updateData,
+			));
 			$tce->start($updateData,Array());
 			$tce->process_datamap();
-#debug($updateData,'setRelations()');
+			$this->callHook('after_setRelations', array(
+				'tce' => &$tce,
+			));
 		}
 	}
 
@@ -1588,11 +1601,11 @@ class tx_impexp {
 		foreach($itemArray as $relDat)	{
 			if (is_array($this->import_mapId[$relDat['table']]) && isset($this->import_mapId[$relDat['table']][$relDat['id']]))	{
 
-				#debug('FOUND: '.$relDat['table'].':'.$relDat['id'],1);
+				#debug('FOUND: '.$relDat['table'].':'.$relDat['id']);
 				$valArray[] = $relDat['table'].'_'.$this->import_mapId[$relDat['table']][$relDat['id']];
 			} elseif ($this->isTableStatic($relDat['table']) || $this->isExcluded($relDat['table'], $relDat['id']) || $relDat['id']<0) {	// Checking for less than zero because some select types could contain negative values, eg. fe_groups (-1, -2) and sys_language (-1 = ALL languages). This must be handled on both export and import.
 
-				#debug('STATIC: '.$relDat['table'].':'.$relDat['id'],1);
+				#debug('STATIC: '.$relDat['table'].':'.$relDat['id']);
 				$valArray[] = $relDat['table'].'_'.$relDat['id'];
 			} else {
 
@@ -1637,24 +1650,19 @@ class tx_impexp {
 		global $TCA;
 
 		$updateData = array();
-#debug($this->import_newId);
 			// import_newId contains a register of all records that was in the import memorys "records" key
-		reset($this->import_newId);
-		while(list($nId,$dat) = each($this->import_newId))	{
+		foreach ($this->import_newId as $nId => $dat) {
 			$table = $dat['table'];
 			$uid = $dat['uid'];	// original UID - NOT the new one!
 
 				// If the record has been written and received a new id, then proceed:
 			if (is_array($this->import_mapId[$table]) && isset($this->import_mapId[$table][$uid]))	{
 				$thisNewUid = t3lib_BEfunc::wsMapId($table,$this->import_mapId[$table][$uid]);
-#debug($thisNewUid,'$thisNewUid');
-#debug($this->dat['records'][$table.':'.$uid]['rels']);
 				if (is_array($this->dat['records'][$table.':'.$uid]['rels']))	{
-					reset($this->dat['records'][$table.':'.$uid]['rels']);
 					t3lib_div::loadTCA($table);
 
 						// Traverse relation fields of each record
-					while(list($field,$config) = each($this->dat['records'][$table.':'.$uid]['rels']))	{
+					foreach ($this->dat['records'][$table.':'.$uid]['rels'] as $field => $config) {
 						switch((string)$config['type'])	{
 							case 'flex':
 									// Get XML content and set as default value (string, non-processed):
@@ -1663,17 +1671,11 @@ class tx_impexp {
 									// If there has been registered relations inside the flex form field, run processing on the content:
 								if (count($config['flexFormRels']['db']) || count($config['flexFormRels']['file']))	{
 									$origRecordRow = t3lib_BEfunc::getRecord($table,$thisNewUid,'*');	// This will fetch the new row for the element (which should be updated with any references to data structures etc.)
-#debug(array($updateData[$table][$thisNewUid][$field]),'flexXML');
 									$conf = $TCA[$table]['columns'][$field]['config'];
 									if (is_array($origRecordRow) && is_array($conf) && $conf['type']==='flex')	{
-#debug($conf,'***');
 											// Get current data structure and value array:
 										$dataStructArray = t3lib_BEfunc::getFlexFormDS($conf, $origRecordRow, $table);
 										$currentValueArray = t3lib_div::xml2array($updateData[$table][$thisNewUid][$field]);
-#	debug($dataStructArray);
-#	debug($currentValueArray);
-#	debug($origRecordRow);
-#	debug($currentValueArray['data'],'BE');
 											// Do recursive processing of the XML data:
 										$iteratorObj = t3lib_div::makeInstance('t3lib_TCEmain');
 										$iteratorObj->callBackObj = $this;
@@ -1685,7 +1687,6 @@ class tx_impexp {
 													array($table,$thisNewUid,$field,$config),	// Parameters.
 													'remapListedDBRecords_flexFormCallBack'
 												);
-#debug($currentValueArray['data'],'AF');
 											// The return value is set as an array which means it will be processed by tcemain for file and DB references!
 										if (is_array($currentValueArray['data']))	{
 											$updateData[$table][$thisNewUid][$field] = $currentValueArray;
@@ -1700,9 +1701,15 @@ class tx_impexp {
 		}
 		if (count($updateData))	{
 			$tce = $this->getNewTCE();
+			$this->callHook('before_setFlexFormRelations', array(
+				'tce' => &$tce,
+				'data' => &$updateData,
+			));
 			$tce->start($updateData,Array());
 			$tce->process_datamap();
-#debug($updateData,'setFlexFormRelations()');
+			$this->callHook('after_setFlexFormRelations', array(
+				'tce' => &$tce,
+			));
 		}
 	}
 
@@ -1837,9 +1844,16 @@ class tx_impexp {
 
 			// Now write to database:
 		$tce = $this->getNewTCE();
+		$this->callHook('before_processSoftReferences', array(
+				'tce' => &$tce,
+				'data' => &$inData,
+			));
 		$tce->enableLogging = TRUE;
 		$tce->start($inData, Array());
 		$tce->process_datamap();
+		$this->callHook('after_processSoftReferences', array(
+			'tce' => &$tce,
+		));
 	}
 
 	/**
@@ -2512,19 +2526,16 @@ class tx_impexp {
 	 * @return	void
 	 */
 	function traversePageTree($pT,&$lines,$preCode='')	{
-		reset($pT);
-		while(list($k,$v) = each($pT))	{
+		foreach ($pT as $k => $v) {
 
 				// Add this page:
 			$this->singleRecordLines('pages',$k,$lines,$preCode);
 
 				// Subrecords:
 			if (is_array($this->dat['header']['pid_lookup'][$k]))	{
-				reset($this->dat['header']['pid_lookup'][$k]);
-				while(list($t,$recUidArr)=each($this->dat['header']['pid_lookup'][$k]))	{
+				foreach ($this->dat['header']['pid_lookup'][$k] as $t => $recUidArr) {
 					if ($t!='pages')	{
-						reset($recUidArr);
-						while(list($ruid)=each($recUidArr))	{
+						foreach ($recUidArr as $ruid => $value) {
 							$this->singleRecordLines($t,$ruid,$lines,$preCode.'&nbsp;&nbsp;&nbsp;&nbsp;');
 						}
 					}
@@ -2547,16 +2558,13 @@ class tx_impexp {
 	 * @return	void
 	 */
 	function traversePageRecords($pT,&$lines)	{
-		reset($pT);
-		while(list($k,$rHeader)=each($pT))	{
+		foreach ($pT as $k => $rHeader) {
 			$this->singleRecordLines('pages',$k,$lines,'',1);
 				// Subrecords:
 			if (is_array($this->dat['header']['pid_lookup'][$k]))	{
-				reset($this->dat['header']['pid_lookup'][$k]);
-				while(list($t,$recUidArr)=each($this->dat['header']['pid_lookup'][$k]))	{
+				foreach ($this->dat['header']['pid_lookup'][$k] as $t => $recUidArr) {
 					if ($t!='pages')	{
-						reset($recUidArr);
-						while(list($ruid)=each($recUidArr))	{
+						foreach ($recUidArr as $ruid => $value) {
 							$this->singleRecordLines($t,$ruid,$lines,'&nbsp;&nbsp;&nbsp;&nbsp;');
 						}
 					}
@@ -2574,11 +2582,9 @@ class tx_impexp {
 	 * @return	void
 	 */
 	function traverseAllRecords($pT,&$lines)	{
-		reset($pT);
-		while(list($t,$recUidArr)=each($pT))	{
+		foreach ($pT as $t => $recUidArr) {
 			if ($t!='pages')	{
-				reset($recUidArr);
-				while(list($ruid)=each($recUidArr))	{
+				foreach ($recUidArr as $ruid => $value) {
 					$this->singleRecordLines($t,$ruid,$lines,$preCode,1);
 				}
 			}
@@ -2636,7 +2642,7 @@ class tx_impexp {
 				if ($this->update)	{
 					$diffInverse = TRUE;	// In case of update-PREVIEW we swap the diff-sources.
 					$recInf = $this->doesRecordExist($table, $uid, $this->showDiff ? '*' : '');
-					$pInfo['updatePath']= $recInf ? htmlspecialchars($this->getRecordPath($recInf['pid'])) : '<b>NEW!</b>';
+					$pInfo['updatePath']= $recInf ? htmlspecialchars($this->getRecordPath($recInf['pid'])) : '<strong>NEW!</strong>';
 
 						// Mode selector:
 					$optValues = array();
@@ -2701,19 +2707,19 @@ class tx_impexp {
 			$preCode_B = $preCode.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 			foreach($record['softrefs'] as $info)	{
 				$pInfo = array();
-				$pInfo['preCode'] = $preCode_A.'<img'.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/rel_softref.png','width="13" height="12"').' align="top" alt="" />';
+				$pInfo['preCode'] = $preCode_A. t3lib_iconWorks::getSpriteIcon('status-reference-soft');
 				$pInfo['title'] = '<em>'.$info['field'].', "'.$info['spKey'].'" </em>: <span title="'.htmlspecialchars($info['matchString']).'">'.htmlspecialchars(t3lib_div::fixed_lgd_cs($info['matchString'],60)).'</span>';
 				if ($info['subst']['type'])	{
 					if (strlen($info['subst']['title']))	{
-						$pInfo['title'].= '<br/>'.$preCode_B.'<b>'.$LANG->getLL('impexpcore_singlereco_title',1).'</b> '.htmlspecialchars(t3lib_div::fixed_lgd_cs($info['subst']['title'],60));
+						$pInfo['title'].= '<br/>'.$preCode_B.'<strong>'.$LANG->getLL('impexpcore_singlereco_title',1).'</strong> '.htmlspecialchars(t3lib_div::fixed_lgd_cs($info['subst']['title'],60));
 					}
 					if (strlen($info['subst']['description']))	{
-						$pInfo['title'].= '<br/>'.$preCode_B.'<b>'.$LANG->getLL('impexpcore_singlereco_descr',1).'</b> '.htmlspecialchars(t3lib_div::fixed_lgd_cs($info['subst']['description'],60));
+						$pInfo['title'].= '<br/>'.$preCode_B.'<strong>'.$LANG->getLL('impexpcore_singlereco_descr',1).'</strong> '.htmlspecialchars(t3lib_div::fixed_lgd_cs($info['subst']['description'],60));
 					}
 					$pInfo['title'].= '<br/>'.$preCode_B.
-											($info['subst']['type'] == 'file' ? $LANG->getLL('impexpcore_singlereco_filename',1).' <b>'.$info['subst']['relFileName'].'</b>' : '').
-											($info['subst']['type'] == 'string' ? $LANG->getLL('impexpcore_singlereco_value',1).' <b>'.$info['subst']['tokenValue'].'</b>' : '').
-											($info['subst']['type'] == 'db' ? $LANG->getLL('impexpcore_softrefsel_record',1).' <b>'.$info['subst']['recordRef'].'</b>' : '');
+											($info['subst']['type'] == 'file' ? $LANG->getLL('impexpcore_singlereco_filename',1).' <strong>'.$info['subst']['relFileName'].'</strong>' : '').
+											($info['subst']['type'] == 'string' ? $LANG->getLL('impexpcore_singlereco_value',1).' <strong>'.$info['subst']['tokenValue'].'</strong>' : '').
+											($info['subst']['type'] == 'db' ? $LANG->getLL('impexpcore_softrefsel_record',1).' <strong>'.$info['subst']['recordRef'].'</strong>' : '');
 				}
 				$pInfo['ref'] = 'SOFTREF';
 				$pInfo['size'] = '';
@@ -2779,7 +2785,7 @@ class tx_impexp {
 
 							$pInfo['msg'] = 'LOST RELATION'.(!$doesRE ? ' (Record not found!)' : ' (Path: '.$lostPath.')');
 							$Iprepend = '_lost';
-	#						debug('MISSING relation: '.$table.':'.$uid,1);
+	#						debug('MISSING relation: '.$table.':'.$uid);
 						}
 					} else {
 						$pInfo['title'] = htmlspecialchars($record['title']);
@@ -2833,7 +2839,7 @@ class tx_impexp {
 					return;
 				}
 			}
-			$pInfo['preCode'] = $preCode.'&nbsp;&nbsp;&nbsp;&nbsp;<img'.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/rel_file.gif','width="13" height="12"').' align="top" alt="" />';
+			$pInfo['preCode'] = $preCode.'&nbsp;&nbsp;&nbsp;&nbsp;'.t3lib_iconWorks::getSpriteIcon('status-reference-file');
 			$pInfo['title'] = htmlspecialchars($fI['filename']);
 			$pInfo['ref'] = 'FILE';
 			$pInfo['size'] = $fI['filesize'];
@@ -2892,7 +2898,7 @@ class tx_impexp {
 
 				$pInfo['showDiffContent'] = substr($this->fileIDMap[$ID],strlen(PATH_site));
 
-				$pInfo['preCode'] = $preCode.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img'.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/rel_file.gif','width="13" height="12"').' align="top" alt="" />';
+				$pInfo['preCode'] = $preCode.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.t3lib_iconWorks::getSpriteIcon('actions-reference-file');
 				$pInfo['title'] = htmlspecialchars($fI['filename']).' <em>(Original)</em>';
 				$pInfo['ref'] = 'FILE';
 				$pInfo['size'] = $fI['filesize'];
@@ -2916,7 +2922,7 @@ class tx_impexp {
 
 					$pInfo['showDiffContent'] = substr($this->fileIDMap[$ID],strlen(PATH_site));
 
-					$pInfo['preCode'] = $preCode.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img'.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/rel_file.gif','width="13" height="12"').' align="top" alt="" />';
+					$pInfo['preCode'] = $preCode.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.t3lib_iconWorks::getSpriteIcon('actions-reference-file');
 					$pInfo['title'] = htmlspecialchars($fI['filename']).' <em>(Resource)</em>';
 					$pInfo['ref'] = 'FILE';
 					$pInfo['size'] = $fI['filesize'];
@@ -2966,7 +2972,7 @@ class tx_impexp {
 				$cfg = $this->softrefCfg[$tokenID];
 				if ($cfg['mode'] === 'editable')	{
 					return
-						(strlen($cfg['title']) ? '<b>'.htmlspecialchars($cfg['title']).'</b><br/>' : '').
+						(strlen($cfg['title']) ? '<strong>'.htmlspecialchars($cfg['title']).'</strong><br/>' : '').
 						htmlspecialchars($cfg['description']).'<br/>
 						<input type="text" name="tx_impexp[softrefInputValues]['.$tokenID.']" value="'.htmlspecialchars(isset($this->softrefInputValues[$tokenID]) ? $this->softrefInputValues[$tokenID] : $cfg['defValue']).'" />';
 				}
@@ -3009,7 +3015,7 @@ class tx_impexp {
 				if (strlen($cfg['subst']['title']))	{
 					$descriptionField.= '
 					<input type="hidden" name="tx_impexp[softrefCfg]['.$cfg['subst']['tokenID'].'][title]" value="'.htmlspecialchars($cfg['subst']['title']).'" />
-					<b>'.htmlspecialchars($cfg['subst']['title']).'</b><br/>';
+					<strong>'.htmlspecialchars($cfg['subst']['title']).'</strong><br/>';
 				}
 
 					// Description:
@@ -3167,8 +3173,7 @@ class tx_impexp {
 	function renderSelectBox($prefix,$value,$optValues)	{
 		$opt = array();
 		$isSelFlag = 0;
-		reset($optValues);
-		while(list($k,$v) = each($optValues))	{
+		foreach ($optValues as $k => $v) {
 			$sel = (!strcmp($k,$value) ? ' selected="selected"' : '');
 			if ($sel)	$isSelFlag++;
 			$opt[] = '<option value="'.htmlspecialchars($k).'"'.$sel.'>'.htmlspecialchars($v).'</option>';
@@ -3213,7 +3218,7 @@ class tx_impexp {
 						unset($importRecord[$fN]);
 					} else {
 							// This will tell us if the field is not in the import file, but who cares? It is totally ok that the database contains fields that are not in the import, isn't it (extensions could be installed that added these fields!)?
-						#$output[$fN] = '<b>Field missing</b> in import file';
+						#$output[$fN] = '<strong>Field missing</strong> in import file';
 					}
 				}
 			}
@@ -3221,7 +3226,7 @@ class tx_impexp {
 				// Traverse remaining in import record:
 			foreach($importRecord as $fN => $value)	{
 				if (is_array($TCA[$table]['columns'][$fN]) && $TCA[$table]['columns'][$fN]['config']['type']!='passthrough')	{
-					$output[$fN] = '<b>Field missing</b> in database';
+					$output[$fN] = '<strong>Field missing</strong> in database';
 				}
 			}
 
@@ -3242,7 +3247,7 @@ class tx_impexp {
 				$output = 'Match';
 			}
 
-			return '<b class="nobr">['.htmlspecialchars($table.':'.$importRecord['uid'].' => '.$databaseRecord['uid']).']:</b> '.$output;
+			return '<strong class="nobr">['.htmlspecialchars($table.':'.$importRecord['uid'].' => '.$databaseRecord['uid']).']:</strong> '.$output;
 		}
 
 
@@ -3281,7 +3286,20 @@ class tx_impexp {
 		return $this->fileProcObj;
 	}
 
-
+	/**
+	 * Call Hook
+	 *
+	 * @param string $name name of the hook
+	 * @param array $params array with params
+	 * @return void
+	 */
+	public function callHook($name, $params) {
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/impexp/class.tx_impexp.php'][$name])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/impexp/class.tx_impexp.php'][$name] as $hook) {
+				t3lib_div::callUserFunction($hook, $params, $this);
+			}
+		}
+	}
 
 
 

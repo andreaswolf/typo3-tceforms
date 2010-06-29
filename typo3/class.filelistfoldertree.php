@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -80,10 +80,7 @@ class filelistFolderTree extends t3lib_folderTree {
 	 * @param	array		Data row for element.
 	 * @return	string		Page icon
 	 */
-	function wrapIcon($icon,&$row)	{
-
-			// Add title attribute to input icon tag
-		$theFolderIcon = $this->addTagAttributes($icon,($this->titleAttrib ? $this->titleAttrib.'="'.$this->getTitleAttrib($row).'"' : ''));
+	function wrapIcon($theFolderIcon, &$row)	{
 
 			// Wrap icon in click-menu link.
 		if (!$this->ext_IconMode)	{
@@ -169,7 +166,7 @@ class filelistFolderTree extends t3lib_folderTree {
 			// if this item is the start of a new level,
 			// then a new level <ul> is needed, but not in ajax mode
 			if($v['isFirst'] && !($doCollapse) && !($doExpand && $expandedFolderUid == $uid))	{
-				$itemHTML = "</div><ul>\n";
+				$itemHTML = "<ul>\n";
 			}
 
 			// add CSS classes to the list item
@@ -179,10 +176,10 @@ class filelistFolderTree extends t3lib_folderTree {
 			$itemHTML .='
 				<li id="'.$idAttr.'"'.($classAttr ? ' class="'.$classAttr.'"' : '').'><div class="treeLinkItem">'.
 					$v['HTML'].
-					$this->wrapTitle($this->getTitleStr($v['row'],$titleLen),$v['row'],$v['bank']);
+					$this->wrapTitle($this->getTitleStr($v['row'],$titleLen),$v['row'],$v['bank']) . '</div>';
 
 
-			if(!$v['hasSub']) { $itemHTML .= "</div></li>\n"; }
+			if(!$v['hasSub']) { $itemHTML .= "</li>\n"; }
 
 			// we have to remember if this is the last one
 			// on level X so the last child on level X+1 closes the <ul>-tag
@@ -304,26 +301,26 @@ class filelistFolderTree extends t3lib_folderTree {
 
 				// Set PM icon:
 			$cmd = $this->bank.'_'.($isOpen ? '0_' : '1_').$specUID.'_'.$this->treeName;
-			$icon='<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/'.($isOpen?'minus':'plus').'only.gif').' alt="" />';
+			$icon='<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/'.($isOpen? 'minus':'plus').'only.gif').' alt="" />';
 			$firstHtml= $this->PM_ATagWrap($icon,$cmd);
 
 			switch ($val['type']) {
 				case 'user':
-					$icon = 'gfx/i/_icon_ftp_user.gif';
+					$icon = 'apps-filetree-folder-user';
 					break;
 				case 'group':
-					$icon = 'gfx/i/_icon_ftp_group.gif';
+					$icon = 'apps-filetree-folder-user';
 					break;
 				case 'readonly':
-					$icon = 'gfx/i/_icon_ftp_readonly.gif';
+					$icon = 'apps-filetree-folder-locked';
 					break;
 				default:
-					$icon = 'gfx/i/_icon_ftp.gif';
+					$icon = 'apps-filetree-mount';
 					break;
 			}
 
 				// Preparing rootRec for the mount
-			$firstHtml.=$this->wrapIcon('<img'.t3lib_iconWorks::skinImg($this->backPath,$icon,'width="18" height="16"').' alt="" />',$val);
+			$firstHtml.=$this->wrapIcon(t3lib_iconWorks::getSpriteIcon($icon),$val);
 			$row=array();
 			$row['uid']   = $specUID;
 			$row['path']  = $val['path'];
@@ -342,6 +339,12 @@ class filelistFolderTree extends t3lib_folderTree {
 
 				// Add tree:
 			$treeArr = array_merge($treeArr, $this->tree);
+			
+				// if this is an AJAX call, don't run through all mounts, only 
+				// show the expansion of the current one, not the rest of the mounts
+			if (TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_AJAX) {
+				break;
+			}
 		}
 		return $this->printTree($treeArr);
 	}
@@ -409,22 +412,29 @@ class filelistFolderTree extends t3lib_folderTree {
 
 				if (is_writable($path)) {
 					$type = '';
+					$overlays = array();
 				} else {
 					$type = 'readonly';
+					$overlays= array('status-overlay-locked'=>array());
+					
 				}
 
-				$icon = 'gfx/i/_icon_' .$webpath . 'folders' . ($type == 'readonly' ? '_ro' : '') . '.gif';
+				if($webpath == 'web') {
+					$icon = 'apps-filetree-folder-default';
+				} else {
+					$icon = 'apps-filetree-folder-default';
+				}
 				if ($val == '_temp_')	{
-					$icon = 'gfx/i/sysf.gif';
+					$icon = 'apps-filetree-folder-temp';
 					$row['title'] = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:temp', true);
 					$row['_title'] = '<strong>' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:temp', true) . '</strong>';
 				}
 				if ($val == '_recycler_')	{
-					$icon = 'gfx/i/recycler.gif';
+					$icon = 'apps-filetree-recycler';
 					$row['title'] = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:recycler', true);
 					$row['_title'] = '<strong>' .$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:recycler', true) . '</strong>';
 				}
-				$HTML .= $this->wrapIcon('<img'.t3lib_iconWorks::skinImg($this->backPath, $icon, 'width="18" height="16"').' alt="" />',$row);
+				$HTML .= $this->wrapIcon(t3lib_iconWorks::getSpriteIcon($icon,array('title'=>$row['title']),$overlays),$row);
 			}
 
 				// Finally, add the row/HTML content to the ->tree array in the reserved key.

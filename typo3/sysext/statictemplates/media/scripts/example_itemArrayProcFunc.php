@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -73,10 +73,9 @@
  */
 function user_itemArrayProcFuncTest($menuArr,$conf)	{
 	if ($conf['demoItemStates'])	{		// Used in the example of item states
-		reset($menuArr);
 		$c=0;
 		$teststates=explode(',','NO,ACT,IFSUB,CUR,USR,SPC,USERDEF1,USERDEF2');
-		while(list($k,$v)=each($menuArr))	{
+		foreach ($menuArr as $k => $v) {
 			$menuArr[$k]['ITEM_STATE']=$teststates[$c];
 			$menuArr[$k]['title'].= ($teststates[$c] ? ' ['.$teststates[$c].']' : '');
 			$c++;

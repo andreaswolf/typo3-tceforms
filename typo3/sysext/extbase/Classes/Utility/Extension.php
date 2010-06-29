@@ -187,10 +187,8 @@ tt_content.list.20.' . $pluginSignature . ' {
 	 */
 	public function configureModule($key, $fullpath, array $MCONF = array(), array $MLANG = array()) {
 		$path = preg_replace('/\/[^\/.]+\/\.\.\//', '/', $fullpath); // because 'path/../path' does not work
-		$config = $GLOBALS['TBE_MODULES'][$key]['config'];
+		$config = $GLOBALS['TBE_MODULES']['_configuration'][$key]['config'];
 		define('TYPO3_MOD_PATH', $config['extRelPath']);
-
-		$GLOBALS['BACK_PATH'] = '';
 
 			// Fill $MCONF
 		$MCONF['name'] = $key;
@@ -310,14 +308,15 @@ tt_content.list.20.' . $pluginSignature . ' {
 			'controllerActions' => $controllerActions,
 			'config' => $config,
 		);
-		$GLOBALS['TBE_MODULES'][$key] = $moduleConfig;
-		$GLOBALS['TBE_MODULES'][$key]['configureModuleFunction'] = array('Tx_Extbase_Utility_Extension', 'configureModule');
+		$GLOBALS['TBE_MODULES']['_configuration'][$key] = $moduleConfig;
+		$GLOBALS['TBE_MODULES']['_configuration'][$key]['configureModuleFunction'] = array('Tx_Extbase_Utility_Extension', 'configureModule');
 
 		t3lib_extMgm::addModule($main, $sub, $position);
 	}
 
 	// TODO PHPdoc
 	public static function convertCamelCaseToLowerCaseUnderscored($string) {
+		// FIXME The cache doesn't work IMO as it is static (did I really implemented this? ;-))
 		static $conversionMap = array();
 		if (!isset($conversionMap[$string])) {
 			$conversionMap[$string] = strtolower(preg_replace('/(?<=\w)([A-Z])/', '_\\1', $string));
@@ -471,7 +470,7 @@ tt_content.list.20.' . $pluginSignature . ' {
 
 		$returnValue = false;
 		// Iterate with while since we need the current array position:
-		while (list(,$token) = each($tokenList)) {
+		foreach ($tokenList as $token) {
 			// parse token (see http://www.php.net/manual/en/function.token-get-all.php for format of token list)
 			if (is_array($token)) {
 				list($id, $text) = $token;

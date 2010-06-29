@@ -1,0 +1,10 @@
+/* - - - - - - - - - - - - - - - - - - - - -
+body tags
+
+$Id$
+- - - - - - - - - - - - - - - - - - - - - */
+
+/* Set default values for bodytags: */
+body {
+	background-color: #f1f1f1;
+}

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -254,7 +254,7 @@ class SC_db_new_content_el {
 			$wizardItems = $this->getWizardItems();
 
 				// Wrapper for wizards
-			$this->elementWrapper['sectionHeader'] = array('<h3 class="bgColor5">', '</h3>');
+			$this->elementWrapper['sectionHeader'] = array('<h3 class="divider">', '</h3>');
 			$this->elementWrapper['section'] = array('<table border="0" cellpadding="1" cellspacing="2">', '</table>');
 			$this->elementWrapper['wizard'] = array('<tr>', '</tr>');
 			$this->elementWrapper['wizardPart'] = array('<td>', '</td>');
@@ -290,10 +290,6 @@ class SC_db_new_content_el {
 					top.refreshMenu();
 				} else {
 					top.TYPO3ModuleMenu.refreshMenu();
-				}
-
-				if(top.shortcutFrame) {
-					top.shortcutFrame.refreshShortcuts();
 				}
 			');
 
@@ -347,7 +343,7 @@ class SC_db_new_content_el {
 				// Add the wizard table to the content, wrapped in tabs:
 			if ($this->config['renderMode'] == 'tabs') {
 				$this->doc->inDocStylesArray[] = '
-					.typo3-dyntabmenu-divs { background-color: #fafafa; border: 1px solid #000; width: 680px; }
+					.typo3-dyntabmenu-divs { background-color: #fafafa; border: 1px solid #adadad; width: 680px; }
 					.typo3-dyntabmenu-divs table { margin: 15px; }
 					.typo3-dyntabmenu-divs table td { padding: 3px; }
 				';
@@ -430,8 +426,8 @@ class SC_db_new_content_el {
 
 				// Back
 			if ($this->R_URI)	{
-				$buttons['back'] = '<a href="' . htmlspecialchars($this->R_URI) . '" class="typo3-goBack">' .
-					'<img' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/goback.gif') . ' alt="" title="' . $LANG->getLL('goBack', 1) . '" />' .
+				$buttons['back'] = '<a href="' . htmlspecialchars($this->R_URI) . '" class="typo3-goBack" title="' . $LANG->getLL('goBack', TRUE) . '">' .
+						t3lib_iconWorks::getSpriteIcon('actions-view-go-back') .
 					'</a>';
 			}
 		}

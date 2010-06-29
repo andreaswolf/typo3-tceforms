@@ -29,7 +29,7 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-EditorMode = HTMLArea.Plugin.extend({
+HTMLArea.EditorMode = HTMLArea.Plugin.extend({
 	constructor : function(editor, pluginName) {
 		this.base(editor, pluginName);
 	},
@@ -59,10 +59,11 @@ EditorMode = HTMLArea.Plugin.extend({
 			buttonId = button[0];
 			var buttonConfiguration = {
 				id		: buttonId,
-				tooltip		: this.localize(buttonId + "-Tooltip"),
-				action		: "onButtonPress",
+				tooltip		: this.localize(buttonId + '-Tooltip'),
+				iconCls		: 'htmlarea-action-editor-toggle-mode',
+				action		: 'onButtonPress',
 				context		: button[1],
-				textMode	: (buttonId == "TextMode")
+				textMode	: (buttonId == 'TextMode')
 			};
 			this.registerButton(buttonConfiguration);
 		}

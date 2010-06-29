@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -113,6 +113,7 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 	var $publishAccess = FALSE;
 	var $be_user_Array = array();
 	var $be_user_Array_full = array();	// not blinded, used by workspace listing
+	protected $showDraftWorkspace = FALSE;	// Determines whether the draft workspace is shown
 
 
 	/*********************************
@@ -129,6 +130,13 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 	function menuConfig()	{
 		global	$LANG;
 
+			// fetches the configuration of the version extension
+		$versionExtconf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['version']);
+			// show draft workspace only if enabled in the version extensions config
+		if($versionExtconf['showDraftWorkspace']) {
+			$this->showDraftWorkspace = TRUE;
+		}
+
 			// Menu items:
 		$this->MOD_MENU = array(
 			'function' => array(
@@ -143,8 +151,7 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 			'display' => array(
 				0 => '['.$LANG->getLL('shortcut_onlineWS').']',
 				-98 => $LANG->getLL('label_offlineWSes'),
-				-99 => $LANG->getLL('label_allWSes'),
-				-1 => '['.$LANG->getLL('shortcut_offlineWS').']'
+				-99 => $LANG->getLL('label_allWSes')
 			),
 			'diff' => array(
 				0 => $LANG->getLL('diff_no_diff'),
@@ -153,13 +160,16 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 			),
 			'expandSubElements' => '',
 		);
-
+		
+		if($this->showDraftWorkspace === TRUE) {
+			$this->MOD_MENU['display'][-1] = '[' . $LANG->getLL('shortcut_offlineWS') . ']';
+		}
 			// Add workspaces:
 		if ($GLOBALS['BE_USER']->workspace===0)	{	// Spend time on this only in online workspace because it might take time:
 			$workspaces = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('uid,title,adminusers,members,reviewers','sys_workspace','pid=0'.t3lib_BEfunc::deleteClause('sys_workspace'),'','title');
 			foreach($workspaces as $rec)	{
 				if ($GLOBALS['BE_USER']->checkWorkspace($rec))	{
-					$this->MOD_MENU['display'][$rec['uid']] = '['.$rec['uid'].'] '.$rec['title'];
+					$this->MOD_MENU['display'][$rec['uid']] = '[' . $rec['uid'] . '] ' . htmlspecialchars($rec['title']);
 				}
 			}
 		}
@@ -251,25 +261,23 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 		$this->doc->setModuleTemplate('templates/ws.html');
 
 			// JavaScript
-		$plusIcon = t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/ol/plusbullet.gif', 'width="18" height="16"', 1);
-		$minusIcon = t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/ol/minusbullet.gif', 'width="18" height="16"', 1);
 		$this->doc->JScode = $this->doc->wrapScriptTags('
 			script_ended = 0;
 			function jumpToUrl(URL)	{	//
 				window.location.href = URL;
 			}
 
-			function expandCollapse(rowNumber)	{	//
-				elementId = \'wl_\' + rowNumber;
+			function expandCollapse(rowNumber) {
+				elementId = "wl_" + rowNumber;
 				element = document.getElementById(elementId);
-				image = document.getElementById(elementId + \'i\');
+				image = document.getElementById("spanw1_" + rowNumber);
 				if (element.style)	{
-					if (element.style.display == \'none\')	{
-						element.style.display = \'\';
-						image.src = \'' . $minusIcon . '\';
+					if (element.style.display == "none")	{
+						element.style.display = "table-row";
+						image.className = "t3-icon t3-icon-actions t3-icon-actions-view t3-icon-view-table-collapse";
 					} else {
-						element.style.display = \'none\';
-						image.src = \'' . $plusIcon . '\';
+						element.style.display = "none";
+						image.className = "t3-icon t3-icon-actions t3-icon-actions-view t3-icon-view-table-expand";
 					}
 				}
 			}
@@ -469,22 +477,22 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 
 			// Add header to content variable:
 		$content = '
-		<table border="0" cellpadding="1" cellspacing="1" class="lrPadding" style="border: 1px solid black;">
+		<table border="0" cellpadding="0" cellspacing="0" id="t3-user-ws-wsinfotable" class="t3-table t3-table-info">
 			<tr>
-				<td class="bgColor2" nowrap="nowrap"><b>' . $LANG->getLL('label_workspace') . '</b>&nbsp;</td>
-				<td class="bgColor4" nowrap="nowrap">'.$title.'</td>
+				<td class="t3-col-header" nowrap="nowrap">' . $LANG->getLL('label_workspace') . '&nbsp;</th>
+				<td nowrap="nowrap">' . $title . '</td>
 			</tr>
 			<tr>
-				<td class="bgColor2" nowrap="nowrap"><b>' . $LANG->getLL('label_description') . '</b>&nbsp;</td>
-				<td class="bgColor4">'.$description.'</td>
+				<td class="t3-col-header" nowrap="nowrap">' . $LANG->getLL('label_description') . '&nbsp;</td>
+				<td>' . $description . '</td>
 			</tr>'.($GLOBALS['BE_USER']->workspace!=-99 && !$details ? '
 			<tr>
-				<td class="bgColor2" nowrap="nowrap"><b>' . $LANG->getLL('label_options') . '</b>&nbsp;</td>
-				<td class="bgColor4">'.$menu.$actionLinks.'</td>
+				<td class="t3-col-header" nowrap="nowrap">' . $LANG->getLL('label_options') . '&nbsp;</td>
+				<td>' . $menu . $actionLinks . '</td>
 			</tr>
 			<tr>
-				<td class="bgColor2" nowrap="nowrap"><b>' . $LANG->getLL('label_status') . '</b>&nbsp;</td>
-				<td class="bgColor4">'.$LANG->getLL('label_access_level').' ' . $GLOBALS['LANG']->getLL('workspace_list_access_' . $wsAccess['_ACCESS']) . '</td>
+				<td class="t3-col-header" nowrap="nowrap">' . $LANG->getLL('label_status') . '&nbsp;</td>
+				<td>' . $LANG->getLL('label_access_level') . ' ' . $GLOBALS['LANG']->getLL('workspace_list_access_' . $wsAccess['_ACCESS']) . '</td>
 			</tr>' : '').'
 		</table>
 		<br />
@@ -592,14 +600,17 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 			// (1) Folding + Icons + Title + Description
 			// (2) Information about workspace (initially hidden)
 
-			$cssClass = ($currentWksp ? 'bgColor3' : 'bgColor4');
+			$cssClass = ($currentWksp ? 't3-row t3-row-active bgColor3' : 't3-row bgColor4');
 				// Start first row
 			$content .= '<tr class="' . $cssClass . '">';
 
 				// row #1, column #1: expand icon
 			$content .= '<td>' .
 						'<a href="javascript:expandCollapse(' . $rowNum . ')">' .
-						'<img ' . t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/ol/plusbullet.gif', 'width="18" height="16"') . ' id="wl_' . $rowNum . 'i" border="0" hspace="1" alt="' . $LANG->getLL('img_title_show_more') . '" />' .
+						t3lib_iconWorks::getSpriteIcon('actions-view-table-expand', array(
+							'title' => $LANG->getLL('img_title_show_more'),
+							'id' => 'spanw1_' . $rowNum
+						)) .
 						'</a></td>';
 
 				// row #1, column #2: icon panel
@@ -685,28 +696,28 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 	function workspaceList_formatWorkspaceData(&$wksp)	{
 		global $LANG;
 
-		$content = '<table cellspacing="1" cellpadding="1" width="100%" class="ver-wl-details-table">' .
-				'<tr><td class="ver-wl-details-label"><b>' . $LANG->getLL('workspace_list_label_file_mountpoints') . '</b></td>' .
+		$content = '<table cellspacing="0" cellpadding="0" width="100%" class="ver-wl-details-table">' .
+				'<tr><td class="ver-wl-details-label"><strong>' . $LANG->getLL('workspace_list_label_file_mountpoints') . '</strong></td>' .
 				'<td class="ver-wl-details">' . $this->workspaceList_getFileMountPoints($wksp) . '</td></tr>' .
-				'<tr><td class="ver-wl-details-label"><b>' . $LANG->getLL('workspace_list_label_db_mountpoints') . '</b></td>' .
+				'<tr><td class="ver-wl-details-label"><strong>' . $LANG->getLL('workspace_list_label_db_mountpoints') . '</strong></td>' .
 				'<td class="ver-wl-details">' . $this->workspaceList_getWebMountPoints($wksp) . '</td></tr>';
 		if ($wksp['uid'] > 0) {
 			// Displaying information below makes sence only for custom workspaces
 			$content .=
-				'<tr><td class="ver-wl-details-label"><b>' . $LANG->getLL('workspace_list_label_frozen') . '</b></td>' .
+				'<tr><td class="ver-wl-details-label"><strong>' . $LANG->getLL('workspace_list_label_frozen') . '</strong></td>' .
 				'<td class="ver-wl-details">' . $LANG->getLL($wksp['freeze'] ? 'workspace_list_label_frozen_yes' : 'workspace_list_label_frozen_no') . '</td></tr>' .
-				'<tr><td class="ver-wl-details-label"><b>' . $LANG->getLL('workspace_list_label_publish_date') . '</b></td>' .
+				'<tr><td class="ver-wl-details-label"><strong>' . $LANG->getLL('workspace_list_label_publish_date') . '</strong></td>' .
 				'<td class="ver-wl-details">' . ($wksp['publish_time'] == 0 ? '&nbsp;&ndash;' : t3lib_BEfunc::datetime($wksp['publish_time'])) . '</td></tr>' .
-				'<tr><td class="ver-wl-details-label"><b>' . $LANG->getLL('workspace_list_label_unpublish_date') . '</b></td>' .
+				'<tr><td class="ver-wl-details-label"><strong>' . $LANG->getLL('workspace_list_label_unpublish_date') . '</strong></td>' .
 				'<td class="ver-wl-details">' . ($wksp['unpublish_time'] == 0 ? '&nbsp;&ndash;' : t3lib_BEfunc::datetime($wksp['unpublish_time'])) . '</td></tr>' .
-				'<tr><td class="ver-wl-details-label"><b>' . $LANG->getLL('workspace_list_label_your_access') . '</b></td>' .
+				'<tr><td class="ver-wl-details-label"><strong>' . $LANG->getLL('workspace_list_label_your_access') . '</strong></td>' .
 				'<td class="ver-wl-details">' . $LANG->getLL('workspace_list_access_' . $wksp['_ACCESS']) . '</td></tr>' .
-				'<tr><td class="ver-wl-details-label"><b>' . $LANG->getLL('workspace_list_label_workspace_users') . '</b></td>' .
+				'<tr><td class="ver-wl-details-label"><strong>' . $LANG->getLL('workspace_list_label_workspace_users') . '</strong></td>' .
 				'<td class="ver-wl-details">' . $this->workspaceList_getUserList($wksp) . '</td></tr>';
 		}
 		else if ($GLOBALS['BE_USER']->isAdmin()) {
 			// show users for draft/live workspace only to admin users
-			$content .=	'<tr><td class="ver-wl-details-label"><b>' . $LANG->getLL('workspace_list_label_workspace_users') . '</b></td>' .
+			$content .=	'<tr><td class="ver-wl-details-label"><strong>' . $LANG->getLL('workspace_list_label_workspace_users') . '</strong></td>' .
 				'<td class="ver-wl-details">' . $this->workspaceList_getUserList($wksp) . '</td></tr>';
 		}
 		$content .= '</table>';
@@ -747,8 +758,7 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 				if (!$isAdmin && !in_array($mp['uid'], $userMPs)) {
 					// Show warning icon
 					$title = $GLOBALS['LANG']->getLL('workspace_list_mount_point_inaccessible');
-					$str = '<img ' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/icon_warning.gif', 'width="18" height="16"') .
-							' alt="' . $title . '" title="' . $title . '" align="absmiddle" />';
+					$str = t3lib_iconWorks::getSpriteIcon('status-warning');
 					$classAttr = 'class="ver-wl-mp-inacessible" ';
 				}
 				else {
@@ -800,8 +810,7 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 				if (!$isAdmin && !in_array($mp['uid'], $userMPs)) {
 					// Show warning icon
 					$title = $GLOBALS['LANG']->getLL('workspace_list_mount_point_inaccessible');
-					$str = '<img ' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/icon_warning.gif', 'width="18" height="16"') .
-							' alt="' . $title . '" title="' . $title . '" align="absmiddle" />';
+					$str = t3lib_iconWorks::getSpriteIcon('status-warning');
 					$classAttr = 'class="ver-wl-mp-inacessible" ';
 				}
 				else {
@@ -829,8 +838,8 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 	function workspaceList_displayUserWorkspaceListHeader()	{
 		global	$LANG;
 		// TODO CSH lables?
-		return '<table border="0" cellpadding="0" cellspacing="1" class="lrPadding workspace-overview ver-wl-table">
-			<tr class="bgColor5 tableheader">
+		return '<table border="0" cellpadding="0" cellspacing="0" class="workspace-overview">
+			<tr class="t3-row-header">
 				<td width="1">&nbsp;</td>
 				<td width="1">&nbsp;</td>
 				<td nowrap="nowrap">' . $LANG->getLL('workspace_list_label_current_workspace') . '</td>
@@ -959,7 +968,7 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 
 		$content = '<tr><td class="ver-wl-details-label ver-wl-details-user-list-label">';
 		// TODO CSH lable explaining access here?
-		$content .= '<b>' . $access . '</b></td>';
+		$content .= '<strong>' . $access . '</strong></td>';
 		$content .= '<td class="ver-wl-details">' . implode('<br />', $content_array) . '</td></tr>';
 		return $content;
 	}
@@ -982,9 +991,9 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 				// User can modify workspace parameters, display corresponding link and icon
 			$editUrl = 'workspaceforms.php?action=edit&amp;wkspId=' . $wksp['uid'];
 
-			$content .= '<a href="' . $editUrl . '" />' .
-					'<img ' . t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/edit2.gif', 'width="11" height="12"') . ' border="0" alt="' . $LANG->getLL('workspace_list_icon_title_edit_workspace') . '" align="middle" hspace="1" />' .
-					'</a>';
+			$content .= '<a href="' . $editUrl . '" title="'. $LANG->getLL('workspace_list_icon_title_edit_workspace') .'"/>' .
+					t3lib_iconWorks::getSpriteIcon('actions-document-open') .
+			'</a>';
 		} else {
 				// User can NOT modify workspace parameters, display space
 				// Get only withdth and height from skinning API
@@ -997,8 +1006,8 @@ class SC_mod_user_ws_index extends t3lib_SCbase {
 				// Workspace switching button
 			$content .= '<a href="' .
 					t3lib_div::getIndpEnv('SCRIPT_NAME') .
-					'?changeWorkspace=' . $wksp['uid'] . '"/>' .
-					'<img ' . t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/switch.gif', 'width="11" height="10"') . ' border="0" alt="' . $LANG->getLL('workspace_list_icon_title_switch_workspace') . '" align="middle" hspace="1" />' .
+					'?changeWorkspace=' . $wksp['uid'] . '" title="'. $LANG->getLL('workspace_list_icon_title_switch_workspace') . '"/>' .
+					t3lib_iconWorks::getSpriteIcon('actions-version-swap-workspace') .
 					'</a>';
 		} else {
 				// Current workspace: empty space instead of workspace switching button

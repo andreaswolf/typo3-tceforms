@@ -23,7 +23,7 @@
 /**
  * [Enter description here]
  *
- * @version $Id: TransparentSyntaxTreeNode.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: TransparentSyntaxTreeNode.php 3751 2010-01-22 15:56:47Z k-fish $
  * @package Fluid
  * @subpackage View\Fixture
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later

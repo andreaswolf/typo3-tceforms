@@ -37,12 +37,11 @@
 interface Tx_Extbase_DomainObject_DomainObjectInterface {
 
 	/**
-	 * Register an object's clean state, e.g. after it has been reconstituted
-	 * from the database
+	 * Getter for uid.
 	 *
-	 * @return void
+	 * @return int the uid or NULL if none set yet.
 	 */
-	public function _memorizeCleanState();
+	public function getUid();
 
 	/**
 	 * Returns TRUE if the object is new (the uid was not set, yet). Only for internal use
@@ -50,13 +49,6 @@ interface Tx_Extbase_DomainObject_DomainObjectInterface {
 	 * @return boolean
 	 */
 	public function _isNew();
-
-	/**
-	 * Returns TRUE if the properties were modified after reconstitution
-	 *
-	 * @return boolean
-	 */
-	public function _isDirty();
 
 	/**
 	 * Reconstitutes a property. Only for internal use.

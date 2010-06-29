@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -165,7 +165,7 @@ class SC_wizard_tsconfig {
 		}
 
 			// Init the document table object:
-		$this->doc = t3lib_div::makeInstance('mediumDoc');
+		$this->doc = t3lib_div::makeInstance('template');
 		$this->doc->backPath = $BACK_PATH;
 		$this->doc->form='<form action="" name="editform">';
 
@@ -347,7 +347,7 @@ class SC_wizard_tsconfig {
 
 				// Title and description:
 			$out.='<a href="'.htmlspecialchars(t3lib_div::linkThisScript(array('show'=>''))).'" class="typo3-goBack">'.
-					'<img'.t3lib_iconWorks::skinImg($this->doc->backPath,'gfx/goback.gif','width="14" height="14"').' alt="" />'.
+					t3lib_iconWorks::getSpriteIcon('actions-view-go-back') . 
 					htmlspecialchars($obj_string).
 					'</a><br />';
 			if ($rec['title'])	$out.= '<strong>'.htmlspecialchars($rec['title']).': </strong>';
@@ -388,7 +388,8 @@ class SC_wizard_tsconfig {
 			<!--
 				TSconfig, object tree:
 			-->
-				<table border="0" cellpadding="0" cellspacing="0" id="typo3-objtree">
+				<table border="0" cellpadding="0" cellspacing="0" class="t3-tree t3-tree-config" id="typo3-objtree">
+					<tr class="t3-row-header"><td>TSref</td></tr>
 					<tr>
 						<td nowrap="nowrap">'.$tmpl->ext_getObjTree($this->removePointerObjects($objTree[$mode.'.']),'','','','','1').'</td>
 					</tr>
@@ -423,10 +424,10 @@ class SC_wizard_tsconfig {
 		while($rec = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
 			$rec['obj_string'] = $this->revertFromSpecialChars($rec['obj_string']);
 			$p = explode(';',$rec['obj_string']);
-			while(list(,$v)=each($p))	{
+			foreach ($p as $v) {
 				$p2 = t3lib_div::trimExplode(':',$v,1);
 				$subp=t3lib_div::trimExplode('/',$p2[1],1);
-				while(list(,$v2)=each($subp))	{
+				foreach ($subp as $v2) {
 					$this->setObj($objTree,explode('.',$p2[0].'.'.$v2),array($rec,$v2));
 				}
 			}
@@ -492,8 +493,7 @@ class SC_wizard_tsconfig {
 	 * @access private
 	 */
 	function removePointerObjects($objArray)	{
-		reset($objArray);
-		while(list($k)=each($objArray))	{
+		foreach ($objArray as $k => $value) {
 			if (substr(trim($k),0,2)=="->" && trim($k)!='->.')	{
 				$objArray['->.'][substr(trim($k),2)]=$objArray[$k];
 				unset($objArray[$k]);
@@ -531,27 +531,20 @@ class SC_wizard_tsconfig {
 
 				// Adding header:
 			$lines[]='
-				<tr>
-					<td><img src="clear.gif" width="175" height="1" alt="" /></td>
-					<td><img src="clear.gif" width="100" height="1" alt="" /></td>
-					<td><img src="clear.gif" width="400" height="1" alt="" /></td>
-					<td><img src="clear.gif" width="70" height="1" alt="" /></td>
-				</tr>';
-			$lines[]='
-				<tr class="bgColor5">
-					<td><strong>Property:</strong></td>
-					<td><strong>Data type:</strong></td>
-					<td><strong>Description:</strong></td>
-					<td><strong>Default:</strong></td>
+				<tr class="t3-row-header">
+					<td>Property:</td>
+					<td>Data type:</td>
+					<td>Description:</td>
+					<td>Default:</td>
 				</tr>';
 
 				// Traverse the content of "rows":
-			foreach($table['rows'] as $row)	{
+			foreach($table['rows'] as $i => $row)	{
 
 					// Linking:
-				$lP=t3lib_div::trimExplode(chr(10),$row['property'],1);
+				$lP=t3lib_div::trimExplode(LF,$row['property'],1);
 				$lP2=array();
-				while(list($k,$lStr)=each($lP))	{
+				foreach ($lP as $k => $lStr) {
 					$lP2[$k] = $this->linkProperty($lStr,$lStr,$objString,$row['datatype']);
 				}
 				$linkedProperties=implode('<hr />',$lP2);
@@ -574,8 +567,8 @@ class SC_wizard_tsconfig {
 
 
 				$lines[]='
-					<tr class="bgColor4">
-						<td valign="top" class="bgColor4-20"><strong>'.$linkedProperties.'</strong></td>
+					<tr class="t3-row ' . ($i % 2 ? 't3-row-even' : 't3-row-odd') . '">
+						<td valign="top" class="bgColor4-20" nowrap="nowrap"><strong>'.$linkedProperties.'</strong></td>
 						<td valign="top">'.nl2br($dataType.'&nbsp;').'</td>
 						<td valign="top">'.nl2br($row['description']).'</td>
 						<td valign="top">'.nl2br($row['default']).'</td>
@@ -589,7 +582,7 @@ class SC_wizard_tsconfig {
 			<!--
 				TSconfig, attribute selector:
 			-->
-				<table border="0" cellpadding="0" cellspacing="1" width="500" id="typo3-attributes">
+				<table border="0" cellpadding="0" cellspacing="1" width="98%" class="t3-table" id="typo3-attributes">
 					'.implode('',$lines).'
 				</table>';
 		}
@@ -616,8 +609,8 @@ class SC_wizard_tsconfig {
 		if(!$this->onlyProperty)	{
 			$aOnClick = 'document.editform.mixer.value=unescape(\'  '.rawurlencode($propertyName.'='.$propertyVal).'\')+\'\n\'+document.editform.mixer.value; return false;';
 			$out.= '<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
-					'<img'.t3lib_iconWorks::skinImg($this->doc->backPath,'gfx/plusbullet2.gif','width="18" height="16"').' title="'.$GLOBALS['LANG']->getLL('tsprop_addToList',1).'" align="top" alt="" />'.
-					'</a>';
+					t3lib_iconWorks::getSpriteIcon('actions-edit-add', array('title' => $GLOBALS['LANG']->getLL('tsprop_addToList', TRUE))) . 
+			'</a>';
 			$propertyName = $prefix.'.'.$propertyName;
 		}
 

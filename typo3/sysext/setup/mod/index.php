@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -112,9 +112,11 @@ class SC_mod_user_setup_index {
 
 	protected $tsFieldConf;
 
+	protected $saveData = FALSE;
 	protected $passwordIsUpdated = FALSE;
 	protected $passwordIsSubmitted = FALSE;
 	protected $setupIsUpdated = FALSE;
+	protected $tempDataIsCleared = FALSE;
 
 
 	/******************************
@@ -130,6 +132,7 @@ class SC_mod_user_setup_index {
 	 * @return	void
 	 */
 	function storeIncomingData()	{
+		/* @var $BE_USER t3lib_beUserAuth */
 		global $BE_USER;
 
 			// First check if something is submittet in the data-array from POST vars
@@ -137,6 +140,7 @@ class SC_mod_user_setup_index {
 		$columns = $GLOBALS['TYPO3_USER_SETTINGS']['columns'];
 		$beUserId = $BE_USER->user['uid'];
 		$storeRec = array();
+		$fieldList = $this->getFieldsFromShowItem();
 
 		if (is_array($d))	{
 
@@ -159,9 +163,14 @@ class SC_mod_user_setup_index {
 						unset ($BE_USER->uc[$key]);
 					}
 				}
-			} else {
+				$this->tempDataIsCleared = TRUE;
+			} elseif ($d['save']) {
 					// save all submitted values if they are no array (arrays are with table=be_users) and exists in $GLOBALS['TYPO3_USER_SETTINGS'][columns]
+
 				foreach($columns as $field => $config) {
+					if (!in_array($field, $fieldList)) {
+						continue;
+					}
 					if ($config['table']) {
 						if ($config['table'] == 'be_users' && !in_array($field, array('password', 'password2', 'email', 'realName', 'admin'))) {
 							if (!isset($config['access']) || $this->checkAccess($config) && $BE_USER->user[$field] !== $d['be_users'][$field]) {
@@ -176,7 +185,31 @@ class SC_mod_user_setup_index {
 						$BE_USER->uc[$field] = htmlspecialchars($d[$field]);
 					}
 				}
+
+					// Personal data for the users be_user-record (email, name, password...)
+					// If email and name is changed, set it in the users record:
+				$be_user_data = $d['be_users'];
+
+				$this->passwordIsSubmitted = (strlen($be_user_data['password']) > 0);
+				$passwordIsConfirmed = ($this->passwordIsSubmitted && $be_user_data['password'] === $be_user_data['password2']);
+
+					// Update the real name:
+				if ($be_user_data['realName'] !== $BE_USER->user['realName']) {
+					$BE_USER->user['realName'] = $storeRec['be_users'][$beUserId]['realName'] = substr($be_user_data['realName'], 0, 80);
+				}
+					// Update the email address:
+				if ($be_user_data['email'] !== $BE_USER->user['email']) {
+					$BE_USER->user['email'] = $storeRec['be_users'][$beUserId]['email'] = substr($be_user_data['email'], 0, 80);
+				}
+					// Update the password:
+				if ($passwordIsConfirmed) {
+					$storeRec['be_users'][$beUserId]['password'] = $be_user_data['password2'];
+					$this->passwordIsUpdated = TRUE;
+				}
+
+				$this->saveData = TRUE;
 			}
+
 			$BE_USER->overrideUC();	// Inserts the overriding values.
 
 			$save_after = md5(serialize($BE_USER->uc));
@@ -185,31 +218,13 @@ class SC_mod_user_setup_index {
 				$BE_USER->writelog(254, 1, 0, 1, 'Personal settings changed', array());
 				$this->setupIsUpdated = TRUE;
 			}
-
-
-				// Personal data for the users be_user-record (email, name, password...)
-				// If email and name is changed, set it in the users record:
-			$be_user_data = $d['be_users'];
-
-			$this->passwordIsSubmitted = (strlen($be_user_data['password']) > 0);
-			$passwordIsConfirmed = ($this->passwordIsSubmitted && $be_user_data['password'] === $be_user_data['password2']);
-
-				// Update the real name:
-			if ($be_user_data['realName'] !== $BE_USER->user['realName']) {
-				$BE_USER->user['realName'] = $storeRec['be_users'][$beUserId]['realName'] = substr($be_user_data['realName'], 0, 80);
-			}
-				// Update the email address:
-			if ($be_user_data['email'] !== $BE_USER->user['email']) {
-				$BE_USER->user['email'] = $storeRec['be_users'][$beUserId]['email'] = substr($be_user_data['email'], 0, 80);
-			}
-				// Update the password:
-			if ($passwordIsConfirmed) {
-				$storeRec['be_users'][$beUserId]['password'] = $be_user_data['password2'];
-				$this->passwordIsUpdated = TRUE;
+				// If the temporary data has been cleared, lets make a log note about it
+			if ($this->tempDataIsCleared) {
+				$BE_USER->writelog(254, 1, 0, 1, $GLOBALS['LANG']->getLL('tempDataClearedLog'), array());
 			}
 
 				// Persist data if something has changed:
-			if (count($storeRec)) {
+			if (count($storeRec) && $this->saveData) {
 					// Make instance of TCE for storing the changes.
 				$tce = t3lib_div::makeInstance('t3lib_TCEmain');
 				$tce->stripslashes_values=0;
@@ -292,10 +307,45 @@ class SC_mod_user_setup_index {
 		if ($this->isAdmin) {
 			if (t3lib_div::_POST('deleteInstallToolEnableFile')) {
 				unlink(PATH_typo3conf . 'ENABLE_INSTALL_TOOL');
+				$installToolEnableFileExists = is_file(PATH_typo3conf . 'ENABLE_INSTALL_TOOL');
+				if ($installToolEnableFileExists) {
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						$LANG->getLL('enableInstallTool.fileDelete_failed'),
+						$LANG->getLL('enableInstallTool.file'),
+						t3lib_FlashMessage::ERROR
+					);
+				} else {
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						$LANG->getLL('enableInstallTool.fileDelete_ok'),
+						$LANG->getLL('enableInstallTool.file'),
+						t3lib_FlashMessage::OK
+					);
+			}
+				$this->content .= $flashMessage->render();
 			}
 			if (t3lib_div::_POST('createInstallToolEnableFile')) {
 				touch(PATH_typo3conf . 'ENABLE_INSTALL_TOOL');
+				t3lib_div::fixPermissions(PATH_typo3conf . 'ENABLE_INSTALL_TOOL');
+				$installToolEnableFileExists = is_file(PATH_typo3conf . 'ENABLE_INSTALL_TOOL');
+				if ($installToolEnableFileExists) {
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						$LANG->getLL('enableInstallTool.fileCreate_ok'),
+						$LANG->getLL('enableInstallTool.file'),
+						t3lib_FlashMessage::OK
+					);
+				} else {
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						$LANG->getLL('enableInstallTool.fileCreate_failed'),
+						$LANG->getLL('enableInstallTool.file'),
+						t3lib_FlashMessage::ERROR
+					);
 			}
+				$this->content .= $flashMessage->render();
+		}
 		}
 
 		if ($this->languageUpdate) {
@@ -304,10 +354,6 @@ class SC_mod_user_setup_index {
 					top.refreshMenu();
 				} else {
 					top.TYPO3ModuleMenu.refreshMenu();
-				}
-
-				if (top.shortcutFrame) {
-					top.shortcutFrame.refreshShortcuts();
 				}
 			';
 		}
@@ -331,6 +377,15 @@ class SC_mod_user_setup_index {
 				't3lib_FlashMessage',
 				$LANG->getLL('setupWasUpdated'),
 				$LANG->getLL('UserSettings')
+			);
+			$this->content .= $flashMessage->render();
+		}
+			// Show if temporary data was cleared
+		if ($this->tempDataIsCleared) {
+			$flashMessage = t3lib_div::makeInstance(
+				't3lib_FlashMessage',
+				$LANG->getLL('tempDataClearedFlashMessage'),
+				$LANG->getLL('tempDataCleared')
 			);
 			$this->content .= $flashMessage->render();
 		}
@@ -365,9 +420,9 @@ class SC_mod_user_setup_index {
 		$this->content .= $this->doc->section('',
 			t3lib_BEfunc::cshItem('_MOD_user_setup', 'reset', $BACK_PATH) . '
 			<input type="hidden" name="simUser" value="'.$this->simUser.'" />
-			<input type="submit" name="submit" value="'.$LANG->getLL('save').'" />
+			<input type="submit" name="data[save]" value="'.$LANG->getLL('save').'" />
 			<input type="submit" name="data[setValuesToDefault]" value="'.$LANG->getLL('resetConfiguration').'" onclick="return confirm(\''.$LANG->getLL('setToStandardQuestion').'\');" />
-			<input type="submit" name="data[clearSessionVars]" value="'.$LANG->getLL('clearSessionVars').'" />'
+			<input type="submit" name="data[clearSessionVars]" value="' . $LANG->getLL('clearSessionVars') . '"  onclick="return confirm(\'' . $LANG->getLL('clearSessionVarsQuestion') . '\');" />'
 		);
 
 
@@ -449,18 +504,8 @@ class SC_mod_user_setup_index {
 		$code = array();
 		$i = 0;
 
-		$fieldList = $GLOBALS['TYPO3_USER_SETTINGS']['showitem'];
+		$fieldArray = $this->getFieldsFromShowItem();
 
-			// disable fields depended on settings
-		if (!$GLOBALS['TYPO3_CONF_VARS']['BE']['RTEenabled']) {
-			$fieldList = t3lib_div::rmFromList('edit_RTE', $fieldList);
-		}
-
-		if ($GLOBALS['BE_USER']->uc['interfaceSetup'] != 'backend_old') {
-			$fieldList = t3lib_div::rmFromList('noMenuMode', $fieldList);
-		}
-
-		$fieldArray = t3lib_div::trimExplode(',', $fieldList, true);
 		$this->dividers2tabs = isset($GLOBALS['TYPO3_USER_SETTINGS']['ctrl']['dividers2tabs']) ? intval($GLOBALS['TYPO3_USER_SETTINGS']['ctrl']['dividers2tabs']) : 0;
 
 
@@ -566,11 +611,11 @@ class SC_mod_user_setup_index {
 					if ($config['itemsProcFunc']) {
 						$html = t3lib_div::callUserFunction($config['itemsProcFunc'], $config, $this, '');
 					} else {
-						$html = '<select id="field_' . $fieldName . '" name="data[' . $fieldName . ']"' . $more . '>' . chr(10);
+						$html = '<select id="field_' . $fieldName . '" name="data[' . $fieldName . ']"' . $more . '>' . LF;
 						foreach ($config['items'] as $key => $optionLabel) {
 							$html .= '<option value="' . $key . '"' .
 								($value == $key ? ' selected="selected"' : '') .
-								'>' . $this->getLabel($optionLabel, '', false) . '</option>' . chr(10);
+								'>' . $this->getLabel($optionLabel, '', false) . '</option>' . LF;
 						}
 						$html .= '</select>';
 					}
@@ -641,7 +686,7 @@ class SC_mod_user_setup_index {
 
 			// compile the languages dropdown
 		$languageOptions = array(
-			'000000000' => chr(10) . '<option value="">' . $GLOBALS['LANG']->getLL('lang_default', 1) . '</option>'
+			'000000000' => LF . '<option value="">' . $GLOBALS['LANG']->getLL('lang_default', 1) . '</option>'
 		);
 			// traverse the number of languages
 		$theLanguages = t3lib_div::trimExplode('|', TYPO3_languages);
@@ -849,6 +894,24 @@ class SC_mod_user_setup_index {
 			$str = 'option_' . $str;
 		}
 		return t3lib_BEfunc::cshItem('_MOD_user_setup', $str, $this->doc->backPath, '|', false, 'margin-bottom:0px;');
+	}
+	
+	/**
+	 * Returns array with fields defined in $GLOBALS['TYPO3_USER_SETTINGS']['showitem']
+	 * 
+	 * @param	void
+	 * @return	array	array with fieldnames visible in form
+	 */
+	protected function getFieldsFromShowItem() {
+		$fieldList = $GLOBALS['TYPO3_USER_SETTINGS']['showitem'];
+
+			// disable fields depended on settings
+		if (!$GLOBALS['TYPO3_CONF_VARS']['BE']['RTEenabled']) {
+			$fieldList = t3lib_div::rmFromList('edit_RTE', $fieldList);
+		}
+
+		$fieldArray = t3lib_div::trimExplode(',', $fieldList, TRUE);
+		return $fieldArray;
 	}
 }
 

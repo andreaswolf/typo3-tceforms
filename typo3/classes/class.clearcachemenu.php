@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -64,7 +64,7 @@ class ClearCacheMenu implements backend_toolbarItem {
 				'id'    => 'all',
 				'title' => $title,
 				'href'  => $this->backPath.'tce_db.php?vC='.$GLOBALS['BE_USER']->veriCode().'&cacheCmd=all',
-				'icon'  => '<img'.t3lib_iconWorks::skinImg($this->backPath, 'gfx/lightning_red.png', 'width="16" height="16"').' title="'.$title.'" alt="'.$title.'" />'
+				'icon'  => t3lib_iconWorks::getSpriteIcon('actions-system-cache-clear-impact-high')
 			);
 		}
 
@@ -75,7 +75,7 @@ class ClearCacheMenu implements backend_toolbarItem {
 				'id'    => 'pages',
 				'title' => $title,
 				'href'  => $this->backPath.'tce_db.php?vC='.$GLOBALS['BE_USER']->veriCode().'&cacheCmd=pages',
-				'icon'  => '<img'.t3lib_iconWorks::skinImg($this->backPath, 'gfx/lightning.png', 'width="16" height="16"').' title="'.$title.'" alt="'.$title.'" />'
+				'icon'  => t3lib_iconWorks::getSpriteIcon('actions-system-cache-clear-impact-medium')
 			);
 		}
 
@@ -86,7 +86,7 @@ class ClearCacheMenu implements backend_toolbarItem {
 				'id'    => 'temp_CACHED',
 				'title' => $title,
 				'href'  => $this->backPath.'tce_db.php?vC='.$GLOBALS['BE_USER']->veriCode().'&cacheCmd=temp_CACHED',
-				'icon'  => '<img'.t3lib_iconWorks::skinImg($this->backPath, 'gfx/lightning_green.png', 'width="16" height="16"').' title="'.$title.'" alt="'.$title.'" />'
+				'icon'  => t3lib_iconWorks::getSpriteIcon('actions-system-cache-clear-impact-low')
 			);
 		}
 
@@ -137,7 +137,9 @@ class ClearCacheMenu implements backend_toolbarItem {
 		$this->addJavascriptToBackend();
 		$cacheMenu = array();
 
-		$cacheMenu[] = '<a href="#" class="toolbar-item"><img'.t3lib_iconWorks::skinImg($this->backPath, 'gfx/lightning.png', 'width="16" height="16"').' title="'.$title.'" alt="'.$title.'" /></a>';
+		$cacheMenu[] = '<a href="#" class="toolbar-item">' .
+			t3lib_iconWorks::getSpriteIcon('apps-toolbar-menu-cache', array('title' => $title)) . 
+			'</a>';
 
 		$cacheMenu[] = '<ul class="toolbar-item-menu" style="display: none;">';
 
@@ -147,7 +149,7 @@ class ClearCacheMenu implements backend_toolbarItem {
 
 		$cacheMenu[] = '</ul>';
 
-		return implode("\n", $cacheMenu);
+		return implode(LF, $cacheMenu);
 	}
 
 	/**

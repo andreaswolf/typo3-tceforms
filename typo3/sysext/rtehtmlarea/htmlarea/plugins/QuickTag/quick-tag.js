@@ -32,7 +32,7 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-QuickTag = HTMLArea.Plugin.extend({
+HTMLArea.QuickTag = HTMLArea.Plugin.extend({
 	constructor : function(editor, pluginName) {
 		this.base(editor, pluginName);
 	},
@@ -49,7 +49,7 @@ QuickTag = HTMLArea.Plugin.extend({
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: '2.0',
+			version		: '2.1',
 			developer	: 'Cau Guanabara & Stanislas Rolland',
 			developerUrl	: 'http://www.sjbr.ca',
 			copyrightOwner	: 'Cau Guanabara & Stanislas Rolland',
@@ -65,6 +65,7 @@ QuickTag = HTMLArea.Plugin.extend({
 		var buttonConfiguration = {
 			id		: buttonId,
 			tooltip		: this.localize('Quick Tag Editor'),
+			iconCls		: 'htmlarea-action-tag-insert',
 			action		: 'onButtonPress',
 			selection	: true,
 			dialog		: true
@@ -212,6 +213,7 @@ QuickTag = HTMLArea.Plugin.extend({
 				xtype: 'colorpalettefield',
 				fieldLabel: this.localize('Colors'),
 				itemId: 'colors',
+				colors: this.editorConfiguration.disableColorPicker ? [] : null,
 				colorsConfiguration: this.editorConfiguration.colors,
 				hidden: true,
 				listeners: {
@@ -448,7 +450,7 @@ QuickTag = HTMLArea.Plugin.extend({
 			border: false,
 			width: dimensions.width,
 			height: 'auto',
-			iconCls: arguments.buttonId,
+			iconCls: this.getButton(arguments.buttonId).iconCls,
 			listeners: {
 				close: {
 					fn: this.onClose,
@@ -464,8 +466,8 @@ QuickTag = HTMLArea.Plugin.extend({
 				items: items
 			},
 			buttons: [
-				this.buildButtonConfig('Cancel', this.onCancel),
-				this.buildButtonConfig('OK', handler)
+				this.buildButtonConfig('OK', handler),
+				this.buildButtonConfig('Cancel', this.onCancel)
 			]
 		});
 		this.show();

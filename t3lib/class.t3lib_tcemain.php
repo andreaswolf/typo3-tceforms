@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -384,7 +384,7 @@ class t3lib_TCEmain	{
 		$this->username = $this->BE_USER->user['username'];
 		$this->admin = $this->BE_USER->user['admin'];
 
-		if ($GLOBALS['BE_USER']->uc['recursiveDelete'])    {
+		if ($this->BE_USER->uc['recursiveDelete']) {
 			$this->deleteTree = 1;
 		}
 
@@ -757,7 +757,7 @@ class t3lib_TCEmain	{
 							$status = 'new';						// Yes new record, change $record_status to 'insert'
 						} else {	// Nope... $id is a number
 							$fieldArray = array();
-							$recordAccess = $this->checkRecordUpdateAccess($table,$id);
+							$recordAccess = $this->checkRecordUpdateAccess($table, $id, $incomingFieldArray, $hookObjectsArr);
 							if (!$recordAccess)		{
 								$propArr = $this->getRecordProperties($table,$id);
 								$this->log($table,$id,2,0,1,"Attempt to modify record '%s' (%s) without permission. Or non-existing page.",2,array($propArr['header'],$table.':'.$id),$propArr['event_pid']);
@@ -1187,7 +1187,7 @@ class t3lib_TCEmain	{
 					$eFileMarker = $eFile['markerField']&&trim($mixedRec[$eFile['markerField']]) ? trim($mixedRec[$eFile['markerField']]) : '###TYPO3_STATICFILE_EDIT###';
 					$insertContent = str_replace($eFileMarker,'',$mixedRec[$eFile['contentField']]);	// must replace the marker if present in content!
 
-					$SW_fileNewContent = $parseHTML->substituteSubpart($SW_fileContent, $eFileMarker, chr(10).$insertContent.chr(10), 1, 1);
+					$SW_fileNewContent = $parseHTML->substituteSubpart($SW_fileContent, $eFileMarker, LF.$insertContent.LF, 1, 1);
 					t3lib_div::writeFile($eFile['editFile'],$SW_fileNewContent);
 
 						// Write status:
@@ -2623,7 +2623,7 @@ class t3lib_TCEmain	{
 										}
 									break;
 									case 'swap':
-										$swapMode = $GLOBALS['BE_USER']->getTSConfigVal('options.workspaces.swapMode');
+										$swapMode = $this->BE_USER->getTSConfigVal('options.workspaces.swapMode');
 										$elementList = array();
 										if ($swapMode == 'any' || ($swapMode == 'page' && $table == 'pages')) {
 											// check if we are allowed to do synchronios publish. We must have a single element in the cmdmap to be allowed
@@ -2649,14 +2649,14 @@ class t3lib_TCEmain	{
 									case 'setStage':
 										$elementList = array();
 										$idList = $elementList[$table] = t3lib_div::trimExplode(',',$id,1);
-										$setStageMode = $GLOBALS['BE_USER']->getTSConfigVal('options.workspaces.changeStageMode');
+										$setStageMode = $this->BE_USER->getTSConfigVal('options.workspaces.changeStageMode');
 										if ($setStageMode == 'any' || $setStageMode == 'page') {
 											if (count($idList) == 1) {
 												$rec = t3lib_BEfunc::getRecord($table, $idList[0], 't3ver_wsid');
 												$workspaceId = $rec['t3ver_wsid'];
 											}
 											else {
-												$workspaceId = $GLOBALS['BE_USER']->workspace;
+												$workspaceId = $this->BE_USER->workspace;
 											}
 											if ($table !== 'pages') {
 												if ($setStageMode == 'any') {
@@ -2712,8 +2712,6 @@ class t3lib_TCEmain	{
 		}
 
 		$this->accumulateForNotifEmail = array();	// Reset notification array
-
-#		die("REMOVE ME");
 	}
 
 
@@ -2763,7 +2761,12 @@ class t3lib_TCEmain	{
 				// Now, the $uid is the actual record we will copy while $origUid is the record we asked to get copied - but that could be a live version.
 */
 			if ($this->doesRecordExist($table,$uid,'show'))	{		// This checks if the record can be selected which is all that a copy action requires.
-				if (($language > 0 && $this->BE_USER->checkLanguageAccess($language) ) || $this->BE_USER->recordEditAccessInternals($table, $uid, false, false, true)) { //Used to check language and general editing rights
+				$fullLanguageCheckNeeded = ($table != 'pages');
+				if (($language > 0 && $this->BE_USER->checkLanguageAccess($language) ) ||
+						$this->BE_USER->recordEditAccessInternals(
+							$table, $uid, false, false, $fullLanguageCheckNeeded
+						)
+					) { //Used to check language and general editing rights
 					$data = Array();
 
 					$nonFields = array_unique(t3lib_div::trimExplode(',','uid,perms_userid,perms_groupid,perms_user,perms_group,perms_everybody,t3ver_oid,t3ver_wsid,t3ver_id,t3ver_label,t3ver_state,t3ver_swapmode,t3ver_count,t3ver_stage,t3ver_tstamp,'.$excludeFields,1));
@@ -3173,8 +3176,8 @@ class t3lib_TCEmain	{
 
 					// Walk through the items, copy them and remember the new id:
 				foreach ($dbAnalysis->itemArray as $k => $v) {
-						// If language is set, this isn't a copy action but a localization of our parent/ancestor:
-					if ($language>0) {
+						// If language is set and differs from original record, this isn't a copy action but a localization of our parent/ancestor:
+					if ($language > 0 && t3lib_BEfunc::isTableLocalizable($table) && $language != $row[$TCA[$table]['ctrl']['languageField']]) {
 							// If children should be localized when the parent gets localized the first time, just do it:
 						if ($localizationMode!=false && isset($conf['behaviour']['localizeChildrenAtParentLocalization']) && $conf['behaviour']['localizeChildrenAtParentLocalization']) {
 							$newId = $this->localize($v['table'], $v['id'], $language);
@@ -3487,7 +3490,8 @@ class t3lib_TCEmain	{
 			}
 
 				// Checking if there is anything else disallowing moving the record by checking if editing is allowed
-			$mayEditAccess = $this->BE_USER->recordEditAccessInternals($table, $uid, false, false, true);
+			$fullLanguageCheckNeeded = ($table != 'pages');
+			$mayEditAccess = $this->BE_USER->recordEditAccessInternals($table, $uid, false, false, $fullLanguageCheckNeeded);
 
 				// If moving is allowed, begin the processing:
 			if ($mayEditAccess)	{
@@ -3798,11 +3802,11 @@ class t3lib_TCEmain	{
 	 * @param	array		$conf: TCA configuration of current field
 	 * @return	void
 	 */
-	function moveRecord_procBasedOnFieldType($table,$uid,$destPid,$field,$value,$conf) {
+	function moveRecord_procBasedOnFieldType($table, $uid, $destPid, $field, $value, $conf) {
 		$moveTable = '';
 		$moveIds = array();
 
-		if ($conf['type'] == 'inline')	{
+		if ($conf['type'] == 'inline') {
 			$foreign_table = $conf['foreign_table'];
 			$moveChildrenWithParent = (!isset($conf['behaviour']['disableMovingChildrenWithParent']) || !$conf['behaviour']['disableMovingChildrenWithParent']);
 
@@ -3810,18 +3814,23 @@ class t3lib_TCEmain	{
 				$inlineType = $this->getInlineFieldType($conf);
 				if ($inlineType == 'list' || $inlineType == 'field') {
 					$moveTable = $foreign_table;
+					if ($table == 'pages') {
+							// If the inline elements are related to a page record,
+							// make sure they reside at that page and not at its parent
+						$destPid = $uid;
+					}
 					$dbAnalysis = t3lib_div::makeInstance('t3lib_loadDBGroup');
 					$dbAnalysis->start($value, $conf['foreign_table'], '', $uid, $table, $conf);
 				}
 			}
 		}
 
-			// move the records
+			// Move the records
 		if (isset($dbAnalysis)) {
 				// Moving records to a positive destination will insert each
 				// record at the beginning, thus the order is reversed here:
 			foreach (array_reverse($dbAnalysis->itemArray) as $v) {
-				$this->moveRecord($v['table'],$v['id'],$destPid);
+				$this->moveRecord($v['table'], $v['id'], $destPid);
 			}
 		}
 	}
@@ -4325,7 +4334,7 @@ class t3lib_TCEmain	{
 			foreach($files as $dat)	{
 				if (@is_file($dat['ID_absFile']))	{
 					unlink ($dat['ID_absFile']);
-#echo 'DELETE FlexFormFile:'.$dat['ID_absFile'].chr(10);
+#echo 'DELETE FlexFormFile:'.$dat['ID_absFile'].LF;
 				} else {
 					$this->log($table,0,3,0,100,"Delete: Referenced file '".$dat['ID_absFile']."' that was supposed to be deleted together with it's record didn't exist");
 				}
@@ -4399,14 +4408,22 @@ class t3lib_TCEmain	{
 				$brExist = $this->doesBranchExist('',$uid,$this->pMap['delete'],1);	// returns the branch
 				if ($brExist != -1)	{	// Checks if we had permissions
 					if ($this->noRecordsFromUnallowedTables($brExist.$uid))	{
-						return t3lib_div::trimExplode(',',$brExist.$uid,1);
+						$pagesInBranch = t3lib_div::trimExplode(',', $brExist . $uid, 1);
+						foreach ($pagesInBranch as $pageInBranch) {
+							if (!$this->BE_USER->recordEditAccessInternals('pages', $pageInBranch, FALSE, FALSE, TRUE)) {
+								return 'Attempt to delete page which has prohibited localizations.';
+							}
+						}
+						return $pagesInBranch;
 					} else return 'Attempt to delete records from disallowed tables';
 				} else return 'Attempt to delete pages in branch without permissions';
 			} else {
 				$brExist = $this->doesBranchExist('',$uid,$this->pMap['delete'],1);	// returns the branch
 				if ($brExist == '')	{	// Checks if branch exists
-					if ($this->noRecordsFromUnallowedTables($uid))	{
-						return array($uid);
+				if ($this->noRecordsFromUnallowedTables($uid))	{
+						if ($this->BE_USER->recordEditAccessInternals('pages', $uid, FALSE, FALSE, TRUE)) {
+							return array($uid);
+						} else return 'Attempt to delete page which has prohibited localizations.';
 					} else return 'Attempt to delete records from disallowed tables';
 				} else return 'Attempt to delete page which has subpages';
 			}
@@ -4437,13 +4454,13 @@ class t3lib_TCEmain	{
 	 * @return	boolean		Whether the record can be undeleted
 	 */
 	public function isRecordUndeletable($table, $uid) {
-		$result = false;
-		$record = t3lib_BEfunc::getRecord($table, $uid, 'pid', '', false);
+		$result = FALSE;
+		$record = t3lib_BEfunc::getRecord($table, $uid, 'pid', '', FALSE);
 		if ($record['pid']) {
-			$page = t3lib_BEfunc::getRecord('pages', $record['pid'], 'deleted, title, uid', '', false);
+			$page = t3lib_BEfunc::getRecord('pages', $record['pid'], 'deleted, title, uid', '', FALSE);
 				// The page containing the record is not deleted, thus the record can be undeleted:
 			if (!$page['deleted']) {
-				$result = true;
+				$result = TRUE;
 				// The page containing the record is deleted and has to be undeleted first:
 			} else {
 				$this->log(
@@ -4452,6 +4469,9 @@ class t3lib_TCEmain	{
 						$page['title'] . ' (UID: ' . $page['uid'] . ')" first'
 				);
 			}
+		} else {
+				// The page containing the record is on rootlevel, so there is no parent record to check, and the record can be undeleted:
+			$result = TRUE;
 		}
 		return $result;
 	}
@@ -4746,7 +4766,7 @@ class t3lib_TCEmain	{
 											// Write lock-file:
 										t3lib_div::writeFileToTypo3tempDir($lockFileName,serialize(array(
 											'tstamp' => $GLOBALS['EXEC_TIME'],
-											'user'=>$GLOBALS['BE_USER']->user['username'],
+											'user'   => $this->BE_USER->user['username'],
 											'curVersion'=>$curVersion,
 											'swapVersion'=>$swapVersion
 										)));
@@ -4757,7 +4777,7 @@ class t3lib_TCEmain	{
 											$keepFields[] = $TCA[$table]['ctrl']['sortby'];
 										}
 											// l10n-fields must be kept otherwise the localization will be lost during the publishing
-										if ($TCA[$table]['ctrl']['transOrigPointerField']) {
+										if (!isset($TCA[$table]['ctrl']['transOrigPointerTable']) && $TCA[$table]['ctrl']['transOrigPointerField']) {
 											$keepFields[] = $TCA[$table]['ctrl']['transOrigPointerField'];
 										}
 
@@ -5574,11 +5594,26 @@ $this->log($table,$id,6,0,0,'Stage raised...',30,array('comment'=>$comment,'stag
 	 *
 	 * @param	string		Record table
 	 * @param	integer		Record UID
+	 * @param	array		Record data
+	 * @param	array		Hook objects
 	 * @return	boolean		Returns true if the user may update the record given by $table and $id
 	 */
-	function checkRecordUpdateAccess($table,$id)	{
+	function checkRecordUpdateAccess($table, $id, $data=false, &$hookObjectsArr = false) {
 		global $TCA;
-		$res = 0;
+		$res = NULL;
+		if (is_array($hookObjectsArr)) {
+			foreach($hookObjectsArr as $hookObj) {
+				if (method_exists($hookObj, 'checkRecordUpdateAccess')) {
+					$res = $hookObj->checkRecordUpdateAccess($table, $id, $data, $res, $this);
+				}
+			}
+		}
+		if($res === 1 || $res === 0) {
+			return $res;
+		} else {
+			$res = 0;
+		}
+
 		if ($TCA[$table] && intval($id)>0)	{
 			if (isset($this->recUpdateAccessCache[$table][$id]))	{	// If information is cached, return it
 				return $this->recUpdateAccessCache[$table][$id];
@@ -5693,7 +5728,12 @@ $this->log($table,$id,6,0,0,'Stage raised...',30,array('comment'=>$comment,'stag
 			$perms = intval($perms);
 		}
 
-		if (!$perms)	{die('Internal ERROR: no permissions to check for non-admin user.');}
+		if (!$perms) {
+			throw new RuntimeException(
+				'Internal ERROR: no permissions to check for non-admin user',
+				1270853920
+			);
+		}
 
 			// For all tables: Check if record exists:
 		if (is_array($TCA[$table]) && $id>0 && ($this->isRecordInWebMount($table,$id) || $this->admin))	{
@@ -7396,24 +7436,27 @@ State was change by %s (username: %s)
 
 					if (TYPO3_UseCachingFramework) {
 						if (t3lib_extMgm::isLoaded('cms'))	{
-							$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_treelist', '');
+							$GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('cache_treelist');
 						}
 					} else {
 						if (t3lib_extMgm::isLoaded('cms'))	{
-							$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_treelist', '');
-							$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pagesection','');
+							$GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('cache_treelist');
+							$GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('cache_pagesection');
 						}
 						$this->internal_clearPageCache();
-						$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_hash','');
+						$GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('cache_hash');
 					}
 
 						// Clearing additional cache tables:
 					if (is_array($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['clearAllCache_additionalTables']))	{
 						foreach($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['clearAllCache_additionalTables'] as $tableName)	{
 							if (!preg_match('/[^[:alnum:]_]/',$tableName) && substr($tableName,-5)=='cache')	{
-								$GLOBALS['TYPO3_DB']->exec_DELETEquery($tableName,'');
+								$GLOBALS['TYPO3_DB']->exec_TRUNCATEquery($tableName);
 							} else {
-								die('Fatal Error: Trying to flush table "'.$tableName.'" with "Clear All Cache"');
+								throw new RuntimeException(
+									'TYPO3 Fatal Error: Trying to flush table "' . $tableName . '" with "Clear All Cache"',
+									1270853922
+								);
 							}
 						}
 					}
@@ -7606,7 +7649,7 @@ State was change by %s (username: %s)
 						t3lib_div::sysLog('Could not remove page cache files in "'.$cacheDir.'"','Core/t3lib_tcemain',2);
 					}
 				}
-				$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pages','');
+				$GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('cache_pages');
 			}
 		}
 	}
@@ -7766,7 +7809,7 @@ State was change by %s (username: %s)
 				case 'inline':
 					if ($TCA[$table]['columns'][$field]['config']['foreign_field']) {
 						if (!t3lib_div::testInt($value)) {
-							$result[$field] = count(t3lib_div::trimExplode(',', true));
+							$result[$field] = count(t3lib_div::trimExplode(',', $value, TRUE));
 						}
 					}
 					break;

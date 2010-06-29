@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2003-2009 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2003-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the Typo3 project. The Typo3 project is
@@ -85,7 +85,7 @@ class tx_rtehtmlarea_pi1 {
 			// Setting the list of dictionaries
 		if (!$safe_mode_is_enabled && (!$this->pspell_is_available || $this->forceCommandMode)) {
 			$dictionaryList = shell_exec( $this->AspellDirectory.' dump dicts');
-			$dictionaryList = implode(',', t3lib_div::trimExplode(chr(10), $dictionaryList, 1));
+			$dictionaryList = implode(',', t3lib_div::trimExplode(LF, $dictionaryList, 1));
 		}
 		if (empty($dictionaryList)) {
 			$dictionaryList = t3lib_div::_POST('showDictionaries');
@@ -112,8 +112,6 @@ class tx_rtehtmlarea_pi1 {
 		if (empty($this->dictionary) || !in_array($this->dictionary, $dictionaryArray)) {
 			$this->dictionary = 'en';
 		}
-		$dictionaries = substr_replace($dictionaryList, '@'.$this->dictionary, strpos($dictionaryList, $this->dictionary), strlen($this->dictionary));
-
 			// Setting the pspell suggestion mode
 		$this->pspellMode = t3lib_div::_POST('pspell_mode')?t3lib_div::_POST('pspell_mode'): $this->pspellMode;
 			// Now sanitize $this->pspellMode
@@ -179,12 +177,12 @@ class tx_rtehtmlarea_pi1 {
 				$tmpFileName = t3lib_div::tempnam($this->filePrefix);
 				if($filehandle = fopen($tmpFileName,'wb')) {
 					foreach ($to_p_dict as $personal_word) {
-						$cmd = '&' . $personal_word . "\n";
+						$cmd = '&' . $personal_word . LF;
 						echo $cmd;
 						fwrite($filehandle, $cmd, strlen($cmd));
 					}
 					foreach ($to_r_list as $replace_pair) {
-						$cmd = '$$ra ' . $replace_pair[0] . ' , ' . $replace_pair[1] . "\n";
+						$cmd = '$$ra ' . $replace_pair[0] . ' , ' . $replace_pair[1] . LF;
 						echo $cmd;
 						fwrite($filehandle, $cmd, strlen($cmd));
 					}
@@ -194,7 +192,7 @@ class tx_rtehtmlarea_pi1 {
 					fclose($filehandle);
 						// $this->personalDictsArg has already been escapeshellarg()'ed above, it is an optional paramter and might be empty here
 					$AspellCommand = 'cat ' . escapeshellarg($tmpFileName) . ' | ' . $this->AspellDirectory . ' -a --mode=none' . $this->personalDictsArg . ' --lang=' . escapeshellarg($this->dictionary) . ' --encoding=' . escapeshellarg($this->aspellEncoding) . ' 2>&1';
-					print $AspellCommand . "\n";
+					print $AspellCommand . LF;
 					print shell_exec($AspellCommand);
 					t3lib_div::unlink_tempfile($tmpFileName);
 					echo('Personal word list was updated.');
@@ -214,10 +212,9 @@ class tx_rtehtmlarea_pi1 {
      PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="' . substr($this->dictionary, 0, 2) . '" lang="' . substr($this->dictionary, 0, 2) . '">
-<html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=' . $this->parserCharset . '" />
-<link rel="stylesheet" type="text/css" media="all" href="spell-check-style.css" />
+<link rel="stylesheet" type="text/css" media="all" href="' . (TYPO3_MODE == 'BE' ? '../' : '') . t3lib_extMgm::siteRelPath($this->extKey) . '/htmlarea/plugins/SpellChecker/spell-check-style.css" />
 <script type="text/javascript">
 /*<![CDATA[*/
 <!--
@@ -241,22 +238,24 @@ class tx_rtehtmlarea_pi1 {
 			if ($this->pspell_is_available && !$this->forceCommandMode) {
 				pspell_clear_session ($this->pspell_link);
 			}
-			$this->result .= 'var suggested_words = {' . $this->suggestedWords . '};
+			$this->result .= 'var suggestedWords = {' . $this->suggestedWords . '};
+var dictionaries = "' . $dictionaryList . '";
+var selectedDictionary = "' . $this->dictionary . '";
 ';
 
 				// Calculating parsing and spell checkting time
 			$time = number_format(microtime(true) - $time_start, 2, ',', ' ');
 
 				// Insert spellcheck info
-			$this->result .= 'var spellcheck_info = { "Total words":"'.$this->wordCount.'","Misspelled words":"'.sizeof($this->misspelled).'","Total suggestions":"'.$this->suggestionCount.'","Total words suggested":"'.$this->suggestedWordCount.'","Spelling checked in":"'.$time.'" };
+			$this->result .= 'var spellcheckInfo = { "Total words":"'.$this->wordCount.'","Misspelled words":"'.sizeof($this->misspelled).'","Total suggestions":"'.$this->suggestionCount.'","Total words suggested":"'.$this->suggestedWordCount.'","Spelling checked in":"'.$time.'" };
 // -->
 /*]]>*/
 </script>
 </head>
 ';
-			$this->result .= '<body onload="window.parent.finishedSpellChecking();">';
-			$this->result .= preg_replace('/'.preg_quote('<?xml').'.*'.preg_quote('?>').'['.preg_quote(chr(10).chr(13).chr(32)).']*/'.(($this->parserCharset == 'utf-8')?'u':''), '', $this->text);
-			$this->result .= '<div id="HA-spellcheck-dictionaries">'.$dictionaries.'</div>';
+			$this->result .= '<body onload="window.parent.RTEarea[\'' . t3lib_div::_POST('editorId') . '\'].editor.getPlugin(\'SpellChecker\').spellCheckComplete();">';
+			$this->result .= preg_replace('/'.preg_quote('<?xml').'.*'.preg_quote('?>').'['.preg_quote(LF.CR.chr(32)).']*/'.(($this->parserCharset == 'utf-8')?'u':''), '', $this->text);
+			$this->result .= '<div style="display: none;">'.$dictionaries.'</div>';
 
 				// Closing
 			$this->result .= '
@@ -355,7 +354,7 @@ class tx_rtehtmlarea_pi1 {
 							unset($suggest);
 						}
 						if( !in_array($word, $incurrent) ) {
-							$stringText = preg_replace('/\b'.$word.'\b/'.(($this->parserCharset == 'utf-8')?'u':''), '<span class="HA-spellcheck-error">'.$word.'</span>', $stringText);
+							$stringText = preg_replace('/\b'.$word.'\b/'.(($this->parserCharset == 'utf-8')?'u':''), '<span class="htmlarea-spellcheck-error">'.$word.'</span>', $stringText);
 							$incurrent[] = $word;
 						}
 					}
@@ -367,7 +366,7 @@ class tx_rtehtmlarea_pi1 {
 					$AspellCommand = 'cat ' . escapeshellarg($tmpFileName) . ' | ' . $this->AspellDirectory . ' -a check --mode=none --sug-mode=' . escapeshellarg($this->pspellMode) . $this->personalDictsArg . ' --lang=' . escapeshellarg($this->dictionary) . ' --encoding=' . escapeshellarg($this->aspellEncoding) . ' 2>&1';
 					$AspellAnswer = shell_exec($AspellCommand);
 					$AspellResultLines = array();
-					$AspellResultLines = t3lib_div::trimExplode(chr(10), $AspellAnswer, 1);
+					$AspellResultLines = t3lib_div::trimExplode(LF, $AspellAnswer, 1);
 					if(substr($AspellResultLines[0],0,6) == 'Error:') echo("{$AspellAnswer}");
 					t3lib_div::unlink_tempfile($tmpFileName);
 					if(substr($AspellResultLines['1'],0,1) != '*') {
@@ -391,7 +390,7 @@ class tx_rtehtmlarea_pi1 {
 							unset($suggestions);
 						}
 						if (!in_array($word, $incurrent)) {
-							$stringText = preg_replace('/\b'.$word.'\b/'.(($this->parserCharset == 'utf-8')?'u':''), '<span class="HA-spellcheck-error">'.$word.'</span>', $stringText);
+							$stringText = preg_replace('/\b'.$word.'\b/'.(($this->parserCharset == 'utf-8')?'u':''), '<span class="htmlarea-spellcheck-error">'.$word.'</span>', $stringText);
 							$incurrent[] = $word;
 						}
 					}

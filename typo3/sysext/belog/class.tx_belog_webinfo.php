@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -217,7 +217,7 @@ class tx_belog_webinfo extends t3lib_extobjbase {
 			}
 
 			if (is_array($this->pObj->be_user_Array))	{
-				while(list(,$val)=each($this->pObj->be_user_Array))	{
+				foreach ($this->pObj->be_user_Array as $val) {
 					$selectUsers[]=$val['uid'];
 				}
 			}

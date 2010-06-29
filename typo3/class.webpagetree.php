@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -90,17 +90,14 @@ class webPageTree extends t3lib_browseTree {
 	 * @param	array		Data row for element.
 	 * @return	string		Page icon
 	 */
-	function wrapIcon($icon,&$row)	{
+	function wrapIcon($thePageIcon, &$row)	{
 			// If the record is locked, present a warning sign.
 		if ($lockInfo=t3lib_BEfunc::isRecordLocked('pages',$row['uid']))	{
 			$aOnClick = 'alert('.$GLOBALS['LANG']->JScharCode($lockInfo['msg']).');return false;';
 			$lockIcon='<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
-				'<img'.t3lib_iconWorks::skinImg('','gfx/recordlock_warning3.gif','width="17" height="12"').' title="'.htmlspecialchars($lockInfo['msg']).'" alt="" />'.
+				t3lib_iconWorks::getSpriteIcon('status-warning-in-use',array('title'=>htmlspecialchars($lockInfo['msg']))).
 				'</a>';
 		} else $lockIcon = '';
-
-			// Add title attribute to input icon tag
-		$thePageIcon = $this->addTagAttributes($icon, $this->titleAttrib.'="'.$this->getTitleAttrib($row).'"');
 
 			// Wrap icon in click-menu link.
 		if (!$this->ext_IconMode)	{
@@ -115,7 +112,9 @@ class webPageTree extends t3lib_browseTree {
 
 			// Add Page ID:
 		$pageIdStr = '';
-		if ($this->ext_showPageId) { $pageIdStr = '['.$row['uid'].']&nbsp;'; }
+		if ($this->ext_showPageId) {
+			$pageIdStr = '<span class="dragId">[' . $row['uid'] . ']</span> ';
+		}
 
 			// Call stats information hook
 		$stat = '';
@@ -197,7 +196,7 @@ class webPageTree extends t3lib_browseTree {
 		$PM = t3lib_div::_GP('PM');
 		if(($PMpos = strpos($PM, '#')) !== false) { $PM = substr($PM, 0, $PMpos); }
 		$PM = explode('_', $PM);
-		if((TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_AJAX) && is_array($PM) && count($PM)==4) {
+		if ((TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_AJAX) && is_array($PM) && count($PM) == 4 && $PM[2] != 0) {
 			if($PM[1])	{
 				$expandedPageUid = $PM[2];
 				$ajaxOutput = '';
@@ -348,7 +347,7 @@ class webPageTree extends t3lib_browseTree {
 
 				// Set first:
 			$this->bank = $idx;
-			$isOpen = $this->stored[$idx][$uid] || $this->expandFirst;
+			$isOpen = $this->stored[$idx][$uid] || $this->expandFirst || $uid === '0';
 
 				// Save ids while resetting everything else.
 			$curIds = $this->ids;
@@ -357,8 +356,11 @@ class webPageTree extends t3lib_browseTree {
 
 				// Set PM icon for root of mount:
 			$cmd = $this->bank.'_'.($isOpen? "0_" : "1_").$uid.'_'.$this->treeName;
-			$icon='<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/'.($isOpen?'minus':'plus').'only.gif').' alt="" />';
-			$firstHtml = $this->PMiconATagWrap($icon,$cmd,!$isOpen);
+				// only, if not for uid 0
+			if ($uid) {
+				$icon = '<img' . t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/' . ($isOpen ? 'minus' :'plus' ) . 'only.gif') . ' alt="" />';
+				$firstHtml = $this->PMiconATagWrap($icon, $cmd, !$isOpen);
+			}
 
 				// Preparing rootRec for the mount
 			if ($uid)   {

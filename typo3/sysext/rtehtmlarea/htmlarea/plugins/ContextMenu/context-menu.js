@@ -32,7 +32,7 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-ContextMenu = HTMLArea.Plugin.extend({
+HTMLArea.ContextMenu = HTMLArea.Plugin.extend({
 	constructor : function(editor, pluginName) {
 		this.base(editor, pluginName);
 	},
@@ -54,13 +54,13 @@ ContextMenu = HTMLArea.Plugin.extend({
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: "3.0",
-			developer	: "Mihai Bazon & Stanislas Rolland",
-			developerUrl	: "http://www.sjbr.ca/",
-			copyrightOwner	: "dynarch.com & Stanislas Rolland",
-			sponsor		: "American Bible Society & SJBR",
-			sponsorUrl	: "http://www.sjbr.ca/",
-			license		: "GPL"
+			version		: '3.0',
+			developer	: 'Mihai Bazon & Stanislas Rolland',
+			developerUrl	: 'http://www.sjbr.ca/',
+			copyrightOwner	: 'dynarch.com & Stanislas Rolland',
+			sponsor		: 'American Bible Society & SJBR',
+			sponsorUrl	: 'http://www.sjbr.ca/',
+			license		: 'GPL'
 		};
 		this.registerPluginInformation(pluginInformation);
 		return true;
@@ -91,6 +91,8 @@ ContextMenu = HTMLArea.Plugin.extend({
 		}, this.pageTSConfiguration));
 			// Monitor contextmenu clicks on the iframe
 		this.menu.mon(Ext.get(this.editor.document.documentElement), 'contextmenu', this.show, this, {single: true});
+			// Monitor editor being destroyed
+		this.menu.mon(this.editor, 'beforedestroy', this.onBeforeDestroy, this, {single: true});
 	},
 	/*
 	 * Create the menu items config
@@ -150,7 +152,7 @@ ContextMenu = HTMLArea.Plugin.extend({
 			itemId: itemId,
 			cls: 'button',
 			overCls: 'hover',
-			iconCls: itemId,
+			iconCls: 'htmlarea-action-delete-item',
 			helpText: this.localize('Remove this node from the document')
 		});
 		return itemsConfig;
@@ -258,5 +260,15 @@ ContextMenu = HTMLArea.Plugin.extend({
 			this.deleteTarget.remove();
 			this.editor.updateToolbar();
 		}
+	},
+	/*
+	 * Handler invoked when the editor is about to be destroyed
+	 */
+	onBeforeDestroy: function () {
+		this.menu.items.each(function (menuItem) {
+			Ext.QuickTips.unregister(menuItem);
+		});
+	 	this.menu.removeAll(true);
+	 	this.menu.destroy();
 	}
 });

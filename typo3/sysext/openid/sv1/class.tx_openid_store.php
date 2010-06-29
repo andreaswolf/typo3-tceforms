@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Dmitry Dulepov (dmitry.dulepov@gmail.com)
+*  (c) 2009-2010 Dmitry Dulepov (dmitry.dulepov@gmail.com)
 *  All rights reserved
 *
 *  This script is part of the Typo3 project. The Typo3 project is
@@ -102,8 +102,13 @@ class tx_openid_store extends Auth_OpenID_OpenIDStore {
 
 		$result = null;
 		if (is_array($row)) {
-			$result = @unserialize($row['content']);
-			$this->updateAssociationTimeStamp($row['tstamp']);
+			$result = @unserialize(base64_decode($row['content']));
+			if ($result === false) {
+				$result = null;
+			}
+			else {
+				$this->updateAssociationTimeStamp($row['tstamp']);
+			}
 		}
 		return $result;
 	}
@@ -201,7 +206,7 @@ class tx_openid_store extends Auth_OpenID_OpenIDStore {
 			time());
 		$serializedAssociation = serialize($association);
 		$values = array(
-			'content' => $serializedAssociation,
+			'content' => base64_encode($serializedAssociation),
 			'tstamp' => time(),
 		);
 		$GLOBALS['TYPO3_DB']->exec_UPDATEquery(self::ASSOCIATION_TABLE_NAME, $where, $values);
@@ -218,7 +223,7 @@ class tx_openid_store extends Auth_OpenID_OpenIDStore {
 		$serializedAssociation = serialize($association);
 		$values = array(
 			'assoc_handle' => $association->handle,
-			'content' => $serializedAssociation,
+			'content' => base64_encode($serializedAssociation),
 			'crdate' => $association->issued,
 			'tstamp' => time(),
 			'expires' => $association->issued + $association->lifetime - self::ASSOCIATION_EXPIRATION_SAFETY_INTERVAL,

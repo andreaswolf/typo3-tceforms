@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -65,7 +65,7 @@
  * 1038:     function caseShift($str,$flag,$cacheKey='')
  * 1065:     function compileTagAttribs($tagAttrib,$meta=array(), $xhtmlClean=0)
  * 1093:     function get_tag_attributes_classic($tag,$deHSC=0)
- * 1106:     function indentLines($content, $number=1, $indentChar="\t")
+ * 1106:     function indentLines($content, $number=1, $indentChar=TAB)
  * 1123:     function HTMLparserConfig($TSconfig,$keepTags=array())
  * 1247:     function XHTML_clean($content)
  * 1269:     function processTag($value,$conf,$endTag,$protected=0)
@@ -181,7 +181,7 @@ class t3lib_parsehtml	{
 		$between = substr($content, $startAM, $stop-$startAM);
 
 		if ($recursive) {
-			$after = t3lib_parsehtml::substituteSubpart(
+			$after = self::substituteSubpart(
 				$after,
 				$marker,
 				$subpartContent,
@@ -250,7 +250,7 @@ class t3lib_parsehtml	{
 	 */
 	public static function substituteSubpartArray($content, array $subpartsContent) {
 		foreach ($subpartsContent as $subpartMarker => $subpartContent) {
-			$content = t3lib_parsehtml::substituteSubpart(
+			$content = self::substituteSubpart(
 				$content,
 				$subpartMarker,
 				$subpartContent
@@ -794,8 +794,7 @@ class t3lib_parsehtml	{
 								if (is_array($tags[$tagName]['fixAttrib']))	{
 									$tagAttrib = $this->get_tag_attributes($tagParts[1]);
 									$tagParts[1]='';
-									reset($tags[$tagName]['fixAttrib']);
-									while(list($attr,$params)=each($tags[$tagName]['fixAttrib']))	{
+									foreach ($tags[$tagName]['fixAttrib'] as $attr => $params) {
 										if (strlen($params['set']))	$tagAttrib[0][$attr] = $params['set'];
 										if (strlen($params['unset']))	unset($tagAttrib[0][$attr]);
 										if (strcmp($params['default'],'') && !isset($tagAttrib[0][$attr]))	$tagAttrib[0][$attr]=$params['default'];
@@ -811,8 +810,27 @@ class t3lib_parsehtml	{
 													$tagAttrib[0][$attr]=t3lib_div::intInRange($tagAttrib[0][$attr],intval($params['range'][0]));
 												}
 											}
-											if (is_array($params['list']))	{
-												if (!in_array($this->caseShift($tagAttrib[0][$attr],$params['casesensitiveComp']),$this->caseShift($params['list'],$params['casesensitiveComp'],$tagName)))	$tagAttrib[0][$attr]=$params['list'][0];
+											if (is_array($params['list'])) {
+													// For the class attribute, remove from the attribute value any class not in the list
+													// Classes are case sensitive
+												if ($attr == 'class') {
+													$newClasses = array();
+													$classes = t3lib_div::trimExplode(' ', $tagAttrib[0][$attr], TRUE);
+													foreach ($classes as $class) {
+														if (in_array($class, $params['list'])) {
+															$newClasses[] = $class;
+														}
+													}
+													if (count($newClasses)) {
+														$tagAttrib[0][$attr] = implode(' ', $newClasses);
+													} else {
+														$tagAttrib[0][$attr] = '';
+													}
+												} else {
+													if (!in_array($this->caseShift($tagAttrib[0][$attr],$params['casesensitiveComp']),$this->caseShift($params['list'],$params['casesensitiveComp'],$tagName))) {
+														$tagAttrib[0][$attr]=$params['list'][0];
+													}
+												}
 											}
 											if (($params['removeIfFalse'] && $params['removeIfFalse']!='blank' && !$tagAttrib[0][$attr]) || ($params['removeIfFalse']=='blank' && !strcmp($tagAttrib[0][$attr],'')))	{
 												unset($tagAttrib[0][$attr]);
@@ -966,10 +984,10 @@ class t3lib_parsehtml	{
 	 */
 	function prefixResourcePath($main_prefix,$content,$alternatives=array(),$suffix='')	{
 
-		$parts = $this->splitTags('embed,td,table,body,img,input,form,link,script,a',$content);
+		$parts = $this->splitTags('embed,td,table,body,img,input,form,link,script,a,param',$content);
 		foreach ($parts as $k => $v)	{
 			if ($k%2)	{
-				$params = $this->get_tag_attributes($v,1);
+				$params = $this->get_tag_attributes($v);
 				$tagEnd = substr($v,-2)=='/>' ? ' />' : '>';	// Detect tag-ending so that it is re-applied correctly.
 				$firstTagName = $this->getFirstTagName($v);	// The 'name' of the first tag
 				$somethingDone=0;
@@ -1012,6 +1030,16 @@ class t3lib_parsehtml	{
 							$somethingDone=1;
 						}
 					break;
+						// value attribute
+					case 'param':
+						$test = $params[0]['name'];
+						if ($test && $test === 'movie') {
+							if ($params[0]['value']) {
+								$params[0]['value'] = $this->prefixRelPath($prefix, $params[0]['value'], $suffix);
+								$somethingDone = 1;
+							}
+						}
+					break;
 				}
 				if ($somethingDone)	{
 					$tagParts = preg_split('/\s+/s',$v,2);
@@ -1046,10 +1074,15 @@ class t3lib_parsehtml	{
 	 * @return	string		Output path, prefixed if no scheme in input string
 	 * @access private
 	 */
-	function prefixRelPath($prefix,$srcVal,$suffix='')	{
-		$pU = parse_url($srcVal);
-		if (!$pU['scheme'] && substr($srcVal, 0, 1)!='/')	{ // If not an absolute URL.
-			$srcVal = $prefix.$srcVal.$suffix;
+	function prefixRelPath($prefix, $srcVal, $suffix = '') {
+			// Only prefix if it's not an absolute URL or 
+			// only a link to a section within the page.
+		if (substr($srcVal, 0, 1) != '/' && substr($srcVal, 0, 1) != '#') {
+			$urlParts = parse_url($srcVal);
+				// only prefix URLs without a scheme
+			if (!$urlParts['scheme']) {
+				$srcVal = $prefix . $srcVal . $suffix;
+			}
 		}
 		return $srcVal;
 	}
@@ -1233,13 +1266,13 @@ class t3lib_parsehtml	{
 	 * @param	string		Indent character/string
 	 * @return	string		Indented code (typ. HTML)
 	 */
-	function indentLines($content, $number=1, $indentChar="\t")	{
+	function indentLines($content, $number=1, $indentChar=TAB)	{
 		$preTab = str_pad('', $number*strlen($indentChar), $indentChar);
-		$lines = explode(chr(10),str_replace(chr(13),'',$content));
+		$lines = explode(LF,str_replace(CR,'',$content));
 		foreach ($lines as $k => $v)	{
 			$lines[$k] = $preTab.$v;
 		}
-		return implode(chr(10), $lines);
+		return implode(LF, $lines);
 	}
 
 	/**
@@ -1257,22 +1290,19 @@ class t3lib_parsehtml	{
 
 			// Set config properties.
 		if (is_array($TSconfig['tags.']))	{
-			reset($TSconfig['tags.']);
-			while(list($key,$tagC)=each($TSconfig['tags.']))	{
+			foreach ($TSconfig['tags.'] as $key => $tagC) {
 				if (!is_array($tagC) && $key==strtolower($key))	{
 					if (!strcmp($tagC,'0'))	unset($keepTags[$key]);
 					if (!strcmp($tagC,'1') && !isset($keepTags[$key]))	$keepTags[$key]=1;
 				}
 			}
 
-			reset($TSconfig['tags.']);
 			foreach ($TSconfig['tags.'] as $key => $tagC)	{
 				if (is_array($tagC) && $key==strtolower($key))	{
 					$key=substr($key,0,-1);
 					if (!is_array($keepTags[$key]))	$keepTags[$key]=array();
 					if (is_array($tagC['fixAttrib.']))	{
-						reset($tagC['fixAttrib.']);
-						while(list($atName,$atConfig)=each($tagC['fixAttrib.']))	{
+						foreach ($tagC['fixAttrib.'] as $atName => $atConfig) {
 							if (is_array($atConfig))	{
 								$atName=substr($atName,0,-1);
 								if (!is_array($keepTags[$key]['fixAttrib'][$atName]))	{
@@ -1293,7 +1323,7 @@ class t3lib_parsehtml	{
 			// localNesting
 		if ($TSconfig['localNesting'])	{
 			$lN = t3lib_div::trimExplode(',',strtolower($TSconfig['localNesting']),1);
-			while(list(,$tn)=each($lN))	{
+			foreach ($lN as $tn) {
 				if (isset($keepTags[$tn]))	{
 					$keepTags[$tn]['nesting']=1;
 				}
@@ -1301,7 +1331,7 @@ class t3lib_parsehtml	{
 		}
 		if ($TSconfig['globalNesting'])	{
 			$lN = t3lib_div::trimExplode(',',strtolower($TSconfig['globalNesting']),1);
-			while(list(,$tn)=each($lN))	{
+			foreach ($lN as $tn) {
 				if (isset($keepTags[$tn]))	{
 					if (!is_array($keepTags[$tn]))	$keepTags[$tn]=array();
 					$keepTags[$tn]['nesting']='global';
@@ -1310,7 +1340,7 @@ class t3lib_parsehtml	{
 		}
 		if ($TSconfig['rmTagIfNoAttrib'])	{
 			$lN = t3lib_div::trimExplode(',',strtolower($TSconfig['rmTagIfNoAttrib']),1);
-			while(list(,$tn)=each($lN))	{
+			foreach ($lN as $tn) {
 				if (isset($keepTags[$tn]))	{
 					if (!is_array($keepTags[$tn]))	$keepTags[$tn]=array();
 					$keepTags[$tn]['rmTagIfNoAttrib']=1;
@@ -1319,7 +1349,7 @@ class t3lib_parsehtml	{
 		}
 		if ($TSconfig['noAttrib'])	{
 			$lN = t3lib_div::trimExplode(',',strtolower($TSconfig['noAttrib']),1);
-			while(list(,$tn)=each($lN))	{
+			foreach ($lN as $tn) {
 				if (isset($keepTags[$tn]))	{
 					if (!is_array($keepTags[$tn]))	$keepTags[$tn]=array();
 					$keepTags[$tn]['allowedAttribs']=0;
@@ -1328,7 +1358,7 @@ class t3lib_parsehtml	{
 		}
 		if ($TSconfig['removeTags'])	{
 			$lN = t3lib_div::trimExplode(',',strtolower($TSconfig['removeTags']),1);
-			while(list(,$tn)=each($lN))	{
+			foreach ($lN as $tn) {
 				$keepTags[$tn]=array();
 				$keepTags[$tn]['allowedAttribs']=0;
 				$keepTags[$tn]['rmTagIfNoAttrib']=1;
@@ -1414,8 +1444,7 @@ class t3lib_parsehtml	{
 				if (!strcmp($tagName,'img') && !isset($tagAttrib[0]['alt']))		$tagAttrib[0]['alt']='';	// Set alt attribute for all images (not XHTML though...)
 				if (!strcmp($tagName,'script') && !isset($tagAttrib[0]['type']))	$tagAttrib[0]['type']='text/javascript';	// Set type attribute for all script-tags
 				$outA=array();
-				reset($tagAttrib[0]);
-				while(list($attrib_name,$attrib_value)=each($tagAttrib[0]))	{
+				foreach ($tagAttrib[0] as $attrib_name => $attrib_value) {
 						// Set attributes: lowercase, always in quotes, with htmlspecialchars converted.
 					$outA[]=$attrib_name.'="'.$this->bidir_htmlspecialchars($attrib_value,2).'"';
 				}

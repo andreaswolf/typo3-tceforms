@@ -31,16 +31,12 @@
  *
  * $Id$  *
  */
-
 require_once(t3lib_extMgm::extPath('rtehtmlarea').'class.tx_rtehtmlarea_base.php');
-
 class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 
 		// External:
-	var $RTEWrapStyle = '';				// Alternative style for RTE wrapper <div> tag.
-	var $RTEdivStyle = '';				// Alternative style for RTE <div> tag.
-	var $extHttpPath;				// full Path to this extension for http (so no Server path). It ends with "/"
-	public $httpTypo3Path;
+	public $RTEWrapStyle = '';				// Alternative style for RTE wrapper <div> tag.
+	public $RTEdivStyle = '';				// Alternative style for RTE <div> tag.
 
 		// For the editor
 	var $elementId;
@@ -82,21 +78,12 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 		 * INIT THE EDITOR-SETTINGS
 		 * =======================================
 		 */
-
-			// first get the http-path to typo3:
-		$this->httpTypo3Path = substr( substr( t3lib_div::getIndpEnv('TYPO3_SITE_URL'), strlen( t3lib_div::getIndpEnv('TYPO3_REQUEST_HOST') ) ), 0, -1 );
-		if (strlen($this->httpTypo3Path) == 1) {
-			$this->httpTypo3Path = '/';
-		} else {
-			$this->httpTypo3Path .= '/';
-		}
 			// Get the path to this extension:
-		$this->extHttpPath = $this->httpTypo3Path.t3lib_extMgm::siteRelPath($this->ID);
+		$this->extHttpPath = t3lib_extMgm::siteRelPath($this->ID);
 			// Get the site URL
-		$this->siteURL = t3lib_div::getIndpEnv('TYPO3_SITE_URL');
+		$this->siteURL = $GLOBALS['TSFE']->absRefPrefix ? $GLOBALS['TSFE']->absRefPrefix : '';
 			// Get the host URL
-		$this->hostURL = t3lib_div::getIndpEnv('TYPO3_REQUEST_HOST');
-
+		$this->hostURL = '';
 			// Element ID + pid
 		$this->elementId = $PA['itemFormElName'];
 		$this->elementParts[0] = $table;
@@ -123,12 +110,10 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 		$this->specConf = $specConf;
 
 		if ($this->thisConfig['forceHTTPS']) {
-			$this->httpTypo3Path = preg_replace('/^(http|https)/', 'https', $this->httpTypo3Path);
 			$this->extHttpPath = preg_replace('/^(http|https)/', 'https', $this->extHttpPath);
 			$this->siteURL = preg_replace('/^(http|https)/', 'https', $this->siteURL);
 			$this->hostURL = preg_replace('/^(http|https)/', 'https', $this->hostURL);
 		}
-
 		/* =======================================
 		 * LANGUAGES & CHARACTER SETS
 		 * =======================================
@@ -196,7 +181,7 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 		$width = 460+($this->TCEform->docLarge ? 150 : 0);
 		if (isset($this->thisConfig['RTEWidthOverride'])) {
 			if (strstr($this->thisConfig['RTEWidthOverride'], '%')) {
-				if ($this->client['BROWSER'] != 'msie') {
+				if ($this->client['browser'] != 'msie') {
 					$width = (intval($this->thisConfig['RTEWidthOverride']) > 0) ? $this->thisConfig['RTEWidthOverride'] : '100%';
 				}
 			} else {
@@ -222,14 +207,14 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 			// Preloading the pageStyle and including RTE skin stylesheets
 		$this->addPageStyle();
 		$this->addSkin();
-		$pageRenderer->addCssFile($this->hostURL . '/t3lib/js/extjs/ux/resize.css');
+		$pageRenderer->addCssFile($this->siteURL . 't3lib/js/extjs/ux/resize.css');
 			// Loading JavaScript files and code
 		$pageRenderer->loadExtJs();
 		$pageRenderer->enableExtJSQuickTips();
 		if (!$GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$this->ID]['enableCompressedScripts']) {
 			$pageRenderer->enableExtJsDebug();
 		}
-		$pageRenderer->addJsFile($this->hostURL . '/t3lib/js/extjs/ux/ext.resizable.js');
+		$pageRenderer->addJsFile($this->siteURL . 't3lib/js/extjs/ux/ext.resizable.js');
 		if ($this->TCEform->RTEcounter == 1) {
 			$this->TCEform->additionalJS_pre['rtehtmlarea-loadJScode'] = $this->loadJScode($this->TCEform->RTEcounter);
 		}
@@ -273,7 +258,6 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 			';
 		return $item;
 	}
-
 	/**
 	 * Add style sheet file to document header
 	 *
@@ -284,11 +268,17 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 	 * @return	void
 	 */
 	protected function addStyleSheet($key, $href, $title='', $relation='stylesheet') {
-		if (!isset($GLOBALS['TSFE']->additionalHeaderData[$key])) {
-			$GLOBALS['TSFE']->additionalHeaderData[$key] = '<link rel="' . $relation . '" type="text/css" href="' . $href . '"' . ($title ? (' title="' . $title . '"') : '') . ' />';
-		}
+		$pageRenderer = $GLOBALS['TSFE']->getPageRenderer();
+		$pageRenderer->addCssFile($href, $relation, 'screen', $title);
 	}
-
+	/**
+	 * Return true if we are in the FE, but not in the FE editing feature of BE.
+	 *
+	 * @return boolean
+	 */
+	function is_FE() {
+		return true;
+	}
 	/**
 	 * Return the JS-Code for copy the HTML-Code from the editor in the hidden input field.
 	 * This is for submit function from the form.
@@ -312,9 +302,7 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 		}';
 	}
 }
-
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/pi2/class.tx_rtehtmlarea_pi2.php'])	{
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/pi2/class.tx_rtehtmlarea_pi2.php']) {
 	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/pi2/class.tx_rtehtmlarea_pi2.php']);
 }
-
 ?>

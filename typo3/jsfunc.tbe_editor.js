@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -206,15 +206,27 @@ var TBE_EDITOR = {
 					}
 				}
 			} else if (type == 'range' && elementData.range) {
+				var numberOfElements = 0;
 				form = document[TBE_EDITOR.formname][elementName+'_list'];
 				if (!form) {
 						// special treatment for IRRE fields:
 					var tempObj = document[TBE_EDITOR.formname][elementName];
 					if (tempObj && Element.hasClassName(tempObj, 'inlineRecord')) {
 						form = tempObj.value ? tempObj.value.split(',') : [];
+						numberOfElements = form.length;
+					}
+
+				} else {
+						// special treatment for file uploads
+					var tempObj = document[TBE_EDITOR.formname][elementName.replace(/^data/, 'data_files')];
+					numberOfElements = form.length;
+					
+					if (tempObj && tempObj.type == 'file' && tempObj.value) {
+						numberOfElements++; // Add new uploaded file to the number of elements
 					}
 				}
-				if (!TBE_EDITOR.checkRange(form, elementData.range[0], elementData.range[1])) {
+
+				if (!TBE_EDITOR.checkRange(numberOfElements, elementData.range[0], elementData.range[1])) {
 					result = 0;
 					if (autoNotify) {
 						TBE_EDITOR.setImage('req_'+elementData.rangeImg, TBE_EDITOR.images.req);
@@ -397,13 +409,6 @@ var TBE_EDITOR = {
 	 */
 	checkSubmit: function(sendAlert) {
 		var funcIndex, funcMax, funcRes;
-		if (TBE_EDITOR.backend_interface == "backend_old") {
-			if (TBE_EDITOR.checkLoginTimeout() && confirm(TBE_EDITOR.labels.refresh_login)) {
-				vHWin=window.open(TBE_EDITOR.backPath+'login_frameset.php?','relogin','height=300,width=400,status=0,menubar=0');
-				vHWin.focus();
-				return false;
-			}
-		}
 		var OK=1;
 
 		// $this->additionalJS_submit:
@@ -434,8 +439,13 @@ var TBE_EDITOR = {
 			return false;
 		}
 	},
-	checkRange: function(el,lower,upper) {
-		if (el && el.length>=lower && el.length<=upper) {
+	checkRange: function(numberOfElements, lower, upper) {
+			// for backwards compatibility, check if we're dealing with an element as first parameter
+		if(typeof numberOfElements == 'object') {
+			numberOfElements = numberOfElements.length;
+		}
+
+		if (numberOfElements >= lower && numberOfElements <= upper) {
 			return true;
 		} else {
 			return false;
@@ -551,7 +561,23 @@ var TBE_EDITOR = {
 			}
 		}
 		return false;
-	}	
+	},
+
+	/**
+	 * Determines backend path to be used for e.g. ajax.php
+	 * @return string
+	 */
+	getBackendPath: function() {
+		var backendPath = '';
+		if (TYPO3) {
+			if (TYPO3.configuration && TYPO3.configuration.PATH_typo3) {
+				backendPath = TYPO3.configuration.PATH_typo3;
+			} else if (TYPO3.settings && TYPO3.settings.PATH_typo3) {
+				backendPath = TYPO3.settings.PATH_typo3;
+			}
+		}
+		return backendPath;
+	}
 };
 
 function typoSetup	() {

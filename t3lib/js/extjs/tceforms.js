@@ -5,7 +5,7 @@
  *
  * Copyright notice
  *
- * (c) 2009 Steffen Kamper <info@sk-typo3.de>
+ * (c) 2009-2010 Steffen Kamper <info@sk-typo3.de>
  * All rights reserved
  *
  * This script is part of the TYPO3 project. The TYPO3 project is
@@ -38,12 +38,12 @@ TYPO3.TCEFORMS = {
 	},
 
 	convertDateFieldsToDatePicker: function() {
-		var dateFields = Ext.select("*[id^=tceforms-datefield-], *[id^=tceforms-datetimefield-]");
+		var dateFields = Ext.select("input[id^=tceforms-date]");
 		dateFields.each(function(element) {
 			var index = element.dom.id.match(/tceforms-datefield-/) ? 0 : 1;
 			var format = TYPO3.settings.datePickerUSmode ? TYPO3.settings.dateFormatUS : TYPO3.settings.dateFormat;
 
-			var datepicker = Ext.get('picker-' + element.dom.id);
+			var datepicker = element.next('span');
 
 			var menu = new Ext.menu.DateMenu({
 				id:			'p' + element.dom.id,
@@ -73,7 +73,7 @@ TYPO3.TCEFORMS = {
 	},
 	
 	convertTextareasResizable: function() {
-		var textAreas = Ext.select("*[id^=tceforms-textarea-]");
+		var textAreas = Ext.select("textarea[id^=tceforms-textarea-]");
 		textAreas.each(function(element) {
 			if (TYPO3.settings.textareaFlexible) {
 				var elasticTextarea = new Ext.ux.elasticTextArea().applyTo(element.dom.id, {

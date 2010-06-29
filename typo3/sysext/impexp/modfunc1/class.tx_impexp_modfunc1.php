@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -145,9 +145,9 @@ class tx_impexp_modfunc1 extends mod_user_task {
 						<td>'.($configuration['pagetree']['id'] ? $configuration['pagetree']['id'] : '&nbsp;').'</td>
 						<td>'.htmlspecialchars($configuration['pagetree']['id'] ? t3lib_BEfunc::getRecordPath($configuration['pagetree']['id'],$clause,20) : '[Single Records]').'</td>
 						<td>
-							<b>' . htmlspecialchars($configuration['meta']['title']) . '</b><br />' .
+							<strong>' . htmlspecialchars($configuration['meta']['title']) . '</strong><br />' .
 							htmlspecialchars($configuration['meta']['description']).
-							($configuration['meta']['notes'] ? '<br /><br /><b>Notes:</b> <em>' . htmlspecialchars($configuration['meta']['notes']) . '</em>' : '') .
+							($configuration['meta']['notes'] ? '<br /><br /><strong>Notes:</strong> <em>' . htmlspecialchars($configuration['meta']['notes']) . '</em>' : '') .
 							'
 						</td>
 					</tr>';

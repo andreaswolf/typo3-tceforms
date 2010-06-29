@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -238,6 +238,12 @@ class TBE_browser_recordList extends localRecordList {
 class localPageTree extends t3lib_browseTree {
 
 	/**
+	 * whether the page ID should be shown next to the title, activate through userTSconfig (options.pageTree.showPageIdWithTitle)
+	 * @boolean
+	 */
+	public $ext_showPageId = FALSE;
+
+	/**
 	 * Constructor. Just calling init()
 	 *
 	 * @return	void
@@ -355,8 +361,12 @@ class localPageTree extends t3lib_browseTree {
 	 * @param	array		The row for the current element
 	 * @return	string		The processed icon input value.
 	 */
-	function wrapIcon($icon,$row)	{
-		return $this->addTagAttributes($icon,' title="id='.$row['uid'].'"');
+	function wrapIcon($icon, $row) {
+		$content = $this->addTagAttributes($icon, ' title="id=' . $row['uid'] . '"');
+		if ($this->ext_showPageId) {
+		 	$content .= '[' . $row['uid'] . ']&nbsp;';
+		}
+		return $content;
 	}
 }
 
@@ -804,7 +814,7 @@ class browse_links {
 
 			// CurrentUrl - the current link url must be passed around if it exists
 		if ($this->mode == 'wizard')	{
-			$currentLinkParts = t3lib_div::trimExplode(' ',$this->P['currentValue']);
+			$currentLinkParts = t3lib_div::unQuoteFilenames($this->P['currentValue'], TRUE);
 			$initialCurUrlArray = array (
 				'href'   => $currentLinkParts[0],
 				'target' => $currentLinkParts[1],
@@ -907,9 +917,8 @@ class browse_links {
 
 		if ($this->mode == 'wizard')	{	// Functions used, if the link selector is in wizard mode (= TCEforms fields)
 			unset($this->P['fieldChangeFunc']['alert']);
-			reset($this->P['fieldChangeFunc']);
 			$update='';
-			while(list($k,$v)=each($this->P['fieldChangeFunc']))	{
+			foreach ($this->P['fieldChangeFunc'] as $k => $v) {
 				$update.= '
 				window.opener.'.$v;
 			}
@@ -967,6 +976,14 @@ class browse_links {
 						}
 						if (cur_title == "" && cur_class == "-") {
 							cur_class = "";
+						}
+						cur_class = cur_class.replace(/[\'\"]/g, "");
+						if (cur_class.indexOf(" ") != -1) {
+							cur_class = "\"" + cur_class + "\"";
+						}
+						cur_title = cur_title.replace(/(^\")|(\"$)/g, "");
+						if (cur_title.indexOf(" ") != -1) {
+							cur_title = "\"" + cur_title + "\"";
 						}
 						input = input + " " + cur_target + " " + cur_class + " " + cur_title;
 						field.value = input;
@@ -1346,8 +1363,7 @@ class browse_links {
 				if (is_array($this->thisConfig['userLinks.']))	{
 					$subcats=array();
 					$v=$this->thisConfig['userLinks.'];
-					reset($v);
-					while(list($k2)=each($v))	{
+					foreach ($v as $k2 => $value) {
 						$k2i = intval($k2);
 						if (substr($k2,-1)=='.' && is_array($v[$k2i.'.']))	{
 
@@ -1403,8 +1419,24 @@ class browse_links {
 			case 'page':
 				$pagetree = t3lib_div::makeInstance('rtePageTree');
 				$pagetree->thisScript = $this->thisScript;
+				$pagetree->ext_showPageId = $GLOBALS['BE_USER']->getTSConfigVal('options.pageTree.showPageIdWithTitle');
 				$tree=$pagetree->getBrowsableTree();
 				$cElements = $this->expandPage();
+
+				// Outputting Temporary DB mount notice:
+				if (intval($GLOBALS['BE_USER']->getSessionData('pageTree_temporaryMountPoint')))	{
+					$link = '<a href="' . htmlspecialchars(t3lib_div::linkThisScript(array('setTempDBmount' => 0))) . '">' .
+										$LANG->sl('LLL:EXT:lang/locallang_core.xml:labels.temporaryDBmount', 1) .
+									'</a>';
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						$link,
+						'',
+						t3lib_FlashMessage::INFO
+					);
+					$dbmount = $flashMessage->render();
+				}
+
 				$content.= '
 
 			<!--
@@ -1412,7 +1444,7 @@ class browse_links {
 			-->
 					<table border="0" cellpadding="0" cellspacing="0" id="typo3-linkPages">
 						<tr>
-							<td class="c-wCell" valign="top">'.$this->barheader($GLOBALS['LANG']->getLL('pageTree').':').$tree.'</td>
+							<td class="c-wCell" valign="top">' . $this->barheader($GLOBALS['LANG']->getLL('pageTree') . ':') . $dbmount . $tree . '</td>
 							<td class="c-wCell" valign="top">'.$cElements.'</td>
 						</tr>
 					</table>
@@ -1550,6 +1582,7 @@ class browse_links {
 		$pagetree->thisScript=$this->thisScript;
 		$pagetree->ext_pArrPages = !strcmp($pArr[3],'pages')?1:0;
 		$pagetree->ext_showNavTitle = $GLOBALS['BE_USER']->getTSConfigVal('options.pageTree.showNavTitle');
+		$pagetree->ext_showPageId = $GLOBALS['BE_USER']->getTSConfigVal('options.pageTree.showPageIdWithTitle');
 		$pagetree->addField('nav_title');
 		$tree=$pagetree->getBrowsableTree();
 
@@ -2065,6 +2098,7 @@ class browse_links {
 	function TBE_expandFolder($expandFolder=0,$extensionList='',$noThumbs=0)	{
 		global $LANG;
 
+		$extensionList = ($extensionList == '*') ? '' : $extensionList;
 		$expandFolder = $expandFolder ? $expandFolder : $this->expandFolder;
 		$out='';
 		if ($expandFolder && $this->checkFolder($expandFolder))	{
@@ -2198,7 +2232,7 @@ class browse_links {
 		<!--
 			File listing
 		-->
-				<table border="0" cellpadding="0" cellspacing="1" id="typo3-fileList">
+				<table cellpadding="0" cellspacing="0" id="typo3-fileList">
 					'.implode('',$lines).'
 				</table>';
 		}
@@ -2333,6 +2367,7 @@ class browse_links {
 	function TBE_dragNDrop($expandFolder=0,$extensionList='')	{
 		global $BACK_PATH;
 
+		$extensionList = ($extensionList == '*') ? '' : $extensionList;
 		$expandFolder = $expandFolder ? $expandFolder : $this->expandFolder;
 		$out='';
 		if ($expandFolder && $this->checkFolder($expandFolder))	{
@@ -2358,7 +2393,7 @@ class browse_links {
 						</tr>';
 
 						// Traverse files:
-					while(list(,$filepath)=each($files))	{
+					foreach ($files as $filepath) {
 						$fI = pathinfo($filepath);
 
 							// URL of image:
@@ -2491,11 +2526,8 @@ class browse_links {
 	 */
 	function barheader($str)	{
 		return '
-
-			<!--
-				Bar header:
-			-->
-			<h3 class="bgColor5">'.htmlspecialchars($str).'</h3>
+			<!-- Bar header: -->
+			<h3>' . htmlspecialchars($str) . '</h3>
 			';
 	}
 
@@ -2531,16 +2563,17 @@ class browse_links {
 	 * @return	string		HTML content, wrapped in a table.
 	 */
 	function printCurrentUrl($str)	{
-		return '
-
-			<!--
-				Print current URL
-			-->
-			<table border="0" cellpadding="0" cellspacing="0" class="bgColor5" id="typo3-curUrl">
-				<tr>
-					<td>'.$GLOBALS['LANG']->getLL('currentLink',1).': '.htmlspecialchars(rawurldecode($str)).'</td>
-				</tr>
-			</table>';
+		if (strlen($str)) {
+			return '
+				<!-- Print current URL -->
+				<table border="0" cellpadding="0" cellspacing="0" id="typo3-curUrl">
+					<tr>
+						<td>' . $GLOBALS['LANG']->getLL('currentLink',1) . ': ' .htmlspecialchars(rawurldecode($str)) . '</td>
+					</tr>
+				</table>';
+		} else {
+			return '';
+		}
 	}
 
 	/**
@@ -2575,7 +2608,8 @@ class browse_links {
 				} else {	// URL is a page (id parameter)
 					$uP=parse_url($rel);
 					if (!trim($uP['path']))	{
-						$pp = explode('id=',$uP['query']);
+						$pp = preg_split('/^id=/', $uP['query']);
+						$pp[1] = preg_replace( '/&id=[^&]*/', '', $pp[1]);
 						$parameters = explode('&', $pp[1]);
 						$id = array_shift($parameters);
 						if ($id)	{

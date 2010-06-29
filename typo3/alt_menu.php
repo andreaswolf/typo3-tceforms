@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -149,7 +149,7 @@ class SC_alt_menu {
 				// Header: Admin functions
 			$this->content.='
 					<tr class="c-mainitem">
-						<td colspan="2"><span class="c-label"><b>'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.adminFunctions',1).'</b>&nbsp;</span><span class="c-iconCollapse"></span></td>
+						<td colspan="2"><span class="c-label"><strong>'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.adminFunctions',1).'</strong>&nbsp;</span><span class="c-iconCollapse"></span></td>
 					</tr>';
 
 			$rows=array();

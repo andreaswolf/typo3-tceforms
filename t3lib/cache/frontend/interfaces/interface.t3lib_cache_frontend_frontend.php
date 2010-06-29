@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2009-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,6 +31,7 @@
  *
  * @author	Ingo Renner <ingo@typo3.org>
  * @package TYPO3
+ * @api
  * @subpackage t3lib_cache
  */
 interface t3lib_cache_frontend_Frontend {
@@ -142,7 +143,7 @@ interface t3lib_cache_frontend_Frontend {
 	/**
 	 * Checks the validity of an entry identifier. Returns true if it's valid.
 	 *
-	 * @param string An identifier to be checked for validity
+	 * @param string $identifier An identifier to be checked for validity
 	 * @return boolean
 	 */
 	public function isValidEntryIdentifier($identifier);
@@ -150,7 +151,7 @@ interface t3lib_cache_frontend_Frontend {
 	/**
 	 * Checks the validity of a tag. Returns true if it's valid.
 	 *
-	 * @param string A tag to be checked for validity
+	 * @param string $tag A tag to be checked for validity
 	 * @return boolean
 	 */
 	public function isValidTag($tag);

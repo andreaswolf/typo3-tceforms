@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -62,9 +62,9 @@ $temp_publish_pages = explode(',', $BE_USER->adminPanel->getExtPublishList());
 $temp_publish_imagesTotal = array();
 $temp_publish_array = array();	// Collects the rendered pages.
 
-while(list(,$temp_publish_id)=each($temp_publish_pages))	{
+foreach ($temp_publish_pages as $temp_publish_id) {
 	$TT->push('Page '.$temp_publish_id,'');
-//debug($temp_publish_id,1);
+//debug($temp_publish_id);
 		$TSFE = t3lib_div::makeInstance('tslib_fe', $TYPO3_CONF_VARS, $temp_publish_id, 0);
 
 		$TSFE->initFEuser();
@@ -120,12 +120,11 @@ while(list(,$temp_publish_id)=each($temp_publish_pages))	{
 $publishDir = $TYPO3_CONF_VARS['FE']['publish_dir'];
 if ($publishDir && @is_dir($publishDir))	{
 	$publishDir = rtrim($publishDir, '/').'/';
-	debug('Publishing in: '.$publishDir,1);
-	reset($temp_publish_array);
-	while(list($key,$val)=each($temp_publish_array))	{
+	debug('Publishing in: '.$publishDir, 'Publish');
+	foreach ($temp_publish_array as $key => $val) {
 		$file = $publishDir.$key;
 		t3lib_div::writeFile($file,$val[2]);
-		debug('Writing: '.$file,1);
+		debug('Writing: '.$file, 'Publish');
 	}
 //	debug($temp_publish_array);
 } else {

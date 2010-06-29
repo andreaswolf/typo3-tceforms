@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -510,7 +510,7 @@ class t3lib_TStemplate	{
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
 			$this->rootLine[] = $this->absoluteRootLine[$a];
 		}
-		$this->procesIncludes();
+		$this->processIncludes();
 	}
 
 	/**
@@ -571,18 +571,30 @@ class t3lib_TStemplate	{
 					}
 					$GLOBALS['TYPO3_DB']->sql_free_result($res);
 				}
-			} else {	// NORMAL OPERATION:
-				$basedOnArr = t3lib_div::intExplode(',', $row['basedOn']);
-				foreach ($basedOnArr as $id) { // traversing list
-					if (!t3lib_div::inList($idList,'sys_'.$id))	{	// if $id is not allready included ...
-						$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', 'sys_template', 'uid='.intval($id).' '.$this->whereClause);
-						if ($subrow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{	// there was a template, then we fetch that
-							$this->versionOL($subrow);
-							if (is_array($subrow))	{
-								$this->processTemplate($subrow,$idList.',sys_'.$id,$pid, 'sys_'.$id,$templateID);
-							}
-						}
-						$GLOBALS['TYPO3_DB']->sql_free_result($res);
+			} else {
+					// Normal Operation, which is to include the "based-on" sys_templates, 
+					// if they are not already included, and maintaining the sorting of the templates
+				$basedOnIds = t3lib_div::intExplode(',', $row['basedOn']);
+
+					// skip template if it's already included
+				foreach ($basedOnIds as $key => $basedOnId) {
+					if (t3lib_div::inList($idList, 'sys_' . $basedOnId)) {
+						unset($basedOnIds[$key]);
+					}
+				}
+
+				$subTemplates = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+					'*', 'sys_template',
+					'uid IN (' . implode(',', $basedOnIds) . ') ' . $this->whereClause,
+					'', '', '',
+					'uid'	// the associative array that is returned will contain this field as key
+				);
+
+					// traversing list again to ensure the sorting of the templates
+				foreach ($basedOnIds as $id) { 
+					if (is_array($subTemplates[$id])) {
+						$this->versionOL($subTemplates[$id]);
+						$this->processTemplate($subTemplates[$id], $idList . ',sys_' . $id, $pid, 'sys_' . $id, $templateID);
 					}
 				}
 			}
@@ -604,7 +616,7 @@ class t3lib_TStemplate	{
 			'title'=>$row['title'],
 			'uid'=>$row['uid'],
 			'pid'=>$row['pid'],
-			'configLines' => substr_count($row['config'], chr(10))+1
+			'configLines' => substr_count($row['config'], LF)+1
 		);
 
 			// Adding the content of the fields constants (Constants), config (Setup) and editorcfg (Backend Editor Configuration) to the internal arrays.
@@ -692,6 +704,19 @@ class t3lib_TStemplate	{
 		}
 
 		$this->addExtensionStatics($idList,$templateID,$pid,$row);
+
+			// Include Static Template Records after all other TypoScript has been included.
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tstemplate.php']['includeStaticTypoScriptSourcesAtEnd'])) {
+			$_params = array(
+					'idList' => &$idList,
+					'templateId' => &$templateID,
+					'pid' => &$pid,
+					'row' => &$row
+			);
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tstemplate.php']['includeStaticTypoScriptSourcesAtEnd'] as $_funcRef)	{
+				t3lib_div::callUserFunction($_funcRef, $_params, $this);
+			}
+		}
 	}
 
 	/**
@@ -794,7 +819,7 @@ class t3lib_TStemplate	{
 		array_unshift($this->editorcfg,''.$GLOBALS['TYPO3_CONF_VARS']['FE']['defaultTypoScript_editorcfg']);	// Adding default TS/editorcfg
 
 			// Parse the TypoScript code text for include-instructions!
-		$this->procesIncludes();
+		$this->processIncludes();
 
 			// These vars are also set lateron...
 		$this->setup['resources']= $this->resources;
@@ -952,12 +977,25 @@ class t3lib_TStemplate	{
 
 	/**
 	 * Searching TypoScript code text (for constants, config (Setup) and editorcfg) for include instructions and does the inclusion if needed.
-	 * Modifies
+	 *
+	 * @return	void
+	 * @deprecated since TYPO3 4.4 - Method name misspelled. Use "processIncludes" instead! This function will be removed in TYPO3 4.6.
+	 * @see t3lib_TSparser, processIncludes()
+	 */
+	public function procesIncludes() {
+		t3lib_div::logDeprecatedFunction();
+		$this->processIncludes();
+	}
+
+	/**
+	 * Searching TypoScript code text (for constants, config (Setup) and editorcfg)
+	 * for include instructions and does the inclusion of external TypoScript files
+	 * if needed.
 	 *
 	 * @return	void
 	 * @see t3lib_TSparser, generateConfig()
 	 */
-	function procesIncludes() {
+	public function processIncludes() {
 		$files = array();
 		foreach ($this->constants as &$value) {
 			$includeData = t3lib_TSparser::checkIncludeLines($value, 1, true);
@@ -979,7 +1017,7 @@ class t3lib_TStemplate	{
 		if (count($files)) {
 			$files = array_unique($files);
 			foreach ($files as $file) {
-				$this->rowSum[] = Array($file, filemtime($file));
+				$this->rowSum[] = array($file, filemtime($file));
 			}
 		}
 	}
@@ -1000,7 +1038,7 @@ class t3lib_TStemplate	{
 		}
 			// Parsing the user TS (or getting from cache)
 		$TSdataArray = t3lib_TSparser::checkIncludeLines_array($TSdataArray);
-		$userTS = implode(chr(10).'[GLOBAL]'.chr(10),$TSdataArray);
+		$userTS = implode(LF.'[GLOBAL]'.LF,$TSdataArray);
 
 		$parseObj = t3lib_div::makeInstance('t3lib_TSparser');
 		$parseObj->parse($userTS);
@@ -1198,9 +1236,13 @@ class t3lib_TStemplate	{
 		}
 
 			// find
-		if (strstr($file,'/')) {	// here it is manual media
-			if(!strcmp(substr($file,0,6),'media/')) $file = 'typo3/sysext/cms/tslib/'.$file;
-			if (@is_file($this->getFileName_backPath.$file))	{
+		if (strpos($file, '/') !== false) {
+				// if the file is in the media/ folder but it doesn't exist,
+				// it is assumed that it's in the tslib folder
+			if (t3lib_div::isFirstPartOfStr($file, 'media/') && !is_file($this->getFileName_backPath . $file)) {
+				$file = t3lib_extMgm::siteRelPath('cms') . 'tslib/' . $file;
+			}
+			if (is_file($this->getFileName_backPath . $file)) {
 				$outFile = $file;
 				$fileInfo = t3lib_div::split_fileref($outFile);
 				$OK=0;
@@ -1265,8 +1307,7 @@ class t3lib_TStemplate	{
 	function checkFile($name,$menuArr)	{
 		t3lib_div::logDeprecatedFunction();
 
-		reset ($menuArr);
-		while (list($aKey,)=each($menuArr))	{
+		foreach ($menuArr as $aKey => $value) {
 			$menuArr[$aKey][$name] = $this->getFileName($menuArr[$aKey][$name]);
 		}
 		return $menuArr;
@@ -1315,7 +1356,7 @@ class t3lib_TStemplate	{
 	 * Ordinary "wrapping" function. Used in the tslib_menu class and extension classes instead of the similar function in tslib_cObj
 	 *
 	 * @param	string		The content to wrap
-	 * @param	string		The wrap value, eg. "<b> | </b>"
+	 * @param	string		The wrap value, eg. "<strong> | </strong>"
 	 * @return	string		Wrapped input string
 	 * @see tslib_menu, tslib_cObj::wrap()
 	 */

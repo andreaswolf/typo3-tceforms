@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Andreas Wolf <andreas.wolf@ikt-werk.de>
+*  (c) 2007-2010 Andreas Wolf <andreas.wolf@ikt-werk.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -131,6 +131,10 @@ class t3lib_TCEforms_Suggest_DefaultReceiver {
 		if ($GLOBALS['TCA'][$this->table]['ctrl']['versioningWS'] == true) {
 			$this->addWhere .= ' AND t3ver_wsid = 0';
 		}
+
+		if (isset($config['addWhere'])) {
+			$this->addWhere .= ' ' . $config['addWhere'];
+		}
 	}
 
 	/**
@@ -160,7 +164,6 @@ class t3lib_TCEforms_Suggest_DefaultReceiver {
 				'',
 				$this->orderByStatement,
 				$start . ', 50');
-
 
 		$allRowsCount = $GLOBALS['TYPO3_DB']->sql_num_rows($res);
 
@@ -231,8 +234,9 @@ class t3lib_TCEforms_Suggest_DefaultReceiver {
 		$searchString = $this->params['value'];
 		$searchUid = intval($searchString);
 		if (strlen($searchString)) {
+			$searchString = $GLOBALS['TYPO3_DB']->quoteStr($searchString, $this->table);
 			$likeCondition = ' LIKE \'' . ($searchWholePhrase ? '%' : '') .
-				$GLOBALS['TYPO3_DB']->escapeStrForLike($searchString, $this->table).'%\'';
+				$GLOBALS['TYPO3_DB']->escapeStrForLike($searchString, $this->table) . '%\'';
 
 				// Search in all fields given by label or label_alt
 			$selectFieldsList = $GLOBALS['TCA'][$this->table]['ctrl']['label'] . ',' . $GLOBALS['TCA'][$this->table]['ctrl']['label_alt'];

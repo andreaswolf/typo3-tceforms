@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -149,8 +149,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 		if ($ObjectKind && is_array($TSobjTable[$ObjectKind]))	{
 			$result=array();
 			if (is_array($propertyArray))		{
-				reset($propertyArray);
-				while(list($key,$val)=each($propertyArray))	{
+				foreach ($propertyArray as $key => $val) {
 					if (t3lib_div::testInt($key))	{	// If num-arrays
 						$result[$key]=$TSobjTable[$ObjectKind]["prop"]["1,2,3"];
 					} else {	// standard
@@ -221,8 +220,8 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 		$existTemplate = $this->initialize_editor($this->pObj->id,$template_uid);		// initialize
 		if ($existTemplate)	{
 			$theOutput .= '<h4 style="margin-bottom:5px;">' . $GLOBALS['LANG']->getLL('currentTemplate') . ' <img ' .
-				t3lib_iconWorks::skinImg($BACK_PATH, t3lib_iconWorks::getIcon('sys_template', $tplRow)) . ' align="top" /> <b>' .
-				$this->pObj->linkWrapTemplateTitle($tplRow["title"], ($bType == "setup" ? "config" : "constants")) . '</b>' .
+				t3lib_iconWorks::skinImg($BACK_PATH, t3lib_iconWorks::getIcon('sys_template', $tplRow)) . ' align="top" /> <strong>' .
+				$this->pObj->linkWrapTemplateTitle($tplRow["title"], ($bType == "setup" ? "config" : "constants")) . '</strong>' .
 				htmlspecialchars(trim($tplRow["sitetitle"]) ? ' - (' . $tplRow["sitetitle"] . ')' : '') . '</h4>';
 			if ($manyTemplatesMenu)	{
 				$theOutput.=$this->pObj->doc->section("",$manyTemplatesMenu);
@@ -261,7 +260,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 							);
 							t3lib_FlashMessageQueue::addMessage($propertyAddedMessage);
 
-							$line.=chr(10).$pline;
+							$line.=LF.$pline;
 						}
 					} elseif ($POST['update_value']) {
 						$pline = $name . " = " . trim($POST['data'][$name]['value']);
@@ -273,7 +272,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 						);
 						t3lib_FlashMessageQueue::addMessage($updatedMessage);
 
-						$line .= chr(10) . $pline;
+						$line .= LF . $pline;
 					} elseif ($POST['clear_object']) {
 						if ($POST['data'][$name]['clearValue'])	{
 							$pline = $name . ' >';
@@ -285,7 +284,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 							);
 							t3lib_FlashMessageQueue::addMessage($objectClearedMessage);
 
-							$line .= chr(10) . $pline;
+							$line .= LF . $pline;
 						}
 					}
 				}
@@ -387,10 +386,10 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 
 					// clear
 				$out = '';
-				$out = htmlspecialchars($this->pObj->sObj) . " <b>" .
+				$out = htmlspecialchars($this->pObj->sObj) . " <strong>" .
 					$GLOBALS['LANG']->csConvObj->conv_case(
 						$GLOBALS['LANG']->charSet, $GLOBALS['LANG']->getLL('clear'), 'toUpper'
-					) . "</b> &nbsp;&nbsp;";
+					) . "</strong> &nbsp;&nbsp;";
 				$out .= '<input type="Checkbox" name="data[' . htmlspecialchars($this->pObj->sObj) . '][clearValue]" value="1" />';
 				$out .= '<input type="Submit" name="clear_object" value="' . $GLOBALS['LANG']->getLL('clearButton') . '" />';
 				$theOutput .= $this->pObj->doc->spacer(20);
@@ -425,7 +424,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 
 				// back
 			$out = $GLOBALS['LANG']->getLL('back');
-			$out = '<a href="index.php?id='.$this->pObj->id.'"><b>'.$out.'</b></a>';
+			$out = '<a href="index.php?id='.$this->pObj->id.'"><strong>'.$out.'</strong></a>';
 			$theOutput.=$this->pObj->doc->divider(5);
 			$theOutput.=$this->pObj->doc->section("",$out);
 
@@ -461,9 +460,8 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 				// Parser Errors:
 			$pEkey = ($bType=="setup"?"config":"constants");
 			if (count($tmpl->parserErrors[$pEkey]))	{
-				reset($tmpl->parserErrors[$pEkey]);
 				$errMsg=array();
-				while(list(,$inf)=each($tmpl->parserErrors[$pEkey]))	{
+				foreach ($tmpl->parserErrors[$pEkey] as $inf) {
 					$errMsg[]=($inf[1]).": &nbsp; &nbsp;".$inf[0];
 				}
 				$theOutput .= $this->pObj->doc->spacer(10);
@@ -473,7 +471,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 
 
 			if (isset($this->pObj->MOD_SETTINGS["ts_browser_TLKeys_".$bType][$theKey]))	{
-				$remove = '<td width="1%" nowrap><a href="index.php?id=' . $this->pObj->id . '&addKey[' . $theKey . ']=0&SET[ts_browser_toplevel_' . $bType . ']=0"><b>' . $GLOBALS['LANG']->getLL('removeKey') . '</b></a></td>';
+				$remove = '<td width="1%" nowrap><a href="index.php?id=' . $this->pObj->id . '&addKey[' . $theKey . ']=0&SET[ts_browser_toplevel_' . $bType . ']=0"><strong>' . $GLOBALS['LANG']->getLL('removeKey') . '</strong></a></td>';
 			} else {
 				$remove = '';
 			}
@@ -488,13 +486,13 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 					<tr>
 						<td><img src=clear.gif width=4 height=1></td>
 						<td class="bgColor2">
-							<table border=0 cellpadding=0 cellspacing=0 class="bgColor5" width="100%"><tr><td nowrap width="99%"><b>'.$label.'</b></td>'.$remove.'</tr></table>
+							<table border=0 cellpadding=0 cellspacing=0 class="bgColor5" width="100%"><tr class="t3-row-header"><td nowrap width="99%"><strong>'.$label.'</strong></td>'.$remove.'</tr></table>
 						</td>
 					</tr>
 					<tr>
 						<td><img src=clear.gif width=4 height=1></td>
 						<td class="bgColor2">
-							<table border=0 cellpadding=0 cellspacing=0 class="bgColor4" width="100%"><tr><td nowrap>'.$tree.'</td></tr></table><img src=clear.gif width=465 height=1></td>
+							<table border=0 cellpadding=0 cellspacing=0 class="bgColor4" width="100%"><tr><td nowrap>'.$tree.'</td></tr></table></td>
 					</tr>
 				</table>
 			';
@@ -521,8 +519,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 				$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('conditions'), '', 0, 1);
 
 				$out = '';
-				reset($tmpl->sections);
-				while(list($key,$val)=each($tmpl->sections))	{
+				foreach ($tmpl->sections as $key => $val) {
 					$out .= '<tr><td nowrap class="tsob-conditions"><input type="checkbox" name="conditions[' . $key . ']" id="check' . $key . '" value="' . htmlspecialchars($val) . '"' . ($this->pObj->MOD_SETTINGS['tsbrowser_conditions'][$key] ? " checked" : "") . ' />';
 					$out .= '<label for="check' .$key . '">' . $tmpl->substituteCMarkers(htmlspecialchars($val)) . '</label></td></tr>';
 				}

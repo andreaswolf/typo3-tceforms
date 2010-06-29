@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -37,9 +37,9 @@ var ClearCacheMenu = Class.create({
 	initialize: function() {
 		Event.observe(window, 'resize', this.positionMenu);
 
-		Event.observe(window, 'load', function(){
+		Ext.onReady(function() {
 			this.positionMenu();
-			this.toolbarItemIcon = $$('#clear-cache-actions-menu .toolbar-item img')[0].src;
+			this.toolbarItemIcon = $$('#clear-cache-actions-menu .toolbar-item span.t3-icon')[0];
 
 			Event.observe('clear-cache-actions-menu', 'click', this.toggleMenu)
 
@@ -47,7 +47,7 @@ var ClearCacheMenu = Class.create({
 			$$('#clear-cache-actions-menu li a').each(function(element) {
 				Event.observe(element, 'click', this.clearCache.bind(this));
 			}.bindAsEventListener(this));
-		}.bindAsEventListener(this));
+		}, this);
 	},
 
 	/**
@@ -56,7 +56,8 @@ var ClearCacheMenu = Class.create({
 	positionMenu: function() {
 		var calculatedOffset = 0;
 		var parentWidth      = $('clear-cache-actions-menu').getWidth();
-		var ownWidth         = $$('#clear-cache-actions-menu ul')[0].getWidth();
+		var currentToolbarItemLayer = $$('#clear-cache-actions-menu ul')[0];
+		var ownWidth         = currentToolbarItemLayer.getWidth();
 		var parentSiblings   = $('clear-cache-actions-menu').previousSiblings();
 
 		parentSiblings.each(function(toolbarItem) {
@@ -64,11 +65,16 @@ var ClearCacheMenu = Class.create({
 			// -1 to compensate for the margin-right -1px of the list items,
 			// which itself is necessary for overlaying the separator with the active state background
 
-			if(toolbarItem.down().hasClassName('no-separator')) {
+			if (toolbarItem.down().hasClassName('no-separator')) {
 				calculatedOffset -= 1;
 			}
 		});
 		calculatedOffset = calculatedOffset - ownWidth + parentWidth;
+
+			// border correction
+		if (currentToolbarItemLayer.getStyle('display') !== 'none') {
+			calculatedOffset += 2;
+		}
 
 
 		$$('#clear-cache-actions-menu ul')[0].setStyle({
@@ -84,7 +90,7 @@ var ClearCacheMenu = Class.create({
 		var menu        = $$('#clear-cache-actions-menu .toolbar-item-menu')[0];
 		toolbarItem.blur();
 
-		if(!toolbarItem.hasClassName('toolbar-item-active')) {
+		if (!toolbarItem.hasClassName('toolbar-item-active')) {
 			toolbarItem.addClassName('toolbar-item-active');
 			Effect.Appear(menu, {duration: 0.2});
 			TYPO3BackendToolbarManager.hideOthers(toolbarItem);
@@ -104,24 +110,28 @@ var ClearCacheMenu = Class.create({
 	 * @param	Event	prototype event object
 	 */
 	clearCache: function(event) {
-		var toolbarItemIcon = $$('#clear-cache-actions-menu .toolbar-item img')[0];
+		var toolbarItemIcon = $$('#clear-cache-actions-menu .toolbar-item span.t3-icon')[0];
 		var url             = '';
 		var clickedElement  = Event.element(event);
 
 			// activate the spinner
-		toolbarItemIcon.src = 'gfx/spinner.gif';
+		var parent = Element.up(toolbarItemIcon);
+		var oldIcon = toolbarItemIcon.remove();
+		var spinner = Element('span', { 'class': 'spinner'});
+		parent.insert(spinner, {position: content});
 
-		if (clickedElement.tagName == 'IMG') {
+		if (clickedElement.tagName === 'SPAN') {
 			url =  clickedElement.up('a').href;
 		} else {
 			url =  clickedElement.href;
 		}
 
 		if (url) {
-			new Ajax.Request(url, {
+			var call = new Ajax.Request(url, {
 				'method': 'get',
 				'onComplete': function() {
-					toolbarItemIcon.src = this.toolbarItemIcon;
+					spinner.remove();
+					parent.insert(oldIcon, {position: content});
 				}.bind(this)
 			});
 		}

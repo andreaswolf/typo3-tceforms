@@ -29,7 +29,7 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-DefinitionList = BlockElements.extend({
+HTMLArea.DefinitionList = HTMLArea.BlockElements.extend({
 		
 	constructor : function(editor, pluginName) {
 		this.base(editor, pluginName);
@@ -67,7 +67,6 @@ DefinitionList = BlockElements.extend({
 			license		: "GPL"
 		};
 		this.registerPluginInformation(pluginInformation);
-		
 		/*
 		 * Registering the buttons
 		 */
@@ -75,25 +74,25 @@ DefinitionList = BlockElements.extend({
 			var buttonId = button[0];
 			var buttonConfiguration = {
 				id		: buttonId,
-				tooltip		: this.localize(buttonId + "-Tooltip"),
-				action		: "onButtonPress",
+				tooltip		: this.localize(buttonId + '-Tooltip'),
+				iconCls		: 'htmlarea-action-' + button[5],
+				action		: 'onButtonPress',
 				context		: button[1],
-				hotKey		: (this.buttonsConfiguration[button[3]] ? this.buttonsConfiguration[button[3]].hotKey : (button[2] ? button[2] : null)),
+				hotKey		: ((this.buttonsConfiguration[button[3]] && this.buttonsConfiguration[button[3]].hotKey) ? this.buttonsConfiguration[button[3]].hotKey : (button[2] ? button[2] : null)),
 				noAutoUpdate	: button[4]
 			};
 			this.registerButton(buttonConfiguration);
 		}, this);
 		return true;
-	 },
-	 
+	},
 	/*
 	 * The list of buttons added by this plugin
 	 */
-	buttonList : [
-		['Indent', null, 'TAB', 'indent', false],
-		['Outdent', null, 'SHIFT-TAB', 'outdent', false],
-		['DefinitionList', null, null, 'definitionlist', true],
-		['DefinitionItem', 'dd,dt', null, 'definitionitem', false]
+	buttonList: [
+		['Indent', null, 'TAB', 'indent', false, 'indent'],
+		['Outdent', null, 'SHIFT-TAB', 'outdent', false, 'outdent'],
+		['DefinitionList', null, null, 'definitionlist', true, 'definition-list'],
+		['DefinitionItem', 'dd,dt', null, 'definitionitem', false, 'definition-list-item']
 	 ],
 	/*
 	 * This function gets called when the plugin is generated
@@ -114,7 +113,7 @@ DefinitionList = BlockElements.extend({
 			// Could be a button or its hotkey
 		var buttonId = this.translateHotKey(id);
 		buttonId = buttonId ? buttonId : id;
-		this.editor.focusEditor();
+		this.editor.focus();
 		var selection = editor._getSelection();
 		var range = editor._createRange(selection);
 		var statusBarSelection = this.editor.statusBar ? this.editor.statusBar.getSelection() : null;
@@ -169,7 +168,7 @@ DefinitionList = BlockElements.extend({
 			if (attributeValue) newNode.setAttribute(attributeName, attributeValue);
 		}
 			// In IE, the above fails to update the classname and style attributes.
-		if (HTMLArea.is_ie) {
+		if (Ext.isIE) {
 			if (node.style.cssText) {
 				newNode.style.cssText = node.style.cssText;
 			}
@@ -241,8 +240,8 @@ DefinitionList = BlockElements.extend({
 		if (this.editor._selectionEmpty(selection) && /^dd$/i.test(parentElement.nodeName)) {
 			var list = parentElement.appendChild(this.editor._doc.createElement("dl"));
 			var term = list.appendChild(this.editor._doc.createElement("dt"));
-			if (HTMLArea.is_gecko) {
-				if (HTMLArea.is_safari) {
+			if (!Ext.isIE) {
+				if (Ext.isWebKit) {
 					term.innerHTML = "<br />";
 				} else {
 					term.appendChild(this.editor._doc.createTextNode(""));
@@ -334,6 +333,12 @@ DefinitionList = BlockElements.extend({
 					case 'DefinitionList':
 						button.setDisabled(!(selectionEmpty && /^(p|div|address|pre|blockquote|h[1-6]|li|td|dd)$/i.test(endBlocks.start.nodeName))
 													&& !(endBlocks.start != endBlocks.end && /^(p|h[1-6])$/i.test(endBlocks.start.nodeName)));
+						break;
+				}
+			} else {
+				switch (button.itemId) {
+					case 'Outdent':
+						this.base(button, mode, selectionEmpty, ancestors);
 						break;
 				}
 			}

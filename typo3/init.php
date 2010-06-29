@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -88,7 +88,7 @@ define('TYPO3_mainDir', 'typo3/');		// This is the directory of the backend admi
 
 
 // *******************************
-// Fix BACK_PATH, if the TYPO3_mainDir is set to something else than 
+// Fix BACK_PATH, if the TYPO3_mainDir is set to something else than
 // typo3/, this is a workaround because the conf.php of the old modules
 // still have "typo3/" hardcoded. Can be removed once we don't have to worry about
 // legacy modules (with conf.php and $BACK_PATH) anymore. See RFC / Bug #13262 for more details.
@@ -177,6 +177,10 @@ die();
 	}
 }
 
+// *********************
+// Unset variable(s) in global scope (fixes #13959)
+// *********************
+unset($error);
 
 // *************************************************
 // t3lib_div + extention management class included
@@ -243,13 +247,13 @@ if (defined('TYPO3_cliMode') && TYPO3_cliMode && basename(PATH_thisScript)=='cli
 		} else {
 			echo "The supplied 'cliKey' was not valid. Please use one of the available from this list:\n\n";
 			print_r(array_keys($TYPO3_CONF_VARS['SC_OPTIONS']['GLOBAL']['cliKeys']));
-			echo "\n";
+			echo LF;
 			exit;
 		}
 	} else {
 		echo "Please supply a 'cliKey' as first argument. The following are available:\n\n";
 		print_r($TYPO3_CONF_VARS['SC_OPTIONS']['GLOBAL']['cliKeys']);
-		echo "\n";
+		echo LF;
 		exit;
 	}
 }
@@ -259,9 +263,8 @@ if (defined('TYPO3_cliMode') && TYPO3_cliMode && basename(PATH_thisScript)=='cli
 // Check Hardcoded lock on BE:
 // **********************
 if ($TYPO3_CONF_VARS['BE']['adminOnly'] < 0)	{
-	header('Status: 404 Not Found');	// Send Not Found header - if the webserver can make use of it...
-	header('Location: http://');	// Just point us away from here...
-	exit;	// ... and exit good!
+	t3lib_BEfunc::typo3printError('Backend locked', 'Backend and Install Tool are locked for maintenance. [BE][adminOnly] is set to "' . intval($TYPO3_CONF_VARS['BE']['adminOnly']) . '".');
+	exit;
 }
 if (!(defined('TYPO3_cliMode') && TYPO3_cliMode) && @is_file(PATH_typo3conf.'LOCK_BACKEND'))	{
 	if (TYPO3_PROCEED_IF_NO_USER == 2) {
@@ -390,6 +393,9 @@ if (TYPO3_extTableDef_script)	{
 	include (PATH_typo3conf.TYPO3_extTableDef_script);
 }
 
+	// load TYPO3 SpriteGenerating API
+$spriteManager = t3lib_div::makeInstance('t3lib_SpriteManager', TRUE);
+$spriteManager->loadCacheFile();
 
 
 // *******************************
@@ -427,9 +433,9 @@ if (defined('TYPO3_cliMode') && TYPO3_cliMode)	{
 	if (!strcmp($_SERVER['argv'][1],'status'))	{
 		echo "Status of TYPO3 CLI script:\n\n";
 		echo "Username [uid]: ".$BE_USER->user['username']." [".$BE_USER->user['uid']."]\n";
-		echo "Database: ".TYPO3_db."\n";
-		echo "PATH_site: ".PATH_site."\n";
-		echo "\n";
+		echo "Database: ".TYPO3_db.LF;
+		echo "PATH_site: ".PATH_site.LF;
+		echo LF;
 		exit;
 	}
 }

@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasper@typo3.com)
-*  (c) 2005-2009 Stanislas Rolland <stanislas.rolland(arobas)fructifor.ca>
+*  (c) 1999-2010 Kasper Skaarhoj (kasper@typo3.com)
+*  (c) 2005-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,7 +29,7 @@
  * User defined content for htmlArea RTE
  *
  * @author	Kasper Skaarhoj <kasper@typo3.com>
- * @author	Stanislas Rolland <stanislas.rolland(arobas)fructifor.ca>
+ * @author	Stanislas Rolland <typo3(arobas)sjbr.ca>
  *
  * $Id$  *
  */
@@ -67,33 +67,36 @@ class tx_rtehtmlarea_user {
 		';
 
 		$JScode = '
-			var HTMLArea = window.opener.HTMLArea;
-			var dialog = HTMLArea.Dialog.UserElements;
-			var editor = dialog.plugin.editor;
+			var plugin = window.parent.RTEarea["' . $this->editorNo . '"].editor.getPlugin("UserElements");
+			var HTMLArea = window.parent.HTMLArea;
+			var editor = plugin.editor;
 
 			function Init() {
-				dialog.captureEvents("skipUnload");
 			};
 			function insertHTML(content,noHide) {
+				plugin.restoreSelection();
 				editor.insertHTML(content);
-				if(!noHide) dialog.close();
+				if(!noHide) plugin.close();
 			};
 			function wrapHTML(wrap1,wrap2,noHide) {
+				plugin.restoreSelection();
 				if(editor.hasSelectedText()) {
 					editor.surroundHTML(wrap1,wrap2);
 				} else {
 					alert('.$LANG->JScharCode($LANG->getLL('noTextSelection')).');
 				}
-				if(!noHide) dialog.close();
+				if(!noHide) plugin.close();
 			};
 			function processSelection(script) {
+				plugin.restoreSelection();
 				document.process.action = script;
 				document.process.processContent.value = editor.getSelectedHTML();
 				document.process.submit();
 			};
 			function jumpToUrl(URL)	{
 				var RTEtsConfigParams = "&RTEtsConfigParams='.rawurlencode(t3lib_div::_GP('RTEtsConfigParams')).'";
-				theLocation = "'.t3lib_div::getIndpEnv('SCRIPT_NAME').'"+URL+RTEtsConfigParams;
+				var editorNo = "&editorNo=' . rawurlencode($this->editorNo) . '";
+				theLocation = "'.t3lib_div::getIndpEnv('SCRIPT_NAME').'"+URL+RTEtsConfigParams+editorNo;
 				window.location.href = theLocation;
 			}
 		';
@@ -176,8 +179,7 @@ class tx_rtehtmlarea_user {
 		if (is_array($thisConfig['userElements.']))	{
 
 			$categories=array();
-			reset($thisConfig['userElements.']);
-			while(list($k)=each($thisConfig['userElements.']))	{
+			foreach ($thisConfig['userElements.'] as $k => $value) {
 				$ki=intval($k);
 				$v = $thisConfig['userElements.'][$ki.'.'];
 				if (substr($k,-1)=="." && is_array($v))	{
@@ -192,9 +194,8 @@ class tx_rtehtmlarea_user {
 								if ($v['path'] && @is_dir(PATH_site.$v['path']))	{
 									$files = t3lib_div::getFilesInDir(PATH_site.$v['path'],'gif,jpg,jpeg,png',0,'');
 									if (is_array($files))	{
-										reset($files);
 										$c=0;
-										while(list(,$filename)=each($files))	{
+										foreach ($files as $filename) {
 											$iInfo = @getimagesize(PATH_site.$v['path'].$filename);
 											$iInfo = $this->calcWH($iInfo,50,100);
 
@@ -218,8 +219,7 @@ class tx_rtehtmlarea_user {
 								$v=$mArray;
 							}
 						}
-						reset($v);
-						while(list($k2)=each($v))	{
+						foreach ($v as $k2 => $dummyValue) {
 							$k2i = intval($k2);
 							if (substr($k2,-1)=='.' && is_array($v[$k2i.'.']))	{
 								$title = trim($v[$k2i]);
@@ -268,8 +268,7 @@ class tx_rtehtmlarea_user {
 
 			# Render menu of the items:
 			$lines=array();
-			reset($categories);
-			while(list($k,$v)=each($categories))	{
+			foreach ($categories as $k => $v) {
 				$title = trim($thisConfig['userElements.'][$k]);
 				$openK = $k;
 				if (!$title)	{

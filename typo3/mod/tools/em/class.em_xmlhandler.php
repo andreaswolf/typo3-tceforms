@@ -2,7 +2,7 @@
 /* **************************************************************
 *  Copyright notice
 *
-*  (c) 2006-2009 Karsten Dambekalns <karsten@typo3.org>
+*  (c) 2006-2010 Karsten Dambekalns <karsten@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -53,7 +53,6 @@ class SC_mod_tools_em_xmlhandler {
 	var $extXMLResult = array();
 	var $extensionsXML = array();
 	var $reviewStates = null;
-	var $useUnchecked = false;
 	var $useObsolete = false;
 
 	/**
@@ -84,15 +83,13 @@ class SC_mod_tools_em_xmlhandler {
 		if ($owner)	{
 			$where.= ' AND ownerusername='.$GLOBALS['TYPO3_DB']->fullQuoteStr($owner, 'cache_extensions');
 		}
-		if (strlen($owner) || $this->useUnchecked || $allExt)	{
-				// show extensions without review or that have passed review
-			$where.= ' AND reviewstate >= 0';
-		} else {
-				// only display extensions that have passed review
-			$where.= ' AND reviewstate > 0';
-		}
-		if (!$this->useObsolete && !$allExt)	{
-			$where.= ' AND state!=5';		// 5 == obsolete
+
+			// Show extensions without a review or that have passed a review, but not insecure extensions
+		$where .= ' AND reviewstate >= 0';
+
+		if (!$this->useObsolete)	{
+				// 5 == obsolete
+			$where.= ' AND state != 5';
 		}
 		switch ($order)	{
 			case 'author_company':
@@ -108,11 +105,7 @@ class SC_mod_tools_em_xmlhandler {
 		}
 		$order = $forder.', title';
 		if (!$allVer)	{
-			if ($this->useUnchecked)	{
-				$where .= ' AND lastversion>0';
-			} else	{
-				$where .= ' AND lastreviewedversion>0';
-			}
+			$where .= ' AND lastversion > 0';
 		}
 		$this->catArr = array();
 		$idx = 0;
@@ -202,8 +195,7 @@ class SC_mod_tools_em_xmlhandler {
 	function removeObsolete(&$extensions) {
 		if($this->useObsolete) return;
 
-		reset($extensions);
-		while (list($version, $data) = each($extensions)) {
+		foreach ($extensions as $version => $data) {
 			if($data['state']=='obsolete')
 			unset($extensions[$version]);
 		}
@@ -225,40 +217,6 @@ class SC_mod_tools_em_xmlhandler {
 		$GLOBALS['TYPO3_DB']->sql_free_result($res);
 		return 0;
 	}
-
-	/**
-	 * Removes all extension versions from $extensions that have a reviewstate<1, unless explicitly allowed
-	 *
-	 * @param	array		&$extensions	The "versions" subpart of the extension list
-	 * @return	void
-	 */
-	function checkReviewState(&$extensions) {
-		if ($this->useUnchecked) return;
-
-		reset($extensions);
-		while (list($version, $data) = each($extensions)) {
-			if($data['reviewstate']<1)
-				unset($extensions[$version]);
-		}
-	}
-
-	/**
-	 * Removes all extension versions from the list of available extensions that have a reviewstate<1, unless explicitly allowed
-	 *
-	 * @return	void
-	 */
-	function checkReviewStateGlobal() {
-		if($this->useUnchecked) return;
-
-		reset($this->extensionsXML);
-		while (list($extkey, $data) = each($this->extensionsXML)) {
-			while (list($version, $vdata) = each($data['versions'])) {
-				if($vdata['reviewstate']<1) unset($this->extensionsXML[$extkey]['versions'][$version]);
-			}
-			if(!count($this->extensionsXML[$extkey]['versions'])) unset($this->extensionsXML[$extkey]);
-		}
-	}
-
 
 	/**
 	 * ***************PARSING METHODS***********************
@@ -370,7 +328,7 @@ class SC_mod_tools_em_xmlhandler {
 			$this->revStateArr[$state] = $idx++;
 		}
 
-		$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_extensions', '1=1');
+		$GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('cache_extensions');
 
 		$extcount = 0;
 		@ini_set('pcre.backtrack_limit', 500000);

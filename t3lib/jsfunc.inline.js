@@ -9,7 +9,7 @@
 *
 *  Copyright notice
 *
-*  (c) 2006-2009 Oliver Hader <oh@inpublica.de>
+*  (c) 2006-2010 Oliver Hader <oh@inpublica.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -36,6 +36,7 @@ var inline = {
 	lockedAjaxMethod: {},
 	sourcesLoaded: {},
 	data: {},
+	isLoading: false,
 
 	addToDataArray: function(object) {
 		$H(object).each(function(pair) {
@@ -45,10 +46,23 @@ var inline = {
 	setPrependFormFieldNames: function(value) {	this.prependFormFieldNames = value; },
 	setNoTitleString: function(value) { this.noTitleString = value; },
 
-	expandCollapseRecord: function(objectId, expandSingle) {
+	expandCollapseRecord: function(objectId, expandSingle, returnURL) {
 		var currentUid = this.parseObjectId('none', objectId, 1);
 		var objectPrefix = this.parseObjectId('full', objectId, 0, 1);
 
+			// if content is not loaded yet, get it now from server
+		if(($(objectId+'_fields') && $("irre-loading-indicator"+objectId)) || inline.isLoading) {
+			return false;
+		} else if ($(objectId+'_fields') && $(objectId+'_fields').innerHTML.substr(0,16) == '<!--notloaded-->') {
+			inline.isLoading = true;
+				// add loading-indicator
+			if ($(objectId + '_icon')) {
+				$(objectId + '_icon').hide();
+				$(objectId + '_iconcontainer').addClassName('loading-indicator');
+			}
+			return this.getRecordDetails(objectId, returnURL);
+		}		
+		
 		var currentState = '';
 		var collapse = new Array();
 		var expand = new Array();
@@ -104,6 +118,11 @@ var inline = {
 			ucFormObj[0].value = value;
 		}
 	},
+	
+	getRecordDetails: function(objectId, returnURL) {
+		inline.makeAjaxCall('getRecordDetails', [inline.getNumberOfRTE(), objectId, returnURL], true);
+		return false;
+	},
 
 	createNewRecord: function(objectId, recordUid) {
 		if (this.isBelowMax(objectId)) {
@@ -129,7 +148,7 @@ var inline = {
 	makeAjaxCall: function(method, params, lock) {
 		var max, url='', urlParams='', options={};
 		if (method && params && params.length && this.lockAjaxMethod(method, lock)) {
-			url = 'ajax.php';
+			url = TBE_EDITOR.getBackendPath() + 'ajax.php';
 			urlParams = '&ajaxID=t3lib_TCEforms_inline::'+method;
 			for (var i=0, max=params.length; i<max; i++) {
 				urlParams += '&ajax['+i+']='+params[i];
@@ -137,8 +156,8 @@ var inline = {
 			options = {
 				method:		'post',
 				parameters:	urlParams,
-				onSuccess:	function(xhr) { inline.processAjaxResponse(method, xhr); },
-				onFailure:	function(xhr) { inline.showAjaxFailure(method, xhr); }
+				onSuccess:	function(xhr) { inline.isLoading = false; inline.processAjaxResponse(method, xhr); },
+				onFailure:	function(xhr) { inline.isLoading = false; inline.showAjaxFailure(method, xhr); }
 			};
 
 			new Ajax.Request(url, options);
@@ -205,6 +224,7 @@ var inline = {
 			if (json.scriptCall && json.scriptCall.length) {
 				$A(json.scriptCall).each(function(value) { eval(value); });
 			}
+			TYPO3.TCEFORMS.convertDateFieldsToDatePicker();
 		}
 	},
 
@@ -350,6 +370,19 @@ var inline = {
 			else if (method == 'after')
 				new Insertion.After(insertObject, htmlData);
 		}
+	},
+	domAddRecordDetails: function(objectId, objectPrefix, expandSingle, htmlData) {
+		var objectDiv = $(objectId + '_fields');
+		if (!objectDiv || objectDiv.innerHTML.substr(0,16) != '<!--notloaded-->')
+			return;
+		objectDiv.update(htmlData);
+			// remove loading-indicator
+		if ($(objectId + '_icon')) {
+			$(objectId + '_iconcontainer').removeClassName('loading-indicator');
+			$(objectId + '_icon').show();
+		}
+			// now that the content is loaded, set the expandState
+		this.expandCollapseRecord(objectId, expandSingle);
 	},
 
 		// Get script and link elements from head tag:

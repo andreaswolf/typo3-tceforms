@@ -53,13 +53,17 @@ HTMLArea.Editor.prototype._getSelection = function() {
  * Empty the selection object
  */
 HTMLArea.Editor.prototype.emptySelection = function(selection) {
-	if (HTMLArea.is_safari) {
-		selection.empty();
+	if (Ext.isWebKit) {
+		if (Ext.isFunction(selection.removeAllRanges)) {
+			selection.removeAllRanges();
+		} else {
+			selection.empty();
+		}
 	} else {
 		selection.removeAllRanges();
 	}
-	if (HTMLArea.is_opera) {
-		this._iframe.focus();
+	if (Ext.isOpera) {
+		this.focus();
 	}
 };
 
@@ -67,8 +71,12 @@ HTMLArea.Editor.prototype.emptySelection = function(selection) {
  * Add a range to the selection
  */
 HTMLArea.Editor.prototype.addRangeToSelection = function(selection, range) {
-	if (HTMLArea.is_safari) {
-		selection.setBaseAndExtent(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
+	if (Ext.isWebKit) {
+		if (Ext.isFunction(selection.addRange)) {
+			selection.addRange(range);
+		} else {
+			selection.setBaseAndExtent(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
+		}
 	} else {
 		selection.addRange(range);
 	}
@@ -78,7 +86,7 @@ HTMLArea.Editor.prototype.addRangeToSelection = function(selection, range) {
  * Create a range for the current selection
  */
 HTMLArea.Editor.prototype._createRange = function(sel) {
-	if (HTMLArea.is_safari) {
+	if (Ext.isWebKit) {
 		var range = this._doc.createRange();
 		if (typeof(sel) == "undefined") {
 			return range;
@@ -110,11 +118,16 @@ HTMLArea.Editor.prototype._createRange = function(sel) {
  * Select a node AND the contents inside the node
  */
 HTMLArea.Editor.prototype.selectNode = function(node, endPoint) {
-	this.focusEditor();
+	this.focus();
 	var selection = this._getSelection();
 	var range = this._doc.createRange();
 	if (node.nodeType == 1 && node.nodeName.toLowerCase() == "body") {
-		range.selectNodeContents(node);
+		if (Ext.isWebKit) {
+			range.setStart(node, 0);
+			range.setEnd(node, node.childNodes.length);
+		} else {
+			range.selectNodeContents(node);
+		}
 	} else {
 		range.selectNode(node);
 	}
@@ -124,51 +137,72 @@ HTMLArea.Editor.prototype.selectNode = function(node, endPoint) {
 	this.emptySelection(selection);
 	this.addRangeToSelection(selection, range);
 };
-
 /*
  * Select ONLY the contents inside the given node
  */
 HTMLArea.Editor.prototype.selectNodeContents = function(node, endPoint) {
-	this.focusEditor();
+	this.focus();
 	var selection = this._getSelection();
 	var range = this._doc.createRange();
-	range.selectNodeContents(node);
+	if (Ext.isWebKit) {
+		range.setStart(node, 0);
+		if (node.nodeType == 3 || node.nodeType == 8 || node.nodeType == 4) {
+			range.setEnd(node, node.textContent.length);
+		} else {
+			range.setEnd(node, node.childNodes.length);
+		}
+	} else {
+		range.selectNodeContents(node);
+	}
 	if (typeof(endPoint) !== "undefined") {
 		range.collapse(endPoint);
 	}
 	this.emptySelection(selection);
 	this.addRangeToSelection(selection, range);
 };
-
 HTMLArea.Editor.prototype.rangeIntersectsNode = function(range, node) {
 	var nodeRange = this._doc.createRange();
 	try {
 		nodeRange.selectNode(node);
 	} catch (e) {
-		nodeRange.selectNodeContents(node);
+		if (Ext.isWebKit) {
+			nodeRange.setStart(node, 0);
+			if (node.nodeType == 3 || node.nodeType == 8 || node.nodeType == 4) {
+				nodeRange.setEnd(node, node.textContent.length);
+			} else {
+				nodeRange.setEnd(node, node.childNodes.length);
+			}
+		} else {
+			nodeRange.selectNodeContents(node);
+		}
 	}
-		// Note: sometimes Safari inverts the end points
+		// Note: sometimes WebKit inverts the end points
 	return (range.compareBoundaryPoints(range.END_TO_START, nodeRange) == -1 && range.compareBoundaryPoints(range.START_TO_END, nodeRange) == 1) ||
 		(range.compareBoundaryPoints(range.END_TO_START, nodeRange) == 1 && range.compareBoundaryPoints(range.START_TO_END, nodeRange) == -1);
 };
-
 /*
  * Get the selection type
  */
 HTMLArea.Editor.prototype.getSelectionType = function(selection) {
 		// By default set the type to "Text".
-	var type = "Text";
+	var type = 'Text';
 	if (!selection) {
 		var selection = this._getSelection();
 	}
 			// Check if the actual selection is a Control
 	if (selection && selection.rangeCount == 1) {
-		var range = selection.getRangeAt(0) ;
-		if (range.startContainer == range.endContainer
-				&& (range.endOffset - range.startOffset) == 1
-				&& range.startContainer.nodeType == 1
-				&& /^(img|hr|li|table|tr|td|embed|object|ol|ul)$/i.test(range.startContainer.childNodes[range.startOffset].nodeName)) {
-			type = "Control";
+		var range = selection.getRangeAt(0);
+		if (range.startContainer.nodeType == 1) {
+			if (
+					// Gecko
+				(range.startContainer == range.endContainer && (range.endOffset - range.startOffset) == 1) ||
+					// Opera and WebKit
+				(range.endContainer.nodeType == 3 && range.endOffset == 0 && range.startContainer.childNodes[range.startOffset].nextSibling == range.endContainer)
+			) {
+				if (/^(img|hr|li|table|tr|td|embed|object|ol|ul|dl)$/i.test(range.startContainer.childNodes[range.startOffset].nodeName)) {
+					type = 'Control';
+				}
+			}
 		}
 	}
 	return type;
@@ -377,7 +411,7 @@ HTMLArea.Editor.prototype.selectRange = function (range) {
  * Split the text node, if needed.
  */
 HTMLArea.Editor.prototype.insertNodeAtSelection = function(toBeInserted) {
-	this.focusEditor();
+	this.focus();
 	var range = this._createRange(this._getSelection());
 	range.deleteContents();
 	var toBeSelected = (toBeInserted.nodeType === 11) ? toBeInserted.lastChild : toBeInserted;
@@ -390,7 +424,7 @@ HTMLArea.Editor.prototype.insertNodeAtSelection = function(toBeInserted) {
  * Delete the current selection, if any.
  */
 HTMLArea.Editor.prototype.insertHTML = function(html) {
-	this.focusEditor();
+	this.focus();
 	var fragment = this._doc.createDocumentFragment();
 	var div = this._doc.createElement("div");
 	div.innerHTML = html;
@@ -433,7 +467,7 @@ HTMLArea.Editor.prototype.wrapWithInlineElement = function(element, selection, r
  * @return	void
  */
 HTMLArea.Editor.prototype.cleanAppleStyleSpans = function(node) {
-	if (HTMLArea.is_safari) {
+	if (Ext.isWebKit) {
 		if (node.getElementsByClassName) {
 			var spans = node.getElementsByClassName("Apple-style-span");
 			for (var i = spans.length; --i >= 0;) {
@@ -503,7 +537,7 @@ HTMLArea.Editor.prototype._checkBackspace = function() {
  */
 HTMLArea.Editor.prototype._checkInsertP = function() {
 	var editor = this;
-	this.focusEditor();
+	this.focus();
 	var i, left, right, rangeClone,
 		sel	= this._getSelection(),
 		range	= this._createRange(sel),
@@ -523,63 +557,110 @@ HTMLArea.Editor.prototype._checkInsertP = function() {
 	}
 	this.emptySelection(sel);
 	if (!block || /^(td|div)$/i.test(block.nodeName)) {
-		if (!block) var block = doc.body;
+		if (!block) {
+			block = doc.body;
+		}
 		if (block.hasChildNodes()) {
 			rangeClone = range.cloneRange();
-			rangeClone.setStartBefore(block.firstChild);
-				// Working around Opera issue: The following gives a range exception
-				// rangeClone.surroundContents(left = doc.createElement("p"));
-			left = doc.createElement("p");
+			if (range.startContainer == block) {
+					// Selection is directly under the block
+				var blockOnLeft = null;
+				var leftSibling = null;
+					// Looking for the farthest node on the left that is not a block
+				for (var i = range.startOffset; --i >= 0;) {
+					if (HTMLArea.isBlockElement(block.childNodes[i])) {
+						blockOnLeft = block.childNodes[i];
+						break;
+					} else {
+						rangeClone.setStartBefore(block.childNodes[i]);
+					}
+				}
+			} else {
+					// Looking for inline or text container immediate child of block
+				var inlineContainer = range.startContainer;
+				while (inlineContainer.parentNode != block) {
+					inlineContainer = inlineContainer.parentNode;
+				}
+					// Looking for the farthest node on the left that is not a block
+				var leftSibling = inlineContainer;
+				while (leftSibling.previousSibling && !HTMLArea.isBlockElement(leftSibling.previousSibling)) {
+					leftSibling = leftSibling.previousSibling;
+				}
+				rangeClone.setStartBefore(leftSibling);
+				var blockOnLeft = leftSibling.previousSibling;
+			}
+				// Avoiding surroundContents buggy in Opera and Safari
+			left = doc.createElement('p');
 			left.appendChild(rangeClone.extractContents());
-			if (!left.textContent && !left.getElementsByTagName("img") && !left.getElementsByTagName("table")) {
-				left.innerHTML = "<br />";
+			if (!left.textContent && !left.getElementsByTagName('img').length && !left.getElementsByTagName('table').length) {
+				left.innerHTML = '<br />';
 			}
 			if (block.hasChildNodes()) {
-				left = block.insertBefore(left, block.firstChild);
+				if (blockOnLeft) {
+					left = block.insertBefore(left, blockOnLeft.nextSibling);
+				} else {
+					left = block.insertBefore(left, block.firstChild);
+				}
 			} else {
 				left = block.appendChild(left);
 			}
-			left.normalize();
-			range.setEndAfter(block.lastChild);
-			range.setStartAfter(left);
-				// Working around Safari issue: The following gives a range exception
-				// range.surroundContents(right = doc.createElement("p"));
-			right = doc.createElement("p");
-			right.appendChild(range.extractContents());
-			if (!right.textContent && !left.getElementsByTagName("img") && !left.getElementsByTagName("table")) {
-				right.innerHTML = "<br />";
+			block.normalize();
+				// Looking for the farthest node on the right that is not a block
+			var rightSibling = left;
+			while (rightSibling.nextSibling && !HTMLArea.isBlockElement(rightSibling.nextSibling)) {
+				rightSibling = rightSibling.nextSibling;
 			}
-			block.appendChild(right);
-			right.normalize();
+			var blockOnRight = rightSibling.nextSibling;
+			range.setEndAfter(rightSibling);
+			range.setStartAfter(left);
+				// Avoiding surroundContents buggy in Opera and Safari
+			right = doc.createElement('p');
+			right.appendChild(range.extractContents());
+			if (!right.textContent && !right.getElementsByTagName('img').length && !right.getElementsByTagName('table').length) {
+				right.innerHTML = '<br />';
+			}
+			if (!(left.childNodes.length == 1 && right.childNodes.length == 1 && left.firstChild.nodeName.toLowerCase() == 'br' && right.firstChild.nodeName.toLowerCase() == 'br')) {
+				if (blockOnRight) {
+					right = block.insertBefore(right, blockOnRight);
+				} else {
+					right = block.appendChild(right);
+				}
+				this.selectNodeContents(right, true);
+			} else {
+				this.selectNodeContents(left, true);
+			}
+			block.normalize();
 		} else {
 			var first = block.firstChild;
-			if (first) block.removeChild(first);
+			if (first) {
+				block.removeChild(first);
+			}
 			right = doc.createElement("p");
-			if (HTMLArea.is_safari || HTMLArea.is_opera) {
+			if (Ext.isWebKit || Ext.isOpera) {
 				right.innerHTML = "<br />";
 			}
 			right = block.appendChild(right);
+			this.selectNodeContents(right, true);
 		}
-		this.selectNodeContents(right, true);
 	} else {
 		range.setEndAfter(block);
 		var df = range.extractContents(), left_empty = false;
-		if (!/\S/.test(block.innerHTML)) {
-			if (!HTMLArea.is_opera) {
+		if (!/\S/.test(block.innerHTML) || (!/\S/.test(block.textContent) && !/<(img|hr|table)/i.test(block.innerHTML))) {
+			if (!Ext.isOpera) {
 				block.innerHTML = "<br />";
 			}
 			left_empty = true;
 		}
 		p = df.firstChild;
 		if (p) {
-			if (!/\S/.test(p.textContent)) {
+			if (!/\S/.test(p.innerHTML) || (p.childNodes.length == 1 && /^br$/i.test(p.firstChild.nodeName))) {
  				if (/^h[1-6]$/i.test(p.nodeName)) {
 					p = this.convertNode(p, "p");
 				}
 				if (/^(dt|dd)$/i.test(p.nodeName)) {
 					 p = this.convertNode(p, (p.nodeName.toLowerCase() === "dt") ? "dd" : "dt");
 				}
-				if (!HTMLArea.is_opera) {
+				if (!Ext.isOpera) {
 					p.innerHTML = "<br />";
 				}
 				if(/^li$/i.test(p.nodeName) && left_empty && !block.nextSibling) {
@@ -591,19 +672,16 @@ HTMLArea.Editor.prototype._checkInsertP = function() {
 				}
 			}
 			range.insertNode(df);
-				// Remove any anchor created empty
+				// Remove any anchor created empty on both sides of the selection
 			if (p.previousSibling) {
 				var a = p.previousSibling.lastChild;
 				if (a && /^a$/i.test(a.nodeName) && !/\S/.test(a.innerHTML)) {
-					if (HTMLArea.is_opera) {
-						this.removeMarkup(a);
-					} else {
-						HTMLArea.removeFromParent(a);
-					}
+					this.convertNode(a, 'br');
 				}
-				if (!/\S/.test(p.previousSibling.textContent) && !HTMLArea.is_opera) {
-					p.previousSibling.innerHTML = "<br />";
-				}
+			}
+			var a = p.lastChild;
+			if (a && /^a$/i.test(a.nodeName) && !/\S/.test(a.innerHTML)) {
+				this.convertNode(a, 'br');
 			}
 			if (/^br$/i.test(p.nodeName)) {
 				p = p.parentNode.insertBefore(this._doc.createTextNode("\x20"), p);
@@ -615,7 +693,7 @@ HTMLArea.Editor.prototype._checkInsertP = function() {
 			} else {
 				p = doc.createElement("p");
 			}
-			if (!HTMLArea.is_opera) {
+			if (!Ext.isOpera) {
 				p.innerHTML = "<br />";
 			}
 			if (block.nextSibling) {

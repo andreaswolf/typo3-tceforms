@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -97,8 +97,7 @@ class tx_wizardsortpages_webfunc_2 extends t3lib_extobjbase {
 					$tce->stripslashes_values=0;
 					$menuItems = array_reverse($menuItems);
 					$cmd=array();
-					reset($menuItems);
-					while(list(,$r)=each($menuItems))	{
+					foreach ($menuItems as $r) {
 						$cmd['pages'][$r['uid']]['move']=$this->pObj->id;
 					}
 					$tce->start(array(),$cmd);
@@ -109,19 +108,18 @@ class tx_wizardsortpages_webfunc_2 extends t3lib_extobjbase {
 
 				//
 			$menuItems = $sys_pages->getMenu($this->pObj->id,'*','sorting','',0);
-			reset($menuItems);
 			$lines=array();
-				$lines[]= '<tr>
-					<td class="bgColor5"><b>'.$this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_title'),'title').'</b></td>
-					'.(t3lib_extMgm::isLoaded('cms')?'<td class="bgColor5"><b>'.$this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_subtitle'),'subtitle').'</b></td>':'').'
-					<td class="bgColor5"><b>'.$this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_tChange'),'tstamp').'</b></td>
-					<td class="bgColor5"><b>'.$this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_tCreate'),'crdate').'</b></td>
+				$lines[]= '<tr class="t3-row-header">
+					<td>' . $this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_title'), 'title') . '</td>
+					' . (t3lib_extMgm::isLoaded('cms') ? '<td> ' . $this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_subtitle'), 'subtitle') . '</td>' : '').'
+					<td>' . $this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_tChange'), 'tstamp') . '</td>
+					<td>' . $this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_tCreate'), 'crdate') . '</td>
 					</tr>';
-			while(list(,$rec)=each($menuItems))	{
+			foreach ($menuItems as $rec) {
 				$m_perms_clause = $GLOBALS['BE_USER']->getPagePermsClause(2);	// edit permissions for that page!
 				$pRec = t3lib_BEfunc::getRecord ('pages',$rec['uid'],'uid',' AND '.$m_perms_clause);
-				$lines[]= '<tr><td nowrap="nowrap">'.t3lib_iconWorks::getIconImage('pages',$rec,$GLOBALS['BACK_PATH'],'align="top" '.t3lib_BEfunc::titleAttribForPages($rec)).
-					(!is_array($pRec)?$GLOBALS['TBE_TEMPLATE']->rfw('<b>'.$LANG->getLL('wiz_W',1).'</b> '):'').
+				$lines[]= '<tr><td nowrap="nowrap">'.t3lib_iconWorks::getSpriteIconForRecord('pages',$rec).
+					(!is_array($pRec)?$GLOBALS['TBE_TEMPLATE']->rfw('<strong>'.$LANG->getLL('wiz_W',1).'</strong> '):'').
 					htmlspecialchars(t3lib_div::fixed_lgd_cs($rec['title'],$GLOBALS['BE_USER']->uc['titleLen'])).'&nbsp;</td>
 					'.(t3lib_extMgm::isLoaded('cms')?'<td nowrap="nowrap">'.htmlspecialchars(t3lib_div::fixed_lgd_cs($rec['subtitle'],$GLOBALS['BE_USER']->uc['titleLen'])).'&nbsp;</td>':'').'
 					<td nowrap="nowrap">'.t3lib_Befunc::datetime($rec['tstamp']).'&nbsp;&nbsp;</td>
@@ -129,8 +127,8 @@ class tx_wizardsortpages_webfunc_2 extends t3lib_extobjbase {
 					</tr>';
 			}
 
-			$theCode.= '<b>'.$LANG->getLL('wiz_currentPageOrder',1).':</b><br /><br />
-			<table border="0" cellpadding="0" cellspacing="0">'.implode('',$lines).'</table><br />';
+			$theCode .= '<h4>' . $LANG->getLL('wiz_currentPageOrder', TRUE) . '</h4>
+			<table border="0" cellpadding="0" cellspacing="0" class="typo3-dblist">' . implode('', $lines) . '</table><br />';
 
 			if (count($menuItems))	{
 					// Menu:
@@ -141,7 +139,7 @@ class tx_wizardsortpages_webfunc_2 extends t3lib_extobjbase {
 				$lines[] = $this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_tCreate'),'crdate');
 				$lines[] = '';
 				$lines[] = $this->wiz_linkOrder($LANG->getLL('wiz_changeOrder_REVERSE'),'REV');
-				$theCode.= '<b>'.$LANG->getLL('wiz_changeOrder').':</b><br /><br />'.implode('<br />',$lines);
+				$theCode.= '<h4>' . $LANG->getLL('wiz_changeOrder') . '</h4>' . implode('<br />', $lines);
 			}
 
 				// CSH:
@@ -162,7 +160,7 @@ class tx_wizardsortpages_webfunc_2 extends t3lib_extobjbase {
 	 * @return	string		HTML string
 	 */
 	function wiz_linkOrder($title,$order)	{
-		return '&nbsp; &nbsp;<a href="'.htmlspecialchars('index.php?id='.$GLOBALS['SOBE']->id.'&sortByField='.$order).'" onclick="return confirm('.$GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->getLL('wiz_changeOrder_msg1')).')">'.htmlspecialchars($title).'</a>';
+		return '&nbsp; &nbsp;<a class="t3-link" href="' . htmlspecialchars('index.php?id=' . $GLOBALS['SOBE']->id . '&sortByField=' . $order) . '" onclick="return confirm('.$GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->getLL('wiz_changeOrder_msg1')) . ')">' . htmlspecialchars($title) . '</a>';
 	}
 }
 

@@ -60,7 +60,7 @@
  *
  * The "value" property now expects a domain object, and tests for object equivalence.
  *
- * @version $Id: SelectViewHelper.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: SelectViewHelper.php 2043 2010-03-16 08:49:45Z sebastian $
  * @package Fluid
  * @subpackage ViewHelpers\Form
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
@@ -95,6 +95,7 @@ class Tx_Fluid_ViewHelpers_Form_SelectViewHelper extends Tx_Fluid_ViewHelpers_Fo
 		$this->registerArgument('options', 'array', 'Associative array with internal IDs as key, and the values are displayed in the select box', TRUE);
 		$this->registerArgument('optionValueField', 'string', 'If specified, will call the appropriate getter on each object to determine the value.');
 		$this->registerArgument('optionLabelField', 'string', 'If specified, will call the appropriate getter on each object to determine the label.');
+		$this->registerArgument('sortByOptionLabel', 'boolean', 'If true, List will be sorted by label.', FALSE, FALSE);
 		$this->registerArgument('errorClass', 'string', 'CSS class to set if there are errors for this view helper', FALSE, 'f3-form-error');
 	}
 
@@ -115,6 +116,9 @@ class Tx_Fluid_ViewHelpers_Form_SelectViewHelper extends Tx_Fluid_ViewHelpers_Fo
 		$this->tag->addAttribute('name', $name);
 
 		$options = $this->getOptions();
+		if (empty($options)) {
+			$options = array('' => '');
+		}
 		$this->tag->setContent($this->renderOptionTags($options));
 
 		$this->setErrorClassAttribute();
@@ -158,6 +162,9 @@ class Tx_Fluid_ViewHelpers_Form_SelectViewHelper extends Tx_Fluid_ViewHelpers_Fo
 	 * @author Karsten Dambekalns <karsten@typo3.org>
 	 */
 	protected function getOptions() {
+		if (!is_array($this->arguments['options']) && !($this->arguments['options'] instanceof Traversable)) {
+			return array();
+		}
 		$options = array();
 		foreach ($this->arguments['options'] as $key => $value) {
 			if (is_object($value)) {
@@ -195,6 +202,9 @@ class Tx_Fluid_ViewHelpers_Form_SelectViewHelper extends Tx_Fluid_ViewHelpers_Fo
 				}
 			}
 			$options[$key] = $value;
+		}
+		if ($this->arguments['sortByOptionLabel']) {
+			asort($options);
 		}
 		return $options;
 	}

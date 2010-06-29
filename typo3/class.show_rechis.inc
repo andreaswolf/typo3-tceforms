@@ -324,7 +324,7 @@ class recordHistory {
 			// get link to page history if the element history is shown
 		$elParts = explode(':',$this->element);
 		if ($elParts[0] != 'pages')	{
-			$content .= '<b>'.$LANG->getLL('elementHistory',1).'</b><br />';
+			$content .= '<strong>'.$LANG->getLL('elementHistory',1).'</strong><br />';
 			$pid = t3lib_BEfunc::getRecordRaw($elParts[0],'uid='.intval($elParts[1]));
 			$content .= $this->linkPage($LANG->getLL('elementHistory_link',1),array('element' => 'pages:'.$pid['pid']));
 		}
@@ -389,7 +389,7 @@ class recordHistory {
 
 				$lines[] = '
 				<tr class="bgColor4-20">
-					<td colspan="7"><b>'.$LANG->getLL('consistenceWarning',1).'</b></td>
+					<td colspan="7"><strong>'.$LANG->getLL('consistenceWarning',1).'</strong></td>
 				</tr>';
 			}
 
@@ -405,7 +405,7 @@ class recordHistory {
 			$singleLine = array();
 
 				// diff link
-			$image = '<img'.t3lib_iconWorks::skinImg('','gfx/button_top_right.gif').' align="top" alt="'.$LANG->getLL('sumUpChanges',1).'" title="'.$LANG->getLL('sumUpChanges',1).'" />';
+			$image = t3lib_iconWorks::getSpriteIcon('actions-view-go-forward', array('title' => $LANG->getLL('sumUpChanges', TRUE)));
 			$singleLine[] = '<span>'.$this->linkPage($image,array('diff' => $sysLogUid)).'</span>';	// remove first link
 
 			$singleLine[] = htmlspecialchars(t3lib_BEfunc::datetime($entry['tstamp']));	// add time
@@ -461,7 +461,7 @@ class recordHistory {
 			</table>';
 
 		if ($this->lastSyslogId)	{
-			$theCode .= '<br />' .  $this->linkPage('<img'.t3lib_iconWorks::skinImg('','gfx/group_tobottom.gif').' alt="'.$LANG->getLL('fullView',1).'" title="'.$LANG->getLL('fullView',1).'" />',array('diff' => ''));
+			$theCode .= '<br />' .  $this->linkPage(t3lib_iconWorks::getSpriteIcon('actions-move-to-bottom', array('title' => $LANG->getLL('fullView', TRUE))), array('diff' => ''));
 		}
 
 			// Add message about the difference view.
@@ -501,10 +501,10 @@ class recordHistory {
 				$elParts = explode(':',$key);
 					// turn around diff because it should be a "rollback preview"
 				if ($diff['insertsDeletes'][$key] == 1)	{	// insert
-					$record .= '<b>'.$LANG->getLL('delete',1).'</b>';
+					$record .= '<strong>'.$LANG->getLL('delete',1).'</strong>';
 					$record .= '<br />';
 				} elseif ($diff['insertsDeletes'][$key] == -1)	{
-					$record .= '<b>'.$LANG->getLL('insert',1).'</b>';
+					$record .= '<strong>'.$LANG->getLL('insert',1).'</strong>';
 					$record .= '<br />';
 				}
 					// build up temporary diff array

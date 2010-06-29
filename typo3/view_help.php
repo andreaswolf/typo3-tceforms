@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -434,8 +434,7 @@ class SC_view_help {
 			$parts[0] = '';	// Reserved for header of table
 
 				// Traverse table columns as listed in TCA_DESCR
-			reset($TCA_DESCR[$table]['columns']);
-			while(list($field) = each($TCA_DESCR[$table]['columns']))	{
+			foreach ($TCA_DESCR[$table]['columns'] as $field => $value) {
 
 				$fieldValue = isset($TCA[$table]) && strcmp($field,'') ? $TCA[$table]['columns'][$field] : array();
 
@@ -538,7 +537,7 @@ class SC_view_help {
 		global $TCA,$BE_USER,$TCA_DESCR;
 
 			// Split references by comma or linebreak
-		$items = preg_split('/[,' . chr(10) . ']/', $value);
+		$items = preg_split('/[,' . LF . ']/', $value);
 		$lines = array();
 
 		foreach($items as $val)	{
@@ -588,7 +587,7 @@ class SC_view_help {
 			// Splitting:
 		$imgArray = t3lib_div::trimExplode(',', $images, 1);
 		if (count($imgArray))	{
-			$descrArray = explode(chr(10),$descr,count($imgArray));
+			$descrArray = explode(LF,$descr,count($imgArray));
 
 			foreach($imgArray as $k => $image)	{
 				$descr = $descrArray[$k];
@@ -621,11 +620,11 @@ class SC_view_help {
 	function headerLine($str,$type=0)	{
 		switch($type)	{
 			case 1:
-				$str='<h3>'.htmlspecialchars($str).'</h3>
+				$str = '<h2 class="t3-row-header">' . htmlspecialchars($str) . '</h2>
 				';
 			break;
 			case 0:
-				$str='<h4 class="uppercase">'.htmlspecialchars($str).'</h4>
+				$str = '<h3 class="divider">' . htmlspecialchars($str) . '</h3>
 				';
 			break;
 		}
@@ -797,8 +796,7 @@ class SC_view_help {
 					if (is_array($TCA_DESCR[$cshKey]['columns']))	{
 
 							// Traverse table columns as listed in TCA_DESCR
-						reset($TCA_DESCR[$cshKey]['columns']);
-						while(list($field,$data) = each($TCA_DESCR[$cshKey]['columns']))	{
+						foreach ($TCA_DESCR[$cshKey]['columns'] as $field => $data) {
 							if ($field)	{
 								$this->glossaryWords[$cshKey.'.'.$field] = array(
 									'title' => trim($data['alttitle'] ? $data['alttitle'] : $cshKey),

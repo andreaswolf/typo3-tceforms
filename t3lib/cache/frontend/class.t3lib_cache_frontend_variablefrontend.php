@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2009-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,6 +30,7 @@
  *
  * @package TYPO3
  * @subpackage t3lib_cache
+ * @api
  * @version $Id$
  */
 class t3lib_cache_frontend_VariableFrontend extends t3lib_cache_frontend_AbstractFrontend {

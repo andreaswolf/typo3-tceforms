@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -120,7 +120,7 @@ class t3lib_xml {
 	 * @return	string
 	 */
 	function getResult()	{
-		$content = implode(chr(10),$this->lines);
+		$content = implode(LF,$this->lines);
 		return $this->output($content);
 	}
 
@@ -169,8 +169,7 @@ class t3lib_xml {
 			$pList='';
 			if (count($params))	{
 				$par=array();
-				reset($params);
-				while(list($key,$val)=each($params))	{
+				foreach ($params as $key => $val) {
 					$par[]=$key.'="'.htmlspecialchars($val).'"';
 				}
 				$pList=' '.implode(' ',$par);
@@ -209,7 +208,7 @@ class t3lib_xml {
 		if ($b)	$this->XMLIndent++; else $this->XMLIndent--;
 		$this->Icode='';
 		for ($a=0;$a<$this->XMLIndent;$a++)	{
-			$this->Icode.=chr(9);
+			$this->Icode.=TAB;
 		}
 		return $this->Icode;
 	}
@@ -245,7 +244,7 @@ class t3lib_xml {
 	/**
 	 * Internal function for adding the actual content of the $row from $table to the internal structure.
 	 * Notice that only fields from $table that are listed in $this->XML_recFields[$table] (set by setRecFields()) will be rendered (and in the order found in that array!)
-	 * Content from the row will be htmlspecialchar()'ed, UTF-8 encoded and have chr(10) (newlines) exchanged for '<newline/>' tags. The element name for a value equals the fieldname from the record.
+	 * Content from the row will be htmlspecialchar()'ed, UTF-8 encoded and have LF (newlines) exchanged for '<newline/>' tags. The element name for a value equals the fieldname from the record.
 	 *
 	 * @param	string		Table name
 	 * @param	array		Row from table to add.
@@ -254,8 +253,7 @@ class t3lib_xml {
 	 */
 	function getRowInXML($table,$row)	{
 		$fields = t3lib_div::trimExplode(',',$this->XML_recFields[$table],1);
-		reset($fields);
-		while(list(,$field)=each($fields))	{
+		foreach ($fields as $field) {
 			if ($row[$field] || $this->includeNonEmptyValues)	{
 				$this->lines[]=$this->Icode.$this->fieldWrap($field,$this->substNewline($this->utf8(htmlspecialchars($row[$field]))));
 			}
@@ -273,13 +271,13 @@ class t3lib_xml {
 	}
 
 	/**
-	 * Substitutes chr(10) characters with a '<newline/>' tag.
+	 * Substitutes LF characters with a '<newline/>' tag.
 	 *
 	 * @param	string		Input value
 	 * @return	string		Processed input value
 	 */
 	function substNewline($string)	{
-		return str_replace(chr(10),'<newline/>',$string);
+		return str_replace(LF,'<newline/>',$string);
 	}
 
 	/**

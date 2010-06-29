@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -148,16 +148,15 @@ class tx_wizardcrpages_webfunc_2 extends t3lib_extobjbase {
 
 					// Display result:
 				$menuItems = $sys_pages->getMenu($this->pObj->id,'*','sorting','',0);
-				reset($menuItems);
 				$lines=array();
-				while(list(,$rec)=each($menuItems))	{
+				foreach ($menuItems as $rec) {
 					t3lib_BEfunc::workspaceOL('pages',$rec);
 					if (is_array($rec))	{
 						$lines[]= '<nobr>'.t3lib_iconWorks::getIconImage('pages',$rec,$GLOBALS['BACK_PATH'],'align="top" '.t3lib_BEfunc::titleAttribForPages($rec)).
 							htmlspecialchars(t3lib_div::fixed_lgd_cs($rec['title'],$GLOBALS['BE_USER']->uc['titleLen'])).'</nobr>';
 					}
 				}
-				$theCode.= '<b>'.$LANG->getLL('wiz_newPages_currentMenu').':</b><br /><br />'.implode('<br />',$lines);
+				$theCode.= '<h4>' . $LANG->getLL('wiz_newPages_currentMenu') . '</h4>' . implode('<br />', $lines);
 			} else {
 					// Create loremIpsum code:
 				if (t3lib_extMgm::isLoaded('lorem_ipsum'))	{
@@ -167,15 +166,15 @@ class tx_wizardcrpages_webfunc_2 extends t3lib_extobjbase {
 				$lines = array();
 				for ($a = 0; $a < 9; $a++) {
 					$lines[] = '<label for="page_new_' . $a . '"> ' . $LANG->getLL('wiz_newPages_page') .' '. ($a+1) .
-						':</label><input type="text" id="page_new_' . $a . '" name="data[pages][NEW' . $a . '][title]"' . $this->pObj->doc->formWidth(35) . ' />'.
+						':&nbsp;</label><input type="text" id="page_new_' . $a . '" name="data[pages][NEW' . $a . '][title]"' . $this->pObj->doc->formWidth(35) . ' />'.
 						(is_object($loremIpsumObj) ? '<a href="#" onclick="' . htmlspecialchars($loremIpsumObj->getHeaderTitleJS('document.forms[0][\'data[pages][NEW' . $a . '][title]\'].value', 'title')) . '">' . $loremIpsumObj->getIcon('', $this->pObj->doc->backPath) . '</a>' : '');
 				}
 
-				$theCode.= '<b>'.$LANG->getLL('wiz_newPages').':</b><br /><br />'.implode('<br />',$lines).
+				$theCode.= '<h4>'.$LANG->getLL('wiz_newPages').':</h4>'.implode('<br />',$lines).
 				'<br /><br />
 				<input type="checkbox" name="createInListEnd" id="createInListEnd" value="1" /> <label for="createInListEnd">'.$LANG->getLL('wiz_newPages_listEnd').'</label><br />
 				<input type="checkbox" name="hidePages" id="hidePages" value="1" /> <label for="hidePages">'.$LANG->getLL('wiz_newPages_hidePages').'</label><br /><br />
-				<input type="submit" name="create" value="' . $LANG->getLL('wiz_newPages_lCreate') . '" onclick="return confirm(' . $GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->getLL('wiz_newPages_lCreate_msg1')) . ')" /><input type="reset" value="' . $LANG->getLL('wiz_newPages_lReset') . '" /><br />';
+				<input type="submit" name="create" value="' . $LANG->getLL('wiz_newPages_lCreate') . '" onclick="return confirm(' . $GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->getLL('wiz_newPages_lCreate_msg1')) . ')" />&nbsp;<input type="reset" value="' . $LANG->getLL('wiz_newPages_lReset') . '" /><br />';
 			}
 		} else {
 			$theCode.=$GLOBALS['TBE_TEMPLATE']->rfw($LANG->getLL('wiz_newPages_errorMsg1'));

@@ -1,0 +1,83 @@
+/* - - - - - - - - - - - - - - - - - - - - -
+Module menu
+
+$Id$
+- - - - - - - - - - - - - - - - - - - - - */
+
+#typo3-module-menu {
+	background: #dddddd;
+	background-image: url('../../images/backgrounds/module-menu-right.gif');
+	background-position: right top;
+	background-repeat: repeat-y;
+}
+
+#typo3-module-menu .x-panel-body {
+	background-color: transparent;
+}
+
+#typo3-side-menu {
+	background-image: url('../../images/backgrounds/module-menu-top.png');
+	background-position: right top;
+	background-repeat: no-repeat;
+}
+
+#typo3-menu,
+#typo3-menu ul {
+	list-style: none;
+}
+
+#typo3-menu a {
+	color: #1e2121;
+}
+
+#typo3-menu > li {
+	border-bottom: 1px solid #c7c7c7;
+	border-bottom-right-radius: 3px;
+	-moz-border-radius-bottomright: 3px;
+	-webkit-border-bottom-right-radius: 3px;
+}
+
+#typo3-menu > li:last-child {
+	border-bottom: none;
+}
+
+#typo3-menu li.menuSection li a:hover,
+#typo3-menu li.menuSection li.hover a,
+#typo3-menu li.highlighted a {
+	background-color: #f1f1f1;
+	border-top: 1px solid #b8b8b8;
+	border-bottom: 1px solid #b8b8b8;
+}
+
+#typo3-menu li.highlighted {
+	font-weight: bold;
+}
+
+#typo3-menu li div {
+	color: #252524;
+	cursor: pointer;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+#typo3-menu li div.collapsed {
+	background-image: url('../../images/arrows/module-menu-right.png');
+	background-position: 5px 5px;
+	background-repeat: no-repeat;
+}
+
+#typo3-menu li div.expanded {
+	background-image: url('../../images/arrows/module-menu-down.png');
+	background-position: 4px 7px;
+	background-repeat: no-repeat;
+}
+
+#typo3-menu li ul li {
+	cursor: pointer;
+	font-weight: normal;
+	line-height: 15px;
+}
+
+#typo3-menu li ul li a {
+	text-decoration: none;
+}

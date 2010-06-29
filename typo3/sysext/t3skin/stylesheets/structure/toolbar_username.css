@@ -1,0 +1,21 @@
+/* - - - - - - - - - - - - - - - - - - - - -
+Username inside the toolbar
+
+$Id$
+- - - - - - - - - - - - - - - - - - - - - */
+
+#username {
+	margin-left: 25px;
+	margin-right: 10px;
+	padding-top: 2px;
+}
+
+#username span {
+	padding-right: 4px;
+	vertical-align: bottom;
+}
+
+#username img {
+	padding-right: 4px;
+	vertical-align: bottom;
+}

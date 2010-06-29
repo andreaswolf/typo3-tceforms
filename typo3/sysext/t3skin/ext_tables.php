@@ -4,10 +4,17 @@ if (!defined ('TYPO3_MODE')) 	die ('Access denied.');
 if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $GLOBALS['BE_USER']->isFrontendEditingActive())) {
 	global $TBE_STYLES;
 
+		// register as a skin
+	$TBE_STYLES['skins'][$_EXTKEY] = array(
+		'name' => 't3skin',
+	);
+
 		// Support for other extensions to add own icons...
 	$presetSkinImgs = is_array($TBE_STYLES['skinImg']) ?
 		$TBE_STYLES['skinImg'] :
 		array();
+
+	$TBE_STYLES['skins'][$_EXTKEY]['stylesheetDirectories']['sprites'] = 'EXT:t3skin/stylesheets/sprites/';
 
 	/**
 	 * Setting up backend styles and colors
@@ -70,30 +77,14 @@ if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $
 		// Setting the relative path to the extension in temp. variable:
 	$temp_eP = t3lib_extMgm::extRelPath($_EXTKEY);
 
-		// Setting login box image rotation folder:
-	$TBE_STYLES['loginBoxImage_rotationFolder'] = $temp_eP.'images/login/';
-	$TBE_STYLES['loginBoxImage_author']['loginimage_4_2.jpg'] = 'Photo by Photo by J.C. Franca (www.digitalphoto.com.br)';
-#	$TBE_STYLES['loginBoxImage_rotationFolder'] = '';
-
-		// Setting up stylesheets (See template() constructor!)
-#	$TBE_STYLES['stylesheet']                   = $temp_eP.'stylesheets/stylesheet.css';			// Alternative stylesheet to the default "typo3/stylesheet.css" stylesheet.
-#	$TBE_STYLES['stylesheet2']                  = $temp_eP.'stylesheets/stylesheet.css';			// Additional stylesheet (not used by default).  Set BEFORE any in-document styles
-	$TBE_STYLES['styleSheetFile_post']          = $temp_eP.'stylesheets/stylesheet_post.css';		// Additional stylesheet. Set AFTER any in-document styles
-#	$TBE_STYLES['inDocStyles_TBEstyle']         = '* {text-align: right;}';							// Additional default in-document styles.
-	$TBE_STYLES['stylesheets']['modulemenu']    = $temp_eP.'stylesheets/modulemenu.css';
-	$TBE_STYLES['stylesheets']['backend-style'] = $temp_eP.'stylesheets/backend-style.css';
-	$TBE_STYLES['stylesheets']['admPanel'] = $temp_eP.'stylesheets/admPanel.css';
-
 		// Alternative dimensions for frameset sizes:
-	$TBE_STYLES['dims']['leftMenuFrameW'] = 160;		// Left menu frame width
-	$TBE_STYLES['dims']['topFrameH']      = 45;			// Top frame heigth
-	$TBE_STYLES['dims']['shortcutFrameH'] = 35;			// Shortcut frame height
-	$TBE_STYLES['dims']['selMenuFrame']   = 200;		// Width of the selector box menu frame
-	$TBE_STYLES['dims']['navFrameWidth']  = 260;		// Default navigation frame width
+	$TBE_STYLES['dims']['leftMenuFrameW'] = 190;		// Left menu frame width
+	$TBE_STYLES['dims']['topFrameH']      = 42;			// Top frame height
+	$TBE_STYLES['dims']['navFrameWidth']  = 280;		// Default navigation frame width
 
 		// Setting roll-over background color for click menus:
 		// Notice, this line uses the the 'scriptIDindex' feature to override another value in this array (namely $TBE_STYLES['mainColors']['bgColor5']), for a specific script "typo3/alt_clickmenu.php"
-	$TBE_STYLES['scriptIDindex']['typo3/alt_clickmenu.php']['mainColors']['bgColor5'] = '#F8F9FB';
+	$TBE_STYLES['scriptIDindex']['typo3/alt_clickmenu.php']['mainColors']['bgColor5'] = '#dedede';
 
 		// Setting up auto detection of alternative icons:
 	$TBE_STYLES['skinImgAutoCfg'] = array(
@@ -113,12 +104,11 @@ if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $
 		'gfx/ol/blank.gif'                         => array('clear.gif','width="14" height="14"'),
 		'MOD:web/website.gif'                      => array($temp_eP.'icons/module_web.gif','width="24" height="24"'),
 		'MOD:web_layout/layout.gif'                => array($temp_eP.'icons/module_web_layout.gif','width="24" height="24"'),
-		'MOD:web_view/view.gif'                    => array($temp_eP.'icons/module_web_view.gif','width="24" height="24"'),
+		'MOD:web_view/view.gif'                    => array($temp_eP.'icons/module_web_view.png','width="24" height="24"'),
 		'MOD:web_list/list.gif'                    => array($temp_eP.'icons/module_web_list.gif','width="24" height="24"'),
-		'MOD:web_info/info.gif'                    => array($temp_eP.'icons/module_web_info.gif','width="24" height="24"'),
-		'MOD:web_perm/perm.gif'                    => array($temp_eP.'icons/module_web_perms.gif','width="24" height="24"'),
-		'MOD:web_perm/legend.gif'                  => array($temp_eP.'icons/legend.gif','width="24" height="24"'),
-		'MOD:web_func/func.gif'                    => array($temp_eP.'icons/module_web_func.gif','width="24" height="24"'),
+		'MOD:web_info/info.gif'                    => array($temp_eP.'icons/module_web_info.png','width="24" height="24"'),
+		'MOD:web_perm/perm.gif'                    => array($temp_eP.'icons/module_web_perms.png','width="24" height="24"'),
+		'MOD:web_func/func.gif'                    => array($temp_eP.'icons/module_web_func.png','width="24" height="24"'),
 		'MOD:web_ts/ts1.gif'                       => array($temp_eP.'icons/module_web_ts.gif','width="24" height="24"'),
 		'MOD:web_modules/modules.gif'              => array($temp_eP.'icons/module_web_modules.gif','width="24" height="24"'),
 		'MOD:web_txversionM1/cm_icon.gif'          => array($temp_eP.'icons/module_web_version.gif','width="24" height="24"'),
@@ -132,7 +122,7 @@ if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $
 		'MOD:user_ws/sys_workspace.gif'            => array($temp_eP.'icons/module_user_ws.gif','width="22" height="22"'),
 		'MOD:tools/tool.gif'                       => array($temp_eP.'icons/module_tools.gif','width="25" height="24"'),
 		'MOD:tools_beuser/beuser.gif'              => array($temp_eP.'icons/module_tools_user.gif','width="24" height="24"'),
-		'MOD:tools_em/em.gif'                      => array($temp_eP.'icons/module_tools_em.gif','width="24" height="24"'),
+		'MOD:tools_em/em.gif'                      => array($temp_eP.'icons/module_tools_em.png','width="24" height="24"'),
 		'MOD:tools_em/install.gif'                 => array($temp_eP.'icons/module_tools_em.gif','width="24" height="24"'),
 		'MOD:tools_dbint/db.gif'                   => array($temp_eP.'icons/module_tools_dbint.gif','width="25" height="24"'),
 		'MOD:tools_config/config.gif'              => array($temp_eP.'icons/module_tools_config.gif','width="24" height="24"'),
@@ -147,29 +137,18 @@ if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $
 		'MOD:help_txtsconfighelpM1/moduleicon.gif' => array($temp_eP.'icons/module_help_ts.gif','width="25" height="24"'),
 	));
 
-		// Adding icon for photomarathon extensions' backend module, if enabled:
-	if (t3lib_extMgm::isloaded('user_photomarathon'))	{
-		$TBE_STYLES['skinImg']['MOD:web_uphotomarathon/tab_icon.gif'] = array($temp_eP.'icons/ext/user_photomarathon/tab_icon.gif','width="24" height="24"');
-	}
-		// Adding icon for templavoila extensions' backend module, if enabled:
-	if (t3lib_extMgm::isloaded('templavoila'))	{
-		$TBE_STYLES['skinImg']['MOD:web_txtemplavoilaM1/moduleicon.gif'] = array($temp_eP.'icons/ext/templavoila/mod1/moduleicon.gif','width="22" height="22"');
-		$TBE_STYLES['skinImg']['MOD:web_txtemplavoilaM2/moduleicon.gif'] = array($temp_eP.'icons/ext/templavoila/mod1/moduleicon.gif','width="22" height="22"');
-	}
-		// Adding icon for extension manager' backend module, if enabled:
-	$TBE_STYLES['skinImg']['MOD:tools_em/install.gif']   = array($temp_eP.'icons/ext/templavoila/mod1/moduleicon.gif','width="22" height="22"');
-	$TBE_STYLES['skinImg']['MOD:tools_em/uninstall.gif'] = array($temp_eP.'icons/ext/templavoila/mod1/moduleicon.gif','width="22" height="22"');
+		// Logo at login screen
+	$TBE_STYLES['logo_login'] = $temp_eP . 'images/login/typo3logo-white-greyback.gif';
 
 		// extJS theme
 	$TBE_STYLES['extJS']['theme'] =  $temp_eP . 'extjs/xtheme-t3skin.css';
-
-	//print_a($TBE_STYLES,2);
 
 	// Adding HTML template for login screen
 	$TBE_STYLES['htmlTemplates']['templates/login.html'] = 'sysext/t3skin/templates/login.html';
 
 	$GLOBALS['TYPO3_CONF_VARS']['typo3/backend.php']['additionalBackendItems'][] = t3lib_extMgm::extPath('t3skin').'registerIe6Stylesheet.php';
 
+	$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/template.php']['preHeaderRenderHook'][] = t3lib_extMgm::extPath('t3skin').'pngfix/class.tx_templatehook.php:tx_templatehook->registerPngFix';
 }
 
 ?>

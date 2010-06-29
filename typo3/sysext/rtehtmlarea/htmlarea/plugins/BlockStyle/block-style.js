@@ -31,7 +31,7 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-BlockStyle = HTMLArea.Plugin.extend({
+HTMLArea.BlockStyle = HTMLArea.Plugin.extend({
 		
 	constructor : function(editor, pluginName) {
 		this.base(editor, pluginName);
@@ -145,7 +145,7 @@ BlockStyle = HTMLArea.Plugin.extend({
 	 */
 	onChange : function (editor, combo, record, index) {
 		var className = combo.getValue();
-		this.editor.focusEditor();
+		this.editor.focus();
 		var blocks = this.getSelectedBlocks();
 		for (var k = 0; k < blocks.length; ++k) {
 			var parent = blocks[k];
@@ -202,7 +202,7 @@ BlockStyle = HTMLArea.Plugin.extend({
 	getSelectedBlocks : function() {
 		var block, range, i = 0, blocks = [];
 		var statusBarSelection = this.editor.statusBar ? this.editor.statusBar.getSelection() : null;
-		if (HTMLArea.is_gecko && !HTMLArea.is_safari && !HTMLArea.is_opera) {
+		if (Ext.isGecko) {
 			var selection = this.editor._getSelection();
 			try {
 				while ((range = selection.getRangeAt(i++))) {
@@ -223,7 +223,7 @@ BlockStyle = HTMLArea.Plugin.extend({
 	onGenerate: function() {
 			// Monitor editor changing mode
 		this.editor.iframe.mon(this.editor, 'modeChange', this.onModeChange, this);
-		if (HTMLArea.is_gecko) {
+		if (!Ext.isIE) {
 			this.generate(this.editor, 'BlockStyle');
 		}
 	},
@@ -247,18 +247,31 @@ BlockStyle = HTMLArea.Plugin.extend({
 	 * This function gets called on plugin generation, on toolbar update and on change mode
 	 * Re-initiate the parsing of the style sheets, if not yet completed, and refresh our toolbar components
 	 */
-	generate : function(editor, dropDownId) {
-		if (this.cssLoaded && this.getEditorMode() === "wysiwyg" && this.editor.isEditable()) {
+	generate: function(editor, dropDownId) {
+		if (this.cssLoaded && this.getEditorMode() === 'wysiwyg' && this.editor.isEditable()) {
 			this.updateValue(dropDownId);
 		} else {
 			if (this.cssTimeout) {
 				window.clearTimeout(this.cssTimeout);
 				this.cssTimeout = null;
 			}
-			if (this.classesUrl && (typeof(HTMLArea.classesLabels) === "undefined")) {
-				this.getJavascriptFile(this.classesUrl);
+			if (this.classesUrl && (typeof(HTMLArea.classesLabels) === 'undefined')) {
+				this.getJavascriptFile(this.classesUrl, function (options, success, response) {
+					if (success) {
+						try {
+							if (typeof(HTMLArea.classesLabels) === 'undefined') {
+								eval(response.responseText);
+								this.appendToLog('generate', 'Javascript file successfully evaluated: ' + this.classesUrl);
+							}
+						} catch(e) {
+							this.appendToLog('generate', 'Error evaluating contents of Javascript file: ' + this.classesUrl);
+						}
+					}
+					this.buildCssArray(this.editor, dropDownId);
+				});
+			} else {
+				this.buildCssArray(this.editor, dropDownId);
 			}
-			this.buildCssArray(this.editor, dropDownId);
 		}
 	},
 	
@@ -390,10 +403,18 @@ BlockStyle = HTMLArea.Plugin.extend({
 				if (cssClass == 'none') {
 					store.getAt(0).set('text', cssArray[cssClass]);
 				} else {
+					var style = null;
+					if (!this.editor.config.disablePCexamples) {
+						if (HTMLArea.classesValues[cssClass] && !HTMLArea.classesNoShow[cssClass]) {
+							style = HTMLArea.classesValues[cssClass];
+						} else if (/-[0-9]+$/.test(cssClass) && HTMLArea.classesValues[RegExp.leftContext + '-'])  {
+							style = HTMLArea.classesValues[RegExp.leftContext + '-'];
+						}
+					}
 					store.add(new store.recordType({
 						text: cssArray[cssClass],
 						value: cssClass,
-						style: (!this.editor.config.disablePCexamples && HTMLArea.classesValues && HTMLArea.classesValues[cssClass] && !HTMLArea.classesNoShow[cssClass]) ? HTMLArea.classesValues[cssClass] : null
+						style: style
 					}));
 				}
 			}
@@ -459,7 +480,7 @@ BlockStyle = HTMLArea.Plugin.extend({
 		var newCssArray = new Object();
 		this.cssLoaded = true;
 		for (var i = 0; i < iframe.styleSheets.length; i++) {
-			if (HTMLArea.is_gecko) {
+			if (!Ext.isIE) {
 				try {
 					newCssArray = this.parseCssRule(iframe.styleSheets[i].cssRules, newCssArray);
 				} catch(e) {

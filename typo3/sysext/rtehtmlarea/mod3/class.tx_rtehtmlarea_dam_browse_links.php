@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
-*  (c) 2005-2009 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2005-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -227,8 +227,7 @@ class tx_rtehtmlarea_dam_browse_links extends tx_dam_browse_media {
 				$classesAnchor = array();
 				$classesAnchor['all'] = array();
 				if (is_array($RTEsetup['properties']['classesAnchor.'])) {
-					reset($RTEsetup['properties']['classesAnchor.']);
-					while(list($label,$conf)=each($RTEsetup['properties']['classesAnchor.'])) {
+					foreach ($RTEsetup['properties']['classesAnchor.'] as $label => $conf) {
 						if (in_array($conf['class'], $classesAnchorArray)) {
 							$classesAnchor['all'][] = $conf['class'];
 							if (in_array($conf['type'], $anchorTypes)) {
@@ -246,10 +245,8 @@ class tx_rtehtmlarea_dam_browse_links extends tx_dam_browse_media {
 						}
 					}
 				}
-				reset($anchorTypes);
-				while (list(, $anchorType) = each($anchorTypes) ) {
-					reset($classesAnchorArray);
-					while(list(,$class)=each($classesAnchorArray)) {
+				foreach ($anchorTypes as $anchorType) {
+					foreach ($classesAnchorArray as $class) {
 						if (!in_array($class, $classesAnchor['all']) || (in_array($class, $classesAnchor['all']) && is_array($classesAnchor[$anchorType]) && in_array($class, $classesAnchor[$anchorType]))) {
 							$selected = '';
 							if ($this->setClass == $class || (!$this->setClass && $this->classesAnchorDefault[$anchorType] == $class)) {
@@ -290,7 +287,6 @@ class tx_rtehtmlarea_dam_browse_links extends tx_dam_browse_media {
 
 			// Creating backend template object:
 		$this->doc = t3lib_div::makeInstance('template');
-		$this->doc->bodyTagAdditions = 'onLoad="initDialog();"';
 		$this->doc->backPath = $BACK_PATH;
 	}
 
@@ -315,13 +311,8 @@ class tx_rtehtmlarea_dam_browse_links extends tx_dam_browse_media {
 			// BEGIN accumulation of header JavaScript:
 		$JScode = '';
 		$JScode.= '
-			var dialog = window.opener.HTMLArea.Dialog.TYPO3Link;
-			var plugin = dialog.plugin;
-			var HTMLArea = window.opener.HTMLArea;
-			function initDialog() {
-				dialog.captureEvents("skipUnload");
-			}
-
+			var plugin = window.parent.RTEarea["' . $this->editorNo . '"].editor.getPlugin("TYPO3Link");
+			var HTMLArea = window.parent.HTMLArea;
 				// This JavaScript is primarily for RTE/Link. jumpToUrl is used in the other cases as well...
 			var add_href="'.($this->curUrlArray['href']?'&curUrl[href]='.rawurlencode($this->curUrlArray['href']):'').'";
 			var add_target="'.($this->setTarget?'&curUrl[target]='.rawurlencode($this->setTarget):'').'";
@@ -628,8 +619,7 @@ class tx_rtehtmlarea_dam_browse_links extends tx_dam_browse_media {
 				if (is_array($this->thisConfig['userLinks.']))	{
 					$subcats=array();
 					$v=$this->thisConfig['userLinks.'];
-					reset($v);
-					while(list($k2)=each($v))	{
+					foreach ($v as $k2 => $dummyValue) {
 						$k2i = intval($k2);
 						if (substr($k2,-1)=='.' && is_array($v[$k2i.'.']))	{
 

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2009-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -126,8 +126,8 @@ class tx_reports_reports_Status implements tx_reports_Report {
 				tx_reports_reports_status_Status::ERROR   => 'error',
 			);
 
-			$icon[tx_reports_reports_status_Status::WARNING] = '<img' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/warning.png', 'width="16" height="16"') . ' alt="" />';
-			$icon[tx_reports_reports_status_Status::ERROR] = '<img' . t3lib_iconWorks::skinImg($this->doc->backPath, 'gfx/error.png', 'width="16" height="16"') . ' alt="" />';
+			$icon[tx_reports_reports_status_Status::WARNING] = t3lib_iconWorks::getSpriteIcon('status-dialog-warning');
+			$icon[tx_reports_reports_status_Status::ERROR] = t3lib_iconWorks::getSpriteIcon('status-dialog-error');
 			$messages = '';
 			$headerIcon = '';
 			$sectionSeverity = 0;

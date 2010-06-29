@@ -23,7 +23,7 @@
 /**
  *
  *
- * @version $Id: RenderingContext.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: RenderingContext.php 2043 2010-03-16 08:49:45Z sebastian $
  * @package Fluid
  * @subpackage Core\Rendering
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
@@ -38,11 +38,11 @@ class Tx_Fluid_Core_Rendering_RenderingContext {
 	protected $templateVariableContainer;
 
 	/**
-	 * Object factory which is bubbled through. The ViewHelperNode cannot get an ObjectFactory injected because
+	 * Object manager which is bubbled through. The ViewHelperNode cannot get an ObjectManager injected because
 	 * the whole syntax tree should be cacheable
-	 * @var Tx_Fluid_Compatibility_ObjectFactory
+	 * @var Tx_Fluid_Compatibility_ObjectManager
 	 */
-	protected $objectFactory;
+	protected $objectManager;
 
 	/**
 	 * Controller context being passed to the ViewHelper
@@ -51,41 +51,29 @@ class Tx_Fluid_Core_Rendering_RenderingContext {
 	protected $controllerContext;
 
 	/**
-	 * Rendering Context
-	 * @var Tx_Fluid_Core_Rendering_RenderingConfiguration
-	 */
-	protected $renderingConfiguration;
-
-	/**
 	 * ViewHelper Variable Container
 	 * @var Tx_Fluid_Core_ViewHelpers_ViewHelperVariableContainer
 	 */
 	protected $viewHelperVariableContainer;
 
 	/**
-	 * TRUE if the arguments of a ViewHelper are currently evaluated
-	 * @var boolean
-	 */
-	protected $objectAccessorPostProcessorEnabled = TRUE;
-
-	/**
-	 * Inject the object factory
+	 * Inject the object manager
 	 *
-	 * @param Tx_Fluid_Compatibility_ObjectFactory $objectFactory
+	 * @param Tx_Fluid_Compatibility_ObjectManager $objectManager
 	 * @author Sebastian Kurfürst <sebastian@typo3.org>
 	 */
-	public function injectObjectFactory(Tx_Fluid_Compatibility_ObjectFactory $objectFactory) {
-		$this->objectFactory = $objectFactory;
+	public function injectObjectManager(Tx_Fluid_Compatibility_ObjectManager $objectManager) {
+		$this->objectManager = $objectManager;
 	}
 
 	/**
-	 * Returns the object factory. Only the ViewHelperNode should do this.
+	 * Returns the object manager. Only the ViewHelperNode should do this.
 	 *
-	 * @param Tx_Fluid_Compatibility_ObjectFactory $objectFactory
+	 * @param Tx_Fluid_Compatibility_ObjectManager $objectManager
 	 * @author Sebastian Kurfürst <sebastian@typo3.org>
 	 */
-	public function getObjectFactory() {
-		return $this->objectFactory;
+	public function getObjectManager() {
+		return $this->objectManager;
 	}
 
 	/**
@@ -127,48 +115,6 @@ class Tx_Fluid_Core_Rendering_RenderingContext {
 	 */
 	public function getControllerContext() {
 		return $this->controllerContext;
-	}
-
-	/**
-	 * Set the rendering configuration for the current rendering process
-	 *
-	 * @param Tx_Fluid_Core_Rendering_RenderingConfiguration $renderingConfiguration The Rendering Configuration to be set
-	 * @author Sebastian Kurfürst <sebastian@typo3.org>
-	 */
-	public function setRenderingConfiguration(Tx_Fluid_Core_Rendering_RenderingConfiguration $renderingConfiguration) {
-		$this->renderingConfiguration = $renderingConfiguration;
-	}
-
-	/**
-	 * Get the current rendering configuration
-	 *
-	 * @return Tx_Fluid_Core_Rendering_RenderingConfiguration The rendering configuration currently active
-	 * @author Sebastian Kurfürst <sebastian@typo3.org>
-	 */
-	public function getRenderingConfiguration() {
-		return $this->renderingConfiguration;
-	}
-
-	/**
-	 * Set the argument evaluation mode. Should be set to TRUE if the arguments are currently being parsed.
-	 * FALSE if we do not parse arguments currently
-	 *
-	 * @param boolean $objectAccessorPostProcessorEnabled Argument evaluation mode to be set
-	 * @author Sebastian Kurfürst <sebastian@typo3.org>
-	 */
-	public function setObjectAccessorPostProcessorEnabled($objectAccessorPostProcessorEnabled) {
-		$this->objectAccessorPostProcessorEnabled = (boolean)$objectAccessorPostProcessorEnabled;
-	}
-
-	/**
-	 * if TRUE, then we are currently in Argument Evaluation mode. False otherwise.
-	 * Is used to make sure that ObjectAccessors are PostProcessed if we are NOT in Argument Evaluation Mode
-	 *
-	 * @return boolean TRUE if we are currently evaluating arguments, FALSE otherwise
-	 * @author Sebastian Kurfürst <sebastian@typo3.org>
-	 */
-	public function isObjectAccessorPostProcessorEnabled() {
-		return $this->objectAccessorPostProcessorEnabled;
 	}
 
 	/**

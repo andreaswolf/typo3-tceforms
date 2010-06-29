@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2003-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2003-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the Typo3 project. The Typo3 project is
@@ -987,7 +987,7 @@ class t3lib_cs {
 					$this->parsedCharsets[$charset]=unserialize(t3lib_div::getUrl($cacheFile));
 				} else {
 						// Parse conversion table into lines:
-					$lines=t3lib_div::trimExplode(chr(10),t3lib_div::getUrl($charsetConvTableFile),1);
+					$lines=t3lib_div::trimExplode(LF,t3lib_div::getUrl($charsetConvTableFile),1);
 						// Initialize the internal variable holding the conv. table:
 					$this->parsedCharsets[$charset]=array('local'=>array(),'utf8'=>array());
 						// traverse the lines:
@@ -1392,7 +1392,9 @@ class t3lib_cs {
 	 * @author	Martin Kutschker <martin.t.kutschker@blackbox.net>
 	 */
 	function substr($charset,$string,$start,$len=null)	{
-		if ($len===0)	return '';
+		if ($len === 0 || $string === '') {
+			return '';
+		}
 
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['t3lib_cs_utils'] == 'mbstring')	{
 				// cannot omit $len, when specifying charset

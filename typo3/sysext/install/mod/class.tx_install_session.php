@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Ernesto Baschny <ernst@cron-it.de>
+*  (c) 2009-2010 Ernesto Baschny <ernst@cron-it.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -75,6 +75,13 @@ class tx_install_session {
 	private $regenerateSessionIdTime = 5;
 
 	/**
+	 * part of the referer when the install tool has been called from the backend
+	 *
+	 * @var string
+	 */
+	private $backendFile = 'backend.php';
+
+	/**
 	 * Constructor. Starts PHP session handling in our own private store
 	 *
 	 * Side-effect: might set a cookie, so must be called before any other output.
@@ -136,7 +143,16 @@ class tx_install_session {
 	 */
 	public function startSession() {
 		$_SESSION['created'] = time();
+
 		return session_id();
+	}
+
+	/**
+	 * Destroys a session
+	 *
+	 */
+	public function destroySession() {
+		session_destroy();
 	}
 
 	/**

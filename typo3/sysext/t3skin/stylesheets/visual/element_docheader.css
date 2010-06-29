@@ -1,0 +1,43 @@
+/* - - - - - - - - - - - - - - - - - - - - -
+Docheader
+
+$Id$
+- - - - - - - - - - - - - - - - - - - - - */
+
+span.typo3-docheader-pagePath {
+	font-weight: bold;
+}
+
+span.typo3-docheader-pagePath abbr {
+	border-bottom: none;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - -
+Record editing (alt_doc.php)
+- - - - - - - - - - - - - - - - - - - - - */
+
+div#typo3-docheader-row1 {
+	background-color: #585858;
+}
+
+div#typo3-docheader-row2 {
+	background-color: #dadada;
+	line-height: 27px;
+}
+
+div#typo3-docheader div.buttonsleft {
+	line-height: 16px;
+}
+
+div#typo3-docheader div.buttonsright {
+	line-height: 16px;
+}
+
+div#typo3-docheader img,
+div#typo3-docheader input {
+	cursor: pointer;
+}
+
+div#typo3-docheader-row2 div {
+	line-height: normal;
+}

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -84,7 +84,7 @@ class t3lib_formmail extends t3lib_htmlmail {
 	 * [from_name]:			Sender name. If not set, [name] is used
 	 * [replyto_email]:		Reply-to email. If not set [from_email] is used
 	 * [replyto_name]:		Reply-to name. If not set [from_name] is used
-	 * [organisation]:		Organisation (header)
+	 * [organisation]:		Organization (header)
 	 * [priority]:			Priority, 1-5, default 3
 	 * [html_enabled]:		If mail is sent as html
 	 * [use_base64]:		If set, base64 encoding will be used instead of quoted-printable
@@ -141,18 +141,17 @@ class t3lib_formmail extends t3lib_htmlmail {
 
 				// Runs through $V and generates the mail
 			if (is_array($V))	{
-				reset($V);
-				while (list($key,$val)=each($V))	{
+				foreach ($V as $key => $val) {
 					if (!t3lib_div::inList($this->reserved_names,$key))	{
- 						$space = (strlen($val)>60)?chr(10):'';
-						$val = (is_array($val) ? implode($val,chr(10)) : $val);
+ 						$space = (strlen($val)>60)?LF:'';
+						$val = (is_array($val) ? implode($val,LF) : $val);
 
 							// convert form data from renderCharset to mail charset (HTML may use entities)
 						$Plain_val = ($convCharset && strlen($val)) ? $GLOBALS['TSFE']->csConvObj->conv($val,$GLOBALS['TSFE']->renderCharset,$this->charset,0) : $val;
 						$HTML_val = ($convCharset && strlen($val)) ? $GLOBALS['TSFE']->csConvObj->conv(htmlspecialchars($val),$GLOBALS['TSFE']->renderCharset,$this->charset,1) : htmlspecialchars($val);
 
-						$Plain_content.= strtoupper($key).':  '.$space.$Plain_val."\n".$space;
-						$HTML_content.= '<tr><td bgcolor="#eeeeee"><font face="Verdana" size="1"><b>'.strtoupper($key).'</b></font></td><td bgcolor="#eeeeee"><font face="Verdana" size="1">'.nl2br($HTML_val).'&nbsp;</font></td></tr>';
+						$Plain_content.= strtoupper($key).':  '.$space.$Plain_val.LF.$space;
+						$HTML_content.= '<tr><td bgcolor="#eeeeee"><font face="Verdana" size="1"><strong>'.strtoupper($key).'</strong></font></td><td bgcolor="#eeeeee"><font face="Verdana" size="1">'.nl2br($HTML_val).'&nbsp;</font></td></tr>';
 					}
 				}
 			}

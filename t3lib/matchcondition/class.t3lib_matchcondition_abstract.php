@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Oliver Hader <oliver@typo3.org>
+*  (c) 2009-2010 Oliver Hader <oliver@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -214,8 +214,16 @@ abstract class t3lib_matchCondition_abstract {
 		switch ($key) {
 			case 'browser':
 				$values = t3lib_div::trimExplode(',', $value, true);
+					// take all identified browsers into account, eg chrome deliver
+					// webkit=>532.5, chrome=>4.1, safari=>532.5
+					// so comparing string will be
+					// "webkit532.5 chrome4.1 safari532.5"
+				$all = '';
+				foreach($browserInfo['all'] as $key => $value) {
+					$all .= $key . $value . ' ';
+				}
 				foreach ($values as $test) {
-					if (strpos($browserInfo['browser'] . $browserInfo['version'], $test) !== false) {
+					if (stripos($all, $test) !== false) {
 						return true;
 					}
 				}
@@ -336,6 +344,10 @@ abstract class t3lib_matchCondition_abstract {
 						if ($test == '*' || !strcmp($this->getUserId(), $test)) {
 							return true;
 						}
+					}
+				} else {
+					if ($value === '') {
+						return TRUE;
 					}
 				}
 			break;
@@ -546,7 +558,7 @@ abstract class t3lib_matchCondition_abstract {
 		}
 	}
 
-	
+
 	/**
 	 * Evaluates a TypoScript condition given as input, eg. "[browser=net][...(other conditions)...]"
 	 *

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2009 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2008-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the Typo3 project. The Typo3 project is
@@ -75,10 +75,10 @@ class tx_rtehtmlarea_tableoperations extends tx_rtehtmlareaapi {
 
 		$available = parent::main($parentObject);
 
-		if ($this->htmlAreaRTE->client['BROWSER'] == 'opera') {
+		if ($this->htmlAreaRTE->client['browser'] == 'opera') {
 			$this->thisConfig['hideTableOperationsInToolbar'] = 0;
 		}
-		if ($this->thisConfig['disableSelectColor'] && $this->htmlAreaRTE->client['BROWSER'] != 'gecko') {
+		if ($this->thisConfig['disableSelectColor'] && $this->htmlAreaRTE->client['browser'] != 'gecko') {
 			$this->requiredPlugins = 'DefaultColor';
 		}
 		return $available;
@@ -114,16 +114,18 @@ class tx_rtehtmlarea_tableoperations extends tx_rtehtmlareaapi {
 			if ($disabledFieldsets) {
 				$dialogues = array('table', 'tableproperties', 'rowproperties', 'columnproperties', 'cellproperties');
 				foreach ($dialogues as $dialogue) {
-					if (!is_array( $this->thisConfig['buttons.']) || !is_array( $this->thisConfig['buttons.'][$dialogue.'.'])) {
-						$registerRTEinJavascriptString .= '
-				RTEarea['.$RTEcounter.'].buttons.'.$dialogue.' = new Object();
-				RTEarea['.$RTEcounter.'].buttons.'.$dialogue.'.removeFieldsets = "' . $disabledFieldsets . '";';
-					} else if ($this->thisConfig['buttons.'][$dialogue.'.']['removeFieldsets']) {
-						$registerRTEinJavascriptString .= '
-				RTEarea['.$RTEcounter.'].buttons.'.$dialogue.'.removeFieldsets += ",' . $disabledFieldsets . '";';
-					} else {
-						$registerRTEinJavascriptString .= '
-				RTEarea['.$RTEcounter.'].buttons.'.$dialogue.'.removeFieldsets = ",' . $disabledFieldsets . '";';
+					if (in_array($dialogue, $this->toolbar)) {
+						if (!is_array( $this->thisConfig['buttons.']) || !is_array( $this->thisConfig['buttons.'][$dialogue.'.'])) {
+							$registerRTEinJavascriptString .= '
+					RTEarea['.$RTEcounter.'].buttons.'.$dialogue.' = new Object();
+					RTEarea['.$RTEcounter.'].buttons.'.$dialogue.'.removeFieldsets = "' . $disabledFieldsets . '";';
+						} else if ($this->thisConfig['buttons.'][$dialogue.'.']['removeFieldsets']) {
+							$registerRTEinJavascriptString .= '
+					RTEarea['.$RTEcounter.'].buttons.'.$dialogue.'.removeFieldsets += ",' . $disabledFieldsets . '";';
+						} else {
+							$registerRTEinJavascriptString .= '
+					RTEarea['.$RTEcounter.'].buttons.'.$dialogue.'.removeFieldsets = ",' . $disabledFieldsets . '";';
+						}
 					}
 				}
 			}

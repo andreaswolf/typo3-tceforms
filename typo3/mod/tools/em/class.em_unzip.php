@@ -3,7 +3,7 @@
 *  Copyright notice
 *
 *  (c) Vincent Blavet <vincent@phpconcept.net>
-*  (c) 2005-2009 Karsten Dambekalns <karsten@typo3.org>
+*  (c) 2005-2010 Karsten Dambekalns <karsten@typo3.org>
 *  All rights reserved
 *
 *  This library is free software; you can redistribute it and/or
@@ -123,9 +123,12 @@ class em_unzip {
 
 		// Check the zlib
 		if (!extension_loaded('zlib')) {
-			die("The extension 'zlib' couldn't be found.\n".
-			"Please make sure your version of PHP was built ".
-			"with 'zlib' support.\n");
+			throw new RuntimeException(
+				'TYPO3 Fatal Error: ' . "The extension 'zlib' couldn't be found.\n" .
+				"Please make sure your version of PHP was built " .
+				"with 'zlib' support.\n",
+				1270853984
+			);
 		}
 
 		// Set the attributes

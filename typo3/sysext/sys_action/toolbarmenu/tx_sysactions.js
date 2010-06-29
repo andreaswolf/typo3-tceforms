@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2009 Steffen Kamper <info@sk-typo3.de>
+*  (c) 2008-2010 Steffen Kamper <info@sk-typo3.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -37,13 +37,13 @@ var SysActionMenu = Class.create({
 	initialize: function() {
 		Event.observe(window, 'resize', this.positionMenu);
 
-		Event.observe(window, 'load', function(){
+		Ext.onReady(function() {
 			this.positionMenu();
-			this.toolbarItemIcon = $$('#tx-sys-action-menu .toolbar-item img')[0].src;
+			this.toolbarItemIcon = $$('#tx-sys-action-menu .toolbar-item span')[0].src;
 
 			Event.observe('tx-sys-action-menu', 'click', this.toggleMenu);
 
-		}.bindAsEventListener(this));
+		}, this);
 	},
 
 	/**
@@ -52,7 +52,8 @@ var SysActionMenu = Class.create({
 	positionMenu: function() {
 		var calculatedOffset = 0;
 		var parentWidth      = $('tx-sys-action-menu').getWidth();
-		var ownWidth         = $$('#tx-sys-action-menu ul')[0].getWidth();
+		var currentToolbarItemLayer = $$('#tx-sys-action-menu ul')[0];
+		var ownWidth         = currentToolbarItemLayer.getWidth();
 		var parentSiblings   = $('tx-sys-action-menu').previousSiblings();
 
 		parentSiblings.each(function(toolbarItem) {
@@ -66,6 +67,10 @@ var SysActionMenu = Class.create({
 		});
 		calculatedOffset = calculatedOffset - ownWidth + parentWidth;
 
+			// border correction
+		if (currentToolbarItemLayer.getStyle('display') !== 'none') {
+			calculatedOffset += 2;
+		}
 
 		$$('#tx-sys-action-menu ul')[0].setStyle({
 			left: calculatedOffset + 'px'
@@ -97,4 +102,3 @@ var SysActionMenu = Class.create({
 });
 
 var TYPO3BackendSysactionMenu = new SysActionMenu();
-

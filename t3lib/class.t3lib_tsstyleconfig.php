@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -123,8 +123,7 @@ class t3lib_tsStyleConfig extends t3lib_tsparser_ext	{
 		$this->flatSetup = $temp;
 
 
-		reset($theConstants);
-		while(list($k,$p)=each($theConstants))	{
+		foreach ($theConstants as $k => $p) {
 			if (isset($this->objReg[$k]))	{
 				$theConstants[$k]["value"] = $this->ext_realValues[$k];
 			}
@@ -208,7 +207,7 @@ class t3lib_tsStyleConfig extends t3lib_tsparser_ext	{
 	 */
 	function ext_mergeIncomingWithExisting($arr)	{
 		$parseObj = t3lib_div::makeInstance("t3lib_TSparser");
-		$parseObj->parse(implode(chr(10),$this->ext_incomingValues));
+		$parseObj->parse(implode(LF,$this->ext_incomingValues));
 		$arr2 = $parseObj->setup;
 		return t3lib_div::array_merge_recursive_overrule($arr,$arr2);
 	}

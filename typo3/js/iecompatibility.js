@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2009 Jeff Segars <jeff@webempoweredchurch.org>
+*  (c) 2008-2010 Jeff Segars <jeff@webempoweredchurch.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,7 +31,7 @@ Element.addMethods({
 		var transparentGifPath = 'clear.gif';
 
 			// If there is valid element, it is an image and the image file ends with png:
-		if (Object.isElement(element) && element.tagName == 'IMG' && element.src.endsWith('.png')) {
+		if (Object.isElement(element) && element.tagName === 'IMG' && element.src.endsWith('.png')) {
 			var alphaImgSrc = element.src;
 			var sizingMethod = 'scale';
 			element.src = transparentGifPath;
@@ -62,9 +62,12 @@ var IECompatibility = Class.create({
 		Event.observe(window, 'load', function() {
 			if (Prototype.Browser.IE) {
 				var version = parseFloat(navigator.appVersion.split(';')[1].strip().split(' ')[1]);
-				if (version == 6) {
-					$$('img').each(function(img){
+				if (version === 6) {
+					$$('img').each(function(img) {
 						img.pngHack();
+					});
+					$$('#typo3-menu li ul li').each(function(li) {
+						li.setStyle({height: '21px'});
 					});
 				}
 			}
@@ -72,6 +75,6 @@ var IECompatibility = Class.create({
 	}
 });
 
-if(Prototype.Browser.IE) {
+if (Prototype.Browser.IE) {
 	var TYPO3IECompatibilty = new IECompatibility();
 }

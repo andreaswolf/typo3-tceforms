@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,7 +31,7 @@
  * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
  *
  * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
- * @coauthor	René Fritz <r.fritz@colorcube.de>
+ * @coauthor	RenÃ© Fritz <r.fritz@colorcube.de>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -104,7 +104,7 @@
  * Base class for creating a browsable array/page/folder tree in HTML
  *
  * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
- * @coauthor	René Fritz <r.fritz@colorcube.de>
+ * @coauthor	RenÃ© Fritz <r.fritz@colorcube.de>
  * @package TYPO3
  * @subpackage t3lib
  * @see t3lib_browsetree, t3lib_pagetree, t3lib_foldertree
@@ -547,7 +547,7 @@ class t3lib_treeView {
 	 */
 	function wrapStop($str,$row)	{
 		if ($row['php_tree_stop'])	{
-			$str.='<span class="typo3-red">+ </span>';
+			$str .= '<span class="typo3-red"><a href="' . htmlspecialchars(t3lib_div::linkThisScript(array('setTempDBmount' => $row['uid']))) . '" class="typo3-red">+</a> </span>';
 		}
 		return $str;
 	}
@@ -640,7 +640,7 @@ class t3lib_treeView {
 	 * @return	string		Icon image tag.
 	 */
 	function getRootIcon($rec) {
-		return $this->wrapIcon('<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/i/_icon_website.gif','width="18" height="16"').' alt="" />',$rec);
+		return $this->wrapIcon(t3lib_iconWorks::getSpriteIcon('apps-pagetree-root'),$rec);
 	}
 
 
@@ -656,7 +656,12 @@ class t3lib_treeView {
 		if ($this->iconPath && $this->iconName) {
 			$icon = '<img'.t3lib_iconWorks::skinImg('',$this->iconPath.$this->iconName,'width="18" height="16"').' alt=""'.($this->showDefaultTitleAttribute ? ' title="UID: '.$row['uid'].'"':'').' />';
 		} else {
-			$icon = t3lib_iconWorks::getIconImage($this->table,$row,$this->backPath,'align="top" class="c-recIcon"'.($this->showDefaultTitleAttribute ? ' title="UID: '.$row['uid'].'"':''));
+
+			$icon = t3lib_iconWorks::getSpriteIconForRecord($this->table, $row, array(
+				'title' => ($this->showDefaultTitleAttribute ? 'UID: ' . $row['uid'] : $this->getTitleAttrib($row)),
+				'class' => 'c-recIcon'
+			));
+		
 		}
 
 		return $this->wrapIcon($icon,$row);

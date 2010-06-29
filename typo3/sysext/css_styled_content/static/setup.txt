@@ -316,7 +316,7 @@ tt_content.stdWrap {
 			30 = TEXT
 			30.value = >|</div>
 		}
-
+		
 		1 =< tt_content.stdWrap.innerWrap.cObject.default
 		1.15.value = csc-frame csc-frame-invisible
 
@@ -340,6 +340,54 @@ tt_content.stdWrap {
 
 		21 =< tt_content.stdWrap.innerWrap.cObject.default
 		21.15.value = csc-frame csc-frame-frame2
+		
+		66 = COA
+		66 {
+			10 = TEXT
+			10 {
+				value = <a id="c{field:uid}"></a>
+				insertData = 1
+			}
+			
+			20 = COA
+			20 {
+				10 = TEXT
+				10 {
+					value = {$content.spaceBefore}
+					wrap = |+
+					if.isTrue = {$content.spaceBefore}
+				}
+
+				20 = TEXT
+				20 {
+					field = spaceBefore
+				}
+
+		 		stdWrap {
+					prioriCalc = intval
+					wrap = margin-top:|px;
+					required = 1
+					ifEmpty.value =
+					wrap2 = <div style="|"></div>
+				}
+			}
+			
+			30 = TEXT
+			30 {
+				value = |
+			}
+			
+			40 < .20
+			40 {
+				10 {
+					value = {$content.spaceAfter}
+					if.isTrue = {$content.spaceAfter}
+				}
+				20.field = spaceAfter
+				stdWrap.wrap = margin-bottom:|px;
+			}
+		}
+		
 	}
 	
 	innerWrap2 = | <p class="csc-linkToTop"><a href="#">{LLL:EXT:css_styled_content/pi1/locallang.xml:label.toTop}</a></p>
@@ -512,6 +560,7 @@ tt_content.image.20 {
 
 	borderCol = {$styles.content.imgtext.borderColor}
 	borderThick = {$styles.content.imgtext.borderThick}
+	borderClass = {$styles.content.imgtext.borderClass}
 	colSpace = {$styles.content.imgtext.colSpace}
 	rowSpace = {$styles.content.imgtext.rowSpace}
 	textMargin = {$styles.content.imgtext.textMargin}
@@ -558,9 +607,13 @@ tt_content.image.20 {
 		# intext-right
 		17 = TEXT
 		17.value = <div class="csc-textpic csc-textpic-intext-right###CLASSES###">###IMAGES######TEXT###</div>
+		17.override = <div class="csc-textpic csc-textpic-intext-right###CLASSES###">###IMAGES######TEXT###</div><div class="csc-textpic-clear"><!-- --></div>
+		17.override.if.isTrue = {$styles.content.imgtext.addIntextClearer}
 		# intext-left
 		18 = TEXT
 		18.value = <div class="csc-textpic csc-textpic-intext-left###CLASSES###">###IMAGES######TEXT###</div>
+		18.override = <div class="csc-textpic csc-textpic-intext-left###CLASSES###">###IMAGES######TEXT###</div><div class="csc-textpic-clear"><!-- --></div>
+		18.override.if.isTrue = {$styles.content.imgtext.addIntextClearer}
 		# intext-right-nowrap
 		25 = TEXT
 		25.value = <div class="csc-textpic csc-textpic-intext-right-nowrap###CLASSES###">###IMAGES###<div style="margin-right:{register:rowWidthPlusTextMargin}px;">###TEXT###</div></div><div class="csc-textpic-clear"><!-- --></div>
@@ -651,7 +704,8 @@ tt_content.image.20 {
 			imgTagStdWrap.wrap = |
 			editIconsStdWrap.wrap = |
 			caption.wrap = <div class="csc-textpic-caption"> | </div>
-			#imageStdWrap.dataWrap = |
+			imageStdWrap.dataWrap = <div class="csc-textpic-imagewrap csc-textpic-single-image" style="width:{register:totalwidth}px;"> | </div>
+			imageStdWrapNoWidth.wrap = <div class="csc-textpic-imagewrap csc-textpic-single-image"> | </div>
 		}
 	}
 	renderMethod = dl
@@ -1050,6 +1104,8 @@ tt_content.media {
 			flv = SWF
 			swf = SWF
 			mov = QT
+			m4v = QT
+			m4a = QT
 		}
 		
 		mimeConf.swfobject < tt_content.swfobject.20
@@ -1245,7 +1301,7 @@ tt_content.login.20 {
 		override.listNum = 1
 	}
 
-	stdWrap.wrap = <table border="0" cellspacing="1" cellpadding="1" class="csc-loginform">  | </table>
+	stdWrap.wrap = <div class="csc-loginform"> | </div>
 	stdWrap {
 		editIcons.iconTitle.data = LLL:EXT:css_styled_content/pi1/locallang.xml:eIcon.login
 
@@ -1695,12 +1751,17 @@ plugin.tx_cssstyledcontent._CSS_DEFAULT_STYLE (
 		margin-left: {$styles.content.imgtext.colSpace}px;
 	}
 	DIV.csc-textpic DIV.csc-textpic-imagewrap .csc-textpic-image .csc-textpic-caption { margin: 0; }
-	DIV.csc-textpic DIV.csc-textpic-imagewrap .csc-textpic-image IMG { margin: 0; }
+	DIV.csc-textpic DIV.csc-textpic-imagewrap .csc-textpic-image IMG { margin: 0; vertical-align:bottom; }
 
 	/* Space below each image (also in-between rows) */
 	DIV.csc-textpic DIV.csc-textpic-imagewrap .csc-textpic-image { margin-bottom: {$styles.content.imgtext.rowSpace}px; }
 	DIV.csc-textpic-equalheight DIV.csc-textpic-imagerow { margin-bottom: {$styles.content.imgtext.rowSpace}px; display: block; }
 	DIV.csc-textpic DIV.csc-textpic-imagerow { clear: both; }
+	DIV.csc-textpic DIV.csc-textpic-single-image IMG { margin-bottom: {$styles.content.imgtext.rowSpace}px; }
+
+	/* IE7 hack for margin between image rows */	
+	*+html DIV.csc-textpic DIV.csc-textpic-imagerow .csc-textpic-image { margin-bottom: 0; }
+	*+html DIV.csc-textpic DIV.csc-textpic-imagerow { margin-bottom: {$styles.content.imgtext.rowSpace}px; }
 
 	/* No margins around the whole image-block */
 	DIV.csc-textpic DIV.csc-textpic-imagewrap .csc-textpic-firstcol { margin-left: 0px !important; }
@@ -1750,7 +1811,9 @@ plugin.tx_cssstyledcontent._CSS_DEFAULT_STYLE (
 	/* Left (in text, no wrap around) */
 	DIV.csc-textpic-intext-left-nowrap DIV.csc-textpic-imagewrap { float: left; clear: both; }
 	/* Hide from IE5-mac. Only IE-win sees this. \*/
-	* html DIV.csc-textpic-intext-left-nowrap .csc-textpic-text { height: 1%; }
+	* html DIV.csc-textpic-intext-left-nowrap .csc-textpic-text,
+	* html .csc-textpic-intext-left ol,
+	* html .csc-textpic-intext-left ul { height: 1%; }
 	/* End hide from IE5/mac */
 	
 	DIV.csc-textpic DIV.csc-textpic-imagerow-last { margin-bottom: 0; }
@@ -1758,7 +1821,7 @@ plugin.tx_cssstyledcontent._CSS_DEFAULT_STYLE (
 	/* Browser fixes: */
 
 	/* Fix for unordered and ordered list with image "In text, left" */
-	.csc-textpic-intext-left ol, .csc-textpic-intext-left ul {padding-left: 40px; overflow: auto; height: 1%; }
+	.csc-textpic-intext-left ol, .csc-textpic-intext-left ul {padding-left: 40px; overflow: auto; }
 )
 
 # TYPO3 SVN ID: $Id$

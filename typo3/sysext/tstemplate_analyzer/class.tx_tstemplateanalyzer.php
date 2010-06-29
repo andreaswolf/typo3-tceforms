@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -92,8 +92,8 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 		if ($existTemplate)	{
 			$theOutput.=$this->pObj->doc->divider(5);
 			$theOutput.=$this->pObj->doc->section($GLOBALS['LANG']->getLL('currentTemplate', true) ,
-				'<img '.t3lib_iconWorks::skinImg($BACK_PATH, t3lib_iconWorks::getIcon('sys_template', $tplRow)) . ' align="top" /> <b>' .
-				$this->pObj->linkWrapTemplateTitle($tplRow["title"]) . '</b>' .
+				t3lib_iconWorks::getSpriteIconForRecord('sys_template', $tplRow) . '<strong>' .
+				$this->pObj->linkWrapTemplateTitle($tplRow["title"]) . '</strong>' .
 				htmlspecialchars(trim($tplRow["sitetitle"]) ? ' - (' . $tplRow["sitetitle"] . ')' : ''));
 		}
 		if ($manyTemplatesMenu)	{
@@ -107,10 +107,10 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 
 		$pointer = count($tmpl->hierarchyInfo);
 		$tmpl->hierarchyInfoArr = $tmpl->ext_process_hierarchyInfo(array(), $pointer);
-		$tmpl->procesIncludes();
+		$tmpl->processIncludes();
 
 		$hierarArr = array();
-		$head = '<tr class="c-headLineTable">';
+		$head = '<tr class="t3-row-header">';
 		$head.= '<td>' . $GLOBALS['LANG']->getLL('title', true) . '</td>';
 		$head.= '<td>' . $GLOBALS['LANG']->getLL('rootlevel', true) . '</td>';
 		$head.= '<td>' . $GLOBALS['LANG']->getLL('clearSetup', true) . '</td>';
@@ -124,6 +124,10 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 
 		$theOutput.=$this->pObj->doc->spacer(5);
 		$theOutput.=$this->pObj->doc->section($GLOBALS['LANG']->getLL('templateHierarchy', true), $hierar, 0, 1);
+
+		$completeLink = '<p><a href="index.php?id=' . $GLOBALS['SOBE']->id . '&amp;template=all">' . $GLOBALS['LANG']->getLL('viewCompleteTS', TRUE) . '</a></p>';
+		$theOutput .= $this->pObj->doc->spacer(5);
+		$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('completeTS', TRUE), $completeLink, 0, 1);
 
 
 			// Output options
@@ -157,7 +161,7 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 				';
 				$tmpl->ext_lineNumberOffset = -2;	// Don't know why -2 and not 0... :-) But works.
 				$tmpl->ext_lineNumberOffset_mode = "const";
-				$tmpl->ext_lineNumberOffset += count(explode(chr(10), t3lib_TSparser::checkIncludeLines("" . $GLOBALS["TYPO3_CONF_VARS"]["FE"]["defaultTypoScript_constants"]))) + 1;
+				$tmpl->ext_lineNumberOffset += count(explode(LF, t3lib_TSparser::checkIncludeLines("" . $GLOBALS["TYPO3_CONF_VARS"]["FE"]["defaultTypoScript_constants"]))) + 1;
 
 				reset($tmpl->clearList_const);
 				foreach ($tmpl->constants as $key => $val) {
@@ -165,7 +169,7 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 					if ($cVal == t3lib_div::_GET('template') || t3lib_div::_GET('template') == "all")	{
 						$theOutput .= '
 							<tr>
-								<td><img src="clear.gif" width="3" height="1" /></td><td class="bgColor2"><b>' . $tmpl->templateTitles[$cVal] . '</b></td></tr>
+								<td><img src="clear.gif" width="3" height="1" /></td><td class="bgColor2"><strong>' . $tmpl->templateTitles[$cVal] . '</strong></td></tr>
 							<tr>
 								<td><img src="clear.gif" width="3" height="1" /></td>
 								<td class="bgColor2"><table border=0 cellpadding=0 cellspacing=0 class="bgColor0" width="100%"><tr><td nowrap>' .
@@ -178,7 +182,7 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 							break;
 						}
 					}
-					$tmpl->ext_lineNumberOffset += count(explode(chr(10), $val)) + 1;
+					$tmpl->ext_lineNumberOffset += count(explode(LF, $val)) + 1;
 					next($tmpl->clearList_const);
 				}
 				$theOutput .= '
@@ -196,14 +200,14 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 				';
 				$tmpl->ext_lineNumberOffset = 0;
 				$tmpl->ext_lineNumberOffset_mode = "setup";
-				$tmpl->ext_lineNumberOffset += count(explode(chr(10), t3lib_TSparser::checkIncludeLines("" . $GLOBALS["TYPO3_CONF_VARS"]["FE"]["defaultTypoScript_setup"]))) + 1;
+				$tmpl->ext_lineNumberOffset += count(explode(LF, t3lib_TSparser::checkIncludeLines("" . $GLOBALS["TYPO3_CONF_VARS"]["FE"]["defaultTypoScript_setup"]))) + 1;
 
 				reset($tmpl->clearList_setup);
 				foreach ($tmpl->config as $key => $val)	{
 					if (current($tmpl->clearList_setup) == t3lib_div::_GET('template') || t3lib_div::_GET('template') == "all")	{
 						$theOutput .= '
 							<tr>
-								<td><img src="clear.gif" width="3" height="1" /></td><td class="bgColor2"><b>' . $tmpl->templateTitles[current($tmpl->clearList_setup)] . '</b></td></tr>
+								<td><img src="clear.gif" width="3" height="1" /></td><td class="bgColor2"><strong>' . $tmpl->templateTitles[current($tmpl->clearList_setup)] . '</strong></td></tr>
 							<tr>
 								<td><img src="clear.gif" width="3" height="1" /></td>
 								<td class="bgColor2"><table border=0 cellpadding=0 cellspacing=0 class="bgColor0" width="100%"><tr><td nowrap>'.$tmpl->ext_outputTS(array($val),$this->pObj->MOD_SETTINGS["ts_analyzer_checkLinenum"],$this->pObj->MOD_SETTINGS["ts_analyzer_checkComments"],$this->pObj->MOD_SETTINGS["ts_analyzer_checkCrop"],$this->pObj->MOD_SETTINGS["ts_analyzer_checkSyntax"],$this->pObj->MOD_SETTINGS["ts_analyzer_checkSyntaxBlockmode"]).'</td></tr></table>
@@ -214,7 +218,7 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 							break;
 						}
 					}
-					$tmpl->ext_lineNumberOffset += count(explode(chr(10), $val)) + 1;
+					$tmpl->ext_lineNumberOffset += count(explode(LF, $val)) + 1;
 					next($tmpl->clearList_setup);
 				}
 				$theOutput .= '

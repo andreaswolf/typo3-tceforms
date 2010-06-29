@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2001-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2001-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -344,13 +344,13 @@ class tx_indexedsearch extends tslib_pibase {
 			// This selects the first and secondary menus for the "sections" selector - so we can search in sections and sub sections.
 		if ($this->conf['show.']['L1sections'])	{
 			$firstLevelMenu = $this->getMenu($this->wholeSiteIdList);
-			while(list($kk,$mR) = each($firstLevelMenu))	{
+			foreach ($firstLevelMenu as $kk => $mR) {
 					// @TODO: RFC #7370: doktype 2&5 are deprecated since TYPO3 4.2-beta1
 				if ($mR['doktype']!=5 && !$mR['nav_hide']) {
 					$this->optValues['sections']['rl1_'.$mR['uid']] = trim($this->pi_getLL('opt_RL1').' '.$mR['title']);
 					if ($this->conf['show.']['L2sections'])	{
 						$secondLevelMenu = $this->getMenu($mR['uid']);
-						while(list($kk2,$mR2) = each($secondLevelMenu))	{
+						foreach ($secondLevelMenu as $kk2 => $mR2) {
 								// @TODO: RFC #7370: doktype 2&5 are deprecated since TYPO3 4.2-beta1
 							if ($mR2['doktype']!=5 && !$mR2['nav_hide']) {
 								$this->optValues['sections']['rl2_'.$mR2['uid']] = trim($this->pi_getLL('opt_RL2').' '.$mR2['title']);
@@ -1085,7 +1085,7 @@ class tx_indexedsearch extends tslib_pibase {
 		} elseif ($this->wholeSiteIdList>=0) {	// Collecting all pages IDs in which to search; filtering out ALL pages that are not accessible due to enableFields. Does NOT look for "no_search" field!
 			$siteIdNumbers = t3lib_div::intExplode(',',$this->wholeSiteIdList);
 			$id_list=array();
-			while(list(,$rootId)=each($siteIdNumbers))	{
+			foreach ($siteIdNumbers as $rootId) {
 				$id_list[] = $this->cObj->getTreeList($rootId,9999,0,0,'','').$rootId;
 			}
 			$page_where = 'ISEC.page_id IN ('.implode(',',$id_list).')';
@@ -1222,10 +1222,10 @@ class tx_indexedsearch extends tslib_pibase {
 				// If this is NOT found, there is still a theoretical possibility that another user accessible page would display a link, so maybe the resume of such a document here may be unjustified hidden. But better safe than sorry.
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('phash', 'index_grlist', 'phash='.intval($row['phash_t3']).' AND gr_list='.$GLOBALS['TYPO3_DB']->fullQuoteStr($GLOBALS['TSFE']->gr_list, 'index_grlist'));
 			if ($GLOBALS['TYPO3_DB']->sql_num_rows($res))	{
-				#debug("Look up for external media '".$row['data_filename']."': phash:".$row['phash_t3'].' YES - ('.$GLOBALS['TSFE']->gr_list.")!",1);
+				#debug("Look up for external media '".$row['data_filename']."': phash:".$row['phash_t3'].' YES - ('.$GLOBALS['TSFE']->gr_list.")!");
 				return TRUE;
 			} else {
-				#debug("Look up for external media '".$row['data_filename']."': phash:".$row['phash_t3'].' NO - ('.$GLOBALS['TSFE']->gr_list.")!",1);
+				#debug("Look up for external media '".$row['data_filename']."': phash:".$row['phash_t3'].' NO - ('.$GLOBALS['TSFE']->gr_list.")!");
 				return FALSE;
 			}
 		} else {	// Ordinary TYPO3 pages:
@@ -1233,14 +1233,14 @@ class tx_indexedsearch extends tslib_pibase {
 					// Selecting for the grlist records belonging to the phash-row where the current users gr_list exists. If it is found it is proof that this user has direct access to the phash-rows content although he did not himself initiate the indexing...
 				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('phash', 'index_grlist', 'phash='.intval($row['phash']).' AND gr_list='.$GLOBALS['TYPO3_DB']->fullQuoteStr($GLOBALS['TSFE']->gr_list, 'index_grlist'));
 				if ($GLOBALS['TYPO3_DB']->sql_num_rows($res))	{
-					#debug('Checking on it ...'.$row['item_title'].'/'.$row['phash'].' - YES ('.$GLOBALS['TSFE']->gr_list.")",1);
+					#debug('Checking on it ...'.$row['item_title'].'/'.$row['phash'].' - YES ('.$GLOBALS['TSFE']->gr_list.")");
 					return TRUE;
 				} else {
-					#debug('Checking on it ...'.$row['item_title'].'/'.$row['phash']." - NOPE",1);
+					#debug('Checking on it ...'.$row['item_title'].'/'.$row['phash']." - NOPE");
 					return FALSE;
 				}
 			} else {
-					#debug('Resume can be shown, because the document was in fact indexed by this combination of groups!'.$GLOBALS['TSFE']->gr_list.' - '.$row['item_title'].'/'.$row['phash'],1);
+					#debug('Resume can be shown, because the document was in fact indexed by this combination of groups!'.$GLOBALS['TSFE']->gr_list.' - '.$row['item_title'].'/'.$row['phash']);
 				return TRUE;
 			}
 		}
@@ -1341,7 +1341,7 @@ class tx_indexedsearch extends tslib_pibase {
 			$html = $this->cObj->substituteSubpart($html, '###ADDITONAL_KEYWORD###', '');
 		}
 
-		$markerArray['###ACTION_URL###'] = htmlspecialchars($this->pi_getPageLink($GLOBALS['TSFE']->id, $GLOBALS['TSFE']->sPre));
+		$markerArray['###ACTION_URL###'] = htmlspecialchars($this->getSearchFormActionURL());
 
 		$hiddenFieldCode = $this->cObj->getSubpart($this->templateCode, '###HIDDEN_FIELDS###');
 		$hiddenFieldCode = preg_replace('/^\n\t(.+)/ms', '$1', $hiddenFieldCode);		// Remove first newline and tab (cosmetical issue)
@@ -1501,7 +1501,7 @@ class tx_indexedsearch extends tslib_pibase {
 
 			$substitutedContent = $this->cObj->substituteMarkerArrayCached($html, $markerArray, array(), array());
 
-			return '<div'.$this->pi_classParam('rules').'>'.$this->cObj->stdWrap($substitutedContent, $this->conf['rules_stdWrap.']).'</div>';
+			return $this->cObj->stdWrap($substitutedContent, $this->conf['rules_stdWrap.']);
 		}
 	}
 
@@ -1731,7 +1731,13 @@ class tx_indexedsearch extends tslib_pibase {
 			// If external media, link to the media-file instead.
 		if ($row['item_type'])	{		// External media
 			if ($row['show_resume'])	{	// Can link directly.
-				$title = '<a href="'.htmlspecialchars($row['data_filename']).'">'.htmlspecialchars($this->makeTitle($row)).'</a>';
+				$targetAttribute = '';
+				if ($GLOBALS['TSFE']->config['config']['fileTarget']) {
+					$targetAttribute = ' target="' . htmlspecialchars($GLOBALS['TSFE']->config['config']['fileTarget']) . '"';
+				}
+				$title = '<a href="' . htmlspecialchars($row['data_filename']) . '"' . $targetAttribute . '>' .
+					htmlspecialchars($this->makeTitle($row)) .
+					'</a>';
 			} else {	// Suspicious, so linking to page instead...
 				$copy_row = $row;
 				unset($copy_row['cHashParams']);
@@ -1847,9 +1853,9 @@ class tx_indexedsearch extends tslib_pibase {
 	 * @return	string		Input string wrapped in <a> tag with onclick event attribute set.
 	 */
 	function makePointerSelector_link($str,$p,$freeIndexUid)	{
-		$onclick = 'document.'.$this->prefixId.'[\''.$this->prefixId.'[pointer]\'].value=\''.$p.'\';'.
-					'document.'.$this->prefixId.'[\''.$this->prefixId.'[_freeIndexUid]\'].value=\''.rawurlencode($freeIndexUid).'\';'.
-					'document.'.$this->prefixId.'.submit();return false;';
+		$onclick = 'document.getElementById(\'' . $this->prefixId . '_pointer\').value=\'' . $p . '\';' .
+					'document.getElementById(\'' . $this->prefixId . '_freeIndexUid\').value=\'' . rawurlencode($freeIndexUid) . '\';' .
+					'document.getElementById(\'' . $this->prefixId . '\').submit();return false;';
 		return '<a href="#" onclick="'.htmlspecialchars($onclick).'">'.$str.'</a>';
 	}
 
@@ -1861,19 +1867,26 @@ class tx_indexedsearch extends tslib_pibase {
 	 * @param	array		TypoScript configuration specifically for search result.
 	 * @return	string		<img> tag for icon
 	 */
-	function makeItemTypeIcon($it,$alt='',$specRowConf)	{
+	function makeItemTypeIcon($it, $alt='', $specRowConf) {
+
+			// Build compound key if item type is 0, iconRendering is not used
+			// and specConfs.[pid].pageIcon was set in TS
+		if ($it === '0' && $specRowConf['_pid'] && is_array($specRowConf['pageIcon.']) && !is_array($this->conf['iconRendering.'])) {
+			$it .= ':' . $specRowConf['_pid'];
+		}
 		if (!isset($this->iconFileNameCache[$it]))	{
 			$this->iconFileNameCache[$it] = '';
 
 				// If TypoScript is used to render the icon:
 			if (is_array($this->conf['iconRendering.']))	{
 				$this->cObj->setCurrentVal($it);
-				$this->iconFileNameCache[$it] = $this->cObj->cObjGetSingle($this->conf['iconRendering'],$this->conf['iconRendering.']);
-			} else { // ... otherwise, get flag from sys_language record:
+				$this->iconFileNameCache[$it] = $this->cObj->cObjGetSingle($this->conf['iconRendering'], $this->conf['iconRendering.']);
+				// ... otherwise, get flag from sys_language record:
+			} else {
 
 					// Default creation / finding of icon:
 				$icon = '';
-				if ($it==='0')	{
+				if ($it === '0' || substr($it, 0, 2) == '0:')	{
 					if (is_array($specRowConf['pageIcon.']))	{
 						$this->iconFileNameCache[$it] = $this->cObj->IMAGE($specRowConf['pageIcon.']);
 					} else {
@@ -1888,8 +1901,8 @@ class tx_indexedsearch extends tslib_pibase {
 
 					if ($fullPath)	{
 						$info = @getimagesize($fullPath);
-						$iconPath = substr($fullPath,strlen(PATH_site));
-						$this->iconFileNameCache[$it] = is_array($info) ? '<img src="'.$iconPath.'" '.$info[3].' title="'.htmlspecialchars($alt).'" alt="" />' : '';
+						$iconPath = substr($fullPath, strlen(PATH_site));
+						$this->iconFileNameCache[$it] = (is_array($info)) ? '<img src="' . $iconPath . '" ' . $info[3] . ' title="' . htmlspecialchars($alt) . '" alt="" />' : '';
 					}
 				}
 			}
@@ -2083,19 +2096,22 @@ class tx_indexedsearch extends tslib_pibase {
 	 * @return	array		Modified template array
 	 */
 	function makeInfo($row,$tmplArray)	{
-		$dateFormat = $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'];
-		$timeFormat = $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'];
-
 		$tmplArray['size'] = t3lib_div::formatSize($row['item_size']);
-		$tmplArray['created'] = date($dateFormat, $row['item_crdate']);
-		$tmplArray['modified'] = date($dateFormat.' '.$timeFormat, $row['item_mtime']);
+		$tmplArray['created'] = $this->formatCreatedDate($row['item_crdate']);
+		$tmplArray['modified'] = $this->formatModifiedDate($row['item_mtime']);
 
 		$pathId = $row['data_page_id']?$row['data_page_id']:$row['page_id'];
 		$pathMP = $row['data_page_id']?$row['data_page_mp']:'';
 
 		$pI = parse_url($row['data_filename']);
 		if ($pI['scheme'])	{
-			$tmplArray['path'] = '<a href="'.htmlspecialchars($row['data_filename']).'">'.htmlspecialchars($row['data_filename']).'</a>';
+			$targetAttribute = '';
+			if ($GLOBALS['TSFE']->config['config']['fileTarget']) {
+				$targetAttribute = ' target="' . htmlspecialchars($GLOBALS['TSFE']->config['config']['fileTarget']) . '"';
+			}
+			$tmplArray['path'] = '<a href="' . htmlspecialchars($row['data_filename']) . '"' . $targetAttribute . '>' .
+				htmlspecialchars($row['data_filename']) .
+				'</a>';
 		} else {
 			$pathStr = htmlspecialchars($this->getPathFromPageId($pathId,$pathMP));
 			$tmplArray['path'] = $this->linkPage($pathId,$pathStr,array(
@@ -2124,6 +2140,7 @@ class tx_indexedsearch extends tslib_pibase {
 			foreach ($rl as $dat)	{
 				if (is_array($this->conf['specConfs.'][$dat['uid'].'.']))	{
 					$specConf = $this->conf['specConfs.'][$dat['uid'].'.'];
+					$specConf['_pid'] = $dat['uid'];
 					break;
 				}
 			}
@@ -2282,8 +2299,7 @@ class tx_indexedsearch extends tslib_pibase {
 			$hitRoot = 0;
 			$path = '';
 			if (is_array($rl) && count($rl))	{
-				reset($rl);
-				while(list($k,$v)=each($rl))	{
+				foreach ($rl as $k => $v) {
 						// Check fe_user
 					if ($v['fe_group'] && ($v['uid']==$id || $v['extendToSubpages']))	{
 						$this->fe_groups_required[$id][]=$v['fe_group'];
@@ -2374,6 +2390,83 @@ class tx_indexedsearch extends tslib_pibase {
 				return $hookObj;
 			}
 		}
+	}
+
+	/**
+	 * Obtains the URL of the search target page
+	 *
+	 * @return string
+	 */
+	protected function getSearchFormActionURL() {
+		$targetUrlPid = $this->getSearchFormActionPidFromTS();
+		if ($targetUrlPid == 0) {
+			$targetUrlPid = $GLOBALS['TSFE']->id;
+		}
+		return $this->pi_getPageLink($targetUrlPid, $GLOBALS['TSFE']->sPre);
+	}
+
+	/**
+	 * Obtains search form target pid from the TypoScript configuration
+	 *
+	 * @return int
+	 */
+	protected function getSearchFormActionPidFromTS() {
+		$result = 0;
+		if (isset($this->conf['search.']['targetPid']) || isset($this->conf['search.']['targetPid.'])) {
+			if (is_array($this->conf['search.']['targetPid.'])) {
+				$result = $this->cObj->stdWrap($this->conf['search.']['targetPid'], $this->conf['search.']['targetPid.']);
+			}
+			else {
+				$result = $this->conf['search.']['targetPid'];
+			}
+			$result = intval($result);
+		}
+		return $result;
+	}
+
+	/**
+	 * Formats date as 'created' date
+	 *
+	 * @param int $date
+	 * @param string $defaultFormat
+	 * @return string
+	 */
+	protected function formatCreatedDate($date) {
+		$defaultFormat = $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'];
+		return $this->formatDate($date, 'created', $defaultFormat);
+	}
+
+	/**
+	 * Formats date as 'modified' date
+	 *
+	 * @param int $date
+	 * @param string $defaultFormat
+	 * @return string
+	 */
+	protected function formatModifiedDate($date) {
+		$defaultFormat = $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'] . ' ' .
+			$GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'];
+		return $this->formatDate($date, 'modified', $defaultFormat);
+	}
+
+	/**
+	 * Formats the date using format string from TypoScript or default format
+	 * if TypoScript format is not set
+	 *
+	 * @param int $date
+	 * @param string $tsKey
+	 * @param string $defaultFormat
+	 * @return string
+	 */
+	protected function formatDate($date, $tsKey, $defaultFormat) {
+		$strftimeFormat = $this->conf['dateFormat.'][$tsKey];
+		if ($strftimeFormat) {
+			$result = strftime($strftimeFormat, $date);
+		}
+		else {
+			$result = date($defaultFormat, $date);
+		}
+		return $result;
 	}
 }
 

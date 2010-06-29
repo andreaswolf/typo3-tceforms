@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -101,7 +101,7 @@ class tx_cssstyledcontent_pi1 extends tslib_pibase {
 			if (!strcmp($content,''))	return '';
 
 				// Split into single lines:
-			$lines = t3lib_div::trimExplode(chr(10),$content);
+			$lines = t3lib_div::trimExplode(LF,$content);
 			foreach($lines as &$val)	{
 				$val = '<li>'.$this->cObj->stdWrap($val,$conf['innerStdWrap.']).'</li>';
 			}
@@ -173,7 +173,7 @@ class tx_cssstyledcontent_pi1 extends tslib_pibase {
 			$headerIdPrefix = $headerScope.$this->cObj->data['uid'].'-';
 
 				// Split into single lines (will become table-rows):
-			$rows = t3lib_div::trimExplode(chr(10),$content);
+			$rows = t3lib_div::trimExplode(LF,$content);
 			reset($rows);
 
 				// Find number of columns to render:
@@ -314,7 +314,7 @@ class tx_cssstyledcontent_pi1 extends tslib_pibase {
 			if (count($fileArray))	{
 
 					// Get the descriptions for the files (if any):
-				$descriptions = t3lib_div::trimExplode(chr(10),$this->cObj->data['imagecaption']);
+				$descriptions = t3lib_div::trimExplode(LF,$this->cObj->data['imagecaption']);
 
 					// Adding hardcoded TS to linkProc configuration:
 				$conf['linkProc.']['path.']['current'] = 1;
@@ -378,7 +378,7 @@ class tx_cssstyledcontent_pi1 extends tslib_pibase {
 				}
 
 					// Compile it all into table tags:
-				$out = $this->cObj->wrap(implode('',$outputEntries), $outerWrap);;
+				$out = $this->cObj->wrap(implode('', $outputEntries), $outerWrap);
 			}
 
 				// Calling stdWrap:
@@ -810,7 +810,7 @@ class tx_cssstyledcontent_pi1 extends tslib_pibase {
 		}
 		$borderClass = '';
 		if ($border)	{
-			$borderClass = 'csc-textpic-border';
+			$borderClass = $conf['borderClass'] ? $conf['borderClass'] : 'csc-textpic-border';
 		}
 
 			// Multiple classes with all properties, to be styled in CSS

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Stanislas Rolland <stanislas.rolland(arobas)fructifor.ca>
+*  (c) 2007-2010 Stanislas Rolland <stanislas.rolland(arobas)fructifor.ca>
 *  All rights reserved
 *
 *  This script is part of the Typo3 project. The Typo3 project is
@@ -81,7 +81,7 @@ class tx_rtehtmlarea_defaultinline extends tx_rtehtmlareaapi {
 	public function transformContent($content) {
 
 			// Change the strong and em tags for gecko browsers
-		if ($this->htmlAreaRTE->client['BROWSER'] == 'gecko') {
+		if ($this->htmlAreaRTE->client['browser'] == 'gecko') {
 				// change <strong> to <b>
 			$content = preg_replace('/<(\/?)strong/i', "<$1b", $content);
 				// change <em> to <i>

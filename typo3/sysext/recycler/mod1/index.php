@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Julian Kleinhans <typo3@kj187.de>
+*  (c) 2009-2010 Julian Kleinhans <typo3@kj187.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -158,7 +158,7 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 	 */
 	protected function loadStylesheet($fileName) {
 		$fileName = t3lib_div::resolveBackPath($this->doc->backPath . $fileName);
-		$this->doc->JScode.= "\t" . '<link rel="stylesheet" type="text/css" href="' . $fileName . '" />' . "\n";
+		$this->doc->JScode .= TAB . '<link rel="stylesheet" type="text/css" href="' . t3lib_div::createVersionNumberedFilename($fileName) . '" />' . LF;
 	}
 
 	/**
@@ -169,7 +169,7 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 	 */
 	protected function loadJavaScript($fileName) {
 		$fileName = t3lib_div::resolveBackPath($this->doc->backPath . $fileName);
-		$this->doc->JScode.= "\t" . '<script language="javascript" type="text/javascript" src="' . $fileName . '"></script>' . "\n";
+		$this->doc->JScode .= TAB . '<script language="javascript" type="text/javascript" src="' . t3lib_div::createVersionNumberedFilename($fileName) . '"></script>' . LF;
 	}
 
 	/**

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -129,7 +129,7 @@ class SC_mod_tools_dbint_index {
 
 		$this->doc->tableLayout = array (
 			'0' => array (
-				'defCol' => array('<td class="c-headLineTable"><img src="' . $this->doc->backPath . 'clear.gif" width="10" height="1" alt="" /></td><td valign="top" class="c-headLineTable"><b>', '</b></td>')
+				'defCol' => array('<td class="t3-row-header"><img src="' . $this->doc->backPath . 'clear.gif" width="10" height="1" alt="" /></td><td valign="top" class="t3-row-header"><strong>', '</strong></td>')
 			),
 			'defRow' => array (
 				'0' => array('<td valign="top">','</td>'),
@@ -326,15 +326,23 @@ class SC_mod_tools_dbint_index {
 	 * @return	void
 	 */
 	function func_default()	{
-		global $LANG;
+		$this->content .= $this->doc->header($GLOBALS['LANG']->getLL('title'));
 
-		$this->content.=$this->doc->header($GLOBALS['LANG']->getLL('title'));
-		$this->content.=$this->doc->section('<a href="index.php?SET[function]=records">' . $GLOBALS['LANG']->getLL('records') . '</a>',$GLOBALS['LANG']->getLL('records_description'),1,1,0,1);
-		$this->content.=$this->doc->section('<a href="index.php?SET[function]=tree">' . $GLOBALS['LANG']->getLL('tree') . '</a>',$GLOBALS['LANG']->getLL('tree_description'),1,1,0,1);
-		$this->content.=$this->doc->section('<a href="index.php?SET[function]=relations">' . $GLOBALS['LANG']->getLL('relations') . '</a>',$GLOBALS['LANG']->getLL('relations_description'),1,1,0,1);
-		$this->content.=$this->doc->section('<a href="index.php?SET[function]=search">' . $GLOBALS['LANG']->getLL('search') . '</a>',$GLOBALS['LANG']->getLL('search_description'),1,1,0,1);
-		$this->content.=$this->doc->section('<a href="index.php?SET[function]=filesearch">' . $GLOBALS['LANG']->getLL('filesearch') . '</a>',$GLOBALS['LANG']->getLL('filesearch_description'),1,1,0,1);
-		$this->content.=$this->doc->section('<a href="index.php?SET[function]=refindex">' . $GLOBALS['LANG']->getLL('refindex') . '</a>',$GLOBALS['LANG']->getLL('refindex_description'),1,1,0,1);
+		$content = '<dl class="t3-overview-list">';
+
+		$availableModFuncs = array('records', 'tree', 'relations', 'search', 'filesearch', 'refindex');
+		foreach ($availableModFuncs as $modFunc) {
+			$link = 'index.php?SET[function]=' . $modFunc;
+			$title = $GLOBALS['LANG']->getLL($modFunc);
+			$description = $GLOBALS['LANG']->getLL($modFunc . '_description');
+			$content .= '
+				<dt><a href="' . $link . '">' . $title . '</a></dt>
+				<dd>' . $description . '</dd>
+			';
+		}
+
+		$content .= '</dl>';
+		$this->content .= $content;
 	}
 
 
@@ -366,7 +374,7 @@ class SC_mod_tools_dbint_index {
 			list($headerContent,$bodyContent) = $refIndexObj->updateIndex($testOnly);
 
 				// Output content:
-			$this->content.=$this->doc->section($headerContent,str_replace(chr(10),'<br/>',$bodyContent),0,1);
+			$this->content.=$this->doc->section($headerContent,str_replace(LF,'<br/>',$bodyContent),0,1);
 		}
 
 			// Output content:
@@ -380,7 +388,7 @@ class SC_mod_tools_dbint_index {
 					'<code>php ' . PATH_typo3 . 'cli_dispatch.phpsh lowlevel_refindex -e</code><br /><br />';
 		$content.= '<div class="typo3-message message-information"><div class="message-body">' . $GLOBALS['LANG']->getLL('checkScript_information') . '</div></div>';
 		$content.= '<p>' . $GLOBALS['LANG']->getLL('checkScript_moreDetails') . '<br /><a href="' . $GLOBALS['BACK_PATH'] . 'sysext/lowlevel/HOWTO_clean_up_TYPO3_installations.txt" target="_new">' . PATH_typo3 . 'sysext/lowlevel/HOWTO_clean_up_TYPO3_installations.txt</a></p>';
-		
+
 		$this->content.= $this->doc->section($GLOBALS['LANG']->getLL('updateRefIndex'), $content, false, true);
 	}
 
@@ -489,8 +497,7 @@ class SC_mod_tools_dbint_index {
 		$codeArr['tableheader'] = array($GLOBALS['LANG']->getLL('doktype_value'), $GLOBALS['LANG']->getLL('count'));
 		$doktype= $TCA['pages']['columns']['doktype']['config']['items'];
 		if (is_array($doktype))	{
-			reset($doktype);
-			while(list($n,$setup) = each($doktype))	{
+			foreach ($doktype as $n => $setup) {
 				if ($setup[1]!='--div--')	{
 					$codeArr[$n][] = '<img' . t3lib_iconWorks::skinImg($BACK_PATH,'gfx/i/' . ($PAGES_TYPES[$setup[1]]['icon'] ? $PAGES_TYPES[$setup[1]]['icon'] : $PAGES_TYPES['default']['icon']), 'width="18" height="16"') . ' hspace="4" align="top">';
 					$codeArr[$n][] = $GLOBALS['LANG']->sL($setup[0]) . ' (' . $setup[1] . ')';
@@ -527,8 +534,7 @@ class SC_mod_tools_dbint_index {
 		$countArr = $admin->countRecords($id_list);
 		if (is_array($TCA))	{
 
-			reset($TCA);
-			while(list($t)=each($TCA))	{
+			foreach ($TCA as $t => $value) {
 				if ($TCA[$t]['ctrl']['hideTable']) {
 					continue;
 				}
@@ -545,10 +551,9 @@ class SC_mod_tools_dbint_index {
 
 				$lr='';
 				if (is_array($admin->lRecords[$t]))	{
-					reset($admin->lRecords[$t]);
-					while(list(,$data)=each($admin->lRecords[$t]))	{
+					foreach ($admin->lRecords[$t] as $data) {
 						if (!t3lib_div::inList($admin->lostPagesList,$data[pid]))	{
-							$lr.= '<nobr><b><a href="index.php?SET[function]=records&fixLostRecords_table=' . $t . '&fixLostRecords_uid=' . $data[uid] . '"><img src="' . $BACK_PATH . 'gfx/required_h.gif" width="10" hspace="3" height="10" border="0" align="top" title="' . $GLOBALS['LANG']->getLL('fixLostRecord') . '"></a>uid:' . $data[uid] . ', pid:' . $data[pid] . ', ' . t3lib_div::fixed_lgd_cs(strip_tags($data[title]), 20) . '</b></nobr><br>';
+							$lr.= '<nobr><strong><a href="index.php?SET[function]=records&fixLostRecords_table=' . $t . '&fixLostRecords_uid=' . $data[uid] . '"><img src="' . $BACK_PATH . 'gfx/required_h.gif" width="10" hspace="3" height="10" border="0" align="top" title="' . $GLOBALS['LANG']->getLL('fixLostRecord') . '"></a>uid:' . $data[uid] . ', pid:' . $data[pid] . ', ' . t3lib_div::fixed_lgd_cs(strip_tags($data[title]), 20) . '</strong></nobr><br>';
 						} else {
 							$lr.= '<nobr><img src="' . $BACK_PATH . 'clear.gif" width="16" height="1" border="0"><font color="Gray">uid:' . $data[uid] . ', pid:' . $data[pid] . ', ' . t3lib_div::fixed_lgd_cs(strip_tags($data[title]), 20) . '</font></nobr><br>';
 						}
@@ -583,16 +588,16 @@ class SC_mod_tools_dbint_index {
 
 		$code='';
 		if (is_array($fileTest['noReferences']))	{
-			while(list(,$val)=each($fileTest['noReferences']))	{
-				$code.='<nobr>' . $val[0] . '/<b>' . $val[1] . '</b></nobr><br>';
+			foreach ($fileTest['noReferences'] as $val) {
+				$code.='<nobr>' . $val[0] . '/<strong>' . $val[1] . '</strong></nobr><br>';
 			}
 		}
 		$this->content.=$this->doc->section($GLOBALS['LANG']->getLL('files_no_ref'), $code, true, true);
 
 		$code='';
 		if (is_array($fileTest['moreReferences']))	{
-			while(list(,$val)=each($fileTest['moreReferences']))	{
-				$code.='<nobr>' . $val[0] . '/<b>' . $val[1] . '</b>: ' . $val[2] . ' ' . $GLOBALS['LANG']->getLL('references') . '</nobr><br>' . $val[3] . '<br><br>';
+			foreach ($fileTest['moreReferences'] as $val) {
+				$code.='<nobr>' . $val[0] . '/<strong>' . $val[1] . '</strong>: ' . $val[2] . ' ' . $GLOBALS['LANG']->getLL('references') . '</nobr><br>' . $val[3] . '<br><br>';
 			}
 		}
 		$this->content.=$this->doc->section($GLOBALS['LANG']->getLL('files_many_ref'),$code, true, true);
@@ -600,9 +605,8 @@ class SC_mod_tools_dbint_index {
 		$code='';
 		if (is_array($fileTest['noFile']))	{
 			ksort($fileTest['noFile']);
-			reset($fileTest['noFile']);
-			while(list(,$val)=each($fileTest['noFile']))	{
-				$code.='<nobr>' . $val[0] . '/<b>' . $val[1] . '</b> ' . $GLOBALS['LANG']->getLL('isMissing') . ' </nobr><br>' . $GLOBALS['LANG']->getLL('referencedFrom') . $val[2] . '<br><br>';
+			foreach ($fileTest['noFile'] as $val) {
+				$code.='<nobr>' . $val[0] . '/<strong>' . $val[1] . '</strong> ' . $GLOBALS['LANG']->getLL('isMissing') . ' </nobr><br>' . $GLOBALS['LANG']->getLL('referencedFrom') . $val[2] . '<br><br>';
 			}
 		}
 		$this->content.= $this->doc->section($GLOBALS['LANG']->getLL('files_no_file'), $code, true, true);
@@ -632,13 +636,13 @@ class SC_mod_tools_dbint_index {
 					$info = $this->findFile(PATH_site.$value.'/',$pattern,$matching_files,$depth);
 				}
 				if (is_array($info))	{
-					$lines[]='<hr><b>' . $value . '/</b> ' . $GLOBALS['LANG']->getLL('beingChecked');
+					$lines[]='<hr><strong>' . $value . '/</strong> ' . $GLOBALS['LANG']->getLL('beingChecked');
 					$lines[]=$GLOBALS['LANG']->getLL('directories') . ' ' . $info[0];
 					if ($info[2])	$lines[]='<span class="typo3-red">' . $GLOBALS['LANG']->getLL('directoriesTooDeep') . ' ' . $depth . '</span>';
 					$lines[]=$GLOBALS['LANG']->getLL('files') . ' ' . $info[1];
 					$lines[]=$GLOBALS['LANG']->getLL('matchingFiles') . '<br><nobr><span class="typo3-red">' . implode('<br>', $matching_files) . '</span></nobr>';
 				} else {
-					$lines[]=$GLOBALS['TBE_TEMPLATE']->dfw('<hr><b>' . $value . '/</b> ' . $GLOBALS['LANG']->getLL('notChecked'));
+					$lines[]=$GLOBALS['TBE_TEMPLATE']->dfw('<hr><strong>' . $value . '/</strong> ' . $GLOBALS['LANG']->getLL('notChecked'));
 				}
 			}
 

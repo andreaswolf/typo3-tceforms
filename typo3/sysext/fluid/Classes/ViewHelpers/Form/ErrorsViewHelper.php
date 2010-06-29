@@ -38,7 +38,7 @@
  *   <li>1234567890: Validation errors for argument "newBlog"</li>
  * </ul>
  *
- * @version $Id: ErrorsViewHelper.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: ErrorsViewHelper.php 2074 2010-03-19 12:12:15Z sebastian $
  * @package Fluid
  * @subpackage ViewHelpers\Form
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
@@ -50,16 +50,20 @@ class Tx_Fluid_ViewHelpers_Form_ErrorsViewHelper extends Tx_Fluid_Core_ViewHelpe
 	/**
 	 * Iterates through selected errors of the request.
 	 *
-	 * @param string $for The name of the error name (e.g. argument name or property name)
+	 * @param string $for The name of the error name (e.g. argument name or property name). This can also be a property path (like blog.title), and will then only display the validation errors of that property.
 	 * @param string $as The name of the variable to store the current error
 	 * @return string Rendered string
 	 * @author Christopher Hlubek <hlubek@networkteam.com>
+	 * @author Sebastian Kurfürst <sebastian@typo3.org>
 	 * @api
 	 */
 	public function render($for = '', $as = 'error') {
 		$errors = $this->controllerContext->getRequest()->getErrors();
 		if ($for !== '') {
-			$errors = $this->getErrorsForProperty($for, $errors);
+			$propertyPath = explode('.', $for);
+			foreach ($propertyPath as $currentPropertyName) {
+				$errors = $this->getErrorsForProperty($currentPropertyName, $errors);
+			}
 		}
 		$output = '';
 		foreach ($errors as $errorKey => $error) {

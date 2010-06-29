@@ -32,7 +32,7 @@
 /*
  * Creation of the class of TextStyle plugins
  */
-TextStyle = HTMLArea.Plugin.extend({
+HTMLArea.TextStyle = HTMLArea.Plugin.extend({
 	/*
 	 * Let the base class do some initialization work
 	 */
@@ -91,7 +91,7 @@ TextStyle = HTMLArea.Plugin.extend({
 		
 			// Allowed attributes on inline elements
 		this.allowedAttributes = new Array("id", "title", "lang", "xml:lang", "dir", "class");
-		if (HTMLArea.is_ie) {
+		if (Ext.isIE) {
 			this.addAllowedAttribute("className");
 		}
 		
@@ -162,22 +162,22 @@ TextStyle = HTMLArea.Plugin.extend({
 		var classNames = null;
 		var fullNodeSelected = false;
 		
-		this.editor.focusEditor();
+		this.editor.focus();
 		var selection = this.editor._getSelection();
 		var statusBarSelection = this.editor.statusBar ? this.editor.statusBar.getSelection() : null;
 		var range = this.editor._createRange(selection);
 		var parent = this.editor.getParentElement();
 		var selectionEmpty = this.editor._selectionEmpty(selection);
 		var ancestors = this.editor.getAllAncestors();
-		if (HTMLArea.is_ie) {
+		if (Ext.isIE) {
 			var bookmark = range.getBookmark();
 		}
 		
 		if (!selectionEmpty) {
 				// The selection is not empty
 			for (var i = 0; i < ancestors.length; ++i) {
-				fullNodeSelected = (HTMLArea.is_ie && ((statusBarSelection === ancestors[i] && ancestors[i].innerText === range.text) || (!statusBarSelection && ancestors[i].innerText === range.text)))
-							|| (HTMLArea.is_gecko && ((statusBarSelection === ancestors[i] && ancestors[i].textContent === range.toString()) || (!statusBarSelection && ancestors[i].textContent === range.toString())));
+				fullNodeSelected = (Ext.isIE && ((statusBarSelection === ancestors[i] && ancestors[i].innerText === range.text) || (!statusBarSelection && ancestors[i].innerText === range.text)))
+							|| (!Ext.isIE && ((statusBarSelection === ancestors[i] && ancestors[i].textContent === range.toString()) || (!statusBarSelection && ancestors[i].textContent === range.toString())));
 				if (fullNodeSelected) {
 					if (this.isInlineElement(ancestors[i])) {
 						parent = ancestors[i];
@@ -186,19 +186,19 @@ TextStyle = HTMLArea.Plugin.extend({
 				}
 			}
 				// Working around bug in Safari selectNodeContents
-			if (!fullNodeSelected && HTMLArea.is_safari && statusBarSelection && this.isInlineElement(statusBarSelection) && statusBarSelection.textContent === range.toString()) {
+			if (!fullNodeSelected && Ext.isWebKit && statusBarSelection && this.isInlineElement(statusBarSelection) && statusBarSelection.textContent === range.toString()) {
 				fullNodeSelected = true;
 				parent = statusBarSelection;
 			}
 		}
-		if (!selectionEmpty && !fullNodeSelected) {
-				// The selection is not empty, nor full element
+		if (!selectionEmpty && !fullNodeSelected || (!selectionEmpty && fullNodeSelected && parent && HTMLArea.isBlockElement(parent))) {
+				// The selection is not empty, nor full element, or the selection is full block element
 			if (className !== "none") {
 					// Add span element with class attribute
 				var newElement = editor._doc.createElement("span");
 				HTMLArea._addClass(newElement, className);
 				editor.wrapWithInlineElement(newElement, selection, range);
-				if (HTMLArea.is_gecko) {
+				if (!Ext.isIE) {
 					range.detach();
 				}
 			}
@@ -234,7 +234,7 @@ TextStyle = HTMLArea.Plugin.extend({
 	 * This function gets called on plugin generation, on toolbar update and  on change mode
 	 * Re-initiate the parsing of the style sheets, if not yet completed, and refresh our toolbar components
 	 */
-	generate : function(editor, dropDownId) {
+	generate: function (editor, dropDownId) {
 		if (this.cssLoaded) {
 			this.updateToolbar(dropDownId);
 		} else {
@@ -242,10 +242,23 @@ TextStyle = HTMLArea.Plugin.extend({
 				window.clearTimeout(this.cssTimeout);
 				this.cssTimeout = null;
 			}
-			if (this.classesUrl && (typeof(HTMLArea.classesLabels) === "undefined")) {
-				this.getJavascriptFile(this.classesUrl);
+			if (this.classesUrl && (typeof(HTMLArea.classesLabels) === 'undefined')) {
+				this.getJavascriptFile(this.classesUrl, function (options, success, response) {
+					if (success) {
+						try {
+							if (typeof(HTMLArea.classesLabels) === 'undefined') {
+								eval(response.responseText);
+								this.appendToLog('generate', 'Javascript file successfully evaluated: ' + this.classesUrl);
+							}
+						} catch(e) {
+							this.appendToLog('generate', 'Error evaluating contents of Javascript file: ' + this.classesUrl);
+						}
+					}
+					this.buildCssArray(this.editor, dropDownId);
+				});
+			} else {
+				this.buildCssArray(this.editor, dropDownId);
 			}
-			this.buildCssArray(editor, dropDownId);
 		}
 	},
 	
@@ -267,7 +280,7 @@ TextStyle = HTMLArea.Plugin.extend({
 		var newCssArray = new Object();
 		this.cssLoaded = true;
 		for (var i = 0; i < iframe.styleSheets.length; i++) {
-			if (HTMLArea.is_gecko) {
+			if (!Ext.isIE) {
 				try {
 					newCssArray = this.parseCssRule(iframe.styleSheets[i].cssRules, newCssArray);
 				} catch(e) {
@@ -429,7 +442,7 @@ TextStyle = HTMLArea.Plugin.extend({
 			if (!selectionEmpty) {
 				for (var i = 0; i < ancestors.length; ++i) {
 					fullNodeSelected = (statusBarSelection === ancestors[i])
-						&& ((HTMLArea.is_gecko && ancestors[i].textContent === range.toString()) || (HTMLArea.is_ie && ancestors[i].innerText === range.text));
+						&& ((!Ext.isIE && ancestors[i].textContent === range.toString()) || (Ext.isIE && ancestors[i].innerText === range.text));
 					if (fullNodeSelected) {
 						if (!HTMLArea.isBlockElement(ancestors[i])) {
 							tagName = ancestors[i].nodeName.toLowerCase();
@@ -441,7 +454,7 @@ TextStyle = HTMLArea.Plugin.extend({
 					}
 				}
 					// Working around bug in Safari selectNodeContents
-				if (!fullNodeSelected && HTMLArea.is_safari && statusBarSelection && this.isInlineElement(statusBarSelection) && statusBarSelection.textContent === range.toString()) {
+				if (!fullNodeSelected && Ext.isWebKit && statusBarSelection && this.isInlineElement(statusBarSelection) && statusBarSelection.textContent === range.toString()) {
 					fullNodeSelected = true;
 					tagName = statusBarSelection.nodeName.toLowerCase();
 					if (statusBarSelection.className && /\S/.test(statusBarSelection.className)) {

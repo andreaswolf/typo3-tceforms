@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -139,7 +139,7 @@ class SC_alt_topmenu_dummy {
 					<tr>';
 
 			foreach ($contentArray as $key=>$menucontent)	{
-				$this->content .= implode(chr(10), $menucontent);
+				$this->content .= implode(LF, $menucontent);
 			}
 
 			$this->content.='

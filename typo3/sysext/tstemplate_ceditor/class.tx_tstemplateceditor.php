@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -119,7 +119,7 @@ class tx_tstemplateceditor extends t3lib_extobjbase {
 				if ($tmpl->changed)	{
 						// Set the data to be saved
 					$recData=array();
-					$recData["sys_template"][$saveId]["constants"] = implode($tmpl->raw,chr(10));
+					$recData["sys_template"][$saveId]["constants"] = implode($tmpl->raw,LF);
 						// Create new  tce-object
 					$tce = t3lib_div::makeInstance("t3lib_TCEmain");
 					$tce->stripslashes_values=0;
@@ -146,7 +146,7 @@ class tx_tstemplateceditor extends t3lib_extobjbase {
 				// Resetting the menu (stop)
 
 			$theOutput.=$this->pObj->doc->spacer(5);
-			$theOutput.=$this->pObj->doc->section($GLOBALS['LANG']->getLL('editConstants', true),'<img '.t3lib_iconWorks::skinImg($BACK_PATH, t3lib_iconWorks::getIcon('sys_template', $tplRow)).' align="top" /> <b>'.$this->pObj->linkWrapTemplateTitle($tplRow["title"],"constants").'</b>'.htmlspecialchars(trim($tplRow["sitetitle"])?' - ('.$tplRow["sitetitle"].')':''),0,1);
+			$theOutput.=$this->pObj->doc->section($GLOBALS['LANG']->getLL('editConstants', true),t3lib_iconWorks::getSpriteIconForRecord('sys_template', $tplRow).'<strong>'.$this->pObj->linkWrapTemplateTitle($tplRow["title"],"constants").'</strong>'.htmlspecialchars(trim($tplRow["sitetitle"])?' - ('.$tplRow["sitetitle"].')':''),0,1);
 
 			if ($manyTemplatesMenu)	{
 				$theOutput.=$this->pObj->doc->section("",$manyTemplatesMenu);

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -269,11 +269,11 @@ class t3lib_htmlmail {
 
 
 			// Default line break for Unix systems.
-		$this->linebreak = chr(10);
+		$this->linebreak = LF;
 			// Line break for Windows. This is needed because PHP on Windows systems
 			// send mails via SMTP instead of using sendmail, and thus the linebreak needs to be \r\n.
 		if (TYPO3_OS == 'WIN') {
-			$this->linebreak = chr(13).chr(10);
+			$this->linebreak = CRLF;
 		}
 
 			// Sets the Charset
@@ -502,9 +502,9 @@ class t3lib_htmlmail {
 				$this->add_header('Reply-To: '.$this->replyto_email);
 			}
 		}
-			// Organisation
+			// Organization, using american english spelling (organization / organisation) as defined in RFC 1036 / 2076
 		if ($this->organisation) {
-			$this->add_header('Organisation: '.$this->organisation);
+			$this->add_header('Organization: ' . $this->organisation);
 		}
 			// mailer
 		if ($this->mailer) {
@@ -561,13 +561,13 @@ class t3lib_htmlmail {
 			// Generate (plain/HTML) / attachments
 			$this->add_header('Content-Type: multipart/mixed;');
 			$this->add_header(' boundary="' . $boundary . '"');
-			$this->add_message('This is a multi-part message in MIME format.' . "\n");
+			$this->add_message('This is a multi-part message in MIME format.' . LF);
 			$this->constructMixed($boundary);
 		} elseif ($this->theParts['html']['content']) {
 			// Generate plain/HTML mail
 			$this->add_header('Content-Type: ' . $this->getHTMLContentType() . ';');
 			$this->add_header(' boundary="' . $boundary . '"');
-			$this->add_message('This is a multi-part message in MIME format.' . "\n");
+			$this->add_message('This is a multi-part message in MIME format.' . LF);
 			$this->constructHTML($boundary);
 		} else {
 			// Generate plain only
@@ -612,7 +612,7 @@ class t3lib_htmlmail {
 				$this->add_message($this->makeBase64($media['content']));
 			}
 		}
-		$this->add_message('--' . $boundary . '--' . "\n");
+		$this->add_message('--' . $boundary . '--' . LF);
 	}
 
 
@@ -662,7 +662,7 @@ class t3lib_htmlmail {
 		$this->add_message($this->html_text_header);
 		$this->add_message('');
 		$this->add_message($this->getContent('html'));
-		$this->add_message('--' . $boundary . '--' . "\n");
+		$this->add_message('--' . $boundary . '--' . LF);
 	}
 
 
@@ -686,7 +686,7 @@ class t3lib_htmlmail {
 				}
 			}
 		}
-		$this->add_message('--' . $boundary . '--' . "\n");
+		$this->add_message('--' . $boundary . '--' . LF);
 	}
 
 
@@ -725,55 +725,41 @@ class t3lib_htmlmail {
 
 			// On windows the -f flag is not used (specific for Sendmail and Postfix),
 			// but instead the php.ini parameter sendmail_from is used.
-		$returnPath = (strlen($this->returnPath) > 0) ? '-f ' . escapeshellarg($this->returnPath) : '';
-		if($this->returnPath) {
+		$returnPath = ($this->forceReturnPath && strlen($this->returnPath) > 0) ? '-f ' . escapeshellarg($this->returnPath) : '';
+		if (TYPO3_OS == 'WIN' && $this->returnPath) {
 			@ini_set('sendmail_from', t3lib_div::normalizeMailAddress($this->returnPath));
 		}
 		$recipient = t3lib_div::normalizeMailAddress($this->recipient);
-		$recipient_copy = t3lib_div::normalizeMailAddress($this->recipient_copy);
 
 		// If safe mode is on, the fifth parameter to mail is not allowed, so the fix wont work on unix with safe_mode=On
 		$returnPathPossible = (!ini_get('safe_mode') && $this->forceReturnPath);
 		if ($returnPathPossible) {
-			$mailWasSent = mail($recipient,
+			$mailWasSent = t3lib_utility_Mail::mail($recipient,
 				  $this->subject,
 				  $this->message,
 				  $this->headers,
 				  $returnPath);
 		} else {
-			$mailWasSent = mail($recipient,
+			$mailWasSent = t3lib_utility_Mail::mail($recipient,
 				  $this->subject,
 				  $this->message,
 				  $this->headers);
 		}
 
-			// Sending a copy
-		if ($recipient_copy) {
-			if ($returnPathPossible) {
-				$mailWasSent = mail($recipient_copy,
-					$this->subject,
-					$this->message,
-					$this->headers,
-					$returnPath);
-			} else {
-				$mailWasSent = mail($recipient_copy,
-					$this->subject,
-					$this->message,
-					$this->headers);
-			}
-		}
 			// Auto response
 		if ($this->auto_respond_msg) {
 			$theParts = explode('/',$this->auto_respond_msg,2);
-			$theParts[1] = str_replace("/",chr(10),$theParts[1]);
+			$theParts[0] = str_replace('###SUBJECT###', $this->subject, $theParts[0]);
+			$theParts[1] = str_replace("/",LF,$theParts[1]);
+			$theParts[1] = str_replace("###MESSAGE###", $this->getContent('plain'), $theParts[1]);			
 			if ($returnPathPossible) {
-				$mailWasSent = mail($this->from_email,
+				$mailWasSent = t3lib_utility_Mail::mail($this->from_email,
 					$theParts[0],
 					$theParts[1],
 					'From: ' . $recipient,
 					$returnPath);
 			} else {
-				$mailWasSent = mail($this->from_email,
+				$mailWasSent = t3lib_utility_Mail::mail($this->from_email,
 					$theParts[0],
 					$theParts[1],
 					'From: ' . $recipient);
@@ -837,7 +823,7 @@ class t3lib_htmlmail {
 			}
 		}
 
-		$this->headers .= $header."\n";
+		$this->headers .= $header.LF;
 	}
 
 
@@ -848,7 +834,7 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function add_message($msg) {
-		$this->message .= $msg."\n";
+		$this->message .= $msg.LF;
 	}
 
 
@@ -1163,7 +1149,7 @@ class t3lib_htmlmail {
 		$pieces = count($textpieces);
 		$textstr = $textpieces[0];
 		for($i = 1; $i<$pieces; $i++) {
-			$len = strcspn($textpieces[$i],chr(32).chr(9).chr(13).chr(10));
+			$len = strcspn($textpieces[$i],chr(32).TAB.CRLF);
 			if (trim(substr($textstr,-1)) == '' && $len) {
 				$lastChar = substr($textpieces[$i],$len-1,1);
 				if (!preg_match('/[A-Za-z0-9\/#]/',$lastChar)) {
@@ -1328,7 +1314,7 @@ class t3lib_htmlmail {
 			while (!feof($fd)) {
 				$line = fgetss($fd, 5000);
 				if (trim($line)) {
-					$content .= trim($line) . "\n";
+					$content .= trim($line) . LF;
 				}
 			}
 			fclose($fd);

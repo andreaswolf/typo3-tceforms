@@ -30,7 +30,7 @@
  *
  * @package Extbase
  * @subpackage extbase
- * @version $Id: FloatValidator_testcase.php 1408 2009-10-08 13:15:09Z jocrau $
+ * @version $Id: FloatValidator_testcase.php 2293 2010-05-25 11:11:15Z jocrau $
  */
 class Tx_Extbase_Validation_Validator_FloatValidator_testcase extends Tx_Extbase_BaseTestCase {
 
@@ -65,7 +65,6 @@ class Tx_Extbase_Validation_Validator_FloatValidator_testcase extends Tx_Extbase
 	
 	/**
 	 * @test
-	 * @dataProvider validFloats
 	 */
 	public function floatValidatorReturnsTrueForAValidFloat() {
 		$floatValidator = new Tx_Extbase_Validation_Validator_FloatValidator();
@@ -76,7 +75,6 @@ class Tx_Extbase_Validation_Validator_FloatValidator_testcase extends Tx_Extbase
 
 	/**
 	 * @test
-	 * @dataProvider invalidFloats
 	 */
 	public function floatValidatorReturnsFalseForAnInvalidFloat() {
 		$floatValidator = $this->getMock('Tx_Extbase_Validation_Validator_FloatValidator', array('addError'), array(), '', FALSE);

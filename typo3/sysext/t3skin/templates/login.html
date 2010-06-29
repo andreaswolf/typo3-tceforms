@@ -5,6 +5,7 @@
 			###LOGO###
 		</div>
 		<div id="t3-login-form-inner" class="t3-login-box">
+			<div class="shadow-box-top-428"></div>
 			<div class="t3-headline">
 				<h2>###HEADLINE###</h2>
 			</div>
@@ -16,29 +17,17 @@
 				</noscript>
 				<div id="t3-nocookies-error" class="t3-login-alert t3-login-alert-warning" style="display:none">
 					<h2>###ERROR_COOKIES###</h2>
+					<div id="t3-nocookies-ignore"><a href="#"  onclick="TYPO3BackendLogin.hideCookieWarning()">###ERROR_COOKIES_IGNORE###</a></div>
 				</div>
 				<div id="t3-login-process" style="display: none">
 					<h2>###LOGIN_PROCESS###</h2>
 				</div>
 				###FORM###
 				<div class="t3-login-bottomBorder"></div>
-				<script type="text/javascript">
-				/*<![CDATA[*/
-					document.cookie = "typo3-login-cookiecheck";
-					cookieEnabled = (document.cookie.indexOf("typo3-login-cookiecheck") != -1) ? true : false;
-					if (cookieEnabled) {
-						document.getElementById("t3-login-form-fields").style.display = 'block';
-					}
-					else {
-						document.getElementById("t3-nocookies-error").style.display = 'block';
-					}
-				/*]]>*/
-				</script>
-				<script type="text/javascript" src="contrib/prototype/prototype.js"></script>
 				<script type="text/javascript" src="sysext/t3skin/resources/login.js"></script>
 			</div>
+			<div class="shadow-box-bottom-424"></div>
 		</div>
-		<div class="t3-login-box-border-bottom"></div>
 		###NEWS###
 	</div>
 </div>
@@ -62,7 +51,7 @@
 	<div class="t3-login-box-body">
 		<dl id="t3-login-news">
 			<!-- ###NEWS_ITEM### begin -->
-			<div class="t3-login-news-item">
+			<div class="t3-login-news-item###CLASS###">
 				<dt>
 					<span class="t3-news-date">###DATE###: </span>
 					<span class="t3-news-title">###HEADER###</span>
@@ -130,7 +119,7 @@
 		###VALUE_INTERFACE###
 	</div>
 	<!-- ###INTERFACE_SELECTOR### end -->
-	<input type="submit" name="commandLI" id="t3-login-submit" value="###VALUE_SUBMIT###" class="t3-login-submit" tabindex="4" />  
+	<input type="submit" name="commandLI" id="t3-login-submit" value="###VALUE_SUBMIT###" class="t3-login-submit" tabindex="4" />
 	<div class="t3-login-form-footer">
 		<div id="t3-login-form-footer-default">
 			<a id="t3-login-switchToOpenId" class="switchToOpenId">###LABEL_SWITCHOPENID###</a>

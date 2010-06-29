@@ -47,7 +47,7 @@
  *
  * @package Extbase
  * @subpackage Property
- * @version $Id: Mapper.php 1687 2009-11-17 22:23:52Z jocrau $
+ * @version $Id: Mapper.php 2259 2010-04-29 07:53:46Z jocrau $
  * @api
  */
 class Tx_Extbase_Property_Mapper {
@@ -82,6 +82,7 @@ class Tx_Extbase_Property_Mapper {
 	 * Constructs the Property Mapper.
 	 */
 	public function __construct() {
+		// TODO Clean up this dependencies; inject the instance
 		$objectManager = t3lib_div::makeInstance('Tx_Extbase_Object_Manager');
 		$this->validatorResolver = t3lib_div::makeInstance('Tx_Extbase_Validation_ValidatorResolver');
 		$this->validatorResolver->injectObjectManager($objectManager);
@@ -197,10 +198,12 @@ class Tx_Extbase_Property_Mapper {
 				if ($targetClassSchema !== NULL && $targetClassSchema->hasProperty($propertyName)) {
 					$propertyMetaData = $targetClassSchema->getProperty($propertyName);
 
-					if (in_array($propertyMetaData['type'], array('array', 'ArrayObject', 'Tx_Extbase_Persistence_ObjectStorage')) && strpos($propertyMetaData['elementType'], '_') !== FALSE) {
+					if (in_array($propertyMetaData['type'], array('array', 'ArrayObject', 'Tx_Extbase_Persistence_ObjectStorage')) && (strpos($propertyMetaData['elementType'], '_') !== FALSE || $propertyValue === '')) {
 						$objects = array();
-						foreach ($propertyValue as $value) {
-							$objects[] = $this->transformToObject($value, $propertyMetaData['elementType'], $propertyName);
+						if (is_array($propertyValue)) {
+							foreach ($propertyValue as $value) {
+								$objects[] = $this->transformToObject($value, $propertyMetaData['elementType'], $propertyName);
+							}
 						}
 
 							// make sure we hand out what is expected
@@ -216,6 +219,9 @@ class Tx_Extbase_Property_Mapper {
 						}
 					} elseif ($propertyMetaData['type'] === 'DateTime' || strpos($propertyMetaData['type'], '_') !== FALSE) {
 						$propertyValue = $this->transformToObject($propertyValue, $propertyMetaData['type'], $propertyName);
+						if ($propertyValue === NULL) {
+							continue;
+						}
 					}
 				} elseif ($targetClassSchema !== NULL) {
 					$this->mappingResults->addError(new Tx_Extbase_Error_Error("Property '$propertyName' does not exist in target class schema." , 1251813614), $propertyName);
@@ -239,14 +245,19 @@ class Tx_Extbase_Property_Mapper {
 	 * @param mixed $propertyValue The value to transform, string or array
 	 * @param string $targetType The type to transform to
 	 * @param string $propertyName In case of an error we add this to the error message
-	 * @return object
+	 * @return object The object, when no transformation was possible this may return NULL as well
 	 */
 	protected function transformToObject($propertyValue, $targetType, $propertyName) {
-		if ($targetType === 'DateTime' || in_array('DateTime', class_parents($targetType)) ) {
-			try {
-				return new $targetType($propertyValue);
-			} catch (Exception $e) {
-				throw new InvalidArgumentException('Conversion to a ' . $targetType . ' object is not possible. Cause: ' . $e->getMessage(), 1190034628);
+		if ($targetType === 'DateTime' || is_subclass_of($targetType, 'DateTime')) {
+			// TODO replace this with converter implementation of FLOW3
+			if ($propertyValue === '') {
+				$propertyValue = NULL;
+			} else {
+				try {
+					$propertyValue = new $targetType($propertyValue);
+				} catch (Exception $e) {
+					$propertyValue = NULL;
+				}
 			}
 		} else {
 			if (is_numeric($propertyValue)) {
@@ -265,12 +276,16 @@ class Tx_Extbase_Property_Mapper {
 						$newObject = clone $existingObject;
 						if ($this->map(array_keys($propertyValue), $propertyValue, $newObject)) {
 							$propertyValue = $newObject;
+						} else {
+							$propertyValue = NULL;
 						}
 					}
 				} else {
 					$newObject = new $targetType;
 					if ($this->map(array_keys($propertyValue), $propertyValue, $newObject)) {
 						$propertyValue = $newObject;
+					} else {
+						$propertyValue = NULL;
 					}
 				}
 			} else {
@@ -298,9 +313,11 @@ class Tx_Extbase_Property_Mapper {
 	 * @param int $uid The object's uid
 	 * @return mixed Either the object matching the uid or, if none or more than one object was found, FALSE
 	 */
+	// TODO This is duplicated code; see Argument class
 	protected function findObjectByUid($dataType, $uid) {
 		$query = $this->queryFactory->create($dataType);
-		$result = $query->matching($query->withUid($uid))->execute();
+		$query->getQuerySettings()->setRespectSysLanguage(FALSE);
+		$result = $query->matching($query->equals('uid', intval($uid)))->execute();
 		$object = NULL;
 		if (count($result) > 0) {
 			$object = current($result);

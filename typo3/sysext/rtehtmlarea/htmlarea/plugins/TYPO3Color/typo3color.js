@@ -29,52 +29,48 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-TYPO3Color = HTMLArea.Plugin.extend({
-	
-	constructor : function(editor, pluginName) {
+HTMLArea.TYPO3Color = HTMLArea.Plugin.extend({
+	constructor: function(editor, pluginName) {
 		this.base(editor, pluginName);
 	},
-	
 	/*
 	 * This function gets called by the class constructor
 	 */
-	configurePlugin : function(editor) {
-		
+	configurePlugin: function(editor) {
 		this.buttonsConfiguration = this.editorConfiguration.buttons;
 		this.colorsConfiguration = this.editorConfiguration.colors;
 		this.disableColorPicker = this.editorConfiguration.disableColorPicker;
-
 			// Coloring will use the style attribute
 		if (this.editor.plugins.TextStyle && this.editor.plugins.TextStyle.instance) {
-			this.editor.plugins.TextStyle.instance.addAllowedAttribute("style");
+			this.editor.plugins.TextStyle.instance.addAllowedAttribute('style');
 			this.allowedAttributes = this.editor.plugins.TextStyle.instance.allowedAttributes;
-		}			
+		}
 		if (this.editor.plugins.InlineElements && this.editor.plugins.InlineElements.instance) {
-			this.editor.plugins.InlineElements.instance.addAllowedAttribute("style");
+			this.editor.plugins.InlineElements.instance.addAllowedAttribute('style');
 			if (!this.allowedAllowedAttributes) {
 				this.allowedAttributes = this.editor.plugins.InlineElements.instance.allowedAttributes;
 			}
 		}
 		if (this.editor.plugins.BlockElements && this.editor.plugins.BlockElements.instance) {
-			this.editor.plugins.BlockElements.instance.addAllowedAttribute("style");
+			this.editor.plugins.BlockElements.instance.addAllowedAttribute('style');
 		}
 		if (!this.allowedAttributes) {
-			this.allowedAttributes = new Array("id", "title", "lang", "xml:lang", "dir", "class", "style");
-			if (HTMLArea.is_ie) {
-				this.allowedAttributes.push("className");
+			this.allowedAttributes = new Array('id', 'title', 'lang', 'xml:lang', 'dir', 'class', 'style');
+			if (Ext.isIE) {
+				this.allowedAttributes.push('className');
 			}
 		}
 		/*
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: "4.0",
-			developer	: "Stanislas Rolland",
-			developerUrl	: "http://www.sjbr.ca/",
-			copyrightOwner	: "Stanislas Rolland",
-			sponsor		: "SJBR",
-			sponsorUrl	: "http://www.sjbr.ca/",
-			license		: "GPL"
+			version		: '4.1',
+			developer	: 'Stanislas Rolland',
+			developerUrl	: 'http://www.sjbr.ca/',
+			copyrightOwner	: 'Stanislas Rolland',
+			sponsor		: 'SJBR',
+			sponsorUrl	: 'http://www.sjbr.ca/',
+			license		: 'GPL'
 		};
 		this.registerPluginInformation(pluginInformation);
 		/*
@@ -87,7 +83,8 @@ TYPO3Color = HTMLArea.Plugin.extend({
 			var buttonConfiguration = {
 				id		: buttonId,
 				tooltip		: this.localize(buttonId),
-				action		: "onButtonPress",
+				iconCls		: 'htmlarea-action-' + button[2],
+				action		: 'onButtonPress',
 				hotKey		: (this.buttonsConfiguration[button[1]] ? this.buttonsConfiguration[button[1]].hotKey : null),
 				dialog		: true
 			};
@@ -99,8 +96,8 @@ TYPO3Color = HTMLArea.Plugin.extend({
 	 * The list of buttons added by this plugin
 	 */
 	buttonList: [
-		['ForeColor', 'textcolor'],
-		['HiliteColor', 'bgcolor']
+		['ForeColor', 'textcolor', 'color-foreground'],
+		['HiliteColor', 'bgcolor', 'color-background']
 	],
 	/*
 	 * Conversion object: button name to corresponding style property name
@@ -261,7 +258,11 @@ TYPO3Color = HTMLArea.Plugin.extend({
 	 */
 	showColor: function (color) {
 		if (color) {
-			this.dialog.find('itemId', 'show-color')[0].el.setStyle('backgroundColor', '#' + color);
+			var newColor = color;
+			if (newColor.indexOf('#') == 0) {
+				newColor = newColor.substr(1);
+			}
+			this.dialog.find('itemId', 'show-color')[0].el.setStyle('backgroundColor', HTMLArea.util.Color.colorToHex(parseInt(newColor, 16)));
 		}
 	},
 	/*
@@ -311,7 +312,9 @@ TYPO3Color = HTMLArea.Plugin.extend({
 			border: false,
 			width: dimensions.width,
 			height: 'auto',
-			iconCls: arguments.buttonId,
+				// As of ExtJS 3.1, JS error with IE when the window is resizable
+			resizable: !Ext.isIE,
+			iconCls: this.getButton(arguments.buttonId).iconCls,
 			listeners: {
 				close: {
 					fn: this.onClose,
@@ -327,8 +330,8 @@ TYPO3Color = HTMLArea.Plugin.extend({
 				items: items
 			},
 			buttons: [
-				this.buildButtonConfig('Cancel', this.onCancel),
-				this.buildButtonConfig('OK', handler)
+				this.buildButtonConfig('OK', handler),
+				this.buildButtonConfig('Cancel', this.onCancel)
 			]
 		});
 		this.show();
@@ -339,12 +342,31 @@ TYPO3Color = HTMLArea.Plugin.extend({
 	setColor: function(button, event) {
 		this.restoreSelection();
 		var buttonId = this.dialog.arguments.buttonId;
-		var color = '#' + this.dialog.find('itemId', 'color')[0].getValue();
+		var color = this.dialog.find('itemId', 'color')[0].getValue();
+		if (color) {
+			if (color.indexOf('#') == 0) {
+				color = color.substr(1);
+			}
+			color = HTMLArea.util.Color.colorToHex(parseInt(color, 16));
+		}
+		this.editor.focus();
+		var 	element,
+			fullNodeSelected = false;
 		var selection = this.editor._getSelection();
-		var statusBarSelection = this.editor.statusBar ? this.editor.statusBar.getSelection() : null;
 		var range = this.editor._createRange(selection);
-		if (this.editor._selectionEmpty(selection)) {
-			var element = this.editor.getParentElement(selection, range);
+		var parent = this.editor.getParentElement(selection, range);
+		var selectionEmpty = this.editor._selectionEmpty(selection);
+		var statusBarSelection = this.editor.statusBar ? this.editor.statusBar.getSelection() : null;
+		if (!selectionEmpty) {
+			var ancestors = this.editor.getAllAncestors();
+			var fullySelectedNode = this.editor.getFullySelectedNode(selection, range, ancestors);
+			if (fullySelectedNode) {
+				fullNodeSelected = true;
+				parent = fullySelectedNode;
+			}
+		}
+		if (selectionEmpty || fullNodeSelected) {
+			element = parent;
 				// Set the color in the style attribute
 			element.style[this.styleProperty[buttonId]] = color;
 				// Remove the span tag if it has no more attribute
@@ -359,14 +381,14 @@ TYPO3Color = HTMLArea.Plugin.extend({
 			if ((element.nodeName.toLowerCase() === 'span') && !HTMLArea.hasAllowedAttributes(element, this.allowedAttributes)) {
 				this.editor.removeMarkup(element);
 			}
-		} else if (this.editor.endPointsInSameBlock()) {
+		} else if (color && this.editor.endPointsInSameBlock()) {
 			var element = this.editor._doc.createElement('span');
 				// Set the color in the style attribute
 			element.style[this.styleProperty[buttonId]] = color;
 			this.editor.wrapWithInlineElement(element, selection, range);
-			if (HTMLArea.is_gecko) {
-				range.detach();
-			}
+		}
+		if (!Ext.isIE) {
+			range.detach();
 		}
 		this.close();
 		event.stopEvent();

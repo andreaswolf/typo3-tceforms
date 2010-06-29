@@ -17,7 +17,7 @@
 /**
  * @package
  * @subpackage
- * @version $Id: TemplateParserBuilder.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: TemplateParserBuilder.php 2043 2010-03-16 08:49:45Z sebastian $
  */
 /**
  * Build a template parser.
@@ -32,7 +32,7 @@ class Tx_Fluid_Compatibility_TemplateParserBuilder {
 	 */
 	static public function build() {
 		$templateParser = t3lib_div::makeInstance('Tx_Fluid_Core_Parser_TemplateParser');
-		$templateParser->injectObjectFactory(t3lib_div::makeInstance('Tx_Fluid_Compatibility_ObjectFactory'));
+		$templateParser->injectObjectManager(t3lib_div::makeInstance('Tx_Fluid_Compatibility_ObjectManager'));
 		return $templateParser;
 	}
 }

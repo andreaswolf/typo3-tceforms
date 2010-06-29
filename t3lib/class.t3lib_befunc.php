@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -231,7 +231,7 @@ final class t3lib_BEfunc {
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 				$fields,
 				$table,
-				'uid='.intval($uid).($useDeleteClause ? t3lib_BEfunc::deleteClause($table) : '').$where
+				'uid=' . intval($uid) . ($useDeleteClause ? self::deleteClause($table) : '') . $where
 			);
 			$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
@@ -254,8 +254,8 @@ final class t3lib_BEfunc {
 	public static function getRecordWSOL($table, $uid, $fields = '*', $where = '', $useDeleteClause = true) {
 		if ($fields !== '*') {
 			$internalFields = t3lib_div::uniqueList($fields.',uid,pid'.($table == 'pages' ? ',t3ver_swapmode' : ''));
-			$row = t3lib_BEfunc::getRecord($table, $uid, $internalFields, $where, $useDeleteClause);
-			t3lib_BEfunc::workspaceOL($table, $row);
+			$row = self::getRecord($table, $uid, $internalFields, $where, $useDeleteClause);
+			self::workspaceOL($table, $row);
 
 			if (is_array ($row)) {
 				foreach (array_keys($row) as $key) {
@@ -265,8 +265,8 @@ final class t3lib_BEfunc {
 				}
 			}
 		} else {
-			$row = t3lib_BEfunc::getRecord($table, $uid, $fields, $where);
-			t3lib_BEfunc::workspaceOL($table, $row);
+			$row = self::getRecord($table, $uid, $fields, $where);
+			self::workspaceOL($table, $row);
 		}
 		return $row;
 	}
@@ -316,8 +316,8 @@ final class t3lib_BEfunc {
 						'*',
 						$theTable,
 						$theField.'='.$GLOBALS['TYPO3_DB']->fullQuoteStr($theValue, $theTable).
-							($useDeleteClause ? t3lib_BEfunc::deleteClause($theTable).' ' : '').
-							t3lib_BEfunc::versioningPlaceholderClause($theTable).' '.
+							($useDeleteClause ? self::deleteClause($theTable).' ' : '').
+							self::versioningPlaceholderClause($theTable) . ' ' .
 							$whereClause,	// whereClauseMightContainGroupOrderBy
 						$groupBy,
 						$orderBy,
@@ -392,7 +392,7 @@ final class t3lib_BEfunc {
 		$list = Array();
 		if ((string)trim($in_list)!='') {
 			$tempItemArray = explode(',', trim($in_list));
-			while(list($key, $val) = each($tempItemArray)) {
+			foreach ($tempItemArray as $key => $val) {
 				$val = strrev($val);
 				$parts = explode('_', $val, 2);
 				if ((string)trim($parts[0])!='') {
@@ -457,7 +457,7 @@ final class t3lib_BEfunc {
 		$recordLocalization = false;
 		if (self::isTableLocalizable($table)) {
 			$tcaCtrl = $GLOBALS['TCA'][$table]['ctrl'];
-			$recordLocalization = t3lib_BEfunc::getRecordsByField(
+			$recordLocalization = self::getRecordsByField(
 				$table,
 				$tcaCtrl['transOrigPointerField'],
 				$uid,
@@ -648,17 +648,17 @@ final class t3lib_BEfunc {
 				'pid,uid,title,TSconfig,is_siteroot,storage_pid,t3ver_oid,t3ver_wsid,t3ver_state,t3ver_swapmode,t3ver_stage',
 				'pages',
 				'uid=' . intval($uid) . ' ' .
-					t3lib_BEfunc::deleteClause('pages') . ' ' .
+					self::deleteClause('pages') . ' ' .
 					$clause		// whereClauseMightContainGroupOrderBy
 			);
 
 			$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 			if ($row) {
 				if ($workspaceOL) {
-					t3lib_BEfunc::workspaceOL('pages', $row);
+					self::workspaceOL('pages', $row);
 				}
 				if (is_array($row)) {
-					t3lib_BEfunc::fixVersioningPid('pages', $row);
+					self::fixVersioningPid('pages', $row);
 					$getPageForRootline_cache[$ident] = $row;
 				}
 			}
@@ -685,7 +685,7 @@ final class t3lib_BEfunc {
 		}
 
 			// Get rootline:
-		$rL = t3lib_BEfunc::BEgetRootLine($pid);
+		$rL = self::BEgetRootLine($pid);
 
 			// First, find out what mount index to use (if more than one DB mount exists):
 		$mountIndex = 0;
@@ -866,7 +866,7 @@ final class t3lib_BEfunc {
 		$sysLanguages[] = array('Default language', 0);
 
 			// Traverse languages
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid,title,flag', 'sys_language', 'pid=0'.t3lib_BEfunc::deleteClause('sys_language'));
+		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid,title,flag', 'sys_language', 'pid=0' . self::deleteClause('sys_language'));
 		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$sysLanguages[] = array($row['title'].' ['.$row['uid'].']', $row['uid'], ($row['flag'] ? 'flags/'.$row['flag'] : ''));
 		}
@@ -936,12 +936,12 @@ final class t3lib_BEfunc {
 					return $pageinfo;
 				}
 			} else {
-				$pageinfo = t3lib_BEfunc::getRecord('pages', $id, '*', ($perms_clause ? ' AND '.$perms_clause : ''));
+				$pageinfo = self::getRecord('pages', $id, '*', ($perms_clause ? ' AND ' . $perms_clause : ''));
 				if ($pageinfo['uid'] && $GLOBALS['BE_USER']->isInWebMount($id, $perms_clause)) {
-					t3lib_BEfunc::workspaceOL('pages', $pageinfo);
+					self::workspaceOL('pages', $pageinfo);
 					if (is_array($pageinfo)) {
-						t3lib_BEfunc::fixVersioningPid('pages', $pageinfo);
-						list($pageinfo['_thePath'], $pageinfo['_thePathFull']) = t3lib_BEfunc::getRecordPath(intval($pageinfo['uid']), $perms_clause, 15, 1000);
+						self::fixVersioningPid('pages', $pageinfo);
+						list($pageinfo['_thePath'], $pageinfo['_thePathFull']) = self::getRecordPath(intval($pageinfo['uid']), $perms_clause, 15, 1000);
 						return $pageinfo;
 					}
 				}
@@ -966,7 +966,7 @@ final class t3lib_BEfunc {
 		if ($TCA[$table])	{
 
 				// Get type value:
-			$fieldValue = t3lib_BEfunc::getTCAtypeValue($table, $rec);
+			$fieldValue = self::getTCAtypeValue($table, $rec);
 
 				// Get typesConf
 			$typesConf = $TCA[$table]['types'][$fieldValue];
@@ -979,7 +979,7 @@ final class t3lib_BEfunc {
 			foreach($fieldList as $k => $v) {
 				list($pFieldName, $pAltTitle, $pPalette, $pSpec) = t3lib_div::trimExplode(';', $v);
 				$defaultExtras = is_array($TCA[$table]['columns'][$pFieldName]) ? $TCA[$table]['columns'][$pFieldName]['defaultExtras'] : '';
-				$specConfParts = t3lib_BEfunc::getSpecConfParts($pSpec, $defaultExtras);
+				$specConfParts = self::getSpecConfParts($pSpec, $defaultExtras);
 
 				$fieldList[$k] = array(
 					'field' => $pFieldName,
@@ -1069,8 +1069,7 @@ final class t3lib_BEfunc {
 	public static function getSpecConfParametersFromArray($pArr) {
 		$out = array();
 		if (is_array($pArr)) {
-			reset($pArr);
-			while(list($k, $v) = each($pArr)) {
+			foreach ($pArr as $k => $v) {
 				$parts = explode('=', $v, 2);
 				if (count($parts)==2) {
 					$out[trim($parts[0])] = trim($parts[1]);
@@ -1146,10 +1145,10 @@ final class t3lib_BEfunc {
 
 				// Searching recursively back if 'ds_pointerField_searchParent' is defined (typ. a page rootline, or maybe a tree-table):
 			if ($ds_searchParentField && !$srcPointer) {
-				$rr = t3lib_BEfunc::getRecord($table, $row['uid'], 'uid,'.$ds_searchParentField);	// Get the "pid" field - we cannot know that it is in the input record! ###NOTE_A###
+				$rr = self::getRecord($table, $row['uid'], 'uid,' . $ds_searchParentField);	// Get the "pid" field - we cannot know that it is in the input record! ###NOTE_A###
 				if ($WSOL) {
-					t3lib_BEfunc::workspaceOL($table, $rr);
-					t3lib_BEfunc::fixVersioningPid($table, $rr, TRUE);	// Added "TRUE" 23/03/06 before 4.0. (Also to similar call below!).  Reason: When t3lib_refindex is scanning the system in Live workspace all Pages with FlexForms will not find their inherited datastructure. Thus all references from workspaces are removed! Setting TRUE means that versioning PID doesn't check workspace of the record. I can't see that this should give problems anywhere. See more information inside t3lib_refindex!
+					self::workspaceOL($table, $rr);
+					self::fixVersioningPid($table, $rr, TRUE);	// Added "TRUE" 23/03/06 before 4.0. (Also to similar call below!).  Reason: When t3lib_refindex is scanning the system in Live workspace all Pages with FlexForms will not find their inherited datastructure. Thus all references from workspaces are removed! Setting TRUE means that versioning PID doesn't check workspace of the record. I can't see that this should give problems anywhere. See more information inside t3lib_refindex!
 				}
 				$uidAcc = array();	// Used to avoid looping, if any should happen.
 				$subFieldPointer = $conf['ds_pointerField_searchParent_subField'];
@@ -1158,7 +1157,7 @@ final class t3lib_BEfunc {
 					$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 									'uid,'.$ds_pointerField.','.$ds_searchParentField.($subFieldPointer?','.$subFieldPointer:''),
 									$table,
-									'uid='.intval($newRecordPidValue ? $newRecordPidValue : $rr[$ds_searchParentField]).t3lib_BEfunc::deleteClause($table)	###NOTE_A###
+									'uid=' . intval($newRecordPidValue ? $newRecordPidValue : $rr[$ds_searchParentField]) . self::deleteClause($table)	###NOTE_A###
 								);
 					$newRecordPidValue = 0;
 					$rr = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
@@ -1169,8 +1168,8 @@ final class t3lib_BEfunc {
 					$uidAcc[$rr['uid']] = 1;
 
 					if ($WSOL) {
-						t3lib_BEfunc::workspaceOL($table, $rr);
-						t3lib_BEfunc::fixVersioningPid($table, $rr, TRUE);
+						self::workspaceOL($table, $rr);
+						self::fixVersioningPid($table, $rr, TRUE);
 					}
 					$srcPointer = ($subFieldPointer && $rr[$subFieldPointer]) ? $rr[$subFieldPointer] : $rr[$ds_pointerField];
 				}
@@ -1181,9 +1180,9 @@ final class t3lib_BEfunc {
 				if (t3lib_div::testInt($srcPointer))	{	// If integer, then its a record we will look up:
 					list($tName, $fName) = explode(':', $ds_tableField, 2);
 					if ($tName && $fName && is_array($GLOBALS['TCA'][$tName])) {
-						$dataStructRec = t3lib_BEfunc::getRecord($tName, $srcPointer);
+						$dataStructRec = self::getRecord($tName, $srcPointer);
 						if ($WSOL) {
-							t3lib_BEfunc::workspaceOL($tName, $dataStructRec);
+							self::workspaceOL($tName, $dataStructRec);
 						}
 						$dataStructArray = t3lib_div::xml2array($dataStructRec[$fName]);
 					} else $dataStructArray = 'No tablename ('.$tName.') or fieldname ('.$fName.') was found an valid!';
@@ -1322,7 +1321,7 @@ final class t3lib_BEfunc {
 	public static function getPagesTSconfig($id, $rootLine = '', $returnPartArray = 0) {
 		$id = intval($id);
 		if (!is_array($rootLine)) {
-			$rootLine = t3lib_BEfunc::BEgetRootLine($id, '', TRUE);
+			$rootLine = self::BEgetRootLine($id, '', TRUE);
 		}
 		ksort($rootLine);	// Order correctly
 		$TSdataArray = array();
@@ -1336,7 +1335,7 @@ final class t3lib_BEfunc {
 		}
 
 			// Parsing the page TS-Config (or getting from cache)
-		$pageTS = implode(chr(10) . '[GLOBAL]' . chr(10), $TSdataArray);
+		$pageTS = implode(LF . '[GLOBAL]' . LF, $TSdataArray);
 		if ($GLOBALS['TYPO3_CONF_VARS']['BE']['TSconfigConditions']) {
 			/* @var $parseObj t3lib_TSparser_TSconfig */
 			$parseObj = t3lib_div::makeInstance('t3lib_TSparser_TSconfig');
@@ -1346,7 +1345,7 @@ final class t3lib_BEfunc {
 			}
 		} else {
 			$hash = md5('pageTS:' . $pageTS);
-			$cachedContent = t3lib_BEfunc::getHash($hash);
+			$cachedContent = self::getHash($hash);
 			$TSconfig = array();
 			if (isset($cachedContent)) {
 				$TSconfig = unserialize($cachedContent);
@@ -1354,7 +1353,7 @@ final class t3lib_BEfunc {
 				$parseObj = t3lib_div::makeInstance('t3lib_TSparser');
 				$parseObj->parse($pageTS);
 				$TSconfig = $parseObj->setup;
-				t3lib_BEfunc::storeHash($hash, serialize($TSconfig), 'PAGES_TSconfig');
+				self::storeHash($hash, serialize($TSconfig), 'PAGES_TSconfig');
 			}
 		}
 
@@ -1388,11 +1387,10 @@ final class t3lib_BEfunc {
 		$id = intval($id);
 		if (is_array($pageTS) && $id>0) {
 			if (!is_array($impParams)) {
-				$impParams =t3lib_BEfunc::implodeTSParams(t3lib_BEfunc::getPagesTSconfig($id));
+				$impParams = self::implodeTSParams(self::getPagesTSconfig($id));
 			}
-			reset($pageTS);
 			$set = array();
-			while(list($f, $v) = each($pageTS)) {
+			foreach ($pageTS as $f => $v) {
 				$f = $TSconfPrefix.$f;
 				if ((!isset($impParams[$f])&&trim($v)) || strcmp(trim($impParams[$f]), trim($v))) {
 					$set[$f] = trim($v);
@@ -1400,15 +1398,13 @@ final class t3lib_BEfunc {
 			}
 			if (count($set)) {
 					// Get page record and TS config lines
-				$pRec = t3lib_befunc::getRecord('pages', $id);
-				$TSlines = explode(chr(10), $pRec['TSconfig']);
+				$pRec = self::getRecord('pages', $id);
+				$TSlines = explode(LF, $pRec['TSconfig']);
 				$TSlines = array_reverse($TSlines);
 					// Reset the set of changes.
-				reset($set);
-				while(list($f, $v) = each($set)) {
-					reset($TSlines);
+				foreach ($set as $f => $v) {
 					$inserted = 0;
-					while(list($ki, $kv) = each($TSlines)) {
+					foreach ($TSlines as $ki => $kv) {
 						if (substr($kv, 0, strlen($f)+1)==$f.'=') {
 							$TSlines[$ki] = $f.'='.$v;
 							$inserted = 1;
@@ -1424,7 +1420,7 @@ final class t3lib_BEfunc {
 				$TSlines = array_reverse($TSlines);
 
 					// store those changes
-				$TSconf = implode(chr(10), $TSlines);
+				$TSconf = implode(LF, $TSlines);
 
 				$GLOBALS['TYPO3_DB']->exec_UPDATEquery('pages', 'uid='.intval($id), array('TSconfig' => $TSconf));
 			}
@@ -1442,10 +1438,9 @@ final class t3lib_BEfunc {
 	public static function implodeTSParams($p, $k = '') {
 		$implodeParams = array();
 		if (is_array($p)) {
-			reset($p);
-			while(list($kb, $val) = each($p)) {
+			foreach ($p as $kb => $val) {
 				if (is_array($val)) {
-					$implodeParams = array_merge($implodeParams, t3lib_BEfunc::implodeTSParams($val, $k.$kb));
+					$implodeParams = array_merge($implodeParams, self::implodeTSParams($val, $k . $kb));
 				} else {
 					$implodeParams[$k.$kb] = $val;
 				}
@@ -1479,7 +1474,7 @@ final class t3lib_BEfunc {
 	public static function getUserNames($fields = 'username,usergroup,usergroup_cached_list,uid', $where = '') {
 		$be_user_Array = Array();
 
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields, 'be_users', 'pid=0 '.$where.t3lib_BEfunc::deleteClause('be_users'), '', 'username');
+		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields, 'be_users', 'pid=0 ' . $where . self::deleteClause('be_users'), '', 'username');
 		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$be_user_Array[$row['uid']] = $row;
 		}
@@ -1499,7 +1494,7 @@ final class t3lib_BEfunc {
 	public static function getGroupNames($fields = 'title,uid', $where = '') {
 		$be_group_Array = Array();
 
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields, 'be_groups', 'pid=0 '.$where.t3lib_BEfunc::deleteClause('be_groups'), '', 'title');
+		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields, 'be_groups', 'pid=0 ' . $where . self::deleteClause('be_groups'), '', 'title');
 		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$be_group_Array[$row['uid']] = $row;
 		}
@@ -1521,7 +1516,7 @@ final class t3lib_BEfunc {
 		if (!$GLOBALS['BE_USER']->isAdmin()) {
 			$exQ.=' AND uid IN ('.($GLOBALS['BE_USER']->user['usergroup_cached_list']?$GLOBALS['BE_USER']->user['usergroup_cached_list']:0).')';
 		}
-		return t3lib_BEfunc::getGroupNames($fields, $exQ);
+		return self::getGroupNames($fields, $exQ);
 	}
 
 	/**
@@ -1537,12 +1532,11 @@ final class t3lib_BEfunc {
 	 */
 	public static function blindUserNames($usernames, $groupArray, $excludeBlindedFlag = 0) {
 		if (is_array($usernames) && is_array($groupArray)) {
-			while(list($uid, $row) = each($usernames)) {
+			foreach ($usernames as $uid => $row) {
 				$userN = $uid;
 				$set = 0;
 				if ($row['uid']!=$GLOBALS['BE_USER']->user['uid']) {
-					reset($groupArray);
-					while(list(,$v) = each($groupArray)) {
+					foreach ($groupArray as $v) {
 						if ($v && t3lib_div::inList($row['usergroup_cached_list'], $v)) {
 							$userN = $row['username'];
 							$set = 1;
@@ -1570,7 +1564,7 @@ final class t3lib_BEfunc {
 	 */
 	public static function blindGroupNames($groups, $groupArray, $excludeBlindedFlag = 0) {
 		if (is_array($groups) && is_array($groupArray)) {
-			while(list($uid, $row) = each($groups)) {
+			foreach ($groups as $uid => $row) {
 				$groupN = $uid;
 				$set = 0;
 				if (t3lib_div::inArray($groupArray, $uid)) {
@@ -1692,8 +1686,8 @@ final class t3lib_BEfunc {
 	 */
 	public static function dateTimeAge($tstamp, $prefix = 1, $date = '') {
 		return $tstamp ?
-				($date=='date' ? t3lib_BEfunc::date($tstamp) : t3lib_BEfunc::datetime($tstamp)) .
-				' (' . t3lib_BEfunc::calcAge($prefix * ($GLOBALS['EXEC_TIME'] - $tstamp), $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears')) . ')'
+				($date=='date' ? self::date($tstamp) : self::datetime($tstamp)) .
+				' (' . self::calcAge($prefix * ($GLOBALS['EXEC_TIME'] - $tstamp), $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears')) . ')'
 				: '';
 	}
 
@@ -1773,7 +1767,7 @@ final class t3lib_BEfunc {
 			// Traverse files:
 		$thumbs = explode(',', $row[$field]);
 		$thumbData = '';
-		while(list(,$theFile) = each($thumbs)) {
+		foreach ($thumbs as $theFile) {
 			if (trim($theFile)) {
 				$fI = t3lib_div::split_fileref($theFile);
 				$ext = $fI['fileext'];
@@ -1813,7 +1807,7 @@ final class t3lib_BEfunc {
 					$onClick = 'top.launchView(\''.$theFile.'\',\'\',\''.$backPath.'\');return false;';
 					$thumbData.= '<a href="#" onclick="'.htmlspecialchars($onClick).'"><img src="'.htmlspecialchars($backPath.$url).'" hspace="2" border="0" title="'.trim($theFile).'"'.$tparams.' alt="" /></a> ';
 				} else {
-					$icon = t3lib_BEfunc::getFileIcon($ext);
+					$icon = self::getFileIcon($ext);
 					$url = 'gfx/fileicons/'.$icon;
 					$thumbData.= '<img src="'.$backPath.$url.'" hspace="2" border="0" title="'.trim($theFile).'"'.$tparams.' alt="" /> ';
 				}
@@ -1881,21 +1875,21 @@ final class t3lib_BEfunc {
 			$parts[] = $LANG->sL($TCA['pages']['columns']['url']['label']).' '.$row['url'];
 		} elseif ($row['doktype']=='4') {
 			if ($perms_clause) {
-				$label = t3lib_BEfunc::getRecordPath(intval($row['shortcut']), $perms_clause, 20);
+				$label = self::getRecordPath(intval($row['shortcut']), $perms_clause, 20);
 			} else {
-				$lRec = t3lib_BEfunc::getRecordWSOL('pages', intval($row['shortcut']), 'title');
+				$lRec = self::getRecordWSOL('pages', intval($row['shortcut']), 'title');
 				$label = $lRec['title'];
 			}
 			if ($row['shortcut_mode']>0) {
 				$label.=', '.$LANG->sL($TCA['pages']['columns']['shortcut_mode']['label']).' '.
-							$LANG->sL(t3lib_BEfunc::getLabelFromItemlist('pages', 'shortcut_mode', $row['shortcut_mode']));
+							$LANG->sL(self::getLabelFromItemlist('pages', 'shortcut_mode', $row['shortcut_mode']));
 			}
 			$parts[] = $LANG->sL($TCA['pages']['columns']['shortcut']['label']).' '.$label;
 		} elseif ($row['doktype']=='7') {
 			if ($perms_clause) {
-				$label = t3lib_BEfunc::getRecordPath(intval($row['mount_pid']), $perms_clause, 20);
+				$label = self::getRecordPath(intval($row['mount_pid']), $perms_clause, 20);
 			} else {
-				$lRec = t3lib_BEfunc::getRecordWSOL('pages', intval($row['mount_pid']), 'title');
+				$lRec = self::getRecordWSOL('pages', intval($row['mount_pid']), 'title');
 				$label = $lRec['title'];
 			}
 			$parts[] = $LANG->sL($TCA['pages']['columns']['mount_pid']['label']).' '.$label;
@@ -1905,15 +1899,15 @@ final class t3lib_BEfunc {
 		}
 		if ($row['nav_hide'])	$parts[] = rtrim($LANG->sL($TCA['pages']['columns']['nav_hide']['label']), ':');
 		if ($row['hidden'])	$parts[] = $LANG->sL('LLL:EXT:lang/locallang_core.php:labels.hidden');
-		if ($row['starttime'])	$parts[] = $LANG->sL($TCA['pages']['columns']['starttime']['label']).' '.t3lib_BEfunc::dateTimeAge($row['starttime'], -1, 'date');
-		if ($row['endtime'])	$parts[] = $LANG->sL($TCA['pages']['columns']['endtime']['label']).' '.t3lib_BEfunc::dateTimeAge($row['endtime'], -1, 'date');
+		if ($row['starttime'])	$parts[] = $LANG->sL($TCA['pages']['columns']['starttime']['label']) . ' ' . self::dateTimeAge($row['starttime'], -1, 'date');
+		if ($row['endtime'])	$parts[] = $LANG->sL($TCA['pages']['columns']['endtime']['label']) . ' ' . self::dateTimeAge($row['endtime'], -1, 'date');
 		if ($row['fe_group']) {
 			$fe_groups = array();
 			foreach (t3lib_div::intExplode(',', $row['fe_group']) as $fe_group) {
 				if ($fe_group<0) {
-					$fe_groups[] = $LANG->sL(t3lib_BEfunc::getLabelFromItemlist('pages', 'fe_group', $fe_group));
+					$fe_groups[] = $LANG->sL(self::getLabelFromItemlist('pages', 'fe_group', $fe_group));
 				} else {
-					$lRec = t3lib_BEfunc::getRecordWSOL('fe_groups', $fe_group, 'title');
+					$lRec = self::getRecordWSOL('fe_groups', $fe_group, 'title');
 					$fe_groups[] = $lRec['title'];
 				}
 			}
@@ -1936,7 +1930,7 @@ final class t3lib_BEfunc {
 	 */
 	public static function getRecordIconAltText($row, $table = 'pages') {
 		if ($table=='pages') {
-			$out = t3lib_BEfunc::titleAttribForPages($row, '', 0);
+			$out = self::titleAttribForPages($row, '', 0);
 		} else {
 			$ctrl = $GLOBALS['TCA'][$table]['ctrl']['enablecolumns'];
 
@@ -1972,11 +1966,15 @@ final class t3lib_BEfunc {
 			}
 			if ($ctrl['starttime']) {
 				if ($row[$ctrl['starttime']] > $GLOBALS['EXEC_TIME']) {
-					$out.=' - '.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.starttime').':'.t3lib_BEfunc::date($row[$ctrl['starttime']]).' ('.t3lib_BEfunc::daysUntil($row[$ctrl['starttime']]).' '.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.days').')';
+					$out .= ' - ' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.starttime') . ':' .
+						self::date($row[$ctrl['starttime']]) . ' (' . self::daysUntil($row[$ctrl['starttime']]) . ' ' .
+						$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.days') . ')';
 				}
 			}
 			if ($row[$ctrl['endtime']]) {
-				$out.=' - '.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.endtime').': '.t3lib_BEfunc::date($row[$ctrl['endtime']]).' ('.t3lib_BEfunc::daysUntil($row[$ctrl['endtime']]).' '.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.days').')';
+				$out .= ' - ' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.endtime') . ': ' .
+					self::date($row[$ctrl['endtime']]) . ' (' . self::daysUntil($row[$ctrl['endtime']]) . ' ' .
+					$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.days') . ')';
 			}
 		}
 		return htmlspecialchars($out);
@@ -1999,8 +1997,7 @@ final class t3lib_BEfunc {
 			// Check, if there is an "items" array:
 		if (is_array($TCA[$table]) && is_array($TCA[$table]['columns'][$col]) && is_array($TCA[$table]['columns'][$col]['config']['items'])) {
 				// Traverse the items-array...
-			reset($TCA[$table]['columns'][$col]['config']['items']);
-			while(list($k, $v) = each($TCA[$table]['columns'][$col]['config']['items'])) {
+			foreach ($TCA[$table]['columns'][$col]['config']['items'] as $k => $v) {
 					// ... and return the first found label where the value was equal to $key
 				if (!strcmp($v[1], $key))	return $v[0];
 			}
@@ -2009,7 +2006,7 @@ final class t3lib_BEfunc {
 
 	/**
 	 * Returns the label-value for fieldname $col in table, $table
-	 * If $printAllWrap is set (to a "wrap") then it's wrapped around the $col value IF THE COLUMN $col DID NOT EXIST in TCA!, eg. $printAllWrap = '<b>|</b>' and the fieldname was 'not_found_field' then the return value would be '<b>not_found_field</b>'
+	 * If $printAllWrap is set (to a "wrap") then it's wrapped around the $col value IF THE COLUMN $col DID NOT EXIST in TCA!, eg. $printAllWrap = '<strong>|</strong>' and the fieldname was 'not_found_field' then the return value would be '<strong>not_found_field</strong>'
 	 * Usage: 17
 	 *
 	 * @param	string		Table name, present in $TCA
@@ -2058,7 +2055,7 @@ final class t3lib_BEfunc {
 			} else {
 
 					// No userFunc: Build label
-				$t = t3lib_BEfunc::getProcessedValue($table, $TCA[$table]['ctrl']['label'], $row[$TCA[$table]['ctrl']['label']], 0, 0, false, $row['uid'], $forceResult);
+				$t = self::getProcessedValue($table, $TCA[$table]['ctrl']['label'], $row[$TCA[$table]['ctrl']['label']], 0, 0, false, $row['uid'], $forceResult);
 				if ($TCA[$table]['ctrl']['label_alt'] && ($TCA[$table]['ctrl']['label_alt_force'] || !strcmp($t, ''))) {
 					$altFields = t3lib_div::trimExplode(',', $TCA[$table]['ctrl']['label_alt'], 1);
 					$tA = array();
@@ -2066,7 +2063,7 @@ final class t3lib_BEfunc {
 					foreach ($altFields as $fN) {
 						$t = trim(strip_tags($row[$fN]));
 						if (strcmp($t, '')) {
-							$t = t3lib_BEfunc::getProcessedValue($table, $fN, $t, 0, 0, false, $row['uid']);
+							$t = self::getProcessedValue($table, $fN, $t, 0, 0, false, $row['uid']);
 							if (!$TCA[$table]['ctrl']['label_alt_force']) {
 								break;
 							}
@@ -2082,10 +2079,10 @@ final class t3lib_BEfunc {
 				// If the current result is empty, set it to '[No title]' (localized) and prepare for output if requested
 			if ($prep || $forceResult) {
 				if ($prep) {
-					$t = t3lib_BEfunc::getRecordTitlePrep($t);
+					$t = self::getRecordTitlePrep($t);
 				}
 				if (!strcmp(trim($t), '')) {
-					$t = t3lib_BEfunc::getNoRecordTitle($prep);
+					$t = self::getNoRecordTitle($prep);
 				}
 			}
 
@@ -2171,7 +2168,7 @@ final class t3lib_BEfunc {
 			$l = '';
 			switch((string)$theColConf['type']) {
 				case 'radio':
-					$l = t3lib_BEfunc::getLabelFromItemlist($table,$col,$value);
+					$l = self::getLabelFromItemlist($table, $col, $value);
 					$l = $GLOBALS['LANG']->sL($l);
 				break;
 				case 'select':
@@ -2198,7 +2195,7 @@ final class t3lib_BEfunc {
 								'uid IN ('.implode(',', $selectUids).')'
 							);
 							while($MMrow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($MMres)) {
-								$mmlA[] = ($noRecordLookup?$MMrow['uid']:t3lib_BEfunc::getRecordTitle($theColConf['foreign_table'], $MMrow, FALSE, $forceResult));
+								$mmlA[] = ($noRecordLookup ? $MMrow['uid'] : self::getRecordTitle($theColConf['foreign_table'], $MMrow, FALSE, $forceResult));
 							}
 							$GLOBALS['TYPO3_DB']->sql_free_result($MMres);
 
@@ -2211,24 +2208,23 @@ final class t3lib_BEfunc {
 							$l = 'N/A';
 						}
 					} else {
-						$l = t3lib_BEfunc::getLabelFromItemlist($table, $col, $value);
+						$l = self::getLabelFromItemlist($table, $col, $value);
 						$l = $GLOBALS['LANG']->sL($l);
 						if ($theColConf['foreign_table'] && !$l && $TCA[$theColConf['foreign_table']]) {
 							if ($noRecordLookup) {
 								$l = $value;
 							} else {
 								$rParts = t3lib_div::trimExplode(',', $value, 1);
-								reset($rParts);
 								$lA = array();
-								while(list(,$rVal) = each($rParts)) {
+								foreach ($rParts as $rVal) {
 									$rVal = intval($rVal);
 									if ($rVal>0) {
-										$r = t3lib_BEfunc::getRecordWSOL($theColConf['foreign_table'], $rVal);
+										$r = self::getRecordWSOL($theColConf['foreign_table'], $rVal);
 									} else {
-										$r = t3lib_BEfunc::getRecordWSOL($theColConf['neg_foreign_table'], -$rVal);
+										$r = self::getRecordWSOL($theColConf['neg_foreign_table'], -$rVal);
 									}
 									if (is_array($r)) {
-										$lA[] = $GLOBALS['LANG']->sL($rVal>0?$theColConf['foreign_table_prefix']:$theColConf['neg_foreign_table_prefix']).t3lib_BEfunc::getRecordTitle($rVal>0?$theColConf['foreign_table']:$theColConf['neg_foreign_table'], $r, FALSE, $forceResult);
+										$lA[] = $GLOBALS['LANG']->sL($rVal>0?$theColConf['foreign_table_prefix']:$theColConf['neg_foreign_table_prefix']) . self::getRecordTitle($rVal>0?$theColConf['foreign_table']:$theColConf['neg_foreign_table'], $r, FALSE, $forceResult);
 									} else {
 										$lA[] = $rVal?'['.$rVal.'!]':'';
 									}
@@ -2245,9 +2241,8 @@ final class t3lib_BEfunc {
 					if (!is_array($theColConf['items']) || count($theColConf['items'])==1) {
 						$l = $value ? $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:yes') : $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:no');
 					} else {
-						reset($theColConf['items']);
 						$lA = Array();
-						while(list($key, $val) = each($theColConf['items'])) {
+						foreach ($theColConf['items'] as $key => $val) {
 							if ($value & pow(2, $key))	{$lA[] = $GLOBALS['LANG']->sL($val[0]);}
 						}
 						$l = implode(', ', $lA);
@@ -2256,17 +2251,17 @@ final class t3lib_BEfunc {
 				case 'input':
 					if (isset($value)) {
 						if (t3lib_div::inList($theColConf['eval'], 'date')) {
-							$l = t3lib_BEfunc::date($value) .
+							$l = self::date($value) .
 								' (' .
 								($GLOBALS['EXEC_TIME'] - $value > 0 ? '-' : '') .
-								t3lib_BEfunc::calcAge(abs($GLOBALS['EXEC_TIME'] - $value), $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears')) .
+								self::calcAge(abs($GLOBALS['EXEC_TIME'] - $value), $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears')) .
 								')';
 						} elseif (t3lib_div::inList($theColConf['eval'], 'time')) {
-							$l = t3lib_BEfunc::time($value, FALSE);
+							$l = self::time($value, FALSE);
 						} elseif (t3lib_div::inList($theColConf['eval'], 'timesec')) {
-							$l = t3lib_BEfunc::time($value);
+							$l = self::time($value);
 						} elseif (t3lib_div::inList($theColConf['eval'], 'datetime')) {
-							$l = t3lib_BEfunc::datetime($value);
+							$l = self::datetime($value);
 						} else {
 							$l = $value;
 						}
@@ -2284,6 +2279,15 @@ final class t3lib_BEfunc {
 						$l = t3lib_div::fixed_lgd_cs(strip_tags($value), 200);
 					}
 				break;
+			}
+
+				// If this field is a password field, then hide the password by changing it to a random number of asterisk (*)
+			if (stristr($theColConf['eval'], 'password')) {
+				unset($l);
+				$randomNumber = rand(5, 12);
+				for ($i=0; $i < $randomNumber; $i++) {
+					$l .= '*';
+				}
 			}
 
 				/*****************
@@ -2322,13 +2326,13 @@ final class t3lib_BEfunc {
 	 */
 	public static function getProcessedValueExtra($table, $fN, $fV, $fixed_lgd_chars = 0, $uid = 0, $forceResult = TRUE) {
 		global $TCA;
-		$fVnew = t3lib_BEfunc::getProcessedValue($table, $fN, $fV, $fixed_lgd_chars, 0, 0, $uid, $forceResult);
+		$fVnew = self::getProcessedValue($table, $fN, $fV, $fixed_lgd_chars, 0, 0, $uid, $forceResult);
 		if (!isset($fVnew)) {
 			if (is_array($TCA[$table])) {
 				if ($fN==$TCA[$table]['ctrl']['tstamp'] || $fN==$TCA[$table]['ctrl']['crdate']) {
-					$fVnew = t3lib_BEfunc::datetime($fV);
+					$fVnew = self::datetime($fV);
 				} elseif ($fN=='pid'){
-					$fVnew = t3lib_BEfunc::getRecordPath($fV, '1=1', 20);	// Fetches the path with no regard to the users permissions to select pages.
+					$fVnew = self::getRecordPath($fV, '1=1', 20);	// Fetches the path with no regard to the users permissions to select pages.
 				} else {
 					$fVnew = $fV;
 				}
@@ -2404,9 +2408,8 @@ final class t3lib_BEfunc {
 	public static function makeConfigForm($configArray, $defaults, $dataPrefix) {
 		$params = $defaults;
 		if (is_array($configArray)) {
-			reset($configArray);
 			$lines = array();
-			while(list($fname, $config) = each($configArray)) {
+			foreach ($configArray as $fname => $config) {
 				if (is_array($config)) {
 					$lines[$fname] = '<strong>'.htmlspecialchars($config[1]).'</strong><br />';
 					$lines[$fname].=$config[2].'<br />';
@@ -2422,9 +2425,8 @@ final class t3lib_BEfunc {
 							$formEl = '';
 						break;
 						case 'select':
-							reset($config[3]);
 							$opt = array();
-							while(list($k, $v) = each($config[3])) {
+							foreach ($config[3] as $k => $v) {
 								$opt[] = '<option value="'.htmlspecialchars($k).'"'.($params[$fname]==$k?' selected="selected"':'').'>'.htmlspecialchars($v).'</option>';
 							}
 							$formEl = '<select name="'.$dataPrefix.'['.$fname.']">'.implode('', $opt).'</select>';
@@ -2482,10 +2484,10 @@ final class t3lib_BEfunc {
 		$onClick = 'vHWin=window.open(\''.$BACK_PATH.'view_help.php?tfID='.($table.'.'.$field).'\',\'viewFieldHelp\',\'height=400,width=600,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;';
 		if (is_array($TCA_DESCR[$table]) && is_array($TCA_DESCR[$table]['columns'][$field]) && (isset($BE_USER->uc['edit_showFieldHelp']) || $force)) {
 			if ($BE_USER->uc['edit_showFieldHelp'] == 'icon') {
-				$text = t3lib_BEfunc::helpText($table, $field, $BACK_PATH, '');
-				$text = '<span class="typo3-csh-inline">'.$GLOBALS['LANG']->hscAndCharConv($text, false).'</span>';
+				$text = self::helpText($table, $field, $BACK_PATH, '');
+				$text = '<div class="typo3-csh-inline">' . $GLOBALS['LANG']->hscAndCharConv($text, false) . '</div>';
 			}
-			return '<a class="typo3-csh-link" href="#" onclick="'.htmlspecialchars($onClick).'"><img'.t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/helpbubble.gif', 'width="14" height="14"').' hspace="2" border="0" class="typo3-csh-icon" alt="" />'.$text.'</a>';
+			return '<a class="typo3-csh-link" href="#" onclick="'.htmlspecialchars($onClick).'">' . t3lib_iconWorks::getSpriteIcon('actions-system-help-open', array('class' => 'typo3-csh-icon')) . $text.'</a>';
 		}
 	}
 
@@ -2511,16 +2513,16 @@ final class t3lib_BEfunc {
 			$data = $TCA_DESCR[$table]['columns'][$field];
 				// add see also arrow
 			if ($data['image_descr'] || $data['seeAlso'] || $data['details'] || $data['syntax']) {
-				$arrow = '<img'.t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/rel_db.gif', 'width="13" height="12"').' class="absmiddle" alt="" />';
+				$arrow = t3lib_iconWorks::getSpriteIcon('actions-view-go-forward');
 			}
 				// add description text
 			if ($data['description'] || $arrow) {
-				$output = '<span class="paragraph">'.nl2br(htmlspecialchars($data['description'])).$arrow.'</span>';
+				$output = '<p class="t3-csh-short">' . nl2br(htmlspecialchars($data['description'])) . $arrow . '</p>';
 			}
 
 				// put header before the rest of the text
 			if ($data['alttitle']) {
-				$output = '<span class="header">'.$data['alttitle'].'</span><br />'.$output;
+				$output = '<h2 class="t3-row-header">' . $data['alttitle'] . '</h2>' . $output;
 			}
 		}
 		return $output;
@@ -2550,8 +2552,8 @@ final class t3lib_BEfunc {
 
 			if (is_array($TCA_DESCR[$table])) {
 				// Creating CSH icon and short description:
-				$fullText = t3lib_BEfunc::helpText($table, $field, $BACK_PATH, '');
-				$icon = t3lib_BEfunc::helpTextIcon($table, $field, $BACK_PATH);
+				$fullText = self::helpText($table, $field, $BACK_PATH, '');
+				$icon = self::helpTextIcon($table, $field, $BACK_PATH);
 
 				if ($fullText && !$onlyIconMode && $BE_USER->uc['edit_showFieldHelp'] == 'text')	{
 
@@ -2561,7 +2563,7 @@ final class t3lib_BEfunc {
 					// Compile table with CSH information:
 					$fullText = '<table border="0" cellpadding="0" cellspacing="0" class="typo3-csh-inline"'.$params.'>
 					<tr>
-					<td valign="top" width="14">'.$icon.'</td>
+					<td valign="top" width="14"><div class="t3-row-header">' . $icon . '</div></td>
 					<td valign="top">'.$fullText.'</td>
 					</tr>
 					</table>';
@@ -2647,12 +2649,21 @@ final class t3lib_BEfunc {
 			$addGetVars .= $suffix;
 		}
 
-		$viewDomain = t3lib_BEfunc::getViewDomain($id, $rootLine);
-		$urlPreviewEnabled  = $viewDomain . $viewScriptPreviewEnabled . $id . $addGetVars . $anchor;
-		$urlPreviewDisabled = $viewDomain . $viewScriptPreviewDisabled . $id . $addGetVars . $anchor;		
+			// check if we need to preview a mount point
+		$sys_page = t3lib_div::makeInstance('t3lib_pageSelect');
+		$sys_page->init(FALSE);
+		$mountPointInfo = $sys_page->getMountPointInfo($id);
+		if ($mountPointInfo && $mountPointInfo['overlay']) {
+			$id = $mountPointInfo['mount_pid'];
+			$addGetVars .= '&MP=' . $mountPointInfo['MPvar'];
+		}
 
-		return "previewWin=window.open(top.WorkspaceFrontendPreviewEnabled?'" .
-			$urlPreviewDisabled . "':'" . $urlPreviewEnabled .
+		$viewDomain = self::getViewDomain($id, $rootLine);
+		$urlPreviewEnabled  = $viewDomain . $viewScriptPreviewEnabled . $id . $addGetVars . $anchor;
+		$urlPreviewDisabled = $viewDomain . $viewScriptPreviewDisabled . $id . $addGetVars . $anchor;
+
+		return "var previewWin=window.open(top.TYPO3.configuration.inWorkspace !== 0 && top.TYPO3.configuration.workspaceFrontendPreviewEnabled ?'" .
+			$urlPreviewEnabled . "':'" . $urlPreviewDisabled .
 			"','newTYPO3frontendWindow');" . ( $switchFocus ? 'previewWin.focus();' : '');
 	}
 
@@ -2663,29 +2674,29 @@ final class t3lib_BEfunc {
 	 * @param integer $pageId the page ID to use, must be > 0
 	 * @param array $rootLine the root line structure to use
 	 *
-	 * @return string the full domain including the protocol http:// or https://
+	 * @return string the full domain including the protocol http:// or https://, but without the trailing '/'
 	 *
 	 * @author Michael Klapper <michael.klapper@aoemedia.de>
 	 */
 	public static function getViewDomain($pageId, $rootLine = null) {
-		$domain = t3lib_div::getIndpEnv('TYPO3_SITE_URL');
+		$domain = rtrim(t3lib_div::getIndpEnv('TYPO3_SITE_URL'), '/');
 
 		if (!is_array($rootLine)) {
-			$rootLine = t3lib_BEfunc::BEgetRootLine($pageId);
+			$rootLine = self::BEgetRootLine($pageId);
 		}
-		
+
 			// checks alternate domains
 		if (count($rootLine) > 0) {
 			$urlParts = parse_url($domain);
-			if (t3lib_BEfunc::getDomainStartPage($urlParts['host'], $urlParts['path'])) {
+			if (self::getDomainStartPage($urlParts['host'], $urlParts['path'])) {
 				$protocol = t3lib_div::getIndpEnv('TYPO3_SSL') ? 'https://' : 'http://';
-				$domain = $protocol . t3lib_BEfunc::firstDomainRecord($rootLine);
+				$domain = $protocol . self::firstDomainRecord($rootLine);
 			}
 		}
 
 		return $domain;
-	}	
-	
+	}
+
 	/**
 	 * Returns the merged User/Page TSconfig for page id, $id.
 	 * Please read details about module programming elsewhere!
@@ -2696,7 +2707,7 @@ final class t3lib_BEfunc {
 	 * @return	array
 	 */
 	public static function getModTSconfig($id, $TSref) {
-		$pageTS_modOptions = $GLOBALS['BE_USER']->getTSConfig($TSref, t3lib_BEfunc::getPagesTSconfig($id));
+		$pageTS_modOptions = $GLOBALS['BE_USER']->getTSConfig($TSref, self::getPagesTSconfig($id));
 		$BE_USER_modOptions = $GLOBALS['BE_USER']->getTSConfig($TSref);
 		$modTSconfig = t3lib_div::array_merge_recursive_overrule($pageTS_modOptions, $BE_USER_modOptions);
 		return $modTSconfig;
@@ -2820,8 +2831,7 @@ final class t3lib_BEfunc {
 			// Getting TS-config options for this module for the Backend User:
 		$conf = $GLOBALS['BE_USER']->getTSConfig($TSref, $modTSconfig);
 		if (is_array($conf['properties'])) {
-			reset($conf['properties']);
-			while(list($key, $val) = each($conf['properties'])) {
+			foreach ($conf['properties'] as $key => $val) {
 				if (!$val) {
 					unset($itemArray[$key]);
 				}
@@ -2848,9 +2858,9 @@ final class t3lib_BEfunc {
 
 			// kept for backwards compatibility if $set is empty, use "getUpdateSignalCode()" instead
 		if ($set) {
-			return t3lib_BEfunc::setUpdateSignal($set);
+			return self::setUpdateSignal($set);
 		} else {
-			return t3lib_BEfunc::getUpdateSignalCode();
+			return self::getUpdateSignalCode();
 		}
 	}
 
@@ -2917,9 +2927,9 @@ final class t3lib_BEfunc {
 			}
 		}
 
-		$content = implode(chr(10), $signals);
+		$content = implode(LF, $signals);
 
-		t3lib_BEfunc::setUpdateSignal();	// for backwards compatibility, should be replaced
+		self::setUpdateSignal();	// for backwards compatibility, should be replaced
 		return $content;
 	}
 
@@ -3116,14 +3126,14 @@ final class t3lib_BEfunc {
 					$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.lockedRecordUser'),
 					$userType,
 					$userName,
-					t3lib_BEfunc::calcAge($GLOBALS['EXEC_TIME']-$row['tstamp'], $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears'))
+					self::calcAge($GLOBALS['EXEC_TIME']-$row['tstamp'], $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears'))
 				);
 				if ($row['record_pid'] && !isset($LOCKED_RECORDS[$row['record_table'].':'.$row['record_pid']])) {
 					$LOCKED_RECORDS['pages:'.$row['record_pid']]['msg'] = sprintf(
 						$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.lockedRecordUser_content'),
 						$userType,
 						$userName,
-						t3lib_BEfunc::calcAge($GLOBALS['EXEC_TIME']-$row['tstamp'], $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears'))
+						self::calcAge($GLOBALS['EXEC_TIME']-$row['tstamp'], $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.minutesHoursDaysYears'))
 					);
 				}
 			}
@@ -3154,7 +3164,7 @@ final class t3lib_BEfunc {
 		$fTWHERE = $fieldValue['config'][$prefix.'foreign_table_where'];
 		if (strstr($fTWHERE, '###REC_FIELD_')) {
 			$fTWHERE_parts = explode('###REC_FIELD_', $fTWHERE);
-			while(list($kk, $vv) = each($fTWHERE_parts)) {
+			foreach ($fTWHERE_parts as $kk => $vv) {
 				if ($kk) {
 					$fTWHERE_subpart = explode('###', $vv, 2);
 					$fTWHERE_parts[$kk] = $TSconfig['_THIS_ROW'][$fTWHERE_subpart[0]].$fTWHERE_subpart[1];
@@ -3176,10 +3186,10 @@ final class t3lib_BEfunc {
 		$wgolParts = $GLOBALS['TYPO3_DB']->splitGroupOrderLimit($fTWHERE);
 		if ($rootLevel) {
 			$queryParts = array(
-				'SELECT' => t3lib_BEfunc::getCommonSelectFields($foreign_table, $foreign_table.'.'),
+				'SELECT' => self::getCommonSelectFields($foreign_table, $foreign_table . '.'),
 				'FROM' => $foreign_table,
 				'WHERE' => $foreign_table.'.pid=0 '.
-							t3lib_BEfunc::deleteClause($foreign_table).' '.
+							self::deleteClause($foreign_table) . ' ' .
 							$wgolParts['WHERE'],
 				'GROUPBY' => $wgolParts['GROUPBY'],
 				'ORDERBY' => $wgolParts['ORDERBY'],
@@ -3189,11 +3199,11 @@ final class t3lib_BEfunc {
 			$pageClause = $GLOBALS['BE_USER']->getPagePermsClause(1);
 			if ($foreign_table!='pages') {
 				$queryParts = array(
-					'SELECT' => t3lib_BEfunc::getCommonSelectFields($foreign_table, $foreign_table.'.'),
+					'SELECT' => self::getCommonSelectFields($foreign_table, $foreign_table . '.'),
 					'FROM' => $foreign_table.', pages',
 					'WHERE' => 'pages.uid='.$foreign_table.'.pid
 								AND pages.deleted=0 '.
-								t3lib_BEfunc::deleteClause($foreign_table).
+								self::deleteClause($foreign_table) .
 								' AND '.$pageClause.' '.
 								$wgolParts['WHERE'],
 					'GROUPBY' => $wgolParts['GROUPBY'],
@@ -3202,7 +3212,7 @@ final class t3lib_BEfunc {
 				);
 			} else {
 				$queryParts = array(
-					'SELECT' => t3lib_BEfunc::getCommonSelectFields($foreign_table, $foreign_table.'.'),
+					'SELECT' => self::getCommonSelectFields($foreign_table, $foreign_table . '.'),
 					'FROM' => 'pages',
 					'WHERE' => 'pages.deleted=0
 								AND '.$pageClause.' '.
@@ -3228,19 +3238,19 @@ final class t3lib_BEfunc {
 	 * @see t3lib_transferData::renderRecord(), t3lib_TCEforms::setTSconfig(), SC_wizard_list::main(), SC_wizard_add::main()
 	 */
 	public static function getTCEFORM_TSconfig($table, $row) {
-		t3lib_BEfunc::fixVersioningPid($table, $row);
+		self::fixVersioningPid($table, $row);
 
 		$res = array();
-		$typeVal = t3lib_BEfunc::getTCAtypeValue($table, $row);
+		$typeVal = self::getTCAtypeValue($table, $row);
 
 			// Get main config for the table
-		list($TScID, $cPid) = t3lib_BEfunc::getTSCpid($table, $row['uid'], $row['pid']);
+		list($TScID, $cPid) = self::getTSCpid($table, $row['uid'], $row['pid']);
 
-		$rootLine = t3lib_BEfunc::BEgetRootLine($TScID, '', TRUE);
+		$rootLine = self::BEgetRootLine($TScID, '', TRUE);
 		if ($TScID>=0) {
-			$tempConf = $GLOBALS['BE_USER']->getTSConfig('TCEFORM.'.$table, t3lib_BEfunc::getPagesTSconfig($TScID, $rootLine));
+			$tempConf = $GLOBALS['BE_USER']->getTSConfig('TCEFORM.' . $table, self::getPagesTSconfig($TScID, $rootLine));
 			if (is_array($tempConf['properties'])) {
-				while(list($key, $val) = each($tempConf['properties'])) {
+				foreach ($tempConf['properties'] as $key => $val) {
 					if (is_array($val)) {
 						$fieldN = substr($key, 0, -1);
 						$res[$fieldN] = $val;
@@ -3257,8 +3267,7 @@ final class t3lib_BEfunc {
 		$res['_THIS_CID'] = $row['cid'];
 		$res['_THIS_ROW'] = $row;	// So the row will be passed to foreign_table_where_query()
 
-		reset($rootLine);
-		while(list(,$rC) = each($rootLine)) {
+		foreach ($rootLine as $rC) {
 			if (!$res['_STORAGE_PID'])	$res['_STORAGE_PID'] = intval($rC['storage_pid']);
 			if (!$res['_SITEROOT'])	$res['_SITEROOT'] = $rC['is_siteroot']?intval($rC['uid']):0;
 		}
@@ -3283,17 +3292,17 @@ final class t3lib_BEfunc {
 		if (t3lib_div::testInt($pid))	{	// If pid is an integer this takes precedence in our lookup.
 			$thePidValue = intval($pid);
 			if ($thePidValue<0)	{	// If ref to another record, look that record up.
-				$pidRec = t3lib_BEfunc::getRecord($table, abs($thePidValue), 'pid');
+				$pidRec = self::getRecord($table, abs($thePidValue), 'pid');
 				$thePidValue = is_array($pidRec) ? $pidRec['pid'] : -2;	// Returns -2 if the record did not exist.
 			}
 			// ... else the pos/zero pid is just returned here.
 		} else {	// No integer pid and we are forced to look up the $pid
-			$rr = t3lib_BEfunc::getRecord($table, $uid);	// Try to fetch the record pid from uid. If the uid is 'NEW...' then this will of course return nothing...
+			$rr = self::getRecord($table, $uid);	// Try to fetch the record pid from uid. If the uid is 'NEW...' then this will of course return nothing...
 
 			if (is_array($rr)) {
 					// First check if the pid is -1 which means it is a workspaced element. Get the "real" record:
 				if ($rr['pid']=='-1') {
-					$rr = t3lib_BEfunc::getRecord($table, $rr['t3ver_oid'], 'pid');
+					$rr = self::getRecord($table, $rr['t3ver_oid'], 'pid');
 					if (is_array($rr)) {
 						$thePidValue = $rr['pid'];
 					}
@@ -3337,9 +3346,9 @@ final class t3lib_BEfunc {
 	 */
 	public static function getTSCpid($table, $uid, $pid) {
 			// If pid is negative (referring to another record) the pid of the other record is fetched and returned.
-		$cPid = t3lib_BEfunc::getTSconfig_pidValue($table, $uid, $pid);
+		$cPid = self::getTSconfig_pidValue($table, $uid, $pid);
 			// $TScID is the id of $table = pages, else it's the pid of the record.
-		$TScID = t3lib_BEfunc::getPidForModTSconfig($table, $uid, $cPid);
+		$TScID = self::getPidForModTSconfig($table, $uid, $cPid);
 
 		return array($TScID, $cPid);
 	}
@@ -3353,9 +3362,8 @@ final class t3lib_BEfunc {
 	 */
 	public static function firstDomainRecord($rootLine) {
 		if (t3lib_extMgm::isLoaded('cms')) {
-			reset($rootLine);
-			while(list(,$row) = each($rootLine)) {
-				$dRec = t3lib_BEfunc::getRecordsByField('sys_domain', 'pid', $row['uid'], ' AND redirectTo=\'\' AND hidden=0', '', 'sorting');
+			foreach ($rootLine as $row) {
+				$dRec = self::getRecordsByField('sys_domain', 'pid', $row['uid'], ' AND redirectTo=\'\' AND hidden=0', '', 'sorting');
 				if (is_array($dRec)) {
 					reset($dRec);
 					$dRecord = current($dRec);
@@ -3386,7 +3394,7 @@ final class t3lib_BEfunc {
 				pages.uid=sys_domain.pid
 				AND sys_domain.hidden=0
 				AND (sys_domain.domainName='.$GLOBALS['TYPO3_DB']->fullQuoteStr($domain, 'sys_domain').' OR sys_domain.domainName='.$GLOBALS['TYPO3_DB']->fullQuoteStr($domain.'/', 'sys_domain').')'.
-				t3lib_BEfunc::deleteClause('pages'),
+				self::deleteClause('pages'),
 				'', '', '1');
 			$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
@@ -3528,14 +3536,13 @@ final class t3lib_BEfunc {
 	 * @return	boolean
 	 */
 	public static function isModuleSetInTBE_MODULES($modName) {
-		reset($GLOBALS['TBE_MODULES']);
 		$loaded = array();
 
-		while(list($mkey, $list) = each($GLOBALS['TBE_MODULES'])) {
+		foreach ($GLOBALS['TBE_MODULES'] as $mkey => $list) {
 			$loaded[$mkey] = 1;
 			if (!is_array($list) && trim($list)) {
 				$subList = t3lib_div::trimExplode(',', $list, 1);
-				while(list(,$skey) = each($subList)) {
+				foreach ($subList as $skey) {
 					$loaded[$mkey.'_'.$skey] = 1;
 				}
 			}
@@ -3656,7 +3663,7 @@ final class t3lib_BEfunc {
 					$fields,
 					$table,
 					'uid=' . intval($uid) .
-						($includeDeletedRecords ? '' : t3lib_BEfunc::deleteClause($table))
+						($includeDeletedRecords ? '' : self::deleteClause($table))
 				);
 
 					// Add rows to output array:
@@ -3676,7 +3683,7 @@ final class t3lib_BEfunc {
 				$fields,
 				$table,
 				'pid=-1 AND uid!='.intval($uid).' AND t3ver_oid='.intval($uid).($workspace!=0?' AND t3ver_wsid='.intval($workspace):'').
-					($includeDeletedRecords ? '' : t3lib_BEfunc::deleteClause($table)),
+					($includeDeletedRecords ? '' : self::deleteClause($table)),
 				'',
 				't3ver_id DESC'
 			);
@@ -3722,7 +3729,7 @@ final class t3lib_BEfunc {
 					$oid = $rr['t3ver_oid'];
 					$wsid = $rr['t3ver_wsid'];
 				} else {	// Otherwise we have to expect "uid" to be in the record and look up based on this:
-					$newPidRec = t3lib_BEfunc::getRecord($table, $rr['uid'], 't3ver_oid,t3ver_wsid');
+					$newPidRec = self::getRecord($table, $rr['uid'], 't3ver_oid,t3ver_wsid');
 					if (is_array($newPidRec)) {
 						$oid = $newPidRec['t3ver_oid'];
 						$wsid = $newPidRec['t3ver_wsid'];
@@ -3731,7 +3738,7 @@ final class t3lib_BEfunc {
 
 					// If ID of current online version is found, look up the PID value of that:
 				if ($oid && ($ignoreWorkspaceMatch || !strcmp((int)$wsid, $GLOBALS['BE_USER']->workspace))) {
-					$oidRec = t3lib_BEfunc::getRecord($table, $oid, 'pid');
+					$oidRec = self::getRecord($table, $oid, 'pid');
 					if (is_array($oidRec)) {
 						$rr['_ORIG_pid'] = $rr['pid'];
 						$rr['pid'] = $oidRec['pid'];
@@ -3769,11 +3776,11 @@ final class t3lib_BEfunc {
 				if ($previewMovePlaceholders) {
 					$orig_uid = $row['uid'];
 					$orig_pid = $row['pid'];
-					$movePldSwap = t3lib_BEfunc::movePlhOL($table, $row);
+					$movePldSwap = self::movePlhOL($table, $row);
 		#			if (!is_array($row)) return;
 				}
 
-				$wsAlt = t3lib_BEfunc::getWorkspaceVersionOfRecord($wsid, $table, $row['uid'], implode(',', array_keys($row)));
+				$wsAlt = self::getWorkspaceVersionOfRecord($wsid, $table, $row['uid'], implode(',', array_keys($row)));
 
 					// If version was found, swap the default record with that one.
 				if (is_array($wsAlt)) {
@@ -3783,7 +3790,7 @@ final class t3lib_BEfunc {
 
 							// If t3ver_state is not found, then find it... (but we like best if it is here...)
 						if (!isset($wsAlt['t3ver_state'])) {
-							$stateRec = t3lib_BEfunc::getRecord($table, $wsAlt['uid'], 't3ver_state');
+							$stateRec = self::getRecord($table, $wsAlt['uid'], 't3ver_state');
 							$state = $stateRec['t3ver_state'];
 						} else {
 							$state = $wsAlt['t3ver_state'];
@@ -3846,7 +3853,7 @@ final class t3lib_BEfunc {
 
 				// If t3ver_move_id or t3ver_state is not found, then find it... (but we like best if it is here...)
 			if (!isset($row['t3ver_move_id']) || !isset($row['t3ver_state'])) {
-				$moveIDRec = t3lib_BEfunc::getRecord($table, $row['uid'], 't3ver_move_id, t3ver_state');
+				$moveIDRec = self::getRecord($table, $row['uid'], 't3ver_move_id, t3ver_state');
 				$moveID = $moveIDRec['t3ver_move_id'];
 				$state = $moveIDRec['t3ver_state'];
 			} else {
@@ -3856,7 +3863,7 @@ final class t3lib_BEfunc {
 
 				// Find pointed-to record.
 			if ((int)$state===3 && $moveID) {
-				if ($origRow = t3lib_BEfunc::getRecord($table, $moveID, implode(',', array_keys($row)))) {
+				if ($origRow = self::getRecord($table, $moveID, implode(',', array_keys($row)))) {
 					$row = $origRow;
 					return TRUE;
 				}
@@ -3887,7 +3894,7 @@ final class t3lib_BEfunc {
 					'pid=-1 AND
 					 t3ver_oid=' . intval($uid) . ' AND
 					 t3ver_wsid=' . intval($workspace) .
-						t3lib_BEfunc::deleteClause($table)
+						self::deleteClause($table)
 				);
 
 				if (is_array($rows[0]))	return $rows[0];
@@ -3909,10 +3916,10 @@ final class t3lib_BEfunc {
 
 			// Check that table supports versioning:
 		if ($TCA[$table] && $TCA[$table]['ctrl']['versioningWS']) {
-			$rec = t3lib_BEfunc::getRecord($table, $uid, 'pid,t3ver_oid');
+			$rec = self::getRecord($table, $uid, 'pid,t3ver_oid');
 
 			if ($rec['pid']==-1) {
-				return t3lib_BEfunc::getRecord($table, $rec['t3ver_oid'], $fields);
+				return self::getRecord($table, $rec['t3ver_oid'], $fields);
 			}
 		}
 	}
@@ -3927,7 +3934,7 @@ final class t3lib_BEfunc {
 	 * @return	mixed		Returns either "branchpoint" (if branch) or "first" (if page) or false if nothing. Alternatively, it returns the value of "t3ver_stage" for the branchpoint (if any)
 	 */
 	public static function isPidInVersionizedBranch($pid, $table = '', $returnStage = FALSE) {
-		$rl = t3lib_BEfunc::BEgetRootLine($pid);
+		$rl = self::BEgetRootLine($pid);
 		$c = 0;
 
 		foreach($rl as $rec) {
@@ -3978,8 +3985,8 @@ final class t3lib_BEfunc {
 							' AND B.pid='.intval($pageId).
 							' AND A.t3ver_wsid='.intval($workspace).
 							' AND A.t3ver_oid=B.uid'.	// ... and finally the join between the two tables.
-							t3lib_BEfunc::deleteClause($tableName, 'A').
-							t3lib_BEfunc::deleteClause($tableName, 'B')
+							self::deleteClause($tableName, 'A').
+							self::deleteClause($tableName, 'B')
 					);
 
 					if (!is_array($output[$tableName]) || !count($output[$tableName])) {
@@ -3999,7 +4006,7 @@ final class t3lib_BEfunc {
 	 * @return	integer		Uid of offline version if any, otherwise live uid.
 	 */
 	public static function wsMapId($table, $uid) {
-		if ($wsRec = t3lib_BEfunc::getWorkspaceVersionOfRecord($GLOBALS['BE_USER']->workspace, $table, $uid, 'uid')) {
+		if ($wsRec = self::getWorkspaceVersionOfRecord($GLOBALS['BE_USER']->workspace, $table, $uid, 'uid')) {
 			return $wsRec['uid'];
 		} else {
 			return $uid;
@@ -4028,7 +4035,7 @@ final class t3lib_BEfunc {
 				 t3ver_state=3 AND
 				 t3ver_move_id='.intval($uid).' AND
 				 t3ver_wsid='.intval($workspace).
-					t3lib_BEfunc::deleteClause($table)
+					self::deleteClause($table)
 			);
 
 			if (is_array($rows[0]))	return $rows[0];
@@ -4081,7 +4088,7 @@ final class t3lib_BEfunc {
 									<tr>
 										<td bgcolor="#F4F0E8">
 											<font face="verdana,arial,helvetica" size="2">';
-			echo '<b><center><font size="+1">'.$header.'</font></center></b><br />'.$text;
+			echo '<strong><center><font size="+1">'.$header.'</font></center></strong><br />'.$text;
 			echo '							</font>
 										</td>
 									</tr>
@@ -4119,7 +4126,7 @@ final class t3lib_BEfunc {
 			);
 		}
 		$cNotice = '<a href="http://typo3.com/" target="_blank">' .
-			'<img src="gfx/loginlogo_transp.gif" width="75" vspace="2" hspace="4" height="19" alt="' .
+			'<img' . t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/loginlogo_transp.gif', 'width="75" height="19" vspace="2" hspace="4"') . ' alt="' .
 			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:typo3.logo') . '" align="left" />' .
 			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:typo3.cms') . ' ' .
 			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:version.short') . ' ' .
@@ -4169,7 +4176,8 @@ final class t3lib_BEfunc {
 			}
 
 				// Check if there is still a default user 'admin' with password 'password' (MD5sum = 5f4dcc3b5aa765d61d8327deb882cf99)
-			$where_clause = 'username='.$GLOBALS['TYPO3_DB']->fullQuoteStr('admin', 'be_users').' AND password='.$GLOBALS['TYPO3_DB']->fullQuoteStr('5f4dcc3b5aa765d61d8327deb882cf99', 'be_users').t3lib_BEfunc::deleteClause('be_users');
+			$where_clause = 'username=' . $GLOBALS['TYPO3_DB']->fullQuoteStr('admin', 'be_users') . ' AND password=' .
+				$GLOBALS['TYPO3_DB']->fullQuoteStr('5f4dcc3b5aa765d61d8327deb882cf99', 'be_users') . self::deleteClause('be_users');
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid, username, password', 'be_users', $where_clause);
 			if ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 				$url = "alt_doc.php?returnUrl=index.php&edit[be_users][".$row['uid']."]=edit";
@@ -4222,12 +4230,15 @@ final class t3lib_BEfunc {
 
 				// Check if sys_refindex is empty
 			$count = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('*', 'sys_refindex');
-			if (!$count) {
+			$registry = t3lib_div::makeInstance('t3lib_Registry');
+			$lastRefIndexUpdate = $registry->get('core', 'sys_refindex_lastUpdate');
+			if (!$count && $lastRefIndexUpdate) {
 				$url = 'sysext/lowlevel/dbint/index.php?&id=0&SET[function]=refindex';
 				$warnings["backend_reference"] = sprintf(
-					$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:warning.backend_reference'),
+					$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:warning.backend_reference_index'),
 					'<a href="'.$url.'">',
-					'</a>');
+					'</a>',
+					self::dateTime($lastRefIndexUpdate));
 			}
 
 			// Check for memcached if configured
@@ -4357,8 +4368,8 @@ final class t3lib_BEfunc {
 	 */
 	public static function processParams($params) {
 		$paramArr = array();
-		$lines = explode(chr(10), $params);
-		while(list(,$val) = each($lines)) {
+		$lines = explode(LF, $params);
+		foreach ($lines as $val) {
 			$val = trim($val);
 			if ($val) {
 				$pair = explode('=', $val, 2);
@@ -4384,7 +4395,7 @@ final class t3lib_BEfunc {
 	public static function getListOfBackendModules($name, $perms_clause, $backPath = '', $script = 'index.php') {
 		t3lib_div::logDeprecatedFunction();
 
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', 'pages', 'doktype!=255 AND module IN (\''.implode('\',\'', $name).'\') AND'.$perms_clause.t3lib_BEfunc::deleteClause('pages'));
+		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', 'pages', 'doktype!=255 AND module IN (\'' . implode('\',\'', $name) . '\') AND' . $perms_clause . self::deleteClause('pages'));
 		if (!$GLOBALS['TYPO3_DB']->sql_num_rows($res))	return false;
 
 		$out = '';
@@ -4392,7 +4403,7 @@ final class t3lib_BEfunc {
 		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$theRows[] = $row;
 			$out.='<span class="nobr"><a href="'.htmlspecialchars($script.'?id='.$row['uid']).'">'.
-					t3lib_iconWorks::getIconImage('pages', $row, $backPath, 'title="'.htmlspecialchars(t3lib_BEfunc::getRecordPath($row['uid'], $perms_clause, 20)).'" align="top"').
+					t3lib_iconWorks::getIconImage('pages', $row, $backPath, 'title="' . htmlspecialchars(self::getRecordPath($row['uid'], $perms_clause, 20)) . '" align="top"') .
 					htmlspecialchars($row['title']).
 					'</a></span><br />';
 		}
@@ -4404,7 +4415,7 @@ final class t3lib_BEfunc {
 	/**
 	 * Returns the name of the backend script relative to the TYPO3 main directory.
 	 *
-	 * @param	string		Name of the backend interface  (backend, backend_old, frontend) to look up the script name for. If no interface is given, the interface for the current backend user is used.
+	 * @param	string		Name of the backend interface  (backend, frontend) to look up the script name for. If no interface is given, the interface for the current backend user is used.
 	 * @return	string		The name of the backend script relative to the TYPO3 main directory.
 	 */
 	public static function getBackendScript($interface = '') {
@@ -4413,9 +4424,6 @@ final class t3lib_BEfunc {
 		}
 
 		switch ($interface) {
-			case 'backend_old':
-				$script = 'alt_main.php';
-				break;
 			case 'frontend':
 				$script = '../.';
 				break;

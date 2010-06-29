@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2009-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -87,7 +87,7 @@ class t3lib_utility_Http {
 	 * @param	string	The target URL to redirect to
 	 * @param	string	An optional HTTP status header. Default is 'HTTP/1.1 303 See Other'
 	 */
-	public static function redirect($url, $httpStatus = t3lib_utility_Http::HTTP_STATUS_303) {
+	public static function redirect($url, $httpStatus = self::HTTP_STATUS_303) {
 		header($httpStatus);
 		header('Location: ' . t3lib_div::locationHeaderUrl($url));
 

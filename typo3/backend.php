@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,6 +31,7 @@ require_once('interfaces/interface.backend_toolbaritem.php');
 
 require('classes/class.typo3logo.php');
 require('classes/class.modulemenu.php');
+require_once('classes/class.donatewindow.php');
 
 	// core toolbar items
 require('classes/class.workspaceselector.php');
@@ -58,7 +59,7 @@ class TYPO3backend {
 	protected $jsFiles;
 	protected $jsFilesAfterInline;
 	protected $toolbarItems;
-	private   $menuWidthDefault = 160; // intentionally private as nobody should modify defaults
+	private   $menuWidthDefault = 190; // intentionally private as nobody should modify defaults
 	protected $menuWidth;
 
 	/**
@@ -76,6 +77,13 @@ class TYPO3backend {
 	protected $moduleMenu;
 
 	/**
+	 * Pagerenderer
+	 *
+	 * @var t3lib_PageRenderer
+	 */
+	protected $pageRenderer;
+
+	/**
 	 * constructor
 	 *
 	 * @return	void
@@ -88,6 +96,23 @@ class TYPO3backend {
 
 		$this->moduleMenu = t3lib_div::makeInstance('ModuleMenu');
 
+		$this->pageRenderer = $GLOBALS['TBE_TEMPLATE']->getPageRenderer();
+		$this->pageRenderer->loadScriptaculous('builder,effects,controls,dragdrop');
+		$this->pageRenderer->loadExtJS();
+
+			// register the extDirect API providers
+			// Note: we need to iterate thru the object, because the addProvider method
+			// does this only with multiple arguments
+		$this->pageRenderer->addExtOnReadyCode(
+			'for (var api in Ext.app.ExtDirectAPI) {
+				Ext.Direct.addProvider(Ext.app.ExtDirectAPI[api]);
+			}
+			TYPO3.Backend = new TYPO3.Viewport(TYPO3.Viewport.configuration);
+			',
+			TRUE
+		);
+
+
 			// add default BE javascript
 		$this->js      = '';
 		$this->jsFiles = array(
@@ -97,26 +122,24 @@ class TYPO3backend {
 			'contrib/swfupload/plugins/swfupload.queue.js',
 			'md5.js',
 			'js/common.js',
-			'js/sizemanager.js',
+			'js/extjs/backendsizemanager.js',
 			'js/toolbarmanager.js',
 			'js/modulemenu.js',
 			'js/iecompatibility.js',
 			'js/flashupload.js',
 			'../t3lib/jsfunc.evalfield.js',
-			'ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.Backend'
-		);
-
-		$this->jsFilesAfterInline = array(
+			'../t3lib/js/extjs/ux/flashmessages.js',
+			'../t3lib/js/extjs/ux/ext.ux.tabclosemenu.js',
 			'js/backend.js',
 			'js/loginrefresh.js',
+			'js/extjs/debugPanel.js',
+			'js/extjs/viewport.js',
+			'js/extjs/viewportConfiguration.js',
 		);
+
 			// add default BE css
 		$this->css      = '';
-		$this->cssFiles = array(
-			'backend-scaffolding' => 'css/backend-scaffolding.css',
-			'backend-style'       => 'css/backend-style.css',
-			'modulemenu'          => 'css/modulemenu.css',
-		);
+		$this->cssFiles = array();
 
 		$this->toolbarItems = array();
 		$this->initializeCoreToolbarItems();
@@ -125,6 +148,8 @@ class TYPO3backend {
 		if (isset($GLOBALS['TBE_STYLES']['dims']['leftMenuFrameW']) && (int) $GLOBALS['TBE_STYLES']['dims']['leftMenuFrameW'] != (int) $this->menuWidth) {
 			$this->menuWidth = (int) $GLOBALS['TBE_STYLES']['dims']['leftMenuFrameW'];
 		}
+
+		$this->executeHook('constructPostProcess');
 	}
 
 	/**
@@ -162,6 +187,11 @@ class TYPO3backend {
 	 * @return	void
 	 */
 	public function render()	{
+		$this->executeHook('renderPreProcess');
+
+		if (t3lib_div::makeInstance('DonateWindow')->isDonateWindowAllowed()) {
+			$this->pageRenderer->addJsFile('js/donate.js');
+		}
 
 			// prepare the scaffolding, at this point extension may still add javascript and css
 		$logo         = t3lib_div::makeInstance('TYPO3Logo');
@@ -171,13 +201,7 @@ class TYPO3backend {
 
 		if ($this->menuWidth != $this->menuWidthDefault) {
 			$this->css .= '
-				#typo3-logo,
-				#typo3-side-menu {
-					width: ' . ($this->menuWidth - 1) . 'px;
-				}
-
-				#typo3-top,
-				#typo3-content {
+				#typo3-top {
 					margin-left: ' . $this->menuWidth . 'px;
 				}
 			';
@@ -186,17 +210,17 @@ class TYPO3backend {
 			// create backend scaffolding
 		$backendScaffolding = '
 	<div id="typo3-backend">
-		<div id="typo3-top-container">
+		<div id="typo3-top-container" class="x-hide-display">
 			<div id="typo3-logo">'.$logo->render().'</div>
-			<div id="typo3-top" class="typo3-top-toolbar">'
-				.$this->renderToolbar()
-			.'</div>
+			<div id="typo3-top" class="typo3-top-toolbar">' .
+				$this->renderToolbar() .
+			'</div>
 		</div>
 		<div id="typo3-main-container">
-			<div id="typo3-side-menu">
-				'.$menu.'
-			</div>
-			<div id="typo3-content">
+			<div id="typo3-side-menu" class="x-hide-display">' .
+				$menu .
+			'</div>
+			<div id="typo3-content" class="x-hide-display">
 				<iframe src="alt_intro.php" name="content" id="content" marginwidth="0" marginheight="0" frameborder="0" scrolling="auto"></iframe>
 			</div>
 		</div>
@@ -207,51 +231,40 @@ class TYPO3backend {
 		 * now put the complete backend document together
 		 ******************************************************/
 
-		/** @var $pageRenderer t3lib_PageRenderer */
-		$pageRenderer = $GLOBALS['TBE_TEMPLATE']->getPageRenderer();
-		$pageRenderer->loadScriptaculous('builder,effects,controls,dragdrop');
-		$pageRenderer->loadExtJS();
-
-			// register the extDirect API providers
-			// Note: we need to iterate thru the object, because the addProvider method
-			// does this only with multiple arguments
-		$pageRenderer->addExtOnReadyCode(
-			'for (var api in Ext.app.ExtDirectAPI) {
-				Ext.Direct.addProvider(Ext.app.ExtDirectAPI[api]);
-			}',
-			TRUE
-		);
-
-			// remove duplicate entries
-		$this->jsFiles = array_unique($this->jsFiles);
-
-			// add javascript
-		foreach($this->jsFiles as $jsFile) {
-			$GLOBALS['TBE_TEMPLATE']->loadJavascriptLib($jsFile);
-		}
-		$GLOBALS['TBE_TEMPLATE']->JScode .= chr(10);
-		$this->generateJavascript();
-		$GLOBALS['TBE_TEMPLATE']->JScode .= $GLOBALS['TBE_TEMPLATE']->wrapScriptTags($this->js) . chr(10);
-
-		foreach($this->jsFilesAfterInline as $jsFile) {
-			$GLOBALS['TBE_TEMPLATE']->JScode .= '
-			<script type="text/javascript" src="' . $jsFile . '"></script>';
-		}
-
-
-			// FIXME abusing the JS container to add CSS, need to fix template.php
 		foreach($this->cssFiles as $cssFileName => $cssFile) {
-			$GLOBALS['TBE_TEMPLATE']->addStyleSheet($cssFileName, $cssFile);
+			$this->pageRenderer->addCssFile($cssFile);
 
 				// load addditional css files to overwrite existing core styles
 			if(!empty($GLOBALS['TBE_STYLES']['stylesheets'][$cssFileName])) {
-				$GLOBALS['TBE_TEMPLATE']->addStyleSheet($cssFileName . 'TBE_STYLES', $GLOBALS['TBE_STYLES']['stylesheets'][$cssFileName]);
+				$this->pageRenderer->addCssFile($GLOBALS['TBE_STYLES']['stylesheets'][$cssFileName]);
 			}
 		}
 
 		if(!empty($this->css)) {
-			$GLOBALS['TBE_TEMPLATE']->inDocStylesArray['backend.php'] = $this->css;
+			$this->pageRenderer->addCssInlineBlock('BackendInlineCSS', $this->css);
 		}
+
+		foreach ($this->jsFiles as $jsFile) {
+			$this->pageRenderer->addJsFile($jsFile);
+		}
+
+			// Those lines can be removed once we have at least one official ExtDirect router within the backend.
+		$hasExtDirectRouter = FALSE;
+		if (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect']) && is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'] as $key => $value) {
+				if (strpos($key, 'TYPO3.Backend') !== FALSE) {
+					$hasExtDirectRouter = TRUE;
+					break;
+				}
+			}
+		}
+		if ($hasExtDirectRouter) {
+			$this->pageRenderer->addJsFile('ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.Backend', NULL, FALSE);
+		}
+
+		$this->generateJavascript();
+		$this->pageRenderer->addJsInlineCode('BackendInlineJavascript', $this->js);
+
 
 			// set document title:
 		$title = ($GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']
@@ -263,6 +276,9 @@ class TYPO3backend {
 		$this->content .= $GLOBALS['TBE_TEMPLATE']->startPage($title);
 		$this->content .= $backendScaffolding;
 		$this->content .= $GLOBALS['TBE_TEMPLATE']->endPage();
+
+		$hookConfiguration = array('content' => &$this->content);
+		$this->executeHook('renderPostProcess', $hookConfiguration);
 
 		echo $this->content;
 	}
@@ -302,17 +318,10 @@ class TYPO3backend {
 	protected function getLoggedInUserLabel() {
 		global $BE_USER, $BACK_PATH;
 
-		$icon = '<img'.t3lib_iconWorks::skinImg(
-			'',
-			$BE_USER->isAdmin() ?
-				'gfx/i/be_users_admin.gif' :
-				'gfx/i/be_users.gif',
-			'width="18" height="16"'
-		)
-		.' title="" alt="" />';
+                $icon = t3lib_iconWorks::getSpriteIcon('status-user-'. ($BE_USER->isAdmin() ? 'admin' : 'backend'));
 
 		$label = $GLOBALS['BE_USER']->user['realName'] ?
-			$BE_USER->user['realName'].' ['.$BE_USER->user['username'].']' :
+			$BE_USER->user['realName'] . ' (' . $BE_USER->user['username'] . ')' :
 			$BE_USER->user['username'];
 
 			// Link to user setup if it's loaded and user has access
@@ -343,7 +352,7 @@ class TYPO3backend {
 
 		$pathTYPO3          = t3lib_div::dirname(t3lib_div::getIndpEnv('SCRIPT_NAME')).'/';
 		$goToModuleSwitch   = $this->moduleMenu->getGotoModuleJavascript();
-		$moduleFramesHelper = implode(chr(10), $this->moduleMenu->getFsMod());
+		$moduleFramesHelper = implode(LF, $this->moduleMenu->getFsMod());
 
 			// If another page module was specified, replace the default Page module with the new one
 		$newPageModule = trim($GLOBALS['BE_USER']->getTSConfigVal('options.overridePageModule'));
@@ -371,9 +380,12 @@ class TYPO3backend {
 			'TYPO3_mainDir' => TYPO3_mainDir,
 			'pageModule' => $pageModule,
 			'condensedMode' => $GLOBALS['BE_USER']->uc['condensedMode'] ? 1 : 0 ,
-			'workspaceFrontendPreviewEnabled' => $GLOBALS['BE_USER']->workspace != 0 && !$GLOBALS['BE_USER']->user['workspace_preview'] ? 0 : 1,
+			'inWorkspace' => $GLOBALS['BE_USER']->workspace !== 0 ? 1 : 0,
+			'workspaceFrontendPreviewEnabled' => $GLOBALS['BE_USER']->user['workspace_preview'] ? 1 : 0,
 			'veriCode' => $GLOBALS['BE_USER']->veriCode(),
 			'denyFileTypes' => PHP_EXTENSIONS_DEFAULT,
+			'moduleMenuWidth' => $this->menuWidth - 1,
+			'topBarHeight' => (int) $GLOBALS['TBE_STYLES']['dims']['topFrameH'],
 			'showRefreshLoginPopup' => isset($GLOBALS['TYPO3_CONF_VARS']['BE']['showRefreshLoginPopup']) ? intval($GLOBALS['TYPO3_CONF_VARS']['BE']['showRefreshLoginPopup']) : FALSE,
 		);
 		$t3LLLcore = array(
@@ -395,6 +407,14 @@ class TYPO3backend {
 			'login_about_to_expire_title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_about_to_expire_title'),
 			'refresh_login_refresh_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_refresh_button'),
 			'refresh_direct_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_direct_logout_button'),
+			'tabs_closeAll' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.closeAll'),
+			'tabs_closeOther' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.closeOther'),
+			'tabs_close' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.close'),
+			'donateWindow_title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.title'),
+			'donateWindow_message' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.message'),
+			'donateWindow_button_donate' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.button_donate'),
+			'donateWindow_button_disable' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.button_disable'),
+			'donateWindow_button_postpone' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.button_postpone'),
 		);
 		$t3LLLfileUpload = array(
 			'windowTitle' => $GLOBALS['LANG']->getLL('fileUpload_windowTitle'),
@@ -459,7 +479,6 @@ class TYPO3backend {
 	var TS = new typoSetup();
 
 	var currentModuleLoaded = "";
-	var goToModule = ' . $goToModuleSwitch . ';
 
 	/**
 	 * Frameset Module object
@@ -477,7 +496,10 @@ class TYPO3backend {
 	}
 	var fsMod = new fsModules();' . $moduleFramesHelper . ';';
 
-
+			// add goToModule code
+		$this->pageRenderer->addExtOnReadyCode('
+			top.goToModule = ' . $goToModuleSwitch . ';
+		');
 
 			// Check editing of page:
 		$this->handlePageEditing();
@@ -558,16 +580,16 @@ class TYPO3backend {
 
 		$moduleParameters = t3lib_div::_GET('modParams');
 		if($startModule) {
-			$this->js .= '
+			$this->pageRenderer->addExtOnReadyCode('
 			// start in module:
 		function startInModule(modName, cMR_flag, addGetVars)	{
-			Event.observe(document, \'dom:loaded\', function() {
+			Ext.onReady(function() {
 				top.goToModule(modName, cMR_flag, addGetVars);
 			});
 		}
 
 		startInModule(\''.$startModule.'\', false, '.t3lib_div::quoteJSvalue($moduleParameters).');
-			';
+			');
 		}
 	}
 
@@ -651,14 +673,10 @@ class TYPO3backend {
 	public function addCssFile($cssFileName, $cssFile) {
 		$cssFileAdded = false;
 
-			//TODO add more checks if neccessary
-		if(file_exists(t3lib_div::resolveBackPath(PATH_typo3.$cssFile))) {
-				// prevent overwriting existing css files
-			if(empty($this->cssFiles[$cssFileName])) {
-				$this->cssFiles[$cssFileName] = $cssFile;
-				$cssFileAdded = true;
-			}
-		}
+		if(empty($this->cssFiles[$cssFileName])) {
+			$this->cssFiles[$cssFileName] = $cssFile;
+			$cssFileAdded = true;
+ 		}
 
 		return $cssFileAdded;
 	}
@@ -681,6 +699,28 @@ class TYPO3backend {
 			$this->toolbarItems[$toolbarItemName] = $toolbarItem;
 		} else {
 			unset($toolbarItem);
+		}
+	}
+
+	/**
+	 * Executes defined hooks functions for the given identifier.
+	 *
+	 * These hook identifiers are valid:
+	 *	+ constructPostProcess
+	 *	+ renderPreProcess
+	 *	+ renderPostProcess
+	 *
+	 * @param string $identifier Specific hook identifier
+	 * @param array $hookConfiguration Additional configuration passed to hook functions
+	 * @return void
+	 */
+	protected function executeHook($identifier, array $hookConfiguration = array()) {
+		$options =& $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/backend.php'];
+
+		if(isset($options[$identifier]) && is_array($options[$identifier])) {
+			foreach($options[$identifier] as $hookFunction) {
+				t3lib_div::callUserFunction($hookFunction, $hookConfiguration, $this);
+			}
 		}
 	}
 }

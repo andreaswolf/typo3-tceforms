@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -147,15 +147,12 @@ class t3lib_recordList {
 			<td nowrap="nowrap" class="col-icon">';
 
 			if (!$h)	{
-#				$out.='<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/halfline.gif','width="18" height="8"').' alt="" />';
 				$out.='<img src="clear.gif" width="1" height="8" alt="" />';
 			} else {
 				for ($a=0;$a<$h;$a++)	{
 					if (!$a)	{
-#						$out.= $altLine ? $altLine : '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/line.gif','width="18" height="16"').' alt="" />';
 						if ($icon)	$out.= $icon;
 					} else {
-#						$out.= $altLine ? $altLine :'<br /><img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/line.gif','width="18" height="16"').' alt="" />';
 					}
 				}
 			}
@@ -170,8 +167,7 @@ class t3lib_recordList {
 		$ccount=0;
 
 			// Traverse field array which contains the data to present:
-		reset($this->fieldArray);
-		while(list(,$vKey)=each($this->fieldArray))	{
+		foreach ($this->fieldArray as $vKey) {
 			if (isset($data[$vKey]))	{
 				if ($lastKey)	{
 					$cssClass = $this->addElement_tdCssClass[$lastKey];
@@ -285,13 +281,13 @@ class t3lib_recordList {
 			case 'fwd':
 				$href = $this->listURL().'&pointer='.($pointer-$this->iLimit).$tParam;
 				$content = '<a href="'.htmlspecialchars($href).'">'.
-						'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/pilup.gif','width="14" height="14"').' alt="" />'.
+						t3lib_iconWorks::getSpriteIcon('actions-move-up').
 						'</a> <i>[1 - '.$pointer.']</i>';
 			break;
 			case 'rwd':
 				$href = $this->listURL().'&pointer='.$pointer.$tParam;
 				$content = '<a href="'.htmlspecialchars($href).'">'.
-						'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/pildown.gif','width="14" height="14"').' alt="" />'.
+						t3lib_iconWorks::getSpriteIcon('actions-move-down').
 						'</a> <i>['.($pointer+1).' - '.$this->totalItems.']</i>';
 			break;
 		}
@@ -317,33 +313,19 @@ class t3lib_recordList {
 	function CBfunctions()	{
 		return '
 		// checkOffCB()
-	function checkOffCB(listOfCBnames)	{	//
-		var notChecked=0;
-		var total=0;
-
-			// Checking how many is checked, how many is not
-		var pointer=0;
-		var pos = listOfCBnames.indexOf(",");
-		while (pos!=-1)	{
-			if (!cbValue(listOfCBnames.substr(pointer,pos-pointer))) notChecked++;
-			total++;
-			pointer=pos+1;
-			pos = listOfCBnames.indexOf(",",pointer);
+	function checkOffCB(listOfCBnames, link)	{	//
+		var checkBoxes, flag, i;
+		var checkBoxes = listOfCBnames.split(",");
+		if (link.rel === "") {
+			link.rel = "allChecked";
+			flag = true;
+		} else {
+			link.rel = "";
+			flag = false;
 		}
-		if (!cbValue(listOfCBnames.substr(pointer))) notChecked++;
-		total++;
-
-			// Setting the status...
-		var flag = notChecked*2>total;
-		pointer=0;
-		pos = listOfCBnames.indexOf(",");
-		while (pos!=-1)	{
-			setcbValue(listOfCBnames.substr(pointer,pos-pointer),flag);
-
-			pointer=pos+1;
-			pos = listOfCBnames.indexOf(",",pointer);
+		for (i = 0; i < checkBoxes.length; i++) {
+			setcbValue(checkBoxes[i], flag);
 		}
-		setcbValue(listOfCBnames.substr(pointer),flag);
 	}
 		// cbValue()
 	function cbValue(CBname)	{	//
@@ -353,7 +335,9 @@ class t3lib_recordList {
 		// setcbValue()
 	function setcbValue(CBname,flag)	{	//
 		CBfullName = "CBC["+CBname+"]";
-		document.dblistForm[CBfullName].checked = flag ? "on" : 0;
+		if(document.dblistForm[CBfullName]) {
+			document.dblistForm[CBfullName].checked = flag ? "on" : 0;
+		}
 	}
 
 		';

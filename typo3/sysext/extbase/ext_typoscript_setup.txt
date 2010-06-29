@@ -6,8 +6,8 @@ config.tx_extbase {
 			Tx_Extbase_Domain_Model_FrontendUser {
 				mapping {
 					tableName = fe_users
+					recordType = Tx_Extbase_Domain_Model_FrontendUser
 					columns {
-						usergroup.foreignClass = Tx_Extbase_Domain_Model_FrontendUserGroup
 						lockToDomain.mapOnProperty = lockToDomain
 					}
 				}
@@ -15,8 +15,8 @@ config.tx_extbase {
 			Tx_Extbase_Domain_Model_FrontendUserGroup {
 				mapping {
 					tableName = fe_groups
+					recordType = Tx_Extbase_Domain_Model_FrontendUserGroup
 					columns {
-						subgroup.foreignClass = Tx_Extbase_Domain_Model_FrontendUserGroup
 						lockToDomain.mapOnProperty = lockToDomain
 					}
 				}
@@ -24,10 +24,3 @@ config.tx_extbase {
 		}
 	}
 }
-
-plugin.tx_extbase._CSS_DEFAULT_STYLE (
-	input.f3-form-error {
-		background-color:#FF9F9F;
-		border: 1px #FF0000 solid;
-	}
-)

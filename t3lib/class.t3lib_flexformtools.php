@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2006-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2006-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -464,7 +464,7 @@ class t3lib_flexformtools {
 		$output = t3lib_div::array2xml($array,'',0,'T3FlexForms', $spaceInd, $options);
 
 		if ($addPrologue)	{
-			$output = '<?xml version="1.0" encoding="'.$GLOBALS['LANG']->charSet.'" standalone="yes" ?>'.chr(10).$output;
+			$output = '<?xml version="1.0" encoding="'.$GLOBALS['LANG']->charSet.'" standalone="yes" ?>'.LF.$output;
 		}
 
 		return $output;

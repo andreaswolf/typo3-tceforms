@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -34,7 +34,7 @@ var ToolbarManager = Class.create({
 		var sibling = toolbarItem.next();
 
 			// check whether it is a toolbar item with menu
-		if(sibling.hasClassName('toolbar-item-menu')) {
+		if (sibling.hasClassName('toolbar-item-menu')) {
 				// hide all
 			$$('#typo3-toolbar a.toolbar-item + .toolbar-item-menu').invoke('hide');
 			$$('#typo3-toolbar a.toolbar-item').each(function(element) {

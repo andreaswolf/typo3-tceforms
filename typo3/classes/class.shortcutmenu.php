@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -26,7 +26,7 @@
 ***************************************************************/
 
 if(TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_AJAX) {
-	require_once('interfaces/interface.backend_toolbaritem.php');
+	require_once(PATH_typo3 . 'interfaces/interface.backend_toolbaritem.php');
 	$GLOBALS['LANG']->includeLLFile('EXT:lang/locallang_misc.xml');
 
 		// needed to get the correct icons when reloading the menu after saving it
@@ -116,12 +116,14 @@ class ShortcutMenu implements backend_toolbarItem {
 
 		$shortcutMenu = array();
 
-		$shortcutMenu[] = '<a href="#" class="toolbar-item"><img'.t3lib_iconWorks::skinImg($this->backPath, 'gfx/toolbar_shortcut.png', 'width="16" height="16"').' title="'.$title.'" alt="'.$title.'" /></a>';
+		$shortcutMenu[] = '<a href="#" class="toolbar-item">' .
+			t3lib_iconWorks::getSpriteIcon('apps-toolbar-menu-shortcut', array('title' => $title)) .
+			'</a>';
 		$shortcutMenu[] = '<div class="toolbar-item-menu" style="display: none;">';
 		$shortcutMenu[] = $this->renderMenu();
 		$shortcutMenu[] = '</div>';
 
-		return implode("\n", $shortcutMenu);
+		return implode(LF, $shortcutMenu);
 	}
 
 	/**
@@ -195,7 +197,9 @@ class ShortcutMenu implements backend_toolbarItem {
 		if(count($shortcutMenu) == 1) {
 				//no shortcuts added yet, show a small help message how to add shortcuts
 			$title = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:toolbarItems.shortcuts', true);
-			$icon  = '<img'.t3lib_iconWorks::skinImg($backPath,'gfx/shortcut.gif','width="14" height="14"').' title="'.$title.'" alt="'.$title.'" />';
+			$icon = t3lib_iconWorks::getSpriteIcon('actions-system-shortcut-new', array(
+				'title' => $title
+			));
 			$label = str_replace('%icon%', $icon, $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_misc.php:shortcutDescription'));
 
 			$shortcutMenu[] = '<tr><td style="padding:1px 2px; color: #838383;">'.$label.'</td></tr>';
@@ -203,7 +207,7 @@ class ShortcutMenu implements backend_toolbarItem {
 
 		$shortcutMenu[] = '</table>';
 
-		$compiledShortcutMenu = implode("\n", $shortcutMenu);
+		$compiledShortcutMenu = implode(LF, $shortcutMenu);
 
 		return $compiledShortcutMenu;
 	}

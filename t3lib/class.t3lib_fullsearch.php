@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -93,8 +93,12 @@ class t3lib_fullsearch {
 
 	protected $formName = '';
 
-
-
+	/**
+	 * constructor
+	 */
+	public function __construct() {
+		$GLOBALS['LANG']->includeLLFile('EXT:lang/locallang_t3lib_fullsearch.xml');
+	}
 
 
 	/**
@@ -123,8 +127,7 @@ class t3lib_fullsearch {
 
 			// Store Array:
 		$opt=array();
-		reset($storeArray);
-		while(list($k,$v)=each($storeArray))	{
+		foreach ($storeArray as $k => $v) {
 			$opt[]='<option value="'.$k.'"'.(!strcmp($cur,$v)?' selected':'').'>'.htmlspecialchars($v).'</option>';
 		}
 
@@ -143,7 +146,7 @@ class t3lib_fullsearch {
 		$TDparams=' nowrap="nowrap" class="bgColor4"';
 		$tmpCode='
 		<table border="0" cellpadding="3" cellspacing="1">
-		<tr'.$TDparams.'><td><select name="storeControl[STORE]" onChange="document.forms[0][\'storeControl[title]\'].value= this.options[this.selectedIndex].value!=0 ? this.options[this.selectedIndex].text : \'\';">'.implode(chr(10),$opt).'</select><input type="submit" name="storeControl[LOAD]" value="Load"></td></tr>
+		<tr'.$TDparams.'><td><select name="storeControl[STORE]" onChange="document.forms[0][\'storeControl[title]\'].value= this.options[this.selectedIndex].value!=0 ? this.options[this.selectedIndex].text : \'\';">'.implode(LF,$opt).'</select><input type="submit" name="storeControl[LOAD]" value="Load"></td></tr>
 		<tr'.$TDparams.'><td nowrap><input name="storeControl[title]" value="" type="text" max="80"'.$GLOBALS['SOBE']->doc->formWidth().'><input type="submit" name="storeControl[SAVE]" value="Save" onClick="if (document.forms[0][\'storeControl[STORE]\'].options[document.forms[0][\'storeControl[STORE]\'].selectedIndex].value<0) return confirm(\'Are you sure you want to overwrite the existing query in this action?\');"><input type="submit" name="storeControl[REMOVE]" value="Remove"></td></tr>
 		</table>
 		';
@@ -177,8 +180,7 @@ class t3lib_fullsearch {
 	 */
 	function cleanStoreQueryConfigs($storeQueryConfigs,$storeArray)	{
 		if (is_array($storeQueryConfigs))	{
-			reset($storeQueryConfigs);
-			while(list($k,$v)=each($storeQueryConfigs))	{
+			foreach ($storeQueryConfigs as $k => $v) {
 				if (!isset($storeArray[$k]))	unset($storeQueryConfigs[$k]);
 			}
 		}
@@ -194,9 +196,8 @@ class t3lib_fullsearch {
 	 */
 	function addToStoreQueryConfigs($storeQueryConfigs,$index)	{
 		$keyArr = explode(',',$this->storeList);
-		reset($keyArr);
 		$storeQueryConfigs[$index]=array();
-		while(list(,$k)=each($keyArr))	{
+		foreach ($keyArr as $k) {
 			$storeQueryConfigs[$index][$k]=$GLOBALS['SOBE']->MOD_SETTINGS[$k];
 		}
 		return $storeQueryConfigs;
@@ -211,9 +212,8 @@ class t3lib_fullsearch {
 	function saveQueryInAction($uid)	{
 		if (t3lib_extMgm::isLoaded('sys_action'))	{
 			$keyArr = explode(',',$this->storeList);
-			reset($keyArr);
 			$saveArr=array();
-			while(list(,$k)=each($keyArr))	{
+			foreach ($keyArr as $k) {
 				$saveArr[$k]=$GLOBALS['SOBE']->MOD_SETTINGS[$k];
 			}
 
@@ -232,6 +232,7 @@ class t3lib_fullsearch {
 
 				$res = @$GLOBALS['TYPO3_DB']->sql_query($qCount);
 				if (!$GLOBALS['TYPO3_DB']->sql_error())	{
+					$GLOBALS['TYPO3_DB']->sql_free_result($res);
 					$dA = array();
 					$dA['t2_data'] = serialize(array(
 						'qC'=>$saveArr,
@@ -259,8 +260,7 @@ class t3lib_fullsearch {
 	function loadStoreQueryConfigs($storeQueryConfigs,$storeIndex,$writeArray)	{
 		if ($storeQueryConfigs[$storeIndex])	{
 			$keyArr = explode(',',$this->storeList);
-			reset($keyArr);
-			while(list(,$k)=each($keyArr))	{
+			foreach ($keyArr as $k) {
 				$writeArray[$k]=$storeQueryConfigs[$storeIndex][$k];
 			}
 		}
@@ -281,11 +281,15 @@ class t3lib_fullsearch {
 		$saveStoreArray=0;
 		$writeArray=array();
 		if (is_array($storeControl))	{
+			$msg = '';
 			if ($storeControl['LOAD'])	{
 				if ($storeIndex>0)	{
 					$writeArray=$this->loadStoreQueryConfigs($storeQueryConfigs,$storeIndex,$writeArray);
-					$saveStoreArray=1;
-					$msg="'".htmlspecialchars($storeArray[$storeIndex])."' query loaded!";
+					$saveStoreArray = 1;
+					$flashMessage = t3lib_div::makeInstance(
+							't3lib_FlashMessage',
+							sprintf($GLOBALS['LANG']->getLL('query_loaded'), htmlspecialchars($storeArray[$storeIndex]))
+						);
 				} elseif ($storeIndex<0 && t3lib_extMgm::isLoaded('sys_action'))	{
 					$actionRecord=t3lib_BEfunc::getRecord('sys_action',abs($storeIndex));
 					if (is_array($actionRecord))	{
@@ -296,17 +300,28 @@ class t3lib_fullsearch {
 						}
 						$writeArray=$this->loadStoreQueryConfigs($dbSC,'0',$writeArray);
 						$saveStoreArray=1;
-						$acTitle=htmlspecialchars($actionRecord['title']);
-						$msg="Query from action '".$acTitle."' loaded!";
+
+						$flashMessage = t3lib_div::makeInstance(
+							't3lib_FlashMessage',
+							sprintf($GLOBALS['LANG']->getLL('query_from_action_loaded'), htmlspecialchars($actionRecord['title']))
+						);
 					}
 				}
 			} elseif ($storeControl['SAVE'])	{
 				if ($storeIndex<0)	{
 					$qOK = $this->saveQueryInAction(abs($storeIndex));
-					if ($qOK)	{
-						$msg='Query OK and saved.';
+					if ($qOK) {
+						$flashMessage = t3lib_div::makeInstance(
+							't3lib_FlashMessage',
+							$GLOBALS['LANG']->getLL('query_saved')
+						);
 					} else {
-						$msg='No query saved!';
+						$flashMessage = t3lib_div::makeInstance(
+							't3lib_FlashMessage',
+							$GLOBALS['LANG']->getLL('query_notsaved'),
+							'',
+							t3lib_FlashMessage::ERROR
+						);
 					}
 				} else {
 					if (trim($storeControl['title']))	{
@@ -319,15 +334,24 @@ class t3lib_fullsearch {
 						}
 						$storeQueryConfigs=$this->addToStoreQueryConfigs($storeQueryConfigs,$storeIndex);
 						$saveStoreArray=1;
-						$msg="'".htmlspecialchars($storeArray[$storeIndex])."' query saved!";
+						$flashMessage = t3lib_div::makeInstance(
+							't3lib_FlashMessage',
+							$GLOBALS['LANG']->getLL('query_saved')
+						);
 					}
 				}
 			} elseif ($storeControl['REMOVE'])	{
 				if ($storeIndex>0)	{
-					$msg="'" . htmlspecialchars($storeArray[$storeControl['STORE']]) . "' query entry removed!";
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						sprintf($GLOBALS['LANG']->getLL('query_removed'), htmlspecialchars($storeArray[$storeControl['STORE']]))
+					);
 					unset($storeArray[$storeControl['STORE']]);	// Removing
 					$saveStoreArray=1;
 				}
+			}
+			if ($flashMessage) {
+				$msg = $flashMessage->render();
 			}
 		}
 		if ($saveStoreArray)	{
@@ -354,8 +378,8 @@ class t3lib_fullsearch {
 
 		if (!$GLOBALS['BE_USER']->userTS['mod.']['dbint.']['disableStoreControl']) {
 			$output.= $GLOBALS['SOBE']->doc->section('Load/Save Query',$this->makeStoreControl(),0,1);
-			if ($msg)	{
-				$output.= $GLOBALS['SOBE']->doc->section('','<font color=red><strong>'.$msg.'</strong></font>');
+			if ($msg) {
+				$output .= '<br />' . $msg;
 			}
 			$output.= $GLOBALS['SOBE']->doc->spacer(20);
 		}
@@ -402,6 +426,7 @@ class t3lib_fullsearch {
 					$output.= $GLOBALS['SOBE']->doc->section('SQL error',$out,0,1);
 				} else {
 					$cPR = $this->getQueryResultCode($mQ,$res,$qGen->table);
+					$GLOBALS['TYPO3_DB']->sql_free_result($res);
 					$output.=$GLOBALS['SOBE']->doc->section($cPR['header'],$cPR['content'],0,1);
 				}
 			}
@@ -439,7 +464,7 @@ class t3lib_fullsearch {
 					}
 				}
 				if (count($rowArr))	{
-					$out.='<table border="0" cellpadding="2" cellspacing="1" width="100%">'.$this->resultRowTitles($lrow, $TCA[$table], $table).implode(chr(10), $rowArr).'</table>';
+					$out.='<table border="0" cellpadding="2" cellspacing="1" width="100%">'.$this->resultRowTitles($lrow, $TCA[$table], $table).implode(LF, $rowArr).'</table>';
 				}
 				if (!$out)	$out='<em>No rows selected!</em>';
 				$cPR['header']='Result';
@@ -456,7 +481,7 @@ class t3lib_fullsearch {
 					$rowArr[]=$this->csvValues($row, ',', '"', $TCA[$table], $table);
 				}
 				if (count($rowArr))	{
-					$out.='<textarea name="whatever" rows="20" wrap="off"'.$GLOBALS['SOBE']->doc->formWidthText($this->formW,'','off').' class="fixed-font">'.t3lib_div::formatForTextarea(implode(chr(10),$rowArr)).'</textarea>';
+					$out.='<textarea name="whatever" rows="20" wrap="off"'.$GLOBALS['SOBE']->doc->formWidthText($this->formW,'','off').' class="fixed-font">'.t3lib_div::formatForTextarea(implode(LF,$rowArr)).'</textarea>';
 					if (!$this->noDownloadB)	{
 						$out.='<BR><input type="submit" name="download_file" value="Click to download file" onClick="window.location.href=\''.$this->downloadScript.'\';">';		// document.forms[0].target=\'_blank\';
 					}
@@ -466,7 +491,7 @@ class t3lib_fullsearch {
 						$mimeType = 'application/octet-stream';
 						header('Content-Type: '.$mimeType);
 						header('Content-Disposition: attachment; filename='.$filename);
-						echo implode(chr(13).chr(10),$rowArr);
+						echo implode(CRLF,$rowArr);
 						exit;
 					}
 				}
@@ -569,22 +594,17 @@ class t3lib_fullsearch {
 		$limit=200;
 		$showAlways=0;
 		if ($swords)	{
-			reset($TCA);
-			while(list($table)=each($TCA))	{
+			foreach ($TCA as $table => $value) {
 					// Get fields list
 				t3lib_div::loadTCA($table);
 				$conf=$TCA[$table];
-				
+
 					// avoid querying tables with no columns
 				if (empty($conf['columns'])) {
 					continue;
 				}
 
-				reset($conf['columns']);
-				$list=array();
-				while(list($field,)=each($conf['columns']))	{
-					$list[]=$field;
-				}
+				$list = array_keys($conf['columns']);
 					// Get query
 				$qp = $GLOBALS['TYPO3_DB']->searchQuery(array($swords), $list, $table);
 
@@ -603,7 +623,8 @@ class t3lib_fullsearch {
 							$rowArr[]=$this->resultRowDisplay($row,$conf,$table);
 							$lrow=$row;
 						}
-						$out.='<table border="0" cellpadding="2" cellspacing="1">'.$this->resultRowTitles($lrow,$conf,$table).implode(chr(10),$rowArr).'</table>';
+						$GLOBALS['TYPO3_DB']->sql_free_result($res);
+						$out.='<table border="0" cellpadding="2" cellspacing="1">'.$this->resultRowTitles($lrow,$conf,$table).implode(LF,$rowArr).'</table>';
 					}
 					$out.='<HR>';
 				}
@@ -626,8 +647,7 @@ class t3lib_fullsearch {
 		$SET = $GLOBALS['SOBE']->MOD_SETTINGS;
 		$out='<tr class="bgColor' . ($even ? '6' : '4') . '">';
 		$even = !$even;
-		reset($row);
-		while(list($fN,$fV)=each($row))	{
+		foreach ($row as $fN => $fV) {
 			if (t3lib_div::inList($SET['queryFields'], $fN) || (!$SET['queryFields'] && $fN!='pid' && $fN!='deleted'))	{
 				if ($SET['search_result_labels'])	{
 					$fVnew = $this->getProcessedValueExtra($table, $fN, $fV, $conf, '<br />');
@@ -640,13 +660,13 @@ class t3lib_fullsearch {
 		$params = '&edit['.$table.']['.$row['uid'].']=edit';
 		$out.='<td nowrap>';
 		if (!$row['deleted'])	{
-			$out .= '<a href="#" onClick="top.launchView(\''.$table.'\','.$row['uid'].',\''.$GLOBALS['BACK_PATH'].'\');return false;"><img ' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/zoom2.gif', 'width="12" height="12"') . ' alt="" /></a>';
-			$out .= '<a href="#" onClick="'.t3lib_BEfunc::editOnClick($params, $GLOBALS['BACK_PATH'], t3lib_div::getIndpEnv('REQUEST_URI').t3lib_div::implodeArrayForUrl('SET', (array)t3lib_div::_POST('SET'))).'"><img ' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/edit2.gif', 'width="11" height="12"') . ' border="0" alt=""></a>';
+			$out .= '<a href="#" onClick="top.launchView(\''.$table.'\','.$row['uid'].',\''.$GLOBALS['BACK_PATH'].'\');return false;">' . t3lib_iconWorks::getSpriteIcon('status-dialog-information') . '</a>';
+			$out .= '<a href="#" onClick="'.t3lib_BEfunc::editOnClick($params, $GLOBALS['BACK_PATH'], t3lib_div::getIndpEnv('REQUEST_URI').t3lib_div::implodeArrayForUrl('SET', (array)t3lib_div::_POST('SET'))).'">' . t3lib_iconWorks::getSpriteIcon('actions-document-open') .  '</a>';
 		} else {
 			$out.= '<a href="'.t3lib_div::linkThisUrl($GLOBALS['BACK_PATH'].'tce_db.php', array('cmd['.$table.']['.$row['uid'].'][undelete]' => '1', 'redirect' => t3lib_div::linkThisScript(array()))).'">';
-			$out.= '<img ' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/undelete.gif', 'width="13" height="12"') . ' border="0" alt="undelete" only></a>';
+			$out.= t3lib_iconWorks::getSpriteIcon('actions-edit-restore', array('title' => 'undelete only')) . '</a>';
 			$out.= '<a href="'.t3lib_div::linkThisUrl($GLOBALS['BACK_PATH'].'tce_db.php', array('cmd['.$table.']['.$row['uid'].'][undelete]' => '1', 'redirect' => t3lib_div::linkThisUrl('alt_doc.php', array('edit['.$table.']['.$row['uid'].']' => 'edit', 'returnUrl' => t3lib_div::linkThisScript(array()))))).'">';
-			$out.= '<img '. t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/undelete_and_edit.gif', 'width="13" height="12"') . ' border="0" alt="undelete and edit">';
+			$out.= t3lib_iconWorks::getSpriteIcon('actions-edit-restore-edit', array('title' => 'undelete and edit')) . '</a>';
 		}
 		$_params = array($table=>$row);
 		if (is_array($this->hookArray['additionalButtons']))	{
@@ -812,6 +832,7 @@ class t3lib_fullsearch {
 					$theList .= $this->getTreeList($row['uid'], $depth-1, $begin-1, $perms_clause);
 				}
 			}
+			$GLOBALS['TYPO3_DB']->sql_free_result($res);
 		}
 		return $theList;
 	}
@@ -917,6 +938,7 @@ class t3lib_fullsearch {
 								}
 							}
 						}
+						$GLOBALS['TYPO3_DB']->sql_free_result($res);
 					}
 				}
 			} else {
@@ -988,6 +1010,7 @@ class t3lib_fullsearch {
 						while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 							$this->tableArray[$from_table][] = $row;
 						}
+						$GLOBALS['TYPO3_DB']->sql_free_result($res);
 					}
 					reset($this->tableArray[$from_table]);
 					foreach ($this->tableArray[$from_table] as $key => $val) {
@@ -1064,7 +1087,7 @@ class t3lib_fullsearch {
 			// Close header row
 		$tableHeader[] = '</tr></thead>';
 
-		return implode($tableHeader, chr(10));
+		return implode($tableHeader, LF);
 	}
 
 	/**

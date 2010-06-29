@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -104,10 +104,9 @@ class SC_mod_help_about_index {
 
 		$content='
 			<div id="typo3-mod-help-about-index-php-outer">
-				<img src="'.$BACK_PATH.'gfx/typo3logo.gif" width="123" height="34" vspace="10" alt="'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_help_about.xml:typo3_logo', true).'" />
+				<img' . t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/typo3logo.gif', 'width="123" height="34"') . ' alt="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_help_about.xml:typo3_logo', true) . '" />
 				<div class="typo3-mod-help-about-index-php-inner">
-					<h2>'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_help_about.xml:information', true).'</h2>
-					<h3>'.$LANG->getLL('welcome',1).'</h3>
+					<h2>' . $LANG->getLL('welcome', TRUE) . '</h2>
 					<p>'.$minorText.'</p>
 				</div>
 

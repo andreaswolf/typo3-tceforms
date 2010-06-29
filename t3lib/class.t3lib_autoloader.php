@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2009 Dmitry Dulepov <dmitry@typo3.org>
+*  (c) 2008-2010 Dmitry Dulepov <dmitry@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -107,7 +107,11 @@ class t3lib_autoloader {
 			t3lib_div::requireFile($classPath);
 		} else {
 			try {
-				spl_autoload($className);
+				// Regular expression for a valid classname taken from
+				// http://www.php.net/manual/en/language.oop5.basic.php
+				if (preg_match('/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/', $className)) {
+					spl_autoload($className);
+				}
 			} catch (LogicException $exception) {
 			}
 		}

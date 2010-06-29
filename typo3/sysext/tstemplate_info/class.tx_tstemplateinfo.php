@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -63,9 +63,10 @@ class tx_tstemplateinfo extends t3lib_extobjbase {
 	 * @return	string		A row for a HTML table
 	 */
 	function tableRow($label, $data, $field)	{
-		$ret = '<tr><td class="bgColor4" width="1%">';
-		$ret.= '<a href="index.php?id='.$this->pObj->id.'&e['.$field.']=1"><img '.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/edit2.gif').' width=11 height=12 hspace=3 border=0 title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:editField', true) . '"></a>';
-		$ret.= '</td><td class="bgColor4" width="1%"><b>'.$label.'&nbsp;&nbsp;</b></td><td class="bgColor4" width="99%">'.$data.'&nbsp;</td></tr>';
+		$ret = '<tr><td>';
+		$ret.= '<a href="index.php?id=' . $this->pObj->id . '&e[' . $field . ']=1">' . 
+			t3lib_iconWorks::getSpriteIcon('actions-document-open', array('title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:editField', true))) . '<strong>' . $label . '&nbsp;&nbsp;</strong></a>';
+		$ret .= '</td><td width="80%" class="bgColor4">' . $data . '&nbsp;</td></tr>';
 		return $ret;
 	}
 
@@ -89,7 +90,7 @@ class tx_tstemplateinfo extends t3lib_extobjbase {
 				$functions.= '<td'.$bgcol.' nowrap>';
 				$fI = t3lib_div::split_fileref($v);
 				if (t3lib_div::inList($this->pObj->textExtensions,$fI['fileext']))	{
-					$functions.= '<a href="index.php?id='.$this->pObj->id.'&e[file]='.rawurlencode($v).'"><img '.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/edit2.gif').' width=11 height=12 hspace=3 border=0 title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:editFile', true) . '"></a>';
+					$functions.= '<a href="index.php?id='.$this->pObj->id.'&e[file]='.rawurlencode($v).'">'.t3lib_iconWorks::getSpriteIcon('actions-document-open',array('title'=> $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:editFile', true))) . '</a>';
 				}
 				$functions.= '</td>';
 			}
@@ -339,7 +340,7 @@ class tx_tstemplateinfo extends t3lib_extobjbase {
 			}
 
 			$theOutput.= $this->pObj->doc->spacer(5);
-			$theOutput.= $this->pObj->doc->section($GLOBALS['LANG']->getLL('templateInformation'), '<img '.t3lib_iconWorks::skinImg($BACK_PATH, t3lib_iconWorks::getIcon('sys_template', $tplRow)).' align="top" /> <b>'.htmlspecialchars($tplRow['title']).'</b>'.htmlspecialchars(trim($tplRow['sitetitle'])?' - ('.$tplRow['sitetitle'].')':''), 0, 1);
+			$theOutput.= $this->pObj->doc->section($GLOBALS['LANG']->getLL('templateInformation'), t3lib_iconWorks::getSpriteIconForRecord('sys_template', $tplRow).'<strong>'.htmlspecialchars($tplRow['title']).'</strong>'.htmlspecialchars(trim($tplRow['sitetitle'])?' - ('.$tplRow['sitetitle'].')':''), 0, 1);
 			if ($manyTemplatesMenu)	{
 				$theOutput.= $this->pObj->doc->section('', $manyTemplatesMenu);
 				$theOutput.= $this->pObj->doc->divider(5);
@@ -378,8 +379,8 @@ class tx_tstemplateinfo extends t3lib_extobjbase {
 				$outCode = '<input type="File" name="resources"'.$this->pObj->doc->formWidth().' size="50">';
 				$outCode.= '<input type="Hidden" name="data[resources]" value="1">';
 				$outCode.= '<input type="Hidden" name="e[resources]" value="1">';
-				$outCode.= '<BR>' . $GLOBALS['LANG']->getLL('allowedExtensions') . ' <b>' . $TCA['sys_template']['columns']['resources']['config']['allowed'] . '</b>';
-				$outCode.= '<BR>' . $GLOBALS['LANG']->getLL('maxFilesize') . ' <b>' . t3lib_div::formatSize($TCA['sys_template']['columns']['resources']['config']['max_size']*1024) . '</b>';
+				$outCode.= '<BR>' . $GLOBALS['LANG']->getLL('allowedExtensions') . ' <strong>' . $TCA['sys_template']['columns']['resources']['config']['allowed'] . '</strong>';
+				$outCode.= '<BR>' . $GLOBALS['LANG']->getLL('maxFilesize') . ' <strong>' . t3lib_div::formatSize($TCA['sys_template']['columns']['resources']['config']['max_size']*1024) . '</strong>';
 				$theOutput.= $this->pObj->doc->spacer(15);
 				$theOutput.= $this->pObj->doc->section($GLOBALS['LANG']->getLL('uploadResource'), $outCode);
 
@@ -423,7 +424,7 @@ class tx_tstemplateinfo extends t3lib_extobjbase {
 				if (@is_file($path) && t3lib_div::inList($this->pObj->textExtensions, $fI['fileext']))	{
 					if (filesize($path) < $TCA['sys_template']['columns']['resources']['config']['max_size']*1024)	{
 						$fileContent = t3lib_div::getUrl($path);
-						$outCode = $GLOBALS['LANG']->getLL('file'). ' <b>' . $e[file] . '</b><BR>';
+						$outCode = $GLOBALS['LANG']->getLL('file'). ' <strong>' . $e[file] . '</strong><BR>';
 						$outCode.= '<textarea name="edit[file]" rows="'.$numberOfRows.'" wrap="off" class="fixed-font enable-tab"'.$this->pObj->doc->formWidthText(48, 'width:98%;height:70%', 'off').' class="fixed-font">'.t3lib_div::formatForTextarea($fileContent).'</textarea>';
 						$outCode.= '<input type="Hidden" name="edit[filename]" value="'.$e[file].'">';
 						$outCode.= '<input type="Hidden" name="e[file]" value="'.htmlspecialchars($e[file]).'">';
@@ -451,7 +452,7 @@ class tx_tstemplateinfo extends t3lib_extobjbase {
 						'formName' => 'editForm',
 						'itemName' => 'data[config]',
 					);
-					$outCode.= '<a href="#" onClick="vHWin=window.open(\''.$url.t3lib_div::implodeArrayForUrl('', array('P' => $params)).'\',\'popUp'.$md5ID.'\',\'height=500,width=780,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;"><img '.t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/wizard_tsconfig.gif').' width="22" height="27" border="0" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:tsRef', true) . '"></a>';
+					$outCode.= '<a href="#" onClick="vHWin=window.open(\''.$url.t3lib_div::implodeArrayForUrl('', array('P' => $params)).'\',\'popUp'.$md5ID.'\',\'height=500,width=780,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;">'.t3lib_iconWorks::getSpriteIcon('actions-system-typoscript-documentation-open', array('title'=> $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:tsRef', true))) . '</a>';
 				}
 
 				$outCode.= '<input type="Hidden" name="e[config]" value="1">';
@@ -484,26 +485,21 @@ class tx_tstemplateinfo extends t3lib_extobjbase {
 			);
 			$outCode.= $this->tableRow(
 				$GLOBALS['LANG']->getLL('constants'),
-				sprintf($GLOBALS['LANG']->getLL('editToView'), (trim($tplRow[constants]) ? count(explode(chr(10), $tplRow[constants])) : 0)),
+				sprintf($GLOBALS['LANG']->getLL('editToView'), (trim($tplRow[constants]) ? count(explode(LF, $tplRow[constants])) : 0)),
 				'constants'
 			);
 			$outCode.= $this->tableRow(
 				$GLOBALS['LANG']->getLL('setup'),
-				sprintf($GLOBALS['LANG']->getLL('editToView'), (trim($tplRow[config]) ? count(explode(chr(10), $tplRow[config])) : 0)),
+				sprintf($GLOBALS['LANG']->getLL('editToView'), (trim($tplRow[config]) ? count(explode(LF, $tplRow[config])) : 0)),
 				'config'
 			);
-			$outCode = '<table border=0 cellpadding=1 cellspacing=1 width="100%">'.$outCode.'</table>';
-
-			$outCode = '<table border=0 cellpadding=0 cellspacing=0>
-				<tr><td class="bgColor2">'.$outCode.'<img src=clear.gif width=465 height=1></td></tr>
-			</table>';
+			$outCode = '<br /><br /><table class="t3-table-info">' . $outCode . '</table>';
 
 				// Edit all icon:
 			$outCode.= '<br /><a href="#" onClick="' . t3lib_BEfunc::editOnClick(rawurlencode('&createExtension=0') .
-				'&amp;edit[sys_template][' . $tplRow['uid'] . ']=edit', $BACK_PATH, '') . '"><strong><img ' .
-				t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/edit2.gif') .' width="11" height="12" hspace="3" border="0" title="' .
-				$GLOBALS['LANG']->getLL('editTemplateRecord') . '">' . $GLOBALS['LANG']->getLL('editTemplateRecord') . '</strong></a>';
-			$theOutput.= $this->pObj->doc->spacer(25);
+				'&amp;edit[sys_template][' . $tplRow['uid'] . ']=edit', $BACK_PATH, '') . '"><strong>' .
+				t3lib_iconWorks::getSpriteIcon('actions-document-open', array('title'=> 
+				$GLOBALS['LANG']->getLL('editTemplateRecord') ))  . $GLOBALS['LANG']->getLL('editTemplateRecord') . '</strong></a>';
 			$theOutput.= $this->pObj->doc->section('', $outCode);
 
 

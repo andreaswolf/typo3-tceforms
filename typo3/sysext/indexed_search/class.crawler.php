@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2001-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2001-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -641,6 +641,15 @@ class tx_indexedsearch_crawler {
 		$indexerObj->indexExternalUrl($url);
 		$url_qParts = parse_url($url);
 
+		$baseAbsoluteHref = $url_qParts['scheme'] . '://' . $url_qParts['host'];
+		$baseHref = $indexerObj->extractBaseHref($indexerObj->indexExternalUrl_content);
+		if (!$baseHref) {
+				// Extract base href from current URL
+			$baseHref = $baseAbsoluteHref;
+			$baseHref .= substr($url_qParts['path'], 0, strrpos($url_qParts['path'], '/'));
+		}
+		$baseHref = rtrim($baseHref, '/');
+
 			// Get URLs on this page:
 		$subUrls = array();
 		$list = $indexerObj->extractHyperLinks($indexerObj->indexExternalUrl_content);
@@ -653,7 +662,12 @@ class tx_indexedsearch_crawler {
 
 			$qParts = parse_url($subUrl);
 			if (!$qParts['scheme'])	{
-				$subUrl = $url_qParts['scheme'].'://'.$url_qParts['host'].'/'.t3lib_div::resolveBackPath($subUrl);
+				$relativeUrl = t3lib_div::resolveBackPath($subUrl);
+				if ($relativeUrl{0} === '/') {
+					$subUrl = $baseAbsoluteHref . $relativeUrl;
+				} else {
+					$subUrl = $baseHref . '/' . $relativeUrl;
+				}
 			}
 
 			$subUrls[] = $subUrl;
@@ -700,18 +714,15 @@ class tx_indexedsearch_crawler {
 
 			// Indexing the record as a page (but with parameters set, see ->backend_setFreeIndexUid())
 		$indexerObj->backend_indexAsTYPO3Page(
-			strip_tags($theTitle),
+			strip_tags(str_replace('<', ' <', $theTitle)),
 			'',
 			'',
-			strip_tags($theContent),
+			strip_tags(str_replace('<', ' <', $theContent)),
 			$GLOBALS['LANG']->charSet,	// Requires that
 			$r[$GLOBALS['TCA'][$cfgRec['table2index']]['ctrl']['tstamp']],
 			$r[$GLOBALS['TCA'][$cfgRec['table2index']]['ctrl']['crdate']],
 			$r['uid']
 		);
-
-		#echo print_r($indexerObj->internal_log);
-		#echo print_r($indexerObj->contentParts);
 	}
 
 	/**
@@ -791,10 +802,10 @@ class tx_indexedsearch_crawler {
 	 */
 	function checkDeniedSuburls($url, $url_deny)	{
 		if (trim($url_deny))	{
-			$url_denyArray = t3lib_div::trimExplode(chr(10),$url_deny,1);
+			$url_denyArray = t3lib_div::trimExplode(LF,$url_deny,1);
 			foreach($url_denyArray as $testurl)	{
 				if (t3lib_div::isFirstPartOfStr($url,$testurl))	{
-					echo $url.' /// '.$url_deny.chr(10);
+					echo $url.' /// '.$url_deny.LF;
 					return TRUE;
 				}
 			}

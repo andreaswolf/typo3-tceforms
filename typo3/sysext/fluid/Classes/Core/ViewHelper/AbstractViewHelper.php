@@ -23,7 +23,7 @@
 /**
  * The abstract base class for all view helpers.
  *
- * @version $Id: AbstractViewHelper.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: AbstractViewHelper.php 2043 2010-03-16 08:49:45Z sebastian $
  * @package Fluid
  * @subpackage Core\ViewHelper
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
@@ -79,18 +79,18 @@ abstract class Tx_Fluid_Core_ViewHelper_AbstractViewHelper implements Tx_Fluid_C
 	protected $viewHelperVariableContainer;
 
 	/**
-	 * If the ObjectAccessorPostProcessor should be disabled inside this ViewHelper, then set this value to FALSE.
-	 * This is internal and NO part of the API. It is very likely to change.
-	 *
-	 * @var boolean
-	 */
-	protected $objectAccessorPostProcessorEnabled = TRUE;
-
-	/**
 	 * Reflection service
 	 * @var Tx_Extbase_Reflection_Service
 	 */
 	private $reflectionService;
+
+	/**
+	 * With this flag, you can disable the escaping interceptor inside this ViewHelper.
+	 * THIS MIGHT CHANGE WITHOUT NOTICE, NO PUBLIC API!
+	 * @var boolean
+	 * @internal
+	 */
+	protected $escapingInterceptorEnabled = TRUE;
 
 	/**
 	 * @param Tx_Fluid_Core_ViewHelper_Arguments $arguments
@@ -138,14 +138,15 @@ abstract class Tx_Fluid_Core_ViewHelper_AbstractViewHelper implements Tx_Fluid_C
 	}
 
 	/**
-	 * Returns TRUE if the object accessor post processor should be disabled inside this ViewHelper.
-	 * This is internal and NO part of the API. It is very likely to change.
+	 * Returns whether the escaping interceptor should be disabled or enabled inside the tags contents.
 	 *
-	 * @return boolean TRUE if Object accessor post processor is enabled, FALSE if disabled
-	 * @author Sebastian Kurfürst <sebastian@typo3.org>
+	 * THIS METHOD MIGHT CHANGE WITHOUT NOTICE; NO PUBLIC API!
+	 *
+	 * @internal
+	 * @return boolean
 	 */
-	public function isObjectAccessorPostProcessorEnabled() {
-		return $this->objectAccessorPostProcessorEnabled;
+	public function isEscapingInterceptorEnabled() {
+		return $this->escapingInterceptorEnabled;
 	}
 
 	/**
@@ -291,18 +292,18 @@ abstract class Tx_Fluid_Core_ViewHelper_AbstractViewHelper implements Tx_Fluid_C
 
 				if ($type === 'array') {
 					if (!is_array($this->arguments[$argumentName]) && !$this->arguments[$argumentName] instanceof ArrayAccess && !$this->arguments[$argumentName] instanceof Traversable) {
-						throw new RuntimeException('The argument "' . $argumentName . '" was registered with type "array", but is of type "' . gettype($this->arguments[$argumentName]) . '" in view helper "' . get_class($this) . '". Value of argument: "' . strval($this->arguments[$argumentName]) . '"', 1237900529);
+						throw new InvalidArgumentException('The argument "' . $argumentName . '" was registered with type "array", but is of type "' . gettype($this->arguments[$argumentName]) . '" in view helper "' . get_class($this) . '"', 1237900529);
 					}
 				} elseif ($type === 'boolean') {
 					if (!is_bool($this->arguments[$argumentName])) {
-						throw new RuntimeException('The argument "' . $argumentName . '" was registered with type "boolean", but is of type "' . gettype($this->arguments[$argumentName]) . '" in view helper "' . get_class($this) . '".', 1240227732);
+						throw new InvalidArgumentException('The argument "' . $argumentName . '" was registered with type "boolean", but is of type "' . gettype($this->arguments[$argumentName]) . '" in view helper "' . get_class($this) . '".', 1240227732);
 					}
-				} elseif (class_exists($type)) {
+				} elseif (class_exists($type, FALSE)) {
 					if (! ($this->arguments[$argumentName] instanceof $type)) {
 						if (is_object($this->arguments[$argumentName])) {
-							throw new RuntimeException('The argument "' . $argumentName . '" was registered with type "' . $type . '", but is of type "' . get_class($this->arguments[$argumentName]) . '" in view helper "' . get_class($this) . '".', 1256475114);
+							throw new InvalidArgumentException('The argument "' . $argumentName . '" was registered with type "' . $type . '", but is of type "' . get_class($this->arguments[$argumentName]) . '" in view helper "' . get_class($this) . '".', 1256475114);
 						} else {
-							throw new RuntimeException('The argument "' . $argumentName . '" was registered with type "' . $type . '", but is of type "' . gettype($this->arguments[$argumentName]) . '" in view helper "' . get_class($this) . '".', 1256475113);
+							throw new InvalidArgumentException('The argument "' . $argumentName . '" was registered with type "' . $type . '", but is of type "' . gettype($this->arguments[$argumentName]) . '" in view helper "' . get_class($this) . '".', 1256475113);
 						}
 					}
 				}

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Susanne Moog <typo3@susanne-moog.de>
+*  (c) 1999-2010 Susanne Moog <typo3@susanne-moog.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -132,7 +132,12 @@ class tx_coreupdates_cscsplit {
 							$includedTemplates[$j] = 'EXT:css_styled_content/static/v4.2/';
 							$templateNeedsUpdate = true;
 						}
-					} elseif ($compatVersion == $currentVersion || $compatVersion > '4.2') {
+					} elseif ($compatVersion <= t3lib_div::int_from_ver('4.3')) {
+						if ($includedTemplates[$j] != 'EXT:css_styled_content/static/v4.3/') {
+							$includedTemplates[$j] = 'EXT:css_styled_content/static/v4.3/';
+							$templateNeedsUpdate = true;
+						}
+					} elseif ($compatVersion === $currentVersion || $compatVersion > '4.3') {
 						if ($includedTemplates[$j] != 'EXT:css_styled_content/static/') {
 							$includedTemplates[$j] = 'EXT:css_styled_content/static/';
 							$templateNeedsUpdate = true;

@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2009 Benjamin Mack <mack@xnos.org>
+*  (c) 2008-2010 Benjamin Mack <mack@xnos.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -39,15 +39,14 @@ var OpenDocs = Class.create({
 	initialize: function() {
 		Event.observe(window, 'resize', this.positionMenu);
 
-		Event.observe(window, 'load', function(){
+		Ext.onReady(function() {
 			this.positionMenu();
-			this.toolbarItemIcon = $$('#tx-opendocs-menu .toolbar-item img')[0].src;
+			this.toolbarItemIcon = $$('#tx-opendocs-menu .toolbar-item span.t3-icon')[0];
 			this.ajaxScript      = top.TS.PATH_typo3 + this.ajaxScript; // can't be initialized earlier
 
 			Event.observe($$('#tx-opendocs-menu .toolbar-item')[0], 'click', this.toggleMenu);
 			this.menu = $$('#tx-opendocs-menu .toolbar-item-menu')[0];
-			this.toolbarItemIcon = $$('#shortcut-menu .toolbar-item img')[0].src;
-		}.bindAsEventListener(this));
+		}, this);
 	},
 
 	/**
@@ -56,7 +55,8 @@ var OpenDocs = Class.create({
 	positionMenu: function() {
 		var calculatedOffset = 0;
 		var parentWidth      = $('tx-opendocs-menu').getWidth();
-		var ownWidth         = $$('#tx-opendocs-menu .toolbar-item-menu')[0].getWidth();
+		var currentToolbarItemLayer = $$('#tx-opendocs-menu .toolbar-item-menu')[0];
+		var ownWidth         = currentToolbarItemLayer.getWidth();
 		var parentSiblings   = $('tx-opendocs-menu').previousSiblings();
 
 		parentSiblings.each(function(toolbarItem) {
@@ -70,6 +70,10 @@ var OpenDocs = Class.create({
 		});
 		calculatedOffset = calculatedOffset - ownWidth + parentWidth;
 
+			// border correction
+		if (currentToolbarItemLayer.getStyle('display') !== 'none') {
+			calculatedOffset += 2;
+		}
 
 		$$('#tx-opendocs-menu .toolbar-item-menu')[0].setStyle({
 			left: calculatedOffset + 'px'
@@ -162,4 +166,3 @@ var OpenDocs = Class.create({
 });
 
 var TYPO3BackendOpenDocs = new OpenDocs();
-

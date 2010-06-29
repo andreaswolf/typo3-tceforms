@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -197,7 +197,7 @@ class t3lib_transferData {
 							if ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
 									// Gets the list of fields to copy from the previous record.
 								$fArr=t3lib_div::trimExplode(',',$TCA[$table]['ctrl']['useColumnsForDefaultValues'],1);
-								while(list(,$theF)=each($fArr))	{
+								foreach ($fArr as $theF) {
 									if (isset($TCA[$table]['columns'][$theF]))	{
 										$newRow[$theF]=$row[$theF];
 									}

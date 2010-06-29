@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -94,14 +94,13 @@ class t3lib_diff {
 		$str1Lines = $this->explodeStringIntoWords($str1);
 		$str2Lines = $this->explodeStringIntoWords($str2);
 
-		$diffRes = $this->getDiff(implode(chr(10),$str1Lines).chr(10),implode(chr(10),$str2Lines).chr(10));
+		$diffRes = $this->getDiff(implode(LF,$str1Lines).LF,implode(LF,$str2Lines).LF);
 
 		if (is_array($diffRes))	{
-			reset($diffRes);
 			$c=0;
 			$diffResArray=array();
 			$differenceStr = '';
-			while(list(,$lValue)=each($diffRes))	{
+			foreach ($diffRes as $lValue) {
 				if (intval($lValue))	{
 					$c=intval($lValue);
 					$diffResArray[$c]['changeInfo']=$lValue;
@@ -143,7 +142,7 @@ class t3lib_diff {
 			}
 			$outString.=$this->addClearBuffer($clearBuffer,1);
 
-			$outString = str_replace('  ',chr(10),$outString);
+			$outString = str_replace('  ',LF,$outString);
 			if (!$this->stripTags)	{
 				$outString = $this->tagSpace($outString,1);
 			}
@@ -203,10 +202,9 @@ class t3lib_diff {
 	 * @access private
 	 */
 	function explodeStringIntoWords($str)	{
-		$strArr = t3lib_div::trimExplode(chr(10),$str);
+		$strArr = t3lib_div::trimExplode(LF,$str);
 		$outArray=array();
-		reset($strArr);
-		while(list(,$lineOfWords)=each($strArr))	{
+		foreach ($strArr as $lineOfWords) {
 			$allWords = t3lib_div::trimExplode(' ',$lineOfWords,1);
 			$outArray = array_merge($outArray,$allWords);
 			$outArray[]='';

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -183,23 +183,15 @@ class WorkspaceSelector implements backend_toolbarItem {
 		$availableWorkspaces = $this->getAvailableWorkspaces();
 		$workspaceMenu       = array();
 
-		$stateCheckedIcon = '<img' . t3lib_iconWorks::skinImg(
-			$this->backPath,
-			'gfx/state_checked.png',
-			'width="16" height="16"') .
-			' title="' . $GLOBALS['LANG']->getLL('shortcut_active') .
-			'" alt="' . $GLOBALS['LANG']->getLL('shortcut_active') . '" class="state-active" />';
-		$stateUncheckedIcon = '<img src="clear.gif" width="16" height="16"
-			title="' . $GLOBALS['LANG']->getLL('shortcut_inactive') .
-			'" alt="' . $GLOBALS['LANG']->getLL('shortcut_inactive') . '" class="state-inactive" />';
+		$stateCheckedIcon = t3lib_iconWorks::getSpriteIcon('status-status-checked');
 
+		$stateUncheckedIcon = t3lib_iconWorks::getSpriteIcon('empty-empty', array(
+			'title' => $GLOBALS['LANG']->getLL('shortcut_inactive')
+		));
 
-		$workspaceMenu[] = '<a href="#" class="toolbar-item"><img' .
-			t3lib_iconWorks::skinImg(
-				$this->backPath,
-				'gfx/i/sys_workspace.png',
-				'width="16" height="16"') .
-			' title="' . $title . '" alt="' . $title . '" /></a>';
+		$workspaceMenu[] = '<a href="#" class="toolbar-item">' .
+			t3lib_iconWorks::getSpriteIcon('apps-toolbar-menu-workspace', array('title' => $title)) . 
+				'</a>';
 		$workspaceMenu[] = '<ul class="toolbar-item-menu" style="display: none;">';
 
 		if (count($availableWorkspaces)) {
@@ -240,7 +232,7 @@ class WorkspaceSelector implements backend_toolbarItem {
 
 		$workspaceMenu[] = '</ul>';
 
-		return implode("\n", $workspaceMenu);
+		return implode(LF, $workspaceMenu);
 	}
 
 	/**

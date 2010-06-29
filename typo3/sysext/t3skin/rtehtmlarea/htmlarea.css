@@ -1,31 +1,32 @@
 /* Selectors for the htmlArea RTE editor */
 .htmlarea {
-	background-color:#EFEFF4;
- 	margin:0 2px 0 0;padding:0;
+ 	margin: 0 2px 0 0;
+ 	padding: 0;
 }
 .pleasewait {
- 	position:relative;
+ 	position: relative;
  	margin-top:30px;
  	padding: 20px 0 20px 50px;
  	font-size: 11px !important;
- 	text-align:left;
-	background: url('images/loading.gif') no-repeat 10px center;
+ 	text-align: left;
+	background: url("images/status/loading.gif") no-repeat 10px center;
 	vertical-align: middle;
 	color: #7F8083;
 }
 .editorWrap {
- 	margin:0;padding:0;
+ 	margin: 0;
+ 	margin-top: 2px;
+ 	padding: 0;
 }
 .editorWrap textarea {
-	border: 1px solid #A2AAB8;
 	border-style:solid;
-	border-color:#A2AAB8;
+	border-color:#C7C7C7;
 	border-width:0px 1px 1px 1px;
 	padding:0px 1px;
 	margin:0;
 }
 .editorWrap .resizable {
-	background-image: url("images/resize.gif");
+	background-image: url("images/status/resizable.gif");
 	background-position: bottom right;
 	background-repeat: no-repeat;
 }
@@ -35,11 +36,12 @@
 }
 /* Selectors for the editor toolbar */
 .htmlarea .toolbar {
-	background-color:#EFEFF4;cursor:default;
-	border:1px solid #EFEFF4;
-	border-bottom:0px;
-	margin:0;
-	padding:2px 0px;
+	background-color: #f3f3f3;
+	cursor: default;
+	border: 1px solid #c7c7c7;
+	border-bottom: 0;
+	margin: 0;
+	padding: 2px;
 	font-family: Verdana, Helvetica, Geneva, Arial, sans-serif;
 }
 .htmlarea .toolbar .tb-group {
@@ -58,131 +60,103 @@
 	border-style:none;
 	margin:0;padding:3px 3px 0px 3px;
 }
+/* Fix combo box left loat in IE6 */
+body.ext-ie6 .htmlarea .toolbar .x-form-item {
+	width: 1%;
+}
 .htmlarea .toolbar .button {
-	background-color:transparent;color:ButtonText;background-position:10px 0px;background-repeat:no-repeat;
-	width:22px;height:22px;
-	border-style:solid;border-color:#EFEFF4;border-width:1px;
-	margin:0 0 1px 0;padding:0;
-	float:left;
+	background-color: transparent;
+	color: ButtonText;
+	border-style: solid;
+	border-width: 1px;
+	border-color: transparent;
+	border-collapse: separate;
+	margin: 0 0 4px 0;
+	padding: 0;
+	float: left;
 }
-.htmlarea .toolbar .x-btn-mc, .htmlarea .toolbar .x-btn-ml, .htmlarea .toolbar .x-btn-mr, .htmlarea .toolbar .x-btn-tc, .htmlarea .toolbar .x-btn-tl, .htmlarea .toolbar .x-btn-tr, .htmlarea .toolbar .x-btn-bl, .htmlarea .toolbar .x-btn-bc, .htmlarea .toolbar .x-btn-br {
-	background-color:transparent;background-image:none;
-	border-style:none;
-	margin:0;padding:0;
+/* fixing button border-color in IE6 */
+body.ext-ie6 .htmlarea .toolbar .button {
+	border-color: #f3f3f3;
 }
-.htmlarea .toolbar .BiDiOverride, .htmlarea-context-menu .BiDiOverride {background-image:url("images/InlineElements/bidioverride.gif");}
-.htmlarea .toolbar .Big, .htmlarea-context-menu .Big {background-image:url("images/InlineElements/big.gif");}
-.htmlarea .toolbar .Bold, .htmlarea-context-menu .Bold {background-image:url("images/InlineElements/bold.gif");}
-.htmlarea .toolbar .Citation, .htmlarea-context-menu .Citation {background-image:url("images/InlineElements/citation.gif");}
-.htmlarea .toolbar .Code, .htmlarea-context-menu .Code {background-image:url("images/InlineElements/code.gif");}
-.htmlarea .toolbar .Definition, .htmlarea-context-menu .Definition {background-image:url("images/InlineElements/definition.gif");}
-.htmlarea .toolbar .DeletedText, .htmlarea-context-menu .DeletedText {background-image:url("images/InlineElements/deletedtext.gif");}
-.htmlarea .toolbar .Emphasis, .htmlarea-context-menu .Emphasis {background-image:url("images/InlineElements/emphasis.gif");}
-.htmlarea .toolbar .InsertedText, .htmlarea-context-menu .InsertedText {background-image:url("images/InlineElements/insertedtext.gif");}
-.htmlarea .toolbar .Italic, .htmlarea-context-menu .Italic {background-image:url("images/InlineElements/italic.gif");}
-.htmlarea .toolbar .Keyboard, .htmlarea-context-menu .Keyboard {background-image:url("images/InlineElements/keyboard.gif");}
-.htmlarea .toolbar .MonoSpaced, .htmlarea-context-menu .MonoSpaced {background-image:url("images/InlineElements/monospaced.gif");}
-.htmlarea .toolbar .Quotation, .htmlarea-context-menu .Quotation {background-image:url("images/InlineElements/quotation.gif");}
-.htmlarea .toolbar .Sample, .htmlarea-context-menu .Sample {background-image:url("images/InlineElements/sample.gif");}
-.htmlarea .toolbar .Small, .htmlarea-context-menu .Small {background-image:url("images/InlineElements/small.gif");}
-.htmlarea .toolbar .Span, .htmlarea-context-menu .Span {background-image:url("images/InlineElements/span.gif");}
-.htmlarea .toolbar .StrikeThrough, .htmlarea-context-menu .StrikeThrough {background-image:url("images/InlineElements/strikethrough.gif");}
-.htmlarea .toolbar .Strong, .htmlarea-context-menu .Strong {background-image:url("images/InlineElements/strong.gif");}
-.htmlarea .toolbar .Subscript, .htmlarea-context-menu .Subscript {background-image:url("images/InlineElements/subscript.gif");}
-.htmlarea .toolbar .Superscript, .htmlarea-context-menu .Superscript {background-image:url("images/InlineElements/superscript.gif");}
-.htmlarea .toolbar .Underline, .htmlarea-context-menu .Underline {background-image:url("images/InlineElements/underline.gif");}
-.htmlarea .toolbar .Variable, .htmlarea-context-menu .Variable {background-image:url("images/InlineElements/variable.gif");}
-.htmlarea .toolbar .LeftToRight, .htmlarea-context-menu .LeftToRight {background-image:url("images/ed_left_to_right.gif");}
-.htmlarea .toolbar .RightToLeft, .htmlarea-context-menu .RightToLeft {background-image:url("images/ed_right_to_left.gif");}
-.htmlarea .toolbar .ShowLanguageMarks, .htmlarea-context-menu .ShowLanguageMarks {background-image:url("images/show-language-marks.gif");}
-.htmlarea .toolbar .Indent, .htmlarea-context-menu .Indent {background-image:url("images/BlockElements/indent.gif");}
-.htmlarea .toolbar .Outdent, .htmlarea-context-menu .Outdent {background-image:url("images/BlockElements/outdent.gif");}
-.htmlarea .toolbar .Blockquote, .htmlarea-context-menu .Blockquote {background-image:url("images/BlockElements/blockquote.gif");}
-.htmlarea .toolbar .InsertParagraphBefore, .htmlarea-context-menu .InsertParagraphBefore {background-image:url("images/BlockElements/insertParagraphBefore.gif");}
-.htmlarea .toolbar .InsertParagraphAfter, .htmlarea-context-menu .InsertParagraphAfter {background-image:url("images/BlockElements/insertParagraphAfter.gif");}
-.htmlarea .toolbar .JustifyLeft, .htmlarea-context-menu .JustifyLeft {background-image:url("images/BlockElements/justifyLeft.gif");}
-.htmlarea .toolbar .JustifyCenter, .htmlarea-context-menu .JustifyCenter {background-image:url("images/BlockElements/justifyCenter.gif");}
-.htmlarea .toolbar .JustifyRight, .htmlarea-context-menu .JustifyRight {background-image:url("images/BlockElements/justifyRight.gif");}
-.htmlarea .toolbar .JustifyFull, .htmlarea-context-menu .JustifyFull {background-image:url("images/BlockElements/justifyFull.gif");}
-.htmlarea .toolbar .DefinitionList, .htmlarea-context-menu .DefinitionList {background-image:url("images/definitionList.gif");}
-.htmlarea .toolbar .DefinitionItem, .htmlarea-context-menu .DefinitionItem {background-image:url("images/definitionItem.gif");}
-.htmlarea .toolbar .InsertOrderedList, .htmlarea-context-menu .InsertOrderedList {background-image:url("images/ed_list_num.gif");}
-.htmlarea .toolbar .InsertUnorderedList, .htmlarea-context-menu .InsertUnorderedList {background-image:url("images/ed_list_bullet.gif");}
-.htmlarea .toolbar .InsertHorizontalRule, .htmlarea-context-menu .InsertHorizontalRule {background-image:url("images/BlockElements/insertHorizontalRule.gif");}
-.htmlarea .toolbar .ForeColor, .htmlarea-context-menu .ForeColor, .htmlarea-window .ForeColor {background-image:url("images/ed_color_fg.gif");}
-.htmlarea .toolbar .HiliteColor, .htmlarea-context-menu .HiliteColor, .htmlarea-window .HiliteColor {background-image:url("images/ed_color_bg.gif");}
-.htmlarea .toolbar .InsertSmiley, .htmlarea-context-menu .InsertSmiley, .htmlarea-window .InsertSmiley {background-image:url("images/InsertSmiley/ed_smiley.gif");}
-.htmlarea .toolbar .InsertCharacter, .htmlarea-context-menu .InsertCharacter, .htmlarea-window .InsertCharacter {background-image:url("images/CharacterMap/ed_charmap.gif");}
-.htmlarea .toolbar .CreateLink, .htmlarea-context-menu .CreateLink, .htmlarea-window .CreateLink {background-image:url("images/ed_link.gif");}
-.htmlarea .toolbar .UnLink, .htmlarea-context-menu .UnLink {background-image:url("images/ed_unlink.gif");}
-.htmlarea .toolbar .InsertImage, .htmlarea-context-menu .InsertImage, .htmlarea-window .InsertImage {background-image:url("images/ed_image.gif");}
-.htmlarea .toolbar .InsertTable, .htmlarea-context-menu .InsertTable, .htmlarea-window .InsertTable {background-image:url("images/insert_table.gif");}
-.htmlarea .toolbar .UserElements, .htmlarea-context-menu .UserElements, .htmlarea-window .UserElements {background-image:url("images/UserElements/ed_user.gif");}
-.htmlarea .toolbar .FindReplace, .htmlarea-context-menu .FindReplace, .htmlarea-window .FindReplace {background-image:url("images/FindReplace/ed_find.gif");}
-.htmlarea .toolbar .SpellCheck, .htmlarea-context-menu .SpellCheck, .htmlarea-window .SpellCheck {background-image:url("images/SpellChecker/spell-check.gif"); }
-.htmlarea .toolbar .InsertTag, .htmlarea-context-menu .InsertTag, .htmlarea-window .InsertTag {background-image:url("images/QuickTag/ed_quicktag.gif"); }
-.htmlarea .toolbar .Acronym, .htmlarea-context-menu .Acronym, .htmlarea-window .Acronym {background-image:url("images/Acronym/ed_acronym.gif"); }
-.htmlarea .toolbar .RemoveFormat, .htmlarea-context-menu .RemoveFormat, .htmlarea-window .RemoveFormat {background-image:url("images/RemoveFormat/ed_clean.gif"); }
-.htmlarea .toolbar .SplitBlock {background-image:url("images/ed_splitblock.gif"); }
-.htmlarea .toolbar .TextMode, .htmlarea-context-menu .TextMode {background-image:url("images/ed_html.gif"); }
-.htmlarea .toolbar .Copy, .htmlarea-context-menu .Copy {background-image:url("images/ed_copy.gif");}
-.htmlarea .toolbar .Cut, .htmlarea-context-menu .Cut  {background-image:url("images/ed_cut.gif");}
-.htmlarea .toolbar .Paste, .htmlarea-context-menu .Paste {background-image:url("images/ed_paste.gif");}
-.htmlarea-context-menu .DeleteTarget {background-image:url("images/ed_delete.gif");}
-.htmlarea .toolbar .Undo, .htmlarea-context-menu .Undo {background-image:url("images/ed_undo.gif");}
-.htmlarea .toolbar .Redo, .htmlarea-context-menu .Redo {background-image:url("images/ed_redo.gif");}
-.htmlarea .toolbar .About, .htmlarea-context-menu .About, .htmlarea-window .About {background-image:url("images/ed_about.gif");}
-.htmlarea .toolbar .ShowHelp { background-image:url("images/TYPO3ViewHelp/module_help.gif");}
-.htmlarea .toolbar .TO-toggle-borders, .htmlarea-context-menu .TO-toggle-borders {background-image:url("images/TableOperations/toggle-borders.gif");}
-.htmlarea .toolbar .TO-table-prop, .htmlarea-context-menu .TO-table-prop, .htmlarea-window .TO-table-prop {background-image:url("images/TableOperations/table-prop.gif");}
-.htmlarea .toolbar .TO-table-restyle, .htmlarea-context-menu .TO-table-restyle {background-image:url("images/TableOperations/table-restyle.gif");}
-.htmlarea .toolbar .TO-row-prop, .htmlarea-context-menu .TO-row-prop, .htmlarea-window .TO-row-prop {background-image:url("images/TableOperations/row-prop.gif");}
-.htmlarea .toolbar .TO-row-insert-above, .htmlarea-context-menu .TO-row-insert-above {background-image:url("images/TableOperations/row-insert-above.gif");}
-.htmlarea .toolbar .TO-row-insert-under, .htmlarea-context-menu .TO-row-insert-under {background-image:url("images/TableOperations/row-insert-under.gif");}
-.htmlarea .toolbar .TO-row-delete, .htmlarea-context-menu .TO-row-delete {background-image:url("images/TableOperations/row-delete.gif");}
-.htmlarea .toolbar .TO-row-split, .htmlarea-context-menu .TO-row-split {background-image:url("images/TableOperations/row-split.gif");}
-.htmlarea .toolbar .TO-col-prop, .htmlarea-context-menu .TO-col-prop, .htmlarea-window .TO-col-prop {background-image:url("images/TableOperations/col-prop.gif");}
-.htmlarea .toolbar .TO-col-insert-before, .htmlarea-context-menu .TO-col-insert-before {background-image:url("images/TableOperations/col-insert-before.gif");}
-.htmlarea .toolbar .TO-col-insert-after, .htmlarea-context-menu .TO-col-insert-after {background-image:url("images/TableOperations/col-insert-after.gif");}
-.htmlarea .toolbar .TO-col-delete, .htmlarea-context-menu .TO-col-delete {background-image:url("images/TableOperations/col-delete.gif");}
-.htmlarea .toolbar .TO-col-split, .htmlarea-context-menu .TO-col-split {background-image:url("images/TableOperations/col-split.gif");}
-.htmlarea .toolbar .TO-cell-prop, .htmlarea-context-menu .TO-cell-prop, .htmlarea-window .TO-cell-prop {background-image:url("images/TableOperations/cell-prop.gif");}
-.htmlarea .toolbar .TO-cell-insert-before, .htmlarea-context-menu .TO-cell-insert-before {background-image:url("images/TableOperations/cell-insert-before.gif");}
-.htmlarea .toolbar .TO-cell-insert-after, .htmlarea-context-menu .TO-cell-insert-after {background-image:url("images/TableOperations/cell-insert-after.gif");}
-.htmlarea .toolbar .TO-cell-delete, .htmlarea-context-menu .TO-cell-delete {background-image:url("images/TableOperations/cell-delete.gif");}
-.htmlarea .toolbar .TO-cell-split, .htmlarea-context-menu .TO-cell-split {background-image:url("images/TableOperations/cell-split.gif");}
-.htmlarea .toolbar .TO-cell-merge, .htmlarea-context-menu .TO-cell-merge {background-image:url("images/TableOperations/cell-merge.gif");}
+.htmlarea .toolbar .x-btn-mc {
+	background-color: transparent;
+	background-image: none;
+	border-style: none;
+	margin: 0;
+	padding: 0;
+}
+.htmlarea .toolbar .x-btn-tl,
+.htmlarea .toolbar .x-btn-tc,
+.htmlarea .toolbar .x-btn-tr,
+.htmlarea .toolbar .x-btn-ml,
+.htmlarea .toolbar .x-btn-mr,
+.htmlarea .toolbar .x-btn-bl,
+.htmlarea .toolbar .x-btn-bc,
+.htmlarea .toolbar .x-btn-br {
+	display: none;
+}
+.htmlarea .toolbar .x-btn-text {
+	background-image: url("images/sprites/actions.png");
+	background-repeat: no-repeat;
+	width: 20px;
+	height: 18px;
+	padding: 0;
+	margin: 1px 0 1px 2px;
+}
+body.ext-ie6 .htmlarea .toolbar .x-btn-text {
+	background-image: url("images/sprites/actions.gif");
+}
+/* fixing button background-color and border-color in IE6 */
+body.ext-ie6 .htmlarea .toolbar .buttonHover,
 .htmlarea .toolbar .buttonHover {
-	border:1px solid;border-color:white #C5C5D5 #C5C5D5 white;
+	border-style: solid;
+	border-width: 1px;
+	border-color: white #C5C5D5 #C5C5D5 white;
 	background-color: #E0E0E9;
+	opacity: 1.00;
 }
-.htmlarea .toolbar .buttonActive, .htmlarea .toolbar .buttonPressed, .htmlarea-context-menu .buttonActive {
-	border:1px solid;border-color:#C5C5D5 white white #C5C5D5;
-	background-color:ButtonHighlight;
-}
-.htmlarea .toolbar .buttonPressed, .htmlarea-context-menu .buttonActive {
-	background-color:ButtonHighlight;
-	text-decoration:none;
+/* fixing button background-color and border-color in IE6 */
+body.ext-ie6 .htmlarea .toolbar .buttonActive,
+body.ext-ie6 .htmlarea .toolbar .buttonPressed,
+body.ext-ie6 .htmlarea-context-menu .buttonActive,
+.htmlarea .toolbar .buttonActive,
+.htmlarea .toolbar .buttonPressed,
+.htmlarea-context-menu .buttonActive {
+	border-style: solid;
+	border-width: 1px;
+	border-color: #C5C5D5 #C5C5D5 #C5C5D5 #C5C5D5;
+	background-color: ButtonHighlight;
+	text-decoration: none;
+	opacity: 1.00;
 }
 .htmlarea .toolbar .indicator {
-	background-color:white;cursor:default;
-	width:20px;overflow:hidden;
-	height:16px;
-	text-align:center;
-	border:1px solid ButtonShadow;
-	margin:3px 1px 4px 1px;padding:0 3px;
-	float:left;
+	cursor: default;
+	background-color: white;
+	width: 20px;
+	height: 16px;
+	overflow: hidden;
+	text-align: center;
+	border: 1px solid ButtonShadow;
+	margin: 3px 1px 5px 1px;
+	padding: 0 3px;
+	float: left;
 }
 .htmlarea .toolbar .buttonDisabled {
 	filter: gray() alpha(opacity=25);
-	-moz-opacity:0.25;
-	opacity:0.25;
+	opacity: 0.25;
+	-moz-opacity: 0.25;
 }
 .htmlarea .toolbar .separator {
-	background-color:transparent;background-image:url(separator.gif);background-repeat:no-repeat;background-position:0;
-	width:7px;height:23px;
-	border:1px solid #EFEFF4;
-	float:left;
+	background-color: transparent;
+	background-image: url("images/separator.gif");
+	background-repeat: no-repeat;
+	background-position: 0 -1px;
+	width: 7px;
+	height: 23px;
+	border: 1px solid #EFEFF4;
+	margin-bottom: 1px;
+	float: left;
 }
 .htmlarea .toolbar .space {
 	background-color:transparent;
@@ -192,12 +166,14 @@
 	float:left;
 }
 .htmlarea .toolbar .select {
-	color:WindowText;
-	font-size:10px;
-	font-family: Verdana, Helvetica, Geneva, Arial, sans-serif;
-	height:18px;
-	border:1px solid #A2AAB8;
-	margin:0 0 3px 0;padding:1px;
+	color: WindowText;
+	margin: 0 0 4px 0;
+}
+.htmlarea .toolbar .x-form-item label.x-form-item-label{
+	padding-right: 0;
+}
+.htmlarea .toolbar .x-form-field-wrap .x-form-trigger {
+	right: 0;
 }
 .htmlarea .toolbar .select, .htmlarea .toolbar .select:hover, .htmlarea .toolbar .select:active {
 	background-color:Window;
@@ -209,21 +185,27 @@
 .htmlarea .editorIframe {
 	clear:both;
 	width:100%;
-	border:1px solid #A2AAB8;border-bottom:1px solid #e4e0db;
+	border:1px solid #c7c7c7;
+	border-bottom: none; 
 	margin:0;padding:0;
 }
 .htmlarea .noStatusBar {
 	border-bottom:1px solid #A2AAB8;
 }
 .htmlarea .statusBar {
-	color:#FFFFFF;
-	background-color:#EFEFF4;background-image:url('alt_menu_mainitem_bg.gif');background-repeat:repeat;
-	font-size:10px;
-	font-family: Verdana, Helvetica, Geneva, Arial, sans-serif;
-	border:1px solid;border-color:#C5C5D5 #A2AAB8 #A2AAB8 #A2AAB8;
+        background-color: #5b5b5b;
+        background-image: url('../../images/backgrounds/row-header.png');
+        background-image: linear-gradient(center top , #7f7f7f 10%, #5b5b5b 100%);
+        background-image: -moz-linear-gradient(center top , #7f7f7f 10%, #5b5b5b 100%);
+        background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0.1, #7f7f7f), color-stop(1, #5b5b5b));
+        background-repeat: repeat-x;
+	color: #FFFFFF;
+	font-size: 10px;
+	border: 1px solid #c7c7c7;
 	margin: 0;
 	padding: 0 3px;
 	line-height: 20px;
+	font-family: Verdana, Helvetica, Geneva, Arial, sans-serif;
 }
 .htmlarea .statusBar .statusBarTree a {
 	color:#FFFFFF;
@@ -238,6 +220,18 @@
 	text-decoration: underline;
 }
 /* Selectors for dialogue windows */
+.htmlarea-window .x-panel-icon {
+	background-image: url("images/sprites/actions.png");
+	background-repeat: no-repeat;
+	margin-top: 2px;
+	height: 22px;
+}
+body.ext-ie6 .htmlarea-window .x-panel-icon {
+	background-image: url("images/sprites/actions.gif");
+}
+.htmlarea-window ul.x-tab-strip {
+	list-style: none;
+}
 .htmlarea-window .x-tab-panel-body {
 	background-color: #EFEFF4;
 }
@@ -245,26 +239,37 @@
 	margin: 3px;
 }
 .htmlarea-window .x-form-item-label {
+	font-size: 10px;
 	text-align: right;
-	vertical-align: middle;
-	padding: 4px 5px 0 5px;
+	margin: 0;
+	padding: 3px 5px 0 5px;
 }
 .htmlarea-window .x-btn-text {
 	font-weight: normal;
 	color: #000000;
 }
-.htmlarea-window .x-form-check-wrap input {
-	vertical-align: middle;
+.htmlarea-window .x-form-check-wrap {
+	padding-top: 3px;
+}
+.htmlarea-window iframe {
+	background-color: #FFF;
+	color: #000;
+	border: 1px solid #A2AAB8;
+}
+.htmlarea-window iframe.content-iframe {
+	background-color: #EFEFF4;
 }
 .htmlarea-window .show-color {
 	margin-top: 10px;
-	margin-left: 5px;
 	border-style: solid;
 	border-width: 1px;
 	border-color: white;
 }
+.htmlarea-custom-colors {
+	height: auto;
+}
 .htmlarea-custom-colors a {
-	border-style: none;
+	border-color: transparent;
 	float: none;
 	display: block;
 	width: 100%;
@@ -278,278 +283,58 @@
 .htmlarea-custom-colors em span {
 	width: 100%;
 }
-.popupwin {
-	color: #212424;background-color:#EFEFF4;
-	font-size:11px;font-family:Verdana, Helvetica, Geneva, Arial, sans-serif;
-	border-style:none;margin:5px;padding:0;
+/* Selectors for the About dialogue */
+.htmlarea-window .about-plugins .x-list-body dt {
+    overflow: auto;
+    white-space: normal;
 }
-.popupwin .title {
-	clear:both;
-	color: #FFFFFF;	background-color: #B8BEC9; background-image: url('alt_menu_mainitem_bg.gif'); background-position: top left; background-repeat: repeat-x;
-	font-weight:bold;font-size:120%;
-	border-top:0px;border-bottom:1px solid #A2AAB8;margin-top:0px;margin-bottom:10px;padding:3px 10px;
-}
-.popupwin p {
-	margin: 0.5em 0;
-}
-.popupwin h1 {
-	font-weight: bold; font-size: 1.1em;
-	padding: .3em 0; border-bottom: 1px solid #999;
-}
-.popupwin a:link, .popupwin a:visited {
-	color: #00f;
-}
-.popupwin a:hover {
-	color: #f00;
-}
-.popupwin a:active {
-	color: #f80;
-}
-.popupwin #tabbar { position: relative; left: 10px; }
-.popupwin .tab {
-	color: #454; background-color: #66f; cursor: pointer;
-	margin-left: -5px; float: left; position: relative; top: -3px; left: -2px; z-index: 0;
-	border: 1px solid black; border-top: none; padding: 2px 10px 3px 10px;
-}
-.popupwin .tab-current {
-	color: #000; background-color: #ddf;
-	top: -4px; z-index: 10;
-	padding: 3px 10px 4px 10px;
-}
-.popupwin .content, .popupwin #content {
-	border-style:none;
-	margin:0;padding:0;
-}
-.popupwin ul {
-	list-style-type:none;
-	border-style:none;margin:0;padding:0;
-}
-.popupwin li {
-	margin:4px 0;
-}
-.popupwin select {
-	display:inline;
-	font-size:11px;font-family:Verdana, Helvetica, Geneva, Arial, sans-serif;
-}
-.popupwin table {
-	border-collapse:collapse;border-style:none;margin:0;padding:0;
-	width:100%;
-}
-.popupwin thead {
-	font-weight: bold; background-color: #ddf;
-}
-.popupwin td {
-	padding: 0.2em;
-}
-.popupwin form {
-	background-color:#EFEFF4;
-	border-style:none;margin:0;padding:0;
-}
-.popupwin form p {
-	margin-top:5px;margin-bottom:5px;
-}
-.popupwin fieldset {
-	display:block;
-	margin:5px 5px 0 5px;padding:0 5px 2px 5px;
-}
-.popupwin fieldset div {
-	margin:3px 0;
-}
-.popupwin .floating {
-	float:left;
-}
-.popupwin legend {
-	font-weight:bold;padding:0 3px;
-}
-.popupwin .field {
-	float:left;text-align:left;
-	margin-left:5px;padding:2px 5px;
-}
-.popupwin label {
-	text-align:left;
-	margin-left:5px;padding:2px 5px;
-}
-.popupwin fieldset table {
-	font-size:1.0em;
-	border-style:none;margin:2px 0px;padding:0;
-}
-.popupwin .buttons {
-	clear:both;text-align:right;
-	border-top:1px solid #999;margin-top:10px;padding:5px;
-}
-.popupwin span.colorButton {
-	float:left;
-	padding:2px 0px;
-}
-.popupwin select, .popupwin input, .popupwin button, .popupwin textarea, .popupwin table, .popupwin label {
-	font-size:1.0em;
-	padding: 3px 1px 1px 1px;
-	font-family:Verdana, Helvetica, Geneva, Arial, sans-serif;
-}
-.popupwin button {
-	width:8em;
-	vertical-align: middle;
-	text-align: center;
-	margin: 0px 3px 0px 0px;
-	padding: 1px;
-}
-.popupwin dl, .popupwin dt, .popupwin dd {
-	display: block;
-}
-.popupwin dt, .popupwin dd {
-	margin:3px 0;
-}
-.popupwin button.long-button {
-	width:10em;
-}
-.popupwin .fl {
-	float:left;text-align:right;
-	width:15em;
-	padding:2px 5px;
-}
-.popupwin .fl-borderCollapse {
-	float:left;text-align:right;
-	width:13em;
-	margin-left:10px;padding:2px 5px;
-}
-.popupwin .fr {
-	float:left;text-align:right;
-	width:13em;
-	padding:2px 5px;
-}
-.popupwin .space {
-	clear:left;
-	padding:2px;
-}
-.popupwin .label {
-	text-align:right;
-	width:8em;
-}
-.popupwin .checkbox {
-	text-align:left;
-	padding:2px 5px;
-}
-.popupwin .postlabel {
-	text-align:left;
-	padding:2px 5px;
-}
-.popupwin input.value {
-	width:30em;
-}
-.popupwin input.shorter-value {
-	width:17em;
-}
-/* Selectors for the Default Image dialogue */
-.htmlarea-default-image #image, .htmlarea-default-image #alt {
-	white-space:nowrap;
-}
-.htmlarea-default-image button.preview {
-	margin-left:5px;vertical-align:top;
-	white-space:normal;
-}
-.htmlarea-default-image div.imagepreview {
-	text-align:center;
-}
-.htmlarea-default-image div.imagepreview iframe {
-	width:300px;height:200px;
-	border:1px solid gray;margin:5px 0px;
-}
-/* Selectors for the Default Link dialogue */
-.htmlarea-default-link #url, .htmlarea-default-link #title {
-	white-space:nowrap;
+/* Selectors for the default image dialogue */
+.htmlarea-window .image-preview {
+    height: 300px;
+    width: 99%;
+    float: right;
 }
 /* Selectors for the InsertSmiley plugin */
 .htmlarea-window .emoticon-array {
 	padding: 10px;
-	width: 150px;
 }
 .htmlarea-window .emoticon {
-    display: block;
-    float: left;
-    padding: 5px;
-    width: 20px;
-    height: 20px;
-    vertical-align: middle;
-}
-/* Selectors for the FindReplace dialogue */
-.htmlarea-find-replace .long-label {
-	text-align:left;
-	width:30em;
+	display: block;
+	float: left;
+	padding: 5px;
+	width: 20px;
+	height: 20px;
+	vertical-align: middle;
 }
 /* Selectors for the CharacterMap dialogue */
-.htmlarea-character-map #selectedCharacter {
-	margin:5px 5px 10px 5px;
-	white-space:nowrap;
+.htmlarea-window .character-map .character {
+	display: block;
+	float: left;
+	width: 20px;
+	font-size: 14px;
+	font-weight: bold;
+	text-align: center;
+	padding: 5px 3px;
+	border: 1px solid transparent;
 }
-.htmlarea-character-map #selectedCharacter div {
-	display:inline;
-}
-.htmlarea-character-map #showcharacter {
-	background-color:#FFF;
-}
-.htmlarea-character-map table {
-	cursor:pointer;
-	background-color:#ADAD9C;
-	border:1px inset;
-}
-.htmlarea-character-map td.character {
-	font-size:14px;font-weight:bold;
-	text-align:center;
-	background-color:#FFF;
-}
-.htmlarea-character-map td.character-hilite {
-	background-color:Highlight;color:HighlightText;
+.htmlarea-window .character-map .character:hover {
+	background-color: #FFFFFF;
+	border: 1px solid #A2AAB8;
 }
 /* Selectors for the SpellChecker dialogue */
-.htmlarea-spell-check .dictionaries {
-	float:right;
-	padding:2px;
+.htmlarea-window .spell-check .controls {
+	text-align: center;
+	width: 175px;
+	margin: 3px;
 }
-.htmlarea-spell-check .dictionaries #v_dictionaries {
-	width:10em;
-	margin-right:5px;
+.htmlarea-window .spell-check .controls .x-btn {
+	margin-top: 3px;
+	margin-left: 8px;
 }
-.htmlarea-spell-check #b_recheck {
-	vertical-align:middle;
-	width:12em;
-}
-.htmlarea-spell-check .status {
-	font-weight:bold;
-	padding:2px;
-}
-.htmlarea-spell-check .controls {
-	width:14em;
-	clear:right;float:left;
-	text-align:center;
-	margin:3px;
-}
-.htmlarea-spell-check .controls .sectitle {
-	font-weight:bold;
-	padding:2px 4px;
-}
-.htmlarea-spell-check .controls .secbody {
-	margin-bottom:10px;
-}
-.htmlarea-spell-check .controls #v_currentWord {
-	color:#F00;font-weight:bold;
-	margin-bottom:2px;
-}
-.htmlarea-spell-check .controls #v_replacement {
-	margin-bottom:3px;
-}
-.htmlarea-spell-check .controls #v_suggestions, .controls #v_replacement {
-	width:12em;
-}
-.htmlarea-spell-check .contentframe {
-	float:right; margin:3px;
-}
-.htmlarea-spell-check .contentframe #i_framecontent {
-	background-color:#FFF;color:#000;
-	height:450px;width:480px;
-}
-.htmlarea-spell-check .occurrences-found {
-	padding:7px 0px 0px 5px;
-	clear:both;
+.htmlarea-window .spell-check .contentframe {
+	float: right;
+	height: 450px;
+	margin: 9px 0px;
 }
 /* Selectors for the ContextMenu plugin */
 .htmlarea-context-menu {
@@ -558,21 +343,177 @@
 	font-family: Verdana, Helvetica, Geneva, Arial, sans-serif;
 	font-size:10px;
 }
+.htmlarea-context-menu ul {
+	list-style: none;
+	margin: 0;
+}
+.htmlarea-context-menu li {
+	margin: 0;
+	padding: 0;
+	border-width: 0;
+}
+.htmlarea-context-menu a {
+	font-weight: normal;
+}
 .htmlarea-context-menu .button {
-	background-color:transparent;
-	background-repeat:no-repeat;
-	background-position:0px 0px;
-	padding-bottom:0;
-	margin-bottom:0;
+	background-color: transparent;
+	margin: 0 2px 0 0;
+	padding-top: 1px;
 }
 .htmlarea-context-menu .separator {
-	border-top:1px solid #A2AAB8;
+	border-top: 1px solid #A2AAB8;
 }
 .htmlarea-context-menu .hover {
-	background-image:url('alt_menu_mainitem_bg.gif');
+	background-image: url("images/alt_menu_mainitem_bg.gif");
 	background-repeat: repeat-x;
-	color:#fff;
-	padding-bottom:0;
-	margin-bottom:0;
-	border-color:#A2AAB8;
+	color: #FFF;
+	margin: 0 2px 0 0;
+	padding-top: 1px;
+	border-color: #A2AAB8;
 }
+.htmlarea-context-menu .x-menu-item-icon {
+	background-image: url("images/sprites/actions.png");
+	background-repeat: no-repeat;
+	margin-top: -2px;
+	margin-left: -2px;
+	width: 18px;
+	height: 18px;
+}
+body.ext-ie6 .htmlarea-context-menu .x-menu-item-icon {
+	background-image: url("images/sprites/actions.gif");
+}
+/* Window status bar selectors */
+.htmlarea-window .status-ready {
+	padding-left: 21px !important;
+	background-repeat: no-repeat;
+	background-image: url("images/status/dialog-ok.png");
+	background-position: 0px 2px;
+}
+.htmlarea-window .status-info {
+	padding-left: 21px !important;
+	background-repeat: no-repeat;
+	background-image: url("images/status/dialog-information.png");
+	background-position: 0px 2px;
+}
+.htmlarea-window .status-wait {
+	padding-left: 45px !important;
+	background-repeat: no-repeat;
+	background-image: url("images/status/loading-balls.gif");
+	background-position: 0px 6px;
+}
+.x-statusbar .x-btn {
+	margin-left: 5px;
+}
+.x-statusbar .x-status-text {
+    cursor: default;
+}
+
+/* Button background positioning in window status bar*/
+.x-statusbar .x-btn-tl{
+	background-position: 0 0;
+}
+.x-statusbar .x-btn-tr{
+	background-position: -3px 0;
+}
+.x-statusbar .x-btn-tc{
+	background-position: 0 -6px;
+}
+.x-statusbar .x-btn-ml{
+	background-position: 0 -24px;
+}
+.x-statusbar .x-btn-mr{
+	background-position: -3px -24px;
+}
+.x-statusbar .x-btn-mc{
+	background-position: 0 -1096px;
+}
+.x-statusbar .x-btn-bl{
+	background-position: 0 -3px;
+}
+.x-statusbar .x-btn-br{
+	background-position: -3px -3px;
+}
+.x-statusbar .x-btn-bc{
+	background-position: 0 -15px;
+}
+/* Action icon selectors for toolbar, context menu and window headers */
+.htmlarea-action-abbreviation-edit { background-position: 0 0 !important; }
+.htmlarea-action-bidi-override { background-position: 0 -58px !important; }
+.htmlarea-action-big { background-position: 0 -116px !important; }
+.htmlarea-action-blockquote { background-position: 0 -174px !important; }
+.htmlarea-action-bold { background-position: 0 -232px !important; }
+.htmlarea-action-cell-delete { background-position: 0 -290px !important; }
+.htmlarea-action-cell-edit-properties { background-position: 0 -348px !important; }
+.htmlarea-action-cell-insert-after { background-position: 0 -406px !important; }
+.htmlarea-action-cell-insert-before { background-position: 0 -464px !important; }
+.htmlarea-action-cell-merge { background-position: 0 -522px !important; }
+.htmlarea-action-cell-split { background-position: 0 -580px !important; }
+.htmlarea-action-character-insert-from-map { background-position: 0 -638px !important; }
+.htmlarea-action-citation { background-position: 0 -696px !important; }
+.htmlarea-action-code { background-position: 0 -754px !important; }
+.htmlarea-action-color-background { background-position: 0 -812px !important; }
+.htmlarea-action-color-foreground { background-position: 0 -870px !important; }
+.htmlarea-action-column-delete { background-position: 0 -928px !important; }
+.htmlarea-action-column-edit-properties { background-position: 0 -986px !important; }
+.htmlarea-action-column-insert-after { background-position: 0 -1044px !important; }
+.htmlarea-action-column-insert-before { background-position: 0 -1102px !important; }
+.htmlarea-action-column-split { background-position: 0 -1160px !important; }
+.htmlarea-action-copy { background-position: 0 -1218px !important; }
+.htmlarea-action-cut { background-position: 0 -1276px !important; }
+.htmlarea-action-definition-list-item { background-position: 0 -1334px !important; }
+.htmlarea-action-definition-list { background-position: 0 -1392px !important; }
+.htmlarea-action-definition { background-position: 0 -1450px !important; }
+.htmlarea-action-delete-item { background-position: 0 -1508px !important; }
+.htmlarea-action-deleted-text { background-position: 0 -1566px !important; }
+.htmlarea-action-editor-show-about { background-position: 0 -1624px !important; }
+.htmlarea-action-editor-toggle-mode { background-position: 0 -1682px !important; }
+.htmlarea-action-emphasis { background-position: 0 -1740px !important; }
+.htmlarea-action-find-replace { background-position: 0 -1798px !important; }
+.htmlarea-action-horizontal-rule-insert { background-position: 0 -1856px !important; }
+.htmlarea-action-image-edit { background-position: 0 -1914px !important; }
+.htmlarea-action-indent { background-position: 0 -1972px !important; }
+.htmlarea-action-inserted-text { background-position: 0 -2030px !important; }
+.htmlarea-action-italic { background-position: 0 -2088px !important; }
+.htmlarea-action-justify-center { background-position: 0 -2146px !important; }
+.htmlarea-action-justify-full { background-position: 0 -2204px !important; }
+.htmlarea-action-justify-left { background-position: 0 -2262px !important; }
+.htmlarea-action-justify-right { background-position: 0 -2320px !important; }
+.htmlarea-action-keyboard { background-position: 0 -2378px !important; }
+.htmlarea-action-language-marks-show { background-position: 0 -2436px !important; }
+.htmlarea-action-link-edit { background-position: 0 -2494px !important; }
+.htmlarea-action-mono-spaced { background-position: 0 -2552px !important; }
+.htmlarea-action-ordered-list { background-position: 0 -2610px !important; }
+.htmlarea-action-outdent { background-position: 0 -2668px !important; }
+.htmlarea-action-paragraph-insert-after { background-position: 0 -2726px !important; }
+.htmlarea-action-paragraph-insert-before { background-position: 0 -2784px !important; }
+.htmlarea-action-paste { background-position: 0 -2842px !important; }
+.htmlarea-action-quotation { background-position: 0 -2900px !important; }
+.htmlarea-action-redo { background-position: 0 -2958px !important; }
+.htmlarea-action-remove-format { background-position: 0 -3016px !important; }
+.htmlarea-action-row-delete { background-position: 0 -3074px !important; }
+.htmlarea-action-row-edit-properties { background-position: 0 -3132px !important; }
+.htmlarea-action-row-insert-above { background-position: 0 -3190px !important; }
+.htmlarea-action-row-insert-under { background-position: 0 -3248px !important; }
+.htmlarea-action-row-split { background-position: 0 -3306px !important; }
+.htmlarea-action-sample { background-position: 0 -3364px !important; }
+.htmlarea-action-small { background-position: 0 -3422px !important; }
+.htmlarea-action-smiley-insert { background-position: 0 -3480px !important; }
+.htmlarea-action-span { background-position: 0 -3538px !important; }
+.htmlarea-action-spell-check { background-position: 0 -3596px !important; }
+.htmlarea-action-strike-through { background-position: 0 -3654px !important; }
+.htmlarea-action-strong { background-position: 0 -3712px !important; }
+.htmlarea-action-subscript { background-position: 0 -3770px !important; }
+.htmlarea-action-superscript { background-position: 0 -3828px !important; }
+.htmlarea-action-table-edit-properties { background-position: 0 -3886px !important; }
+.htmlarea-action-table-insert { background-position: 0 -3944px !important; }
+.htmlarea-action-table-restyle { background-position: 0 -4002px !important; }
+.htmlarea-action-table-show-borders { background-position: 0 -4060px !important; }
+.htmlarea-action-tag-insert { background-position: 0 -4118px !important; }
+.htmlarea-action-text-direction-left-to-right { background-position: 0 -4176px !important; }
+.htmlarea-action-text-direction-right-to-left { background-position: 0 -4234px !important; }
+.htmlarea-action-underline { background-position: 0 -4292px !important; }
+.htmlarea-action-undo { background-position: 0 -4350px !important; }
+.htmlarea-action-unlink { background-position: 0 -4408px !important; }
+.htmlarea-action-unordered-list { background-position: 0 -4466px !important; }
+.htmlarea-action-user-element-edit { background-position: 0 -4524px !important; }
+.htmlarea-action-variable { background-position: 0 -4582px !important; }

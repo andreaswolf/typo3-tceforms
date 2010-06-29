@@ -21,68 +21,14 @@
  *                                                                        */
 
 /**
- * View helper which renders the flash messages (if there are any) as an unsorted list.
+ * Deprecated. Use <f:flashMessages> instead!
  *
- * In case you need custom Flash Message HTML output, please write your own ViewHelper for the moment.
- *
- *
- * = Examples =
- *
- * <code title="Simple">
- * <f:renderFlashMessages />
- * </code>
- * Renders an ul-list of flash messages.
- *
- * <code title="Output with css class">
- * <f:renderFlashMessages class="specialClass" />
- * </code>
- *
- * Output:
- * <ul class="specialClass">
- *  ...
- * </ul>
- *
- * @version $Id: RenderFlashMessagesViewHelper.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: RenderFlashMessagesViewHelper.php 2043 2010-03-16 08:49:45Z sebastian $
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
  * @scope prototype
  */
-class Tx_Fluid_ViewHelpers_RenderFlashMessagesViewHelper extends Tx_Fluid_Core_ViewHelper_TagBasedViewHelper {
+class Tx_Fluid_ViewHelpers_RenderFlashMessagesViewHelper extends Tx_Fluid_ViewHelpers_FlashMessagesViewHelper {
 
-	/**
-	 * @var string
-	 */
-	protected $tagName = 'ul';
-
-	/**
-	 * Initialize arguments
-	 *
-	 * @return void
-	 * @author Sebastian Kurfürst <sbastian@typo3.org>
-	 * @api
-	 */
-	public function initializeArguments() {
-		$this->registerUniversalTagAttributes();
-	}
-
-	/**
-	 * Render method.
-	 *
-	 * @return string rendered Flash Messages, if there are any.
-	 * @author Sebastian Kurfürst <sbastian@typo3.org>
-	 * @api
-	 */
-	public function render() {
-		$flashMessages = $this->controllerContext->getFlashMessages()->getAllAndFlush();
-		if (count($flashMessages) > 0) {
-			$tagContent = '';
-			foreach ($flashMessages as $singleFlashMessage) {
-				$tagContent .=  '<li>' . htmlspecialchars($singleFlashMessage) . '</li>';
-			}
-			$this->tag->setContent($tagContent);
-			return $this->tag->render();
-		}
-		return '';
-	}
 }
 
 ?>

@@ -25,7 +25,7 @@
  * Sould be used as the base class for all view helpers which output simple tags, as it provides some
  * convenience methods to register default attributes, ...
  *
- * @version $Id: TagBasedViewHelper.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: TagBasedViewHelper.php 2043 2010-03-16 08:49:45Z sebastian $
  * @package Fluid
  * @subpackage Core\ViewHelper
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
@@ -135,6 +135,7 @@ abstract class Tx_Fluid_Core_ViewHelper_TagBasedViewHelper extends Tx_Fluid_Core
 		$this->registerTagAttribute('title', 'string', 'Tooltip text of element');
 		$this->registerTagAttribute('accesskey', 'string', 'Keyboard shortcut to access this element');
 		$this->registerTagAttribute('tabindex', 'integer', 'Specifies the tab order of this element');
+		$this->registerTagAttribute('onclick', 'string', 'JavaScript evaluated for the onclick event');
 	}
 }
 ?>

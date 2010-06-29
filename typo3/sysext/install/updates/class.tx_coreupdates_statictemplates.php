@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2009  Steffen Ritter (info@rs-websystems.de)
+*  (c) 2008-2010  Steffen Ritter (info@rs-websystems.de)
 *           2009  Benjamin Mack (benni@typo3.org)
 *  All rights reserved
 *
@@ -53,7 +53,7 @@ class tx_coreupdates_statictemplates {
 				'ref_table = "static_template" AND tablename != "static_template" AND deleted=0'
 			);
 			if ($count) {
-				$description .= '<b style="color:#f00">Dependencies found! You MUST install the extenion "statictemplates"!</b>';
+				$description .= '<strong style="color:#f00">Dependencies found! You MUST install the extenion "statictemplates"!</strong>';
 				return TRUE;
 			}
 			else {

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -253,26 +253,55 @@ class SC_mod_tools_config_index {
 
 			// Variable name:
 		if (t3lib_div::_GP('varname'))	{
+			$line = t3lib_div::_GP('_') ? t3lib_div::_GP('_') : t3lib_div::_GP('varname');
+			if (t3lib_div::_GP('writetoexttables')) { // Write the line to extTables.php
+					// change value to $GLOBALS
+				$length = strpos($line, '[');
+				$var = substr($line, 0, $length);
+				$changedLine = '$GLOBALS[\'' . substr($line, 1, $length - 1) . '\']' . substr($line, $length);
+					// insert line  in extTables.php
+				$extTables = t3lib_div::getURL(PATH_typo3conf . TYPO3_extTableDef_script);
+				$extTables = '<?php' . preg_replace('/<\?php|\?>/is', '', $extTables) . $changedLine . LF . '?>';
+				$success = t3lib_div::writeFile(PATH_typo3conf . TYPO3_extTableDef_script, $extTables);
+				if ($success) {
+						// show flash message
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						'',
+						sprintf($GLOBALS['LANG']->getLL('writeMessage', TRUE), TYPO3_extTableDef_script,  '<br />', '<strong>' . $changedLine . '</strong>'),
+						t3lib_FlashMessage::OK
+					);
+				} else {
+					// Error: show flash message
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						'',
+						sprintf($GLOBALS['LANG']->getLL('writeMessageFailed', TRUE), TYPO3_extTableDef_script),
+						t3lib_FlashMessage::ERROR
+					);
+				}
+				$this->content .= $flashMessage->render();
+			}
 			$this->content .= '<div id="lowlevel-config-var">
-			<strong>' . $GLOBALS['LANG']->getLL('variable', true) . '</strong><br />
-				<input type="text" name="_" value="' . trim(htmlspecialchars(t3lib_div::_GP('varname'))) . '" size="120" /><br />
-				' . $GLOBALS['LANG']->getLL('copyPaste', true) . '
-			</div>
-			';
+				<strong>' . $GLOBALS['LANG']->getLL('variable', TRUE) . '</strong><br />
+				<input type="text" name="_" value="'.trim(htmlspecialchars($line)).'" size="120" /><br/>';
+
+			if (TYPO3_extTableDef_script !== '' && ($this->MOD_SETTINGS['function'] === '1' || $this->MOD_SETTINGS['function'] === '4')) {
+					// write only for $TCA and TBE_STYLES if  TYPO3_extTableDef_script is defined
+				$this->content .= '<br /><input type="submit" name="writetoexttables" value="' .
+					$GLOBALS['LANG']->getLL('writeValue', TRUE) . '" /></div>';
+			} else {
+				$this->content .= $GLOBALS['LANG']->getLL('copyPaste', TRUE) . LF . '</div>';
+			}
+
 		}
 
-		$this->content.= '<br /><table border="0" cellpadding="1" cellspacing="0">';
+		$this->content.= '<br /><table border="0" cellpadding="0" cellspacing="0" class="t3-tree t3-tree-config">';
 		$this->content.= '<tr>
-					<td><img src="clear.gif" width="1" height="1" alt="" /></td>
-					<td class="bgColor2">
-						<table border="0" cellpadding="0" cellspacing="0" class="bgColor5" width="100%"><tr><td nowrap="nowrap"><b>'.$label.'</b></td></tr></table>
-					</td>
-				</tr>';
-		$this->content.='<tr>
-					<td></td>
-					<td class="bgColor2">
-						<table border="0" cellpadding="0" cellspacing="0" class="bgColor4" width="100%"><tr><td nowrap="nowrap">'.$tree.'</td></tr></table>' .
-								'<img src="clear.gif" width="465" height="1" alt="" /></td>
+					<th class="t3-row-header t3-tree-config-header">' . $label . '</th>
+				</tr>
+				<tr>
+					<td>' . $tree . '</td>
 				</tr>
 			</table>
 		';

@@ -23,7 +23,7 @@
 /**
  * A node which handles object access. This means it handles structures like {object.accessor.bla}
  *
- * @version $Id: ObjectAccessorNode.php 1734 2009-11-25 21:53:57Z stucki $
+ * @version $Id: ObjectAccessorNode.php 2043 2010-03-16 08:49:45Z sebastian $
  * @package Fluid
  * @subpackage Core\Parser\SyntaxTree
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
@@ -40,10 +40,8 @@ class Tx_Fluid_Core_Parser_SyntaxTree_ObjectAccessorNode extends Tx_Fluid_Core_P
 	/**
 	 * Constructor. Takes an object path as input.
 	 *
-	 * The first part of the object path has to be a variable in the TemplateVariableContainer.
-	 * For the further parts, it is checked if the object has a getObjectname method. If yes, this is called.
-	 * If no, it is checked if a property "objectname" exists.
-	 * If no, an error is thrown.
+	 * The first part of the object path has to be a variable in the
+	 * TemplateVariableContainer.
 	 *
 	 * @param string $objectPath An Object Path, like object1.object2.object3
 	 * @author Sebastian Kurfürst <sebastian@typo3.org>
@@ -60,6 +58,9 @@ class Tx_Fluid_Core_Parser_SyntaxTree_ObjectAccessorNode extends Tx_Fluid_Core_P
 	 * - call public property, if exists
 	 * - fail
 	 *
+	 * The first part of the object path has to be a variable in the
+	 * TemplateVariableContainer.
+	 *
 	 * @return object The evaluated object, can be any object type.
 	 * @author Sebastian Kurfürst <sebastian@typo3.org>
 	 * @author Bastian Waidelich <bastian@typo3.org>
@@ -73,17 +74,10 @@ class Tx_Fluid_Core_Parser_SyntaxTree_ObjectAccessorNode extends Tx_Fluid_Core_P
 		}
 		$currentObject = $this->renderingContext->getTemplateVariableContainer()->get($variableName);
 		if (count($objectPathParts) > 0) {
-			$output = Tx_Extbase_Reflection_ObjectAccess::getPropertyPath($currentObject, implode('.', $objectPathParts));
+			return Tx_Extbase_Reflection_ObjectAccess::getPropertyPath($currentObject, implode('.', $objectPathParts));
 		} else {
-			$output = $currentObject;
+			return $currentObject;
 		}
-
-		$postProcessor = $this->renderingContext->getRenderingConfiguration()->getObjectAccessorPostProcessor();
-		if ($postProcessor !== NULL) {
-			$output = $postProcessor->process($output, $this->renderingContext->isObjectAccessorPostProcessorEnabled());
-		}
-
-		return $output;
 	}
 }
 ?>

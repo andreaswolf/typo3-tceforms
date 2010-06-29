@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2004-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -384,7 +384,7 @@ class t3lib_DB {
 
 	/**
 	 * Truncates a table.
-	 * 
+	 *
 	 * @param	string		Database tablename
 	 * @return	mixed		Result from handler
 	 */
@@ -486,36 +486,36 @@ class t3lib_DB {
 	 * @param	string		See exec_UPDATEquery()
 	 * @param	array		See exec_UPDATEquery()
 	 * @param	array		See fullQuoteArray()
-	 * @return	string		Full SQL query for UPDATE (unless $fields_values does not contain any elements in which case it will be false)
+	 * @return	string		Full SQL query for UPDATE
 	 */
 	function UPDATEquery($table, $where, $fields_values, $no_quote_fields = FALSE) {
-
 			// Table and fieldnames should be "SQL-injection-safe" when supplied to this
 			// function (contrary to values in the arrays which may be insecure).
 		if (is_string($where)) {
+			$fields = array();
 			if (is_array($fields_values) && count($fields_values)) {
 
 					// quote and escape values
 				$nArr = $this->fullQuoteArray($fields_values, $table, $no_quote_fields);
 
-				$fields = array();
 				foreach ($nArr as $k => $v) {
 					$fields[] = $k.'='.$v;
 				}
-
-					// Build query:
-				$query = 'UPDATE ' . $table . ' SET ' . implode(',', $fields) .
-					(strlen($where) > 0 ? ' WHERE ' . $where : '');
-
-					// Return query:
-				if ($this->debugOutput || $this->store_lastBuiltQuery) {
-					$this->debug_lastBuiltQuery = $query;
-				}
-				return $query;
 			}
+
+				// Build query:
+			$query = 'UPDATE ' . $table . ' SET ' . implode(',', $fields) .
+				(strlen($where) > 0 ? ' WHERE ' . $where : '');
+
+			if ($this->debugOutput || $this->store_lastBuiltQuery) {
+				$this->debug_lastBuiltQuery = $query;
+			}
+			return $query;
 		} else {
-			die('<strong>TYPO3 Fatal Error:</strong> "Where" clause argument for UPDATE ' .
-				'query was not a string in $this->UPDATEquery() !');
+			throw new InvalidArgumentException(
+				'TYPO3 Fatal Error: "Where" clause argument for UPDATE query was not a string in $this->UPDATEquery() !',
+				1270853880
+			);
 		}
 	}
 
@@ -539,8 +539,10 @@ class t3lib_DB {
 			}
 			return $query;
 		} else {
-			die('<strong>TYPO3 Fatal Error:</strong> "Where" clause argument for DELETE ' .
-				'query was not a string in $this->DELETEquery() !');
+			throw new InvalidArgumentException(
+				'TYPO3 Fatal Error: "Where" clause argument for DELETE query was not a string in $this->DELETEquery() !',
+				1270853881
+			);
 		}
 	}
 
@@ -582,7 +584,7 @@ class t3lib_DB {
 	/**
 	 * Creates a SELECT SQL-statement to be used as subquery within another query.
 	 * BEWARE: This method should not be overriden within DBAL to prevent quoting from happening.
-	 * 
+	 *
 	 * @param	string		$select_fields: List of fields to select from the table.
 	 * @param	string		$from_table: Table from which to select.
 	 * @param	string		$where_clause: Conditional WHERE statement
@@ -604,7 +606,7 @@ class t3lib_DB {
 
 	/**
 	 * Creates a TRUNCATE TABLE SQL-statement
-	 * 
+	 *
 	 * @param	string		See exec_TRUNCATEquery()
 	 * @return	string		Full SQL query for TRUNCATE TABLE
 	 */
@@ -1077,10 +1079,8 @@ class t3lib_DB {
 
 			// check if MySQL extension is loaded
 		if (!extension_loaded('mysql')) {
-			$header = 'Database Error';
-			$message = 'It seems that MySQL support for PHP is not installed!';
-			t3lib_timeTrack::debug_typo3PrintError($header, $message, false, t3lib_div::getIndpEnv('TYPO3_SITE_URL'));
-			exit;
+			$message = 'Database Error: It seems that MySQL support for PHP is not installed!';
+			throw new RuntimeException($message, 1271492606);
 		}
 
 			// Check for client compression
@@ -1114,7 +1114,7 @@ class t3lib_DB {
 				4
 			);
 		} else {
-			$setDBinit = t3lib_div::trimExplode(chr(10), $GLOBALS['TYPO3_CONF_VARS']['SYS']['setDBinit'], TRUE);
+			$setDBinit = t3lib_div::trimExplode(LF, $GLOBALS['TYPO3_CONF_VARS']['SYS']['setDBinit'], TRUE);
 			foreach ($setDBinit as $v) {
 				if (mysql_query($v, $this->link) === FALSE) {
 					t3lib_div::sysLog('Could not initialize DB connection with query "' . $v .
@@ -1314,32 +1314,41 @@ class t3lib_DB {
 	/**
 	 * Connects to database for TYPO3 sites:
 	 *
+	 * @param string $host
+	 * @param string $user
+	 * @param string $password
+	 * @param string $db
 	 * @return	void
 	 */
-	function connectDB() {
-		if ($this->sql_pconnect(TYPO3_db_host, TYPO3_db_username, TYPO3_db_password)) {
-			if (!TYPO3_db) {
-				die('No database selected');
-				exit;
-			} elseif (!$this->sql_select_db(TYPO3_db)) {
-				die('Cannot connect to the current database, "' . TYPO3_db . '"');
-				exit;
+	function connectDB($host = TYPO3_db_host, $user = TYPO3_db_username, $password = TYPO3_db_password, $db = TYPO3_db) {
+		if ($this->sql_pconnect($host, $user, $password)) {
+			if (!$db) {
+				throw new RuntimeException(
+					'TYPO3 Fatal Error: No database selected!',
+					1270853882
+				);
+			} elseif (!$this->sql_select_db($db)) {
+				throw new RuntimeException(
+					'TYPO3 Fatal Error: Cannot connect to the current database, "' . $db . '"!',
+					1270853883
+				);
 			}
 		} else {
-			die('The current username, password or host was not accepted when the ' .
-				'connection to the database was attempted to be established!');
-			exit;
+			throw new RuntimeException(
+				'TYPO3 Fatal Error: The current username, password or host was not accepted when the connection to the database was attempted to be established!',
+				1270853884
+			);
 		}
 	}
 
-
-
-
-
-
-
-
-
+	/**
+	 * Checks if database is connected
+	 *
+	 * @return boolean
+	 */
+	public function isConnected() {
+		return is_resource($this->link);
+	}
 
 
 
@@ -1367,7 +1376,8 @@ class t3lib_DB {
 					'lastBuiltQuery' => ($query ? $query : $this->debug_lastBuiltQuery),
 					'debug_backtrace' => t3lib_div::debug_trail(),
 				),
-				'SQL debug'
+				$func,
+				is_object($GLOBALS['error']) && @is_callable(array($GLOBALS['error'], 'debug')) ? '' : 'DB Error'
 			);
 		}
 	}
@@ -1459,34 +1469,25 @@ class t3lib_DB {
 			$debug = true;
 
 			foreach ($explain_tables as $table) {
-				$res = $this->sql_query('SHOW INDEX FROM ' . $table, $this->link);
-				if (is_resource($res)) {
-					while ($tempRow = $this->sql_fetch_assoc($res)) {
-						$indices_output[] = $tempRow;
+				$tableRes = $this->sql_query('SHOW TABLE STATUS LIKE \'' . $table . '\'');
+				$isTable = $this->sql_num_rows($tableRes);
+				if ($isTable) {
+					$res = $this->sql_query('SHOW INDEX FROM ' . $table, $this->link);
+					if (is_resource($res)) {
+						while ($tempRow = $this->sql_fetch_assoc($res)) {
+							$indices_output[] = $tempRow;
+						}
+						$this->sql_free_result($res);
 					}
-					$this->sql_free_result($res);
 				}
+				$this->sql_free_result($tableRes);
 			}
 		} else {
 			$debug = false;
 		}
 
 		if ($debug) {
-			if ($explainMode == 1) {
-				t3lib_div::debug('QUERY: ' . $query);
-				t3lib_div::debug(array('Debug trail:' => $trail), 'Row count: ' . $row_count);
-
-				if ($error) {
-					t3lib_div::debug($error);
-				}
-				if (count($explain_output)) {
-					t3lib_div::debug($explain_output);
-				}
-				if (count($indices_output)) {
-					t3lib_div::debugRows($indices_output);
-				}
-
-			} elseif ($explainMode == 2) {
+			if ($explainMode) {
 				$data = array();
 				$data['query'] = $query;
 				$data['trail'] = $trail;
@@ -1501,7 +1502,12 @@ class t3lib_DB {
 				if (count($indices_output)) {
 					$data['indices'] = $indices_output;
 				}
-				$GLOBALS['TT']->setTSselectQuery($data);
+
+				if ($explainMode == 1) {
+					t3lib_div::debug($data, 'Tables: ' . $from_table, 'DB SQL EXPLAIN');
+				} elseif ($explainMode == 2) {
+					$GLOBALS['TT']->setTSselectQuery($data);
+				}
 			}
 			return true;
 		}

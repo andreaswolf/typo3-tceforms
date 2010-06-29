@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -118,8 +118,8 @@ class tx_infopagetsconfig_webinfo extends t3lib_extobjbase {
 						$editIdList = substr($k,4);
 						$params = '&edit[pages]['.$editIdList.']=edit&columnsOnly=TSconfig';
 						$onclickUrl = t3lib_BEfunc::editOnClick($params,$GLOBALS['BACK_PATH'],'');
-						$editIcon = '<a href="#" onclick="'.htmlspecialchars($onclickUrl).'">'.
-								'<img'.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/edit2.gif','width="11" height="12"').' vspace="2" align="top" title="'.$GLOBALS['LANG']->getLL('editTSconfig',1).'" alt="" />'.
+						$editIcon = '<a href="#" onclick="'.htmlspecialchars($onclickUrl).'" title="'.$GLOBALS['LANG']->getLL('editTSconfig',1).'">'.
+									t3lib_iconWorks::getSpriteIcon('actions-document-open') . 
 								'</a>';
 					}
 
@@ -140,9 +140,9 @@ class tx_infopagetsconfig_webinfo extends t3lib_extobjbase {
 			if (count($pUids))	{
 				$params = '&edit[pages]['.implode(',',$pUids).']=edit&columnsOnly=TSconfig';
 				$onclickUrl = t3lib_BEfunc::editOnClick($params,$GLOBALS['BACK_PATH'],'');
-				$editIcon = '<a href="#" onclick="'.htmlspecialchars($onclickUrl).'">'.
-						'<img'.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/edit2.gif','width="11" height="12"').' vspace="2" align="top" title="'.$GLOBALS['LANG']->getLL('editTSconfig_all',1).'" alt="" />'.
-						'<strong>'.$GLOBALS['LANG']->getLL('editTSconfig_all',1).'</strong>'.
+				$editIcon = '<a href="#" onclick="'.htmlspecialchars($onclickUrl).'" title="'.$GLOBALS['LANG']->getLL('editTSconfig_all',1).'">'.
+							t3lib_iconWorks::getSpriteIcon('actions-document-open') .
+							'<strong>'.$GLOBALS['LANG']->getLL('editTSconfig_all',1).'</strong>'.
 						'</a>';
 			} else $editIcon = '';
 

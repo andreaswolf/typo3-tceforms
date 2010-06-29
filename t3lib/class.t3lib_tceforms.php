@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -181,14 +181,6 @@
 
 
 
-require_once(PATH_t3lib.'class.t3lib_diff.php');
-require_once(PATH_t3lib.'class.t3lib_tceforms_inline.php');
-
-	/**
-	 * Frontend version of TCEForms has been moved into its own file and should
-	 * be included directly by calling scripts.
-	 */
-require_once(PATH_t3lib . 'class.t3lib_tceforms_fe.php');
 
 
 /**
@@ -284,7 +276,7 @@ class t3lib_TCEforms	{
 
 		// INTERNAL, templates
 	var $totalWrap='<hr />|<hr />';				// Total wrapping for the table rows.
-	var $fieldTemplate='<b>###FIELD_NAME###</b><br />###FIELD_ITEM###<hr />';	// Field template
+	var $fieldTemplate='<strong>###FIELD_NAME###</strong><br />###FIELD_ITEM###<hr />';	// Field template
 	var $sectionWrap='';						// Wrapping template code for a section
 	var $palFieldTemplateHeader='';				// Template for palette headers
 	var $palFieldTemplate='';					// Template for palettes
@@ -334,8 +326,8 @@ class t3lib_TCEforms	{
 
 		$this->RTEenabled = $GLOBALS['BE_USER']->isRTE();
 		if (!$this->RTEenabled)	{
-			$this->RTEenabled_notReasons = implode(chr(10),$GLOBALS['BE_USER']->RTE_errors);
-			$this->commentMessages[] = 'RTE NOT ENABLED IN SYSTEM due to:'.chr(10).$this->RTEenabled_notReasons;
+			$this->RTEenabled_notReasons = implode(LF,$GLOBALS['BE_USER']->RTE_errors);
+			$this->commentMessages[] = 'RTE NOT ENABLED IN SYSTEM due to:'.LF.$this->RTEenabled_notReasons;
 		}
 
 			// Default color+class scheme
@@ -774,7 +766,7 @@ class t3lib_TCEforms	{
 
 			$thePalIcon = '';
 			if ($collapsed && $collapsedHeader !== NULL) {
-				list($thePalIcon,) = $this->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->getLL('l_moreOptions')).'" alt="" />',$table,$row,$palette,1);
+				list($thePalIcon,) = $this->wrapOpenPalette(t3lib_iconWorks::getSpriteIcon('actions-system-options-view', array('title' => htmlspecialchars($this->getLL('l_moreOptions')))), $table, $row, $palette, 1);
 				$thePalIcon = '<span style="margin-left: 20px;">' . $thePalIcon . $collapsedHeader . '</span>';
 			}
 
@@ -881,7 +873,7 @@ class t3lib_TCEforms	{
 					if (!$PA['palette'])	{
 						$paletteFields = $this->loadPaletteElements($table, $row, $PA['pal']);
 						if ($PA['pal'] && $this->isPalettesCollapsed($table,$PA['pal']) && count($paletteFields))	{
-							list($thePalIcon,$palJSfunc) = $this->wrapOpenPalette('<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/options.gif','width="18" height="16"').' border="0" title="'.htmlspecialchars($this->getLL('l_moreOptions')).'" alt="" />',$table,$row,$PA['pal'],1);
+							list($thePalIcon,$palJSfunc) = $this->wrapOpenPalette(t3lib_iconWorks::getSpriteIcon('actions-system-options-view', array('title' => htmlspecialchars($this->getLL('l_moreOptions')))),$table,$row,$PA['pal'],1);
 						} else {
 							$thePalIcon = '';
 							$palJSfunc = '';
@@ -1088,18 +1080,24 @@ class t3lib_TCEforms	{
 		if (in_array('date', $evalList)) {
 			$inputId = uniqid('tceforms-datefield-');
 			$cssClasses[] = 'tceforms-textfield tceforms-datefield';
-			$fieldAppendix = '<img' . t3lib_iconWorks::skinImg(
-				$this->backPath, 'gfx/datepicker.gif', '', 0)
-				. ' style="cursor:pointer; vertical-align:middle;" alt=""'
-				. ' id="picker-' . $inputId . '" />';
+			$fieldAppendix = t3lib_iconWorks::getSpriteIcon(
+				'actions-edit-pick-date',
+				array(
+					'style' => 'cursor:pointer;',
+					'id' => 'picker-' . $inputId
+				)
+			);
 
 		} elseif (in_array('datetime', $evalList)) {
 			$inputId = uniqid('tceforms-datetimefield-');
 			$cssClasses[] = 'tceforms-textfield tceforms-datetimefield';
-			$fieldAppendix = '<img' . t3lib_iconWorks::skinImg(
-				$this->backPath, 'gfx/datepicker.gif', '', 0)
-				. ' style="cursor:pointer; vertical-align:middle;" alt=""'
-				. ' id="picker-' . $inputId . '" />';
+			$fieldAppendix = t3lib_iconWorks::getSpriteIcon(
+				'actions-edit-pick-date',
+				array(
+					'style' => 'cursor:pointer;',
+					'id' => 'picker-' . $inputId
+				)
+			);
 
 		} elseif (in_array('timesec', $evalList)) {
 			$inputId = uniqid('tceforms-timesecfield-');
@@ -1186,7 +1184,7 @@ class t3lib_TCEforms	{
 				$checkSetValue = gmdate('Y');
 			}
 			$cOnClick = 'typo3form.fieldGet('.$paramsList.',1,\''.$checkSetValue.'\');'.implode('',$PA['fieldChangeFunc']);
-			$item .= '<input type="checkbox" id="' . uniqid('tceforms-check-') . '" class="' . $this->formElStyleClassValue('check', TRUE) . ' alignToInputText" name="' . $PA['itemFormElName'] . '_cb" onclick="' . htmlspecialchars($cOnClick) . '" />';
+			$item .= '<input type="checkbox" id="' . uniqid('tceforms-check-') . '" class="' . $this->formElStyleClassValue('check', TRUE) . '" name="' . $PA['itemFormElName'] . '_cb" onclick="' . htmlspecialchars($cOnClick) . '" />';
 		}
 		if ((in_array('date',$evalList) || in_array('datetime',$evalList)) && $PA['itemFormElValue']>0){
 				// Add server timezone offset to UTC to our stored date
@@ -1236,6 +1234,7 @@ class t3lib_TCEforms	{
 
 			// Init config:
 		$config = $PA['fieldConf']['config'];
+		$evalList = t3lib_div::trimExplode(',', $config['eval'], 1);
 
 		if($this->renderReadonly || $config['readOnly'])  {
 			return $this->getSingleField_typeNone_render($config, $PA['itemFormElValue']);
@@ -1248,8 +1247,12 @@ class t3lib_TCEforms	{
 		$origRows = $rows = t3lib_div::intInRange($config['rows'] ? $config['rows'] : 5, 1, 20);
 		if (strlen($PA['itemFormElValue']) > $this->charsPerRow*2)	{
 			$cols = $this->maxTextareaWidth;
-			$rows = t3lib_div::intInRange(round(strlen($PA['itemFormElValue'])/$this->charsPerRow), count(explode(chr(10),$PA['itemFormElValue'])), 20);
+			$rows = t3lib_div::intInRange(round(strlen($PA['itemFormElValue'])/$this->charsPerRow), count(explode(LF,$PA['itemFormElValue'])), 20);
 			if ($rows<$origRows)	$rows = $origRows;
+		}
+
+		if (in_array('required', $evalList))	{
+			$this->requiredFields[$table . '_' . $row['uid'] . '_' . $field] = $PA['itemFormElName'];
 		}
 
 			// Init RTE vars:
@@ -1627,7 +1630,7 @@ class t3lib_TCEforms	{
 				if ($sM) {
 					list($selectIconFile,$selectIconInfo) = $this->getIcon($p[2]);
 						if (!empty($selectIconInfo)) {
-							$selectedStyle = ' style="background-image: url('.$selectIconFile.'); background-repeat: no-repeat; background-position: 0% 50%; padding: 1px; padding-left: 24px; -webkit-background-size: 0;"';
+							$selectedStyle = ' style="background: #fff url(' . $selectIconFile . ') 0% 50% no-repeat; padding: 1px 1px 1px 24px; -webkit-background-size: 0;"';
 						}
 				}
 			}
@@ -1641,11 +1644,11 @@ class t3lib_TCEforms	{
 				} else {
 					if (count($optGroupStart)) {
 						if($optGroupOpen) { // Closing last optgroup before next one starts
-							$opt[]='</optgroup>' . "\n";
+							$opt[]='</optgroup>' . LF;
 						}
 						$opt[]= '<optgroup label="'.t3lib_div::deHSCentities(htmlspecialchars($optGroupStart[0])).'"'.
 								($optGroupStart[1] ? ' style="'.htmlspecialchars($optGroupStart[1]).'"' : '').
-								' class="c-divider">' . "\n";
+								' class="c-divider">' . LF;
 						$optGroupOpen = true;
 						$c--;
 						$optGroupStart = array();
@@ -1653,7 +1656,7 @@ class t3lib_TCEforms	{
 					$opt[]= '<option value="'.htmlspecialchars($p[1]).'"'.
 							$sM.
 							($styleAttrValue ? ' style="'.htmlspecialchars($styleAttrValue).'"' : '').
-							'>'.t3lib_div::deHSCentities(htmlspecialchars($p[0])).'</option>' . "\n";
+							'>' . t3lib_div::deHSCentities(($p[0])) . '</option>' . LF;
 				}
 			}
 
@@ -1809,8 +1812,8 @@ class t3lib_TCEforms	{
 
 					if ($hasHelp && $this->edit_showFieldHelp == 'icon') {
 						$helpIcon  = '<a class="typo3-csh-link" href="#">';
-						$helpIcon .= '<img' . t3lib_iconWorks::skinImg($this->backPath, 'gfx/helpbubble.gif', 'width="14" height="14"');
-						$helpIcon .= ' hspace="2" border="0" class="absmiddle"' . ($GLOBALS['CLIENT']['FORMSTYLE'] ? ' style="cursor:help;"' : '') . ' alt="" />' . $help;
+						$helpIcon .= t3lib_iconWorks::getSpriteIcon('actions-system-help-open');
+						$helpIcon .= $help;
 						$helpIcon .= '</a>';
 						$help = $helpIcon;
 					}
@@ -1865,8 +1868,7 @@ class t3lib_TCEforms	{
 			// Add revert icon
 		if (is_array($restoreCmd)) {
 			$item .= '<a href="#" onclick="' . implode('', $restoreCmd).' return false;' . '">' .
-				'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/undo.gif','width="13" height="12"') . ' title="' .
-				htmlspecialchars($this->getLL('l_revertSelection')) . '" alt="" />' .'</a>';
+				t3lib_iconWorks::getSpriteIcon('actions-edit-undo', array('title' => htmlspecialchars($this->getLL('l_revertSelection')))) . '</a>';
 		}
 			// Implode rows in table:
 		$item .= '
@@ -1977,9 +1979,9 @@ class t3lib_TCEforms	{
 						'</em>
 					</td>
 					<td valign="top">
-					<a href="#" onclick="'.htmlspecialchars($this->elName($PA['itemFormElName'].'[]').'.selectedIndex=-1;'.implode('',$restoreCmd).' return false;').'">'.
-						'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/undo.gif','width="13" height="12"').' title="'.htmlspecialchars($this->getLL('l_revertSelection')).'" alt="" />'.
-						'</a>
+					  <a href="#" onclick="'.htmlspecialchars($this->elName($PA['itemFormElName'].'[]').'.selectedIndex=-1;'.implode('',$restoreCmd).' return false;').'" title="' . htmlspecialchars($this->getLL('l_revertSelection')) . '">' .
+					    t3lib_iconWorks::getSpriteIcon('actions-edit-undo') .
+					 '</a>
 					</td>
 				</tr>
 			</table>
@@ -2035,7 +2037,7 @@ class t3lib_TCEforms	{
 			// Perform modification of the selected items array:
 		foreach($itemArray as $tk => $tv) {
 			$tvP = explode('|',$tv,2);
-			$evalValue = rawurldecode($tvP[0]);
+			$evalValue = $tvP[0];
 			$isRemoved = in_array($evalValue,$removeItems)  || ($config['form_type']=='select' && $config['authMode'] && !$GLOBALS['BE_USER']->checkAuthMode($table,$field,$evalValue,$config['authMode']));
 			if ($isRemoved && !$PA['fieldTSConfig']['disableNoMatchingValueElement'] && !$config['disableNoMatchingValueElement'])	{
 				$tvP[1] = rawurlencode(@sprintf($nMV_label, $evalValue));
@@ -2046,7 +2048,7 @@ class t3lib_TCEforms	{
 					// Case: flexform, default values supplied, no label provided (bug #9795)
 				foreach ($selItems as $selItem) {
 					if ($selItem[1] == $tvP[0]) {
-						$tvP[1] = $selItem[0];
+						$tvP[1] = html_entity_decode($selItem[0]);
 						break;
 					}
 				}
@@ -2065,7 +2067,7 @@ class t3lib_TCEforms	{
 				}
 				$opt[]= '<option value="'.htmlspecialchars($p[1]).'"'.
 								($styleAttrValue ? ' style="'.htmlspecialchars($styleAttrValue).'"' : '').
-								'>'.htmlspecialchars($p[0]).'</option>';
+								'>' . $p[0] . '</option>';
 			}
 
 				// Put together the selector box:
@@ -2147,6 +2149,9 @@ class t3lib_TCEforms	{
 
 			// Acting according to either "file" or "db" type:
 		switch((string)$config['internal_type'])	{
+			case 'file_reference':
+				$config['uploadfolder'] = '';
+				// Fall through
 			case 'file':	// If the element is of the internal type "file":
 
 					// Creating string showing allowed types:
@@ -2181,11 +2186,21 @@ class t3lib_TCEforms	{
 						$rowCopy[$field] = $imgPath;
 
 							// Icon + clickmenu:
-						$absFilePath = t3lib_div::getFileAbsFileName($config['uploadfolder'].'/'.$imgPath);
+						$absFilePath = t3lib_div::getFileAbsFileName($config['uploadfolder'] ? $config['uploadfolder'] . '/' . $imgPath : $imgPath);
 
 						$fI = pathinfo($imgPath);
-						$fileIcon = t3lib_BEfunc::getFileIcon(strtolower($fI['extension']));
-						$fileIcon = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/fileicons/'.$fileIcon,'width="18" height="16"').' class="absmiddle" title="'.htmlspecialchars($fI['basename'].($absFilePath && @is_file($absFilePath) ? ' ('.t3lib_div::formatSize(filesize($absFilePath)).'bytes)' : ' - FILE NOT FOUND!')).'" alt="" />';
+						$fileIcon = t3lib_iconWorks::getSpriteIconForFile(
+							strtolower($fI['extension']),
+							array(
+								'title' => htmlspecialchars(
+									$fI['basename'] .
+									($absFilePath && @is_file($absFilePath)
+										? ' (' . t3lib_div::formatSize(filesize($absFilePath)) . 'bytes)' :
+										' - FILE NOT FOUND!'
+									)
+								)
+							)
+						);
 
 						$imgs[] = '<span class="nobr">'.t3lib_BEfunc::thumbCode($rowCopy,$table,$field,$this->backPath,'thumbs.php',$config['uploadfolder'],0,' align="middle"').
 									($absFilePath ? $this->getClickMenu($fileIcon, $absFilePath) : $fileIcon).
@@ -2206,14 +2221,16 @@ class t3lib_TCEforms	{
 					'info' => $info,
 					'thumbnails' => $thumbsnail,
 					'readOnly' => $disabled,
-					'noBrowser' => $noList || isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser'),
+					'noBrowser' => $noList || (isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser')),
 					'noList' => $noList,
 				);
 				$item.= $this->dbFileIcons($PA['itemFormElName'],'file',implode(',',$tempFT),$itemArray,'',$params,$PA['onFocus']);
 
 				if(!$disabled && !(isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'upload'))) {
 						// Adding the upload field:
-					if ($this->edit_docModuleUpload)	$item.='<input type="file" name="'.$PA['itemFormElName_file'].'"'.$this->formWidth().' size="60" />';
+					if ($this->edit_docModuleUpload && $config['uploadfolder']) {
+						$item .= '<input type="file" name="' . $PA['itemFormElName_file'] . '"' . $this->formWidth() . ' size="60" onchange="' . implode('', $PA['fieldChangeFunc']) . '" />';
+					}
 				}
 			break;
 			case 'folder':	// If the element is of the internal type "folder":
@@ -2222,6 +2239,7 @@ class t3lib_TCEforms	{
 				$itemArray = t3lib_div::trimExplode(',', $PA['itemFormElValue'], 1);
 
 					// Creating the element:
+				$noList = isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'list');
 				$params = array(
 					'size'              => $size,
 					'dontShowMoveIcons' => ($maxitems <= 1),
@@ -2231,7 +2249,9 @@ class t3lib_TCEforms	{
 							' style="'.htmlspecialchars($config['selectedListStyle']).'"'
 						:	' style="'.$this->defaultMultipleSelectorStyle.'"',
 					'info'              => $info,
-					'readOnly'          => $disabled
+					'readOnly'          => $disabled,
+					'noBrowser' => $noList || (isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser')),
+					'noList' => $noList,
 				);
 
 				$item.= $this->dbFileIcons(
@@ -2280,7 +2300,18 @@ class t3lib_TCEforms	{
 					if (!$disabled && $show_thumbs)	{
 						$rr = t3lib_BEfunc::getRecordWSOL($this_table,$this_uid);
 						$imgs[] = '<span class="nobr">'.
-								$this->getClickMenu(t3lib_iconWorks::getIconImage($this_table,$rr,$this->backPath,'align="top" title="'.htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'],$perms_clause,15)).' [UID: '.$rr['uid'].']"'),$this_table, $this_uid).
+								$this->getClickMenu(
+									t3lib_iconWorks::getSpriteIconForRecord(
+										$this_table,
+										$rr,
+										array(
+											'style' => 'vertical-align:top',
+											'title' => htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'], $perms_clause, 15) . ' [UID: ' . $rr['uid'] . ']"')
+										)
+									),
+									$this_table,
+									$this_uid
+								) .
 								'&nbsp;'.
 								t3lib_BEfunc::getRecordTitle($this_table,$rr,TRUE).' <span class="typo3-dimmed"><em>['.$rr['uid'].']</em></span>'.
 								'</span>';
@@ -2292,6 +2323,7 @@ class t3lib_TCEforms	{
 				}
 
 					// Creating the element:
+				$noList = isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'list');
 				$params = array(
 					'size' => $size,
 					'dontShowMoveIcons' => ($maxitems<=1),
@@ -2300,7 +2332,9 @@ class t3lib_TCEforms	{
 					'style' => isset($config['selectedListStyle']) ? ' style="'.htmlspecialchars($config['selectedListStyle']).'"' : ' style="'.$this->defaultMultipleSelectorStyle.'"',
 					'info' => $info,
 					'thumbnails' => $thumbsnail,
-					'readOnly' => $disabled
+					'readOnly' => $disabled,
+					'noBrowser' => $noList || (isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser')),
+					'noList' => $noList,
 				);
 				$item.= $this->dbFileIcons($PA['itemFormElName'],'db',implode(',',$tempFT),$itemArray,'',$params,$PA['onFocus'],$table,$field,$row['uid']);
 
@@ -2362,7 +2396,7 @@ class t3lib_TCEforms	{
 				$origRows = $rows = t3lib_div::intInRange($rows, 1, 20);
 				if (strlen($itemValue)>$this->charsPerRow*2)	{
 					$cols = $this->maxTextareaWidth;
-					$rows = t3lib_div::intInRange(round(strlen($itemValue)/$this->charsPerRow),count(explode(chr(10),$itemValue)),20);
+					$rows = t3lib_div::intInRange(round(strlen($itemValue)/$this->charsPerRow),count(explode(LF,$itemValue)),20);
 					if ($rows<$origRows)	$rows=$origRows;
 				}
 			}
@@ -2424,7 +2458,7 @@ class t3lib_TCEforms	{
 			if (!is_array($editData))	{	// Must be XML parsing error...
 				$editData=array();
 			} elseif (!isset($editData['meta']) || !is_array($editData['meta']))	{
-			    $editData['meta'] = array();
+				$editData['meta'] = array();
 			}
 
 				// Find the data structure if sheets are found:
@@ -2494,7 +2528,7 @@ class t3lib_TCEforms	{
 
 			foreach ($rotateLang as $lKey)	{
 				if (!$langChildren && !$langDisabled)	{
-					$item.= '<b>'.$this->getLanguageIcon($table,$row,'v'.$lKey).$lKey.':</b>';
+					$item.= '<strong>'.$this->getLanguageIcon($table,$row,'v'.$lKey).$lKey.':</strong>';
 				}
 
 				$tabParts = array();
@@ -2639,7 +2673,7 @@ class t3lib_TCEforms	{
 								// Load script.aculo.us if flexform sections can be moved by drag'n'drop:
 							$GLOBALS['SOBE']->doc->getPageRenderer()->loadScriptaculous();
 								// Render header of section:
-							$output.= '<div class="bgColor2"><strong>'.$theTitle.'</strong></div>';
+							$output .= '<div class="t3-form-field-label-flexsection"><strong>' . $theTitle . '</strong></div>';
 
 								// Render elements in data array for section:
 							$tRows = array();
@@ -2707,8 +2741,8 @@ class t3lib_TCEforms	{
 								$this->additionalJS_post = $additionalJS_post_saved;
 								$this->additionalJS_submit = $additionalJS_submit_saved;
 								$new = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:cm.new', 1);
-								$newElementsLinks[]= '<a href="#" onclick="'.htmlspecialchars($onClickInsert).'">
-									<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/new_el.gif','width="11" height="12"').' alt="' . $new . '" title="' . $new . '" align="absmiddle" />' .
+								$newElementsLinks[]= '<a href="#" onclick="'.htmlspecialchars($onClickInsert).'">' .
+									t3lib_iconWorks::getSpriteIcon('actions-document-new') .
 									htmlspecialchars(t3lib_div::fixed_lgd_cs($this->sL($nCfg['tx_templavoila']['title']),30)) . '</a>';
 							}
 
@@ -2718,22 +2752,19 @@ class t3lib_TCEforms	{
 								// Adding the sections:
 							$toggleAll = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.toggleall', 1);
 							$output.= '
-							<div style="padding: 5px 0px 5px 20px;">
-							<a href="#" onclick="'.htmlspecialchars('flexFormToggleSubs("'.$idTagPrefix.'"); return false;').'">
-								<img' . t3lib_iconWorks::skinImg($this->backPath, 'gfx/pil2right.gif', 'width="7" height="12"') . ' align="absmiddle" alt="' .
-								$toggleAll . '" title="' . $toggleAll . '" />
-								<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/pil2right.gif','width="7" height="12"').' align="absmiddle" alt="' .
-								$toggleAll . '" title="' . $toggleAll . '" />' . $toggleAll . '
-							</a>
+							<div class="t3-form-field-toggle-flexsection">
+								<a href="#" onclick="' . htmlspecialchars('flexFormToggleSubs("' . $idTagPrefix . '"); return false;') . '">'
+									. t3lib_iconWorks::getSpriteIcon('actions-move-right', array('title' => $toggleAll)) . $toggleAll . '
+								</a>
 							</div>
 
-							<div id="'.$idTagPrefix.'" style="padding-left: 20px;">'.implode('',$tRows).'</div>';
-							$output.= $mayRestructureFlexforms ? '<div style="padding: 10px 5px 5px 20px;"><b>' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.addnew', 1) . ':</b> '.implode(' | ',$newElementsLinks).'</div>' : '';
+							<div id="' . $idTagPrefix . '" class="t3-form-field-container-flexsection">' . implode('', $tRows) . '</div>';
+							$output.= $mayRestructureFlexforms ? '<div class="t3-form-field-add-flexsection"><strong>' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.addnew', 1) . ':</strong> '.implode(' | ',$newElementsLinks).'</div>' : '';
 						} else {
 							// It is a container
 
-							$toggleIcon_open = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/pil2down.gif','width="12" height="7"').' hspace="2" alt="Open" title="Open" />';
-							$toggleIcon_close = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/pil2right.gif','width="7" height="12"').' hspace="2" alt="Close" title="Close" />';
+							$toggleIcon_open = t3lib_iconWorks::getSpriteIcon('actions-move-down');
+							$toggleIcon_close = t3lib_iconWorks::getSpriteIcon('actions-move-right');
 
 								// Create on-click actions.
 							//$onClickCopy = 'new Insertion.After($("'.$idTagPrefix.'"), getOuterHTML("'.$idTagPrefix.'").replace(/'.$idTagPrefix.'-/g,"'.$idTagPrefix.'-copy"+Math.floor(Math.random()*100000+1)+"-")); return false;';	// Copied elements doesn't work (well) in Safari while they do in Firefox and MSIE! UPDATE: It turned out that copying doesn't work for any browser, simply because the data from the copied form never gets submitted to the server for some reason! So I decided to simply disable copying for now. If it's requested by customers we can look to enable it again and fix the issue. There is one un-fixable problem though; Copying an element like this will violate integrity if files are attached inside that element because the file reference doesn't get an absolute path prefixed to it which would be required to have TCEmain generate a new copy of the file.
@@ -2748,7 +2779,7 @@ class t3lib_TCEforms	{
 								// I didn't know how to make something right-aligned without a table, so I put it in a table. can be made into <div>'s if someone like to.
 								// Notice: The fact that I make a "Sortable.create" right onmousedown is that if we initialize this when rendering the form in PHP new and copied elements will not be possible to move as a sortable. But this way a new sortable is initialized everytime someone tries to move and it will always work.
 							$ctrlHeader= '
-								<table border="0" cellpadding="0" cellspacing="0" width="100%" onmousedown="'.($mayRestructureFlexforms?htmlspecialchars($onMove):'').'">
+								<table class="t3-form-field-header-flexsection" onmousedown="' . ($mayRestructureFlexforms ? htmlspecialchars($onMove) : '') . '">
 								<tr>
 									<td>
 										<a href="#" onclick="'.htmlspecialchars($onClickToggle).'" id="'.$idTagPrefix.'-toggle">
@@ -2757,9 +2788,8 @@ class t3lib_TCEforms	{
 										<strong>'.$theTitle.'</strong> <em><span id="'.$idTagPrefix.'-preview"></span></em>
 									</td>
 									<td align="right">'.
-										($mayRestructureFlexforms ? '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/move.gif','width="16" height="16"').' alt="Drag to Move" title="Drag to Move" />' : '').
-									#	'<a href="#" onclick="'.htmlspecialchars($onClickCopy).'"><img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/clip_copy.gif','width="12" height="12"').' alt="Copy" title="Copy" /></a>'.	// DISABLED - see what above in definition of variable $onClickCopy
-										($mayRestructureFlexforms ? '<a href="#" onclick="'.htmlspecialchars($onClickRemove).'"><img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/garbage.gif','width="11" height="12"').' alt="Delete" title="Delete" /></a>' : '').
+										($mayRestructureFlexforms ? t3lib_iconWorks::getSpriteIcon('actions-move-move', array('title' => 'Drag to Move')) : '').
+										($mayRestructureFlexforms ? '<a href="#" onclick="'.htmlspecialchars($onClickRemove).'">'.t3lib_iconWorks::getSpriteIcon('actions-edit-delete', array('title' => 'Delete')) : '').
 									'</td>
 									</tr>
 								</table>';
@@ -2770,21 +2800,22 @@ class t3lib_TCEforms	{
 								// Putting together the container:
 							$this->additionalJS_delete = array();
 							$output.= '
-								<div id="'.$idTagPrefix.'" class="bgColor2">
+								<div id="'.$idTagPrefix.'" class="t3-form-field-container-flexsections">
 									<input id="'.$idTagPrefix.'-action" type="hidden" name="'.htmlspecialchars($actionFieldName).'" value=""/>
 
 									'.$ctrlHeader.'
-									<div id="'.$idTagPrefix.'-content"'.($toggleClosed?' style="display:none;"':'').'>'.$this->getSingleField_typeFlex_draw(
-										$value['el'],
-										$editData[$key]['el'],
-										$table,
-										$field,
-										$row,
-										$PA,
-										$formPrefix.'['.$key.'][el]',
-										$level+1,
-										$idTagPrefix
-									).'
+									<div class="t3-form-field-record-flexsection" id="' . $idTagPrefix . '-content"' . ($toggleClosed ? ' style="display:none;"' : '') . '>' .
+										$this->getSingleField_typeFlex_draw(
+											$value['el'],
+											$editData[$key]['el'],
+											$table,
+											$field,
+											$row,
+											$PA,
+											$formPrefix.'['.$key.'][el]',
+											$level+1,
+											$idTagPrefix
+										).'
 									</div>
 									<input id="'.$idTagPrefix.'-toggleClosed" type="hidden" name="'.htmlspecialchars('data['.$table.']['.$row['uid'].']['.$field.']'.$formPrefix.'[_TOGGLE]').'" value="'.($toggleClosed?1:0).'" />
 								</div>';
@@ -2815,7 +2846,7 @@ class t3lib_TCEforms	{
 									'label' => $this->sL(trim($value['TCEforms']['label'])),
 									'config' => $value['TCEforms']['config'],
 									'defaultExtras' => $value['TCEforms']['defaultExtras'],
-                                    'onChange' => $value['TCEforms']['onChange']
+									'onChange' => $value['TCEforms']['onChange']
 								);
 								if ($PA['_noEditDEF'] && $PA['_lang']==='lDEF') {
 									$fakePA['fieldConf']['config'] = array(
@@ -2825,7 +2856,7 @@ class t3lib_TCEforms	{
 								}
 
 								if (
-                                    $fakePA['fieldConf']['onChange'] == 'reload' ||
+									$fakePA['fieldConf']['onChange'] == 'reload' ||
 									($GLOBALS['TCA'][$table]['ctrl']['type'] && !strcmp($key,$GLOBALS['TCA'][$table]['ctrl']['type'])) ||
 									($GLOBALS['TCA'][$table]['ctrl']['requestUpdate'] && t3lib_div::inList($GLOBALS['TCA'][$table]['ctrl']['requestUpdate'],$key))) {
 									if ($GLOBALS['BE_USER']->jsConfirmation(1))	{
@@ -2875,14 +2906,14 @@ class t3lib_TCEforms	{
 									// possible linebreaks in the label through xml: \n => <br/>, usage of nl2br() not possible, so it's done through str_replace
 								$processedTitle = str_replace('\n', '<br />', $theTitle);
 								$helpText = $this->helpText_typeFlex($key, $processedTitle, $PA['_cshFile']);
-								$tRows[]='<div>' .
-									'<div class="bgColor5">' .
+								$tRows[]='<div class="t3-form-field-container t3-form-field-container-flex">' .
+									'<div class="t3-form-field-label t3-form-field-label-flex">' .
 									($helpText ?
 										($vDEFkey=='vDEF' ? '' : $this->getLanguageIcon($table, $row, $vDEFkey)) . '<strong>' . $processedTitle . '</strong>' . $helpText :
 										$this->helpTextIcon_typeFlex($key, $processedTitle, $PA['_cshFile']) . ($vDEFkey == 'vDEF' ? '' : $this->getLanguageIcon($table, $row, $vDEFkey)) . $processedTitle
 									) .
 									'</div>
-									<div class="bgColor4">'.$theFormEl.$defInfo.$this->renderVDEFDiff($editData[$key],$vDEFkey).'</div>
+									<div class="t3-form-field t3-form-field-flex">'.$theFormEl.$defInfo.$this->renderVDEFDiff($editData[$key],$vDEFkey).'</div>
 								</div>';
 							}
 						}
@@ -3569,7 +3600,14 @@ class t3lib_TCEforms	{
 						}
 					}
 				break;
+				case 'file_reference':
 				case 'file':
+					foreach ($itemArray as $item) {
+						$itemParts = explode('|', $item);
+						$uidList[] = $pUid = $pTitle = $itemParts[0];
+						$opt[] = '<option value="' . htmlspecialchars(rawurldecode($itemParts[0])) . '">' . htmlspecialchars(basename(rawurldecode($itemParts[0]))) . '</option>';
+					}
+				break;
 				case 'folder':
 					foreach ($itemArray as $pp) {
 						$pParts = explode('|',$pp);
@@ -3612,54 +3650,51 @@ class t3lib_TCEforms	{
 				}
 				$aOnClick='setFormValueOpenBrowser(\''.$mode.'\',\''.($fName.'|||'.$allowed.'|'.$aOnClickInline).'\'); return false;';
 				$icons['R'][]='<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
-						'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/insert3.gif','width="14" height="14"').' border="0" '.t3lib_BEfunc::titleAltAttrib($this->getLL('l_browse_'.($mode=='file'?'file':'db'))).' />'.
-						'</a>';
+						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars($this->getLL('l_browse_' . ($mode == 'db' ? 'db' : 'file'))))) .
+				'</a>';
 			}
 			if (!$params['dontShowMoveIcons'])	{
 				if ($sSize>=5)	{
 					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$fName.'\',\'Top\'); return false;">'.
-							'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/group_totop.gif','width="14" height="14"').' border="0" '.t3lib_BEfunc::titleAltAttrib($this->getLL('l_move_to_top')).' />'.
-							'</a>';
+							t3lib_iconWorks::getSpriteIcon('actions-move-to-top', array('title' => htmlspecialchars($this->getLL('l_move_to_top')))) .
+					'</a>';
 				}
 				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$fName.'\',\'Up\'); return false;">'.
-						'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/up.gif','width="14" height="14"').' border="0" '.t3lib_BEfunc::titleAltAttrib($this->getLL('l_move_up')).' />'.
-						'</a>';
+				  t3lib_iconWorks::getSpriteIcon('actions-move-up', array('title' => htmlspecialchars($this->getLL('l_move_up')))) .
+				'</a>';
 				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$fName.'\',\'Down\'); return false;">'.
-						'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/down.gif','width="14" height="14"').' border="0" '.t3lib_BEfunc::titleAltAttrib($this->getLL('l_move_down')).' />'.
-						'</a>';
+				  t3lib_iconWorks::getSpriteIcon('actions-move-down', array('title' => htmlspecialchars($this->getLL('l_move_down')))) .
+				'</a>';
 				if ($sSize>=5)	{
 					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$fName.'\',\'Bottom\'); return false;">'.
-							'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/group_tobottom.gif','width="14" height="14"').' border="0" '.t3lib_BEfunc::titleAltAttrib($this->getLL('l_move_to_bottom')).' />'.
-							'</a>';
+					  t3lib_iconWorks::getSpriteIcon('actions-move-to-bottom', array('title' => htmlspecialchars($this->getLL('l_move_to_bottom')))) .
+					'</a>';
 				}
 			}
 
 			$clipElements = $this->getClipboardElements($allowed,$mode);
 			if (count($clipElements))	{
 				$aOnClick = '';
-	#			$counter = 0;
 				foreach($clipElements as $elValue)	{
-					if ($mode=='file')	{
-						$itemTitle = 'unescape(\''.rawurlencode(basename($elValue)).'\')';
-					} else {	// 'db' mode assumed
+					if ($mode == 'db') {
 						list($itemTable,$itemUid) = explode('|', $elValue);
 						$itemTitle = $GLOBALS['LANG']->JScharCode(t3lib_BEfunc::getRecordTitle($itemTable, t3lib_BEfunc::getRecordWSOL($itemTable,$itemUid)));
 						$elValue = $itemTable.'_'.$itemUid;
+					} else {
+							// 'file', 'file_reference' and 'folder' mode
+						$itemTitle = 'unescape(\'' . rawurlencode(basename($elValue)) . '\')';
 					}
 					$aOnClick.= 'setFormValueFromBrowseWin(\''.$fName.'\',unescape(\''.rawurlencode(str_replace('%20',' ',$elValue)).'\'),'.$itemTitle.');';
-
-	#				$counter++;
-	#				if ($params['maxitems'] && $counter >= $params['maxitems'])	{	break;	}	// Makes sure that no more than the max items are inserted... for convenience.
 				}
 				$aOnClick.= 'return false;';
 				$icons['R'][]='<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
-						'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/insert5.png','width="14" height="14"').' border="0" '.t3lib_BEfunc::titleAltAttrib(sprintf($this->getLL('l_clipInsert_'.($mode=='file'?'file':'db')),count($clipElements))).' />'.
-						'</a>';
+						t3lib_iconWorks::getSpriteIcon('actions-document-paste-into', array('title' => htmlspecialchars(sprintf($this->getLL('l_clipInsert_' . ($mode == 'db' ? 'db' : 'file')), count($clipElements))))) .
+				'</a>';
 			}
 			$rOnClick = $rOnClickInline.'setFormValueManipulate(\''.$fName.'\',\'Remove\'); return false';
 			$icons['L'][]='<a href="#" onclick="'.htmlspecialchars($rOnClick).'">'.
-					'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/group_clear.gif','width="14" height="14"').' border="0" '.t3lib_BEfunc::titleAltAttrib($this->getLL('l_remove_selected')).' />'.
-					'</a>';
+			  t3lib_iconWorks::getSpriteIcon('actions-selection-delete', array('title' => htmlspecialchars($this->getLL('l_remove_selected')))) .
+			'</a>';
 		}
 
 		$str='<table border="0" cellpadding="0" cellspacing="0" width="1">
@@ -3705,6 +3740,7 @@ class t3lib_TCEforms	{
 
 		if (is_object($this->clipObj))	{
 			switch($mode)	{
+				case 'file_reference':
 				case 'file':
 					$elFromTable = $this->clipObj->elFromTable('_FILE');
 					$allowedExts = t3lib_div::trimExplode(',', $allowed, 1);
@@ -3936,9 +3972,11 @@ class t3lib_TCEforms	{
 						$outArr[] = '<table border="0" cellpadding="0" cellspacing="0" id="'.$md5ID.'"'.$color.' style="'.htmlspecialchars($wConf['tableStyle']).'">
 									<tr>
 										<td>'.
-											$colorBoxLinks[0].
-											'<img src="clear.gif" width="'.$dX.'" height="'.$dY.'"'.t3lib_BEfunc::titleAltAttrib(trim($iTitle.' '.$PA['itemFormElValue'])).' border="0" />'.
-											$colorBoxLinks[1].
+											$colorBoxLinks[0].'<img '.
+											t3lib_iconWorks::skinImg($this->backPath,
+																(strlen(trim($color))==0 || strcmp(trim($color),'0')==0) ? 'gfx/colorpicker_empty.png' : 'gfx/colorpicker.png',
+																'width="'.$dX.'" height="'.$dY.'"'.t3lib_BEfunc::titleAltAttrib(trim($iTitle.' '.$PA['itemFormElValue'])).' border="0"').
+											'>'.$colorBoxLinks[1].
 											'</td>
 									</tr>
 								</table>';
@@ -4004,7 +4042,8 @@ class t3lib_TCEforms	{
 			$selIconInfo = @getimagesize(PATH_typo3.$icon);
 		} else {
 			$selIconFile = t3lib_iconWorks::skinImg($this->backPath,'gfx/'.$icon,'',1);
-			$selIconInfo = @getimagesize(PATH_typo3.$selIconFile);
+			$iconPath = substr($selIconFile, strlen($this->backPath));
+			$selIconInfo = @getimagesize(PATH_typo3 . $iconPath);
 		}
 		return array($selIconFile,$selIconInfo);
 	}
@@ -4026,7 +4065,7 @@ class t3lib_TCEforms	{
 			}
 
 			$padTop = t3lib_div::intInRange(($selIconInfo[1]-12)/2,0);
-			$styleAttr = 'background-image: url('.$selIconFile.'); background-repeat: no-repeat; height: '.t3lib_div::intInRange(($selIconInfo[1]+2)-$padTop,0).'px; padding-top: '.$padTop.'px; padding-left: '.$padLeft.'px;';
+			$styleAttr = 'background: #fff url(' . $selIconFile . ') 0% 50% no-repeat; height: ' . t3lib_div::intInRange(($selIconInfo[1] + 2) - $padTop, 0) . 'px; padding-top: ' . $padTop . 'px; padding-left: ' . $padLeft . 'px;';
 			return $styleAttr;
 		}
 	}
@@ -4291,16 +4330,18 @@ class t3lib_TCEforms	{
 	 * Return default "style" / "class" attribute line.
 	 *
 	 * @param	string		Field type (eg. "check", "radio", "select")
+	 * @param	string		Additional class(es) to be added
 	 * @return	string		CSS attributes
 	 */
-	function insertDefStyle($type)	{
+	function insertDefStyle($type, $additionalClass = '')	{
 		$out = '';
 
 		$style = trim($this->defStyle.$this->formElStyle($type));
 		$out.= $style?' style="'.htmlspecialchars($style).'"':'';
 
 		$class = $this->formElClass($type);
-		$out.= $class?' class="'.htmlspecialchars($class).'"':'';
+		$classAttributeValue = join(' ', array_filter(array($class, $additionalClass)));
+		$out .= $classAttributeValue ? ' class="' . htmlspecialchars($classAttributeValue) . '"' : '';
 
 		return $out;
 	}
@@ -4436,7 +4477,7 @@ class t3lib_TCEforms	{
 				$recursivityLevels = isset($fieldValue['config']['fileFolder_recursions']) ? t3lib_div::intInRange($fieldValue['config']['fileFolder_recursions'],0,99) : 99;
 
 					// Get files:
-				$fileFolder = ereg_replace('\/$','',$fileFolder).'/';
+				$fileFolder = rtrim($fileFolder, '/').'/';
 				$fileArr = t3lib_div::getAllFilesAndFoldersInPath(array(),$fileFolder,$extList,0,$recursivityLevels);
 				$fileArr = t3lib_div::removePrefixPathFromList($fileArr, $fileFolder);
 
@@ -4513,7 +4554,7 @@ class t3lib_TCEforms	{
 
 							// Item configuration:
 						$items[] = array(
-							ereg_replace(':$','',$theTypeArrays[0]),
+							rtrim($theTypeArrays[0], ':'),
 							$theTypeArrays[1],
 							'',
 							$descr
@@ -4544,7 +4585,7 @@ class t3lib_TCEforms	{
 									// Add item to be selected:
 								$items[] = array(
 									'['.$itemContent[2].'] '.$itemContent[1],
-									$tableFieldKey.':'.ereg_replace('[:|,]','',$itemValue).':'.$itemContent[0],
+									$tableFieldKey.':'.preg_replace('/[:|,]/','',$itemValue).':'.$itemContent[0],
 									$icons[$itemContent[0]]
 								);
 							}
@@ -4577,7 +4618,7 @@ class t3lib_TCEforms	{
 										// Add item to be selected:
 									$items[] = array(
 										$GLOBALS['LANG']->sl($itemCfg[0]),
-										$coKey.':'.ereg_replace('[:|,]','',$itemKey),
+										$coKey.':'.preg_replace('/[:|,]/','',$itemKey),
 										$icon,
 										$GLOBALS['LANG']->sl($itemCfg[2]),
 									);
@@ -4606,7 +4647,7 @@ class t3lib_TCEforms	{
 								// Description texts:
 							if ($this->edit_showFieldHelp)	{
 								$descr = $GLOBALS['LANG']->moduleLabels['labels'][$theMod.'_tablabel'].
-											chr(10).
+											LF.
 											$GLOBALS['LANG']->moduleLabels['labels'][$theMod.'_tabdescr'];
 							}
 
@@ -4696,8 +4737,8 @@ class t3lib_TCEforms	{
 
 					// Add the item:
 				$items[] = array(
-					$lPrefix.strip_tags(t3lib_BEfunc::getRecordTitle($f_table,$row)),
-					$uidPre.$row['uid'],
+					$lPrefix . htmlspecialchars(t3lib_BEfunc::getRecordTitle($f_table, $row)),
+					$uidPre . $row['uid'],
 					$icon
 				);
 			}
@@ -4745,14 +4786,17 @@ class t3lib_TCEforms	{
 
 			// Wrapping all table rows for a particular record being edited:
 		$this->totalWrap='
+		<h2>###PAGE_TITLE###</h2>
+
 		<table class="typo3-TCEforms">'.
-			'<tr class="typo3-TCEforms-recHeaderRow bgColor2">
-				<td colspan="2">###RECORD_ICON### <span class="typo3-TCEforms-recHeader">###TABLE_TITLE###</span> ###ID_NEW_INDICATOR### - ###RECORD_LABEL###</td>
-			</tr>'.
 			'|'.
-			'<tr>
+			'
+			<tr>
 				<td><!-- --></td>
 				<td><img src="clear.gif" width="'.($this->docLarge ? 440+150 : 440).'" height="1" alt="" /></td>
+			</tr>
+			<tr class="typo3-TCEforms-recHeaderRow">
+				<td colspan="2">###RECORD_ICON### <span class="typo3-TCEforms-recHeader">###TABLE_TITLE###</span> ###ID_NEW_INDICATOR###</td>
 			</tr>
 		</table>';
 
@@ -4760,7 +4804,7 @@ class t3lib_TCEforms	{
 		$this->fieldTemplate='
 			<tr ###BGCOLOR_HEAD######CLASSATTR_2###>
 				<td>###FIELD_HELP_ICON###</td>
-				<td width="99%"><span style="color:###FONTCOLOR_HEAD###;"###CLASSATTR_4###><b>###FIELD_NAME###</b></span>###FIELD_HELP_TEXT###</td>
+				<td width="99%"><span style="color:###FONTCOLOR_HEAD###;"###CLASSATTR_4###><strong>###FIELD_NAME###</strong></span>###FIELD_HELP_TEXT###</td>
 			</tr>
 			<tr ###BGCOLOR######CLASSATTR_1###>
 				<td nowrap="nowrap"><img name="req_###FIELD_TABLE###_###FIELD_ID###_###FIELD_FIELD###" src="clear.gif" class="t3-TCEforms-reqImg" alt="" /><img name="cm_###FIELD_TABLE###_###FIELD_ID###_###FIELD_FIELD###" src="clear.gif" class="t3-TCEforms-contentchangedImg" alt="" /></td>
@@ -4864,19 +4908,66 @@ class t3lib_TCEforms	{
 						$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.new',1).
 						'</span>';
 
-			#t3lib_BEfunc::fixVersioningPid($table,$rec);	// Kasper: Should not be used here because NEW records are not offline workspace versions...
-			$truePid = t3lib_BEfunc::getTSconfig_pidValue($table,$rec['uid'],$rec['pid']);
-			$prec = t3lib_BEfunc::getRecordWSOL('pages',$truePid,'title');
-			$rLabel = '<em>[PID: '.$truePid.'] '.htmlspecialchars(trim(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle('pages',$prec),40))).'</em>';
+				// Kasper: Should not be used here because NEW records are not offline workspace versions...
+			#t3lib_BEfunc::fixVersioningPid($table,$rec);
+			$truePid = t3lib_BEfunc::getTSconfig_pidValue($table, $rec['uid'], $rec['pid']);
+			$prec = t3lib_BEfunc::getRecordWSOL('pages', $truePid, 'title');
+			$pageTitle = t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE);
+			$rLabel = '<em>[PID: ' . $truePid . '] ' . $pageTitle . '</em>';
+
+				// Fetch translated title of the table
+			$tableTitle = $GLOBALS['LANG']->sL($GLOBALS['TCA'][$table]['ctrl']['title']);
+			if ($table === 'pages') {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.createNewPage', TRUE);
+				$pageTitle = sprintf($label, $tableTitle);
+			} else {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.createNewRecord', TRUE);
+
+				if ($rec['pid'] == 0) {
+					$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.createNewRecordRootLevel', TRUE);
+				}
+				$pageTitle = sprintf($label, $tableTitle, $pageTitle);
+			}
 		} else {
 			$newLabel = ' <span class="typo3-TCEforms-recUid">['.$rec['uid'].']</span>';
-			$rLabel  = htmlspecialchars(trim(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle($table,$rec),40)));
+			$rLabel   = t3lib_BEfunc::getRecordTitle($table, $rec, TRUE, FALSE);
+			$prec = t3lib_BEfunc::getRecordWSOL('pages', $rec['pid'], 'uid,title');
+
+				// Fetch translated title of the table
+			$tableTitle = $GLOBALS['LANG']->sL($GLOBALS['TCA'][$table]['ctrl']['title']);
+			if ($table === 'pages') {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editPage', TRUE);
+
+					// Just take the record title and prepend an edit label.
+				$pageTitle = sprintf($label, $tableTitle, $rLabel);
+			} else {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editRecord', TRUE);
+
+				$pageTitle = t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE);
+				if ($rLabel === t3lib_BEfunc::getNoRecordTitle(TRUE)) {
+					$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editRecordNoTitle', TRUE);
+				}
+				if ($rec['pid'] == 0) {
+					$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editRecordRootLevel', TRUE);
+				}
+
+				if ($rLabel !== t3lib_BEfunc::getNoRecordTitle(TRUE)) {
+
+						// Just take the record title and prepend an edit label.
+					$pageTitle = sprintf($label, $tableTitle, $rLabel, $pageTitle);
+				} else {
+
+						// Leave out the record title since it is not set.
+					$pageTitle = sprintf($label, $tableTitle, $pageTitle);
+				}
+			}
 		}
 
 		foreach ($arr as $k => $v)	{
 				// Make substitutions:
+			$arr[$k] = str_replace('###PAGE_TITLE###', $pageTitle, $arr[$k]);
 			$arr[$k] = str_replace('###ID_NEW_INDICATOR###', $newLabel, $arr[$k]);
-			$arr[$k] = str_replace('###RECORD_LABEL###',$rLabel,$arr[$k]);
+			$arr[$k] = str_replace('###RECORD_LABEL###', $rLabel, $arr[$k]);
 			$arr[$k] = str_replace('###TABLE_TITLE###',htmlspecialchars($this->sL($TCA[$table]['ctrl']['title'])),$arr[$k]);
 
 			$titleA=t3lib_BEfunc::titleAltAttrib($this->getRecordPath($table,$rec));
@@ -4944,20 +5035,34 @@ class t3lib_TCEforms	{
 	 * @param	array		The palette array to print
 	 * @return	string		HTML output
 	 */
-	function printPalette($palArr)	{
+	function printPalette($palArr) {
+		$fieldAttributes = $labelAttributes = '';
 
 			// Init color/class attributes:
-		$ccAttr2 = $this->colorScheme[2] ? ' bgcolor="'.$this->colorScheme[2].'"' : '';
-		$ccAttr2.= $this->classScheme[2] ? ' class="'.$this->classScheme[2].'"' : '';
-		$ccAttr4 = $this->colorScheme[4] ? ' style="color:'.$this->colorScheme[4].'"' : '';
-		$ccAttr4.= $this->classScheme[4] ? ' class="'.$this->classScheme[4].'"' : '';
+		if ($this->colorScheme[2]) {
+			$labelAttributes .= ' bgcolor="' . $this->colorScheme[2] . '"';
+		}
+
+		if ($this->classScheme[2]) {
+			$labelAttributes .= ' class="t3-form-palette-field-label ' . $this->classScheme[2] . '"';
+		} else {
+			$labelAttributes .= ' class="t3-form-palette-field-label"';
+		}
+
+		if ($this->colorScheme[4]) {
+			$fieldAttributes .= ' style="color: ' . $this->colorScheme[4] . '"';
+		}
+
+		if ($this->classScheme[4]) {
+			$fieldAttributes .= ' class="t3-form-palette-field' . $this->classScheme[4] . '"';
+		}
 
 		$row = 0;
 		$hRow = $iRow = array();
 		$lastLineWasLinebreak = FALSE;
 
-			// Traverse palette fields and render them into table rows:
-		foreach($palArr as $content)	{
+			// Traverse palette fields and render them into containers:
+		foreach ($palArr as $content) {
 			if ($content['NAME'] === '--linebreak--') {
 				if (!$lastLineWasLinebreak) {
 					$row++;
@@ -4965,42 +5070,30 @@ class t3lib_TCEforms	{
 				}
 			} else {
 				$lastLineWasLinebreak = FALSE;
-				$hRow[$row][] = '<td' . $ccAttr2 . '>&nbsp;</td>
-					<td nowrap="nowrap"'.$ccAttr2.'>'.
-						'<span'.$ccAttr4.'>'.
-							$content['NAME'].
-						'</span>'.
-					'</td>';
-				$iRow[$row][] = '<td valign="top">' .
-						'<img name="req_'.$content['TABLE'].'_'.$content['ID'].'_'.$content['FIELD'].'" src="clear.gif" class="t3-TCEforms-reqPaletteImg"alt="" />'.
-						'<img name="cm_'.$content['TABLE'].'_'.$content['ID'].'_'.$content['FIELD'].'" src="clear.gif" class="t3-TCEforms-contentchangedPaletteImg" alt="" />'.
-					'</td>
-					<td nowrap="nowrap" valign="top">'.
-						$content['ITEM'].
-						$content['HELP_ICON'].
-					'</td>';
-		}
+				$fieldIdentifierForJs = $content['TABLE'] . '_' . $content['ID'] . '_' . $content['FIELD'];
+				$iRow[$row][] = '<span class="t3-form-palette-field-container">' .
+						'<label' . $labelAttributes . '>' .
+							$content['NAME'] .
+							'<img name="req_' . $fieldIdentifierForJs . '" src="clear.gif" class="t3-form-palette-icon-required" alt="" />' .
+							'<img name="cm_' . $fieldIdentifierForJs . '" src="clear.gif" class="t3-form-palette-icon-contentchanged" alt="" />' .
+						'</label>' .
+						'<span' . $fieldAttributes . '>' .
+							$content['ITEM'] .
+							$content['HELP_ICON'] .
+						'</span>' .
+					'</span>';
+			}
 		}
 
-			// Final wrapping into the table:
-		$out='<table border="0" cellpadding="0" cellspacing="0" class="typo3-TCEforms-palette">';
-		for ($i=0; $i<=$row; $i++) {
-			$out .= '
-			<tr>
-				<td><img src="clear.gif" width="'.intval($this->paletteMargin).'" height="1" alt="" /></td>'.
-					implode('
-					', $hRow[$i]) . '
-			</tr>
-			<tr>
-				<td></td>'.
-					implode('
-					', $iRow[$i]) . '
-				</tr>';
+			// Final wrapping into the fieldset:
+		$out = '<fieldset class="t3-form-palette-fieldset">';
+		for ($i = 0; $i <= $row; $i++) {
+			$out .= implode($iRow[$i]);
 		}
-		$out .= '</table>';
-
+		$out .= '</fieldset>';
 		return $out;
 	}
+
 
 	/**
 	 * Returns help-text ICON if configured for.
@@ -5059,7 +5152,7 @@ class t3lib_TCEforms	{
 
 					// Hover popup textbox with alttitle and description
 				if ($this->edit_showFieldHelp == 'icon') {
-					$arrow = '<img' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/rel_db.gif', 'width="13" height="12"') . ' class="absmiddle" alt="" />';
+					$arrow = t3lib_iconWorks::getSpriteIcon('actions-view-go-forward');
 						// add description text
 					$hoverText = '<span class="paragraph">' . nl2br(htmlspecialchars($value)) . $arrow . '</span>';
 						// put header before the rest of the text
@@ -5078,8 +5171,8 @@ class t3lib_TCEforms	{
 				)));
 				$aOnClick = 'vHWin=window.open(\''.$this->backPath.'view_help.php?ffID=' . $params . '\',\'viewFieldHelp\',\'height=400,width=600,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;';
 				return '<a href="#" class="typo3-csh-link" onclick="'.htmlspecialchars($aOnClick).'">'.
-						'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/helpbubble.gif','width="14" height="14"').' hspace="2" border="0" class="absmiddle"'.($GLOBALS['CLIENT']['FORMSTYLE']?' style="cursor:help;"':'').' alt="" />' . $hoverText .
-						'</a>';
+						t3lib_iconWorks::getSpriteIcon('actions-system-help-open') . $hoverText .
+				'</a>';
 			}
 		}
 		return '';
@@ -5326,8 +5419,8 @@ class t3lib_TCEforms	{
 			}
 
 				// Toggle icons:
-			$toggleIcon_open = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/pil2down.gif','width="12" height="7"').' hspace="2" alt="Open" title="Open" />';
-			$toggleIcon_close = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/pil2right.gif','width="7" height="12"').' hspace="2" alt="Close" title="Close" />';
+			$toggleIcon_open = t3lib_iconWorks::getSpriteIcon('actions-move-down', array('title' => 'Open'));
+			$toggleIcon_close = t3lib_iconWorks::getSpriteIcon('actions-move-right', array('title' => 'Close'));
 
 			$out .= '
 			function getOuterHTML(idTagPrefix)	{	// Function getting the outerHTML of an element with id
@@ -5345,29 +5438,29 @@ class t3lib_TCEforms	{
 					$(id+"-toggleClosed").value = 1;
 				}
 
-			    var previewContent = "";
-			    var children = $(id+"-content").getElementsByTagName("input");
-			    for (var i = 0, length = children.length; i < length; i++) {
+				var previewContent = "";
+				var children = $(id+"-content").getElementsByTagName("input");
+				for (var i = 0, length = children.length; i < length; i++) {
 					if (children[i].type=="text" && children[i].value)	previewContent+= (previewContent?" / ":"")+children[i].value;
-			    }
+				}
 				if (previewContent.length>80)	{
 					previewContent = previewContent.substring(0,67)+"...";
 				}
 				$(id+"-preview").update(previewContent);
 			}
 			function flexFormToggleSubs(id)	{	// Toggling sub flexform elements on/off:
-			    var descendants = $(id).immediateDescendants();
+				var descendants = $(id).immediateDescendants();
 				var isOpen=0;
 				var isClosed=0;
 					// Traverse and find how many are open or closed:
-			    for (var i = 0, length = descendants.length; i < length; i++) {
+				for (var i = 0, length = descendants.length; i < length; i++) {
 					if (descendants[i].id)	{
 						if (Element.visible(descendants[i].id+"-content"))	{isOpen++;} else {isClosed++;}
 					}
-			    }
+				}
 
 					// Traverse and toggle
-			    for (var i = 0, length = descendants.length; i < length; i++) {
+				for (var i = 0, length = descendants.length; i < length; i++) {
 					if (descendants[i].id)	{
 						if (isOpen!=0 && isClosed!=0)	{
 							if (Element.visible(descendants[i].id+"-content"))	{flexFormToggle(descendants[i].id);}
@@ -5375,7 +5468,7 @@ class t3lib_TCEforms	{
 							flexFormToggle(descendants[i].id);
 						}
 					}
-			    }
+				}
 			}
 			function flexFormSortable(id)	{	// Create sortables for flexform sections
 				Position.includeScrollOffsets = true;
@@ -5384,14 +5477,14 @@ class t3lib_TCEforms	{
 				} });
 			}
 			function setActionStatus(id)	{	// Updates the "action"-status for a section. This is used to move and delete elements.
-			    var descendants = $(id).immediateDescendants();
+				var descendants = $(id).immediateDescendants();
 
 					// Traverse and find how many are open or closed:
-			    for (var i = 0, length = descendants.length; i < length; i++) {
+				for (var i = 0, length = descendants.length; i < length; i++) {
 					if (descendants[i].id)	{
 						$(descendants[i].id+"-action").value = descendants[i].visible() ? i : "DELETE";
 					}
-			    }
+				}
 			}
 
 			TBE_EDITOR.images.req.src = "'.t3lib_iconWorks::skinImg($this->backPath,'gfx/required_h.gif','',1).'";
@@ -5439,21 +5532,21 @@ class t3lib_TCEforms	{
 			// $this->additionalJS_submit:
 		if ($this->additionalJS_submit) {
 			$additionalJS_submit = implode('', $this->additionalJS_submit);
-			$additionalJS_submit = str_replace("\r", '', $additionalJS_submit);
-			$additionalJS_submit = str_replace("\n", '', $additionalJS_submit);
+			$additionalJS_submit = str_replace(CR, '', $additionalJS_submit);
+			$additionalJS_submit = str_replace(LF, '', $additionalJS_submit);
 			$out .= '
 			TBE_EDITOR.addActionChecks("submit", "'.addslashes($additionalJS_submit).'");
 			';
 		}
 
-		$out .= chr(10).implode(chr(10),$this->additionalJS_post).chr(10).$this->extJSCODE;
+		$out .= LF.implode(LF,$this->additionalJS_post).LF.$this->extJSCODE;
 		$out .= '
 			TBE_EDITOR.loginRefreshed();
 		';
 
 			// Regular direct output:
 		if (!$update) {
-			$spacer = chr(10) . chr(9);
+			$spacer = LF . TAB;
 			$out  = $spacer . implode($spacer, $jsFile) . t3lib_div::wrapJS($out);
 		}
 
@@ -5479,7 +5572,7 @@ class t3lib_TCEforms	{
 			function setFormValueOpenBrowser(mode,params) {	//
 				var url = "'.$this->backPath.'browser.php?mode="+mode+"&bparams="+params;
 
-				browserWin = window.open(url,"Typo3WinBrowser","height=350,width="+(mode=="db"?650:600)+",status=0,menubar=0,resizable=1,scrollbars=1");
+				browserWin = window.open(url,"Typo3WinBrowser","height=650,width="+(mode=="db"?650:600)+",status=0,menubar=0,resizable=1,scrollbars=1");
 				browserWin.focus();
 			}
 			function setFormValueFromBrowseWin(fName,value,label,exclusiveValues)	{	//
@@ -6126,7 +6219,7 @@ class t3lib_TCEforms	{
 					$rowCopy[$field] = $imgPath;
 
 						// Icon + clickmenu:
-					$absFilePath = t3lib_div::getFileAbsFileName($config['config']['uploadfolder'].'/'.$imgPath);
+					$absFilePath = t3lib_div::getFileAbsFileName($config['config']['uploadfolder'] ? $config['config']['uploadfolder'] . '/' . $imgPath : $imgPath);
 
 					$fI = pathinfo($imgPath);
 					$fileIcon = t3lib_BEfunc::getFileIcon(strtolower($fI['extension']));

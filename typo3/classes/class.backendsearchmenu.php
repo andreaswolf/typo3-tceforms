@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2009 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -73,13 +73,15 @@ class BackendSearchMenu implements backend_toolbarItem {
 		$this->addJavascriptToBackend();
 		$searchMenu = array();
 
-		$searchMenu[] = '<a href="#" class="toolbar-item"><img'.t3lib_iconWorks::skinImg($this->backPath, 'gfx/magnifier.png', 'width="16" height="16"').' title="'.$title.'" alt="'.$title.'" /></a>';
+		$searchMenu[] = '<a href="#" class="toolbar-item">' .
+			t3lib_iconWorks::getSpriteIcon('apps-toolbar-menu-search', array('title' => $title)) .
+			'</a>';
 
 		$searchMenu[] = '<div class="toolbar-item-menu" style="display: none;">';
 		$searchMenu[] = '<input type="text" id="search-query" name="search-query" value="" />';
 		$searchMenu[] = '</div>';
 
-		return implode("\n", $searchMenu);
+		return implode(LF, $searchMenu);
 	}
 
 	/**

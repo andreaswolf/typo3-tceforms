@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -306,6 +306,18 @@ class t3lib_pageSelect {
 		if ($lUid<0)	$lUid = $this->sys_language_uid;
 		$row = NULL;
 
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getPageOverlay'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getPageOverlay'] as $classRef) {
+				$hookObject = t3lib_div::getUserObj($classRef);
+
+				if (!($hookObject instanceof t3lib_pageSelect_getPageOverlayHook)) {
+					throw new UnexpectedValueException('$hookObject must implement interface t3lib_pageSelect_getPageOverlayHook', 1269878881);
+				}
+
+				$hookObject->getPageOverlay_preProcess($pageInput, $lUid, $this);
+			}
+		}
+
 			// If language UID is different from zero, do overlay:
 		if ($lUid)	{
 			$fieldArr = explode(',', $GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields']);
@@ -368,6 +380,17 @@ class t3lib_pageSelect {
 	function getRecordOverlay($table,$row,$sys_language_content,$OLmode='')	{
 		global $TCA;
 
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getRecordOverlay'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getRecordOverlay'] as $classRef) {
+				$hookObject = t3lib_div::getUserObj($classRef);
+
+				if (!($hookObject instanceof t3lib_pageSelect_getRecordOverlayHook)) {
+					throw new UnexpectedValueException('$hookObject must implement interface t3lib_pageSelect_getRecordOverlayHook', 1269881658);
+				}
+				$hookObject->getRecordOverlay_preProcess($table,$row,$sys_language_content,$OLmode, $this);
+			}
+		}
+
 		if ($row['uid']>0 && $row['pid']>0)	{
 			if ($TCA[$table] && $TCA[$table]['ctrl']['languageField'] && $TCA[$table]['ctrl']['transOrigPointerField'])	{
 				if (!$TCA[$table]['ctrl']['transOrigPointerTable'])	{	// Will not be able to work with other tables (Just didn't implement it yet; Requires a scan over all tables [ctrl] part for first FIND the table that carries localization information for this table (which could even be more than a single table) and then use that. Could be implemented, but obviously takes a little more....)
@@ -424,7 +447,16 @@ class t3lib_pageSelect {
 				}
 			}
 		}
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getRecordOverlay'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getRecordOverlay'] as $classRef) {
+				$hookObject = t3lib_div::getUserObj($classRef);
 
+				if (!($hookObject instanceof t3lib_pageSelect_getRecordOverlayHook)) {
+					throw new UnexpectedValueException('$hookObject must implement interface t3lib_pageSelect_getRecordOverlayHook', 1269881659);
+				}
+				$hookObject->getRecordOverlay_postProcess($table,$row,$sys_language_content,$OLmode, $this);
+			}
+		}
 		return $row;
 	}
 
