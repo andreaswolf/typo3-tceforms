@@ -1128,7 +1128,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			}
 
 			$padTop = t3lib_div::intInRange(($selIconInfo[1]-12)/2, 0);
-			$styleAttr = 'background-image: url(' . $selIconFile . '); background-repeat: no-repeat; height: ' .
+			$styleAttr = 'background: #fff url(' . $selIconFile . ') 0% 50% no-repeat; height: ' .
 			  t3lib_div::intInRange(($selIconInfo[1] + 2) - $padTop, 0) . 'px; padding-top: ' . $padTop .
 			  'px; padding-left: ' . $padLeft . 'px;';
 			return $styleAttr;

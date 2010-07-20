@@ -147,7 +147,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 				if ($sM) {
 					list($selectIconFile,$selectIconInfo) = $this->getIcon($p[2]);
 						if (!empty($selectIconInfo)) {
-							$selectedStyle = ' style="background-image: url('.$selectIconFile.'); background-repeat: no-repeat; background-position: 0% 50%; padding: 1px; padding-left: 24px; -webkit-background-size: 0;"';
+							$selectedStyle = ' style="background: #fff url(' . $selectIconFile . ') 0% 50% no-repeat; padding: 1px 1px 1px 24px; -webkit-background-size: 0;"';
 						}
 				}
 			}
