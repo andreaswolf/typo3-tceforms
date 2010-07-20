@@ -630,10 +630,10 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			#t3lib_BEfunc::fixVersioningPid($this->table,$this->record);	// Kasper: Should not be used here because NEW records are not offline workspace versions...
 			$truePid = t3lib_BEfunc::getTSconfig_pidValue($recordObject->getTable(), $recordObject->getValue('uid'), $recordObject->getValue('pid'));
 			$prec = t3lib_BEfunc::getRecordWSOL('pages', $truePid, 'title');
-			$rLabel = '<em>[PID: ' . $truePid . '] ' . htmlspecialchars(trim(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle('pages', $prec), 40))) . '</em>';
+			$rLabel = '<em>[PID: ' . $truePid . '] ' . t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE) . '</em>';
 		} else {
 			$newLabel = ' <span class="typo3-TCEforms-recUid">[' . $recordObject->getValue('uid') . ']</span>';
-			$rLabel  = htmlspecialchars(trim(t3lib_div::fixed_lgd_cs(t3lib_BEfunc::getRecordTitle($recordObject->getTable(), $recordObject->getRecordData()), 40)));
+			$rLabel = t3lib_BEfunc::getRecordTitle($table, $rec, TRUE, FALSE);
 		}
 		return array($rLabel, $newLabel);
 	}
