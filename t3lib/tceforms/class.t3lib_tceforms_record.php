@@ -411,13 +411,7 @@ class t3lib_TCEforms_Record {
 			$typeFieldName = $this->dataStructure->getTypeField();
 				// Get value of the row from the record which contains the type value.
 			$typeFieldConfig = $this->dataStructure->getFieldConfiguration($typeFieldName);
-			if (isset($typeFieldConfig['l10n_mode']) && $typeFieldConfig['l10n_mode'] == 'exclude') {
-					// retrieve the typeNum from the original records's type field
-				$typeNum = $this->defaultLanguageData[$typeFieldName];
-			} else {
-					// Get value of the row from the record which contains the type value.
-				$this->typeNumber = $this->recordData[$typeFieldName];
-			}
+			$typeNum = $this->getLanguageOverlayRawValue($typeFieldName);
 				// If that value is an empty string, set it to "0" (zero)
 			if (!strcmp($this->typeNumber,'')) $this->typeNumber = 0;
 		} else {
@@ -593,6 +587,30 @@ class t3lib_TCEforms_Record {
 
 	public function getValue($key) {
 		return $this->recordData[$key];
+	}
+
+	/**
+	 * Creates language-overlay for a field value
+	 * This means the requested field value will be overridden with the data from the default language.
+	 * Can be used to render read only fields for example.
+	 *
+	 * @param   string  Field name represented by $item
+	 * @return  string  Unprocessed field value merged with default language data if needed
+	 *
+	 * @TODO check if this could replace the method in Element_Abstract. This method has been copied here
+	 *       because we need an overlay for determining the record type value (@see setRecordTypeNumber())
+	 */
+	protected function getLanguageOverlayRawValue($fieldName) {
+		$fieldConf = $this->getTCAdefinitionForField($fieldName);
+
+		if ($fieldConf['l10n_mode'] == 'exclude'
+		  || ($fieldConf['l10n_mode'] == 'mergeIfNotBlank'
+		  && strcmp(trim($this->defaultLanguageData[$fieldName]), ''))) {
+
+			$value = $this->defaultLanguageData[$fieldName];
+		}
+
+		return $value;
 	}
 
 	public function setContextRecordObject(t3lib_TCEforms_Record $contextRecordObject) {

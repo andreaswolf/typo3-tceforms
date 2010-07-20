@@ -901,6 +901,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @param	array		Record array of the record being edited in current language
 	 * @param	array		Content of $PA['fieldConf']
 	 * @return	string		Unprocessed field value merged with default language data if needed
+	 *
+	 * @TODO check if this can/should be centralized in Element_Abstract
 	 */
 	protected function getLanguageOverlayRawValue() {
 		global $TCA;
