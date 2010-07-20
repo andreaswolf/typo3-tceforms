@@ -573,20 +573,20 @@ class t3lib_TCEforms_Record {
 		return $this->defaultLanguageData;
 	}
 
-	public function getDefaultLanguageValue($key) {
-		return $this->defaultLanguageData[$key];
+	public function getDefaultLanguageValue($field) {
+		return $this->defaultLanguageData[$field];
 	}
 
 	public function getDefaultLanguageDiffData() {
 		return $this->defaultLanguageData_diff;
 	}
 
-	public function getDefaultLanguageDiffValue($key) {
-		return $this->defaultLanguageData_diff[$key];
+	public function getDefaultLanguageDiffValue($field) {
+		return $this->defaultLanguageData_diff[$field];
 	}
 
-	public function getValue($key) {
-		return $this->recordData[$key];
+	public function getValue($field) {
+		return $this->recordData[$field];
 	}
 
 	/**
