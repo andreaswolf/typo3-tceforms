@@ -134,6 +134,7 @@ return array(
 	't3lib_matchcondition_frontend' => PATH_t3lib . 'matchcondition/class.t3lib_matchcondition_frontend.php',
 	't3lib_spritemanager_simplehandler' => PATH_t3lib . 'spritemanager/class.t3lib_spritemanager_simplehandler.php',
 	't3lib_tca_datastructure' => PATH_t3lib . 'tca/class.t3lib_tca_datastructure.php',
+	't3lib_tca_displayconfiguration' => PATH_t3lib . 'tca/class.t3lib_tca_displayconfiguration.php',
 	't3lib_tca_flexformdatastructure' => PATH_t3lib . 'tca/class.t3lib_tca_flexformdatastructure.php',
 	't3lib_tca_datastructure_field' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_field.php',
 	't3lib_tca_datastructure_flexformsresolver' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_flexformsresolver.php',

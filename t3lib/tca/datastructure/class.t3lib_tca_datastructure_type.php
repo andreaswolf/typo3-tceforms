@@ -56,24 +56,40 @@ class t3lib_TCA_DataStructure_Type {
 	/**
 	 * A list of all fields to exclude for the different subtypes
 	 *
-	 * @var array
+	 * @var array<string>
 	 */
-	protected $subtypesExcludeList;
+	protected $subtypesExcludeList = array();
 
 	/**
 	 * A list of all fields to add to the different subtypes
 	 *
-	 * @var array
+	 * @var array<string>
 	 */
-	protected $subtypesAddList;
+	protected $subtypesAddList = array();
 
 	/**
+	 * The field the bitmask value is stored in
 	 *
-	 *
-	 * @see $sheets
-	 * @var array
+	 * @var string
 	 */
-	protected $sheetsForSubtypes = array();
+	protected $bitmaskValueField;
+
+	/**
+	 * The list of bits in a bitmask to exclude fields from.
+	 *
+	 * See TYPO3 Core API, section TCA, subsection "['types'][key] section" for more information
+	 *
+	 * @var array<string>
+	 */
+	protected $bitmaskExcludelistBits = array();
+
+	/**
+	 * The list of fields to display for this type. This value misses all calculations done for subtypes
+	 * and bitmasks!
+	 *
+	 * @var string
+	 */
+	protected $showitemString;
 
 	/**
 	 *
@@ -143,93 +159,12 @@ class t3lib_TCA_DataStructure_Type {
 			$this->subtypesExcludeList = $configuration['subtypes_excludelist'];
 			$this->subtypesAddList = $configuration['subtypes_addlist'];
 		}
-
-		// TODO store styling information from the showitem subarray
-		$fields = $configuration['showitem'];
-
-		$fieldList = t3lib_div::trimExplode(',', $fields);
-		$sheetCounter = 0;
-
-		if (isset($fieldList[0]) && strpos($fieldList[0], '--div--') !== 0) {
-			++$sheetCounter;
-			$currentSheet = $this->createSheetObject($this->getLL('l_generalTab'));
-			$this->sheets[] = $currentSheet;
+		if (array_key_exists('bitmask_value_field', $configuration)) {
+			$this->bitmaskValueField = $configuration['bitmask_value_field'];
+			$this->bitmaskExcludelistBits = $configuration['bitmask_excludelist_bits'];
 		}
 
-		foreach ($fieldList as $fieldInfo) {
-			// Exploding subparts of the field configuration:
-			$parts = explode(';', $fieldInfo);
-
-			$theField = $parts[0];
-
-			if ($theField == '--div--') {
-				++$sheetCounter;
-
-				$currentSheet = $this->createSheetObject($GLOBALS['LANG']->sL($parts[1]));
-				$this->sheets[] = $currentSheet;
-			} else {
-				if ($theField !== '') {
-					if ($theField == '--palette--') {
-						t3lib_div::devLog('Adding palette element in data structure for type ' . $this->typeNum . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
-
-						// TODO create object for palette here
-						//$formFieldObject = $this->createPaletteElement($parts[2], $GLOBALS['LANG']->sL($parts[1]));
-						$elementObject = array(
-							'type' => 'palette',
-							'palette' => $parts[2],
-							'label' => $GLOBALS['LANG']->sL($parts[1])
-						);
-					} elseif ($this->dataStructure->hasField($theField)) {
-						t3lib_div::devLog('Adding standard element for field "' . $theField . '" in type ' . $this->typeNum . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
-
-						$elementObject = $this->createElementObject($theField, $GLOBALS['LANG']->sL($parts[1]),
-						  $this->dataStructure->getFieldConfiguration($theField), $parts[3]);
-					} else {
-						// if this is no field, just continue with the next entry in the field list.
-						continue;
-					}
-
-					$this->fieldList[] = $theField;
-					$currentSheet->addElement($elementObject);
-
-					if ($this->hasSubtypeValueField() && $this->subtypeValueField == $theField) {
-						$this->subtypeValueFieldSheet = $currentSheet;
-					}
-				}
-
-				// Getting the style information out:
-				// TODO: Make this really object oriented
-				if (isset($parts[4])) {
-					$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
-				} else {
-					$color_style_parts = array();
-				}
-				if (strcmp($color_style_parts[0], '')) {
-					//$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
-					if (!isset($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])])) {
-						//$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][0]);
-					}
-				}
-				// TODO: add getter and setter for _wrapBorder
-				if (strcmp($color_style_parts[1], '')) {
-					//$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])]);
-					// TODO check if this check is still neccessary
-					if (!isset($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])])) {
-						//$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][0]);
-					}
-				}
-				if (strcmp($color_style_parts[2], '')) {
-					if (isset($parts[4])) $formFieldObject->_wrapBorder = true;
-					//$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])]);
-					// TODO check if this check is still neccessary
-					if (!isset($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])])) {
-						//$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][0]);
-					}
-				}
-			}
-		}
-
-		//$this->resolveMainPalettes();
+		$this->showitemString = $configuration['showitem'];
 	}
 
 	protected function createSheetObject($label, $name = '') {
@@ -252,6 +187,26 @@ class t3lib_TCA_DataStructure_Type {
 		  $specialConfiguration);
 
 		return $object;
+	}
+
+	/**
+	 *
+	 *
+	 * @param integer $paletteNumber
+	 * @param string $label
+	 * @return
+	 */
+	protected function createPaletteObject($paletteNumber, $label = '') {
+		$paletteConfiguration = $this->dataStructure->getPaletteConfiguration($paletteNumber);
+		$paletteFieldNames = t3lib_div::trimExplode(',', $paletteConfiguration['showitem']);
+
+		foreach ($paletteFieldNames as $fieldName) {
+			$paletteElements[] = $fieldName;
+		}
+
+		$paletteObject = new t3lib_TCA_DataStructure_Palette($this->dataStructure, $label, $paletteNumber, $paletteElements);
+
+		return $paletteObject;
 	}
 
 	/**
@@ -326,6 +281,10 @@ class t3lib_TCA_DataStructure_Type {
 		}
 	}
 
+	public function getShowitemString() {
+		return $this->showitemString;
+	}
+
 	public function hasSubtypeValueField() {
 		return !empty($this->subtypeValueField);
 	}
@@ -334,6 +293,13 @@ class t3lib_TCA_DataStructure_Type {
 		return $this->subtypeValueField;
 	}
 
+	public function getAddListForSubtype($subtypeValue) {
+		return $this->subtypesAddList[$subtypeValue];
+	}
+
+	/**
+	 * @deprecated
+	 */
 	public function getFieldListForSubtype($subtype) {
 		$fieldList = $this->fieldList;
 
@@ -341,6 +307,33 @@ class t3lib_TCA_DataStructure_Type {
 		$fieldList = array_merge($fieldList, $this->subtypesAddList[$subtype]);
 
 		return $fieldList;
+	}
+
+	public function hasBitmaskValueField() {
+		return !empty($this->bitmaskValueField);
+	}
+
+	public function getBitmaskValueField() {
+		return $this->bitmaskValueField;
+	}
+
+	public function getBitmaskExcludeList($bitmaskValue) {
+		$excludedList = array();
+
+		foreach ($this->bitmaskExcludelistBits as $bitKey => $fieldList) {
+			$bit = substr($bitKey, 1);
+			if (t3lib_div::testInt($bit)) {
+				$bit = t3lib_div::intInRange($bit, 0, 30);
+				if ((substr($bitKey, 0, 1) == '-' && !($sTValue & pow(2, $bit))) ||
+				    (substr($bitKey, 0, 1) == '+' &&  ($sTValue & pow(2, $bit)))
+				    ) {
+
+					$excludedList = array_merge($excludedList, t3lib_div::trimExplode(',', $fieldList, 1));
+				}
+			}
+		}
+
+		return $excludedList;
 	}
 }
 

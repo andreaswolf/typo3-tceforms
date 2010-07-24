@@ -41,7 +41,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	/**
 	 * The palette object
 	 *
-	 * @var t3lib_TCEforms_Palette
+	 * @var t3lib_TCEforms_Container_Palette
 	 */
 	protected $paletteObject;
 
@@ -334,6 +334,12 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$this->backPath = $contextObject->getBackpath();
 
 		return $this;
+	}
+
+	public function setPaletteObject(t3lib_TCEforms_Container_Palette $palette) {
+		$this->paletteObject = $palette;
+		$this->paletteObject->setContainingObject($this);
+		$this->hasPalette = TRUE;
 	}
 
 	public function setItemFormElementName($itemFormElementName) {

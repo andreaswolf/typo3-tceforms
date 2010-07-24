@@ -30,6 +30,13 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	 */
 	protected $contextObject;
 
+	/**
+	 * The elements in this palette
+	 *
+	 * @var array<t3lib_TCEforms_Element_Abstract>
+	 */
+	protected $paletteElements;
+
 
 	public function __construct($paletteNumber) {
 		$this->paletteNumber = $paletteNumber;
@@ -63,7 +70,15 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		$this->recordObject->setPaletteCreated($this->paletteNumber);
 	}
 
-	// TODO: move this to FormBuilder
+	public function addElement(t3lib_TCEforms_Element_Abstract $elementObject) {
+		$elementObject->setIsInPalette(TRUE);
+		$elementObject->setContainer($this);
+		$this->paletteElements[] = $elementObject;
+	}
+
+	/**
+	 * @deprecated
+	 */
 	protected function loadElements() {
 		$parts = array();
 
@@ -109,15 +124,13 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	}
 
 	public function render() {
-		$paletteElements = $this->loadElements();
-
-		if (count($paletteElements) == 0) {
+		if (count($this->paletteElements) == 0) {
 			return '';
 		}
 
 		$template = t3lib_parsehtml::getSubpart($this->contextObject->getTemplateContent(), '###PALETTE_FIELD###');
 
-		foreach ($paletteElements as $paletteElement) {
+		foreach ($this->paletteElements as $paletteElement) {
 			$paletteContents[] = $paletteElement->render();
 		}
 

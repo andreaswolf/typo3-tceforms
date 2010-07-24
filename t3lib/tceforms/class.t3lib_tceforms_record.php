@@ -208,11 +208,6 @@ class t3lib_TCEforms_Record {
 		$this->formBuilder = t3lib_TCEforms_Formbuilder::createInstanceForRecordObject($this);
 
 		$this->buildFormFieldPrefixes();
-
-		$this->createFieldsList();
-
-		$this->setExcludedElements();
-
 		$this->registerDefaultLanguageData();
 
 		$this->formBuilder->buildObjectStructure($this);

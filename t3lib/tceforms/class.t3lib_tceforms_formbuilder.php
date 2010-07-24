@@ -27,6 +27,13 @@ class t3lib_TCEforms_FormBuilder {
 	 */
 	protected $recordObject;
 
+	/**
+	 * The display configuration for the current record
+	 *
+	 * @var t3lib_TCA_DisplayConfiguration
+	 */
+	protected $displayConfiguration;
+
 
 	protected function __construct(t3lib_TCEforms_Record $recordObject) {
 		t3lib_div::devLog('Created new formbuilder object for record ' . $recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
@@ -34,6 +41,7 @@ class t3lib_TCEforms_FormBuilder {
 		$this->recordObject = $recordObject;
 		$this->contextObject = $recordObject->getContextObject();
 		$this->dataStructure = $recordObject->getDataStructure();
+		$this->displayConfiguration = $this->dataStructure->getDisplayConfigurationForRecord($this->recordObject);
 	}
 
 	public static function createInstanceForRecordObject(t3lib_TCEforms_Record $recordObject) {
@@ -49,31 +57,34 @@ class t3lib_TCEforms_FormBuilder {
 		t3lib_div::devLog('Started building object tree for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
 
 		// TODO use the data structure object here -- URGENT
-		$sheets = $this->recordObject->getDisplayConfiguration();
+		$sheets = $this->displayConfiguration->getSheets();
 		//$fieldList = $this->recordObject->getFieldList();
 
 		foreach ($sheets as $sheet) {
-			$sheetObject = $this->createSheetObjectFromDefinition($sheet);
+			$this->createSheetObjectFromDefinition($sheet);
 		}
 	}
 
-	protected function createSheetObjectFromDefinition($sheetDefinition) {
+	protected function createSheetObjectFromDefinition(t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
 		$sheetObject = $this->createSheetObject($this->recordObject->getSheetCount() + 1, $sheetDefinition);
 		$this->recordObject->addSheetObject($sheetObject);
 
-		foreach ($sheetDefinition->getElements() as $element) {
-			if (is_a($element, 't3lib_TCA_DataStructure_Field')) {
-				$elementObject = $this->getSingleField($element->getName(), $element->getConfiguration(), $element->getLabel());
-				$elementObject->setContextObject($this->contextObject)
-				              ->setContextRecordObject($this->recordObject->getContextRecordObject())
-				              ->setRecordObject($this->recordObject)
-				              ->setParentFormObject($this->recordObject->getParentFormObject())
-				              ->setTable($this->recordObject->getTable())
-				              ->setRecord($this->recordObject->getRecordData())
-				              ->injectFormBuilder($this)
-				              ->init();
+		foreach ($sheetDefinition->getElements() as $fieldObject) {
+			if (is_a($fieldObject, 't3lib_TCA_DataStructure_Field')) {
+				/* @var $element t3lib_TCA_DataStructure_Field */
+				$elementObject = $this->createObjectFromFieldDefinition($fieldObject);
+				$elementObject->init();
 
 				$sheetObject->addChildObject($elementObject);
+			} elseif (is_a($fieldObject, 't3lib_TCA_DataStructure_Palette')) {
+				$paletteContainerObject = $this->createPaletteObjectFromDefinition($fieldObject);
+
+				/* @var $paletteElementObject t3lib_TCEforms_Element_Palette */
+				$paletteElementObject = $this->createElementObject('palette', $fieldObject->getLabel());
+				$paletteElementObject->setPaletteObject($paletteContainerObject);
+				$paletteElementObject->init();
+
+				$sheetObject->addChildObject($paletteElementObject);
 			}
 		}
 	}
@@ -106,18 +117,52 @@ class t3lib_TCEforms_FormBuilder {
 	 * @param   string   $altName   Alternative field name label to show.
 	 * @return  t3lib_TCEforms_AbstractElement
 	 */
-	public function getSingleField($theField, $fieldConf, $altName='') {
-		// Using "form_type" locally in this script
-		$fieldConf['config']['form_type'] = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
+	public function createObjectFromFieldDefinition(t3lib_TCA_DataStructure_Field $fieldDefinition) {
+		$fieldConf = $fieldDefinition->getConfiguration();
+		$label = $fieldDefinition->getLabel();
+		$fieldName = $fieldDefinition->getName();
 
-		$elementObject = $this->createElementObject($fieldConf['config']['form_type'], $theField, $fieldConf, $altName, $extra);
+		// Using "form_type" locally in this script
+		$fieldType = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
+
+		$elementObject = $this->createElementObject($fieldType, $fieldName, $fieldConf);
+
+		if ($fieldDefinition->hasPalette()) {
+			$paletteDefinition = $fieldDefinition->getPalette();
+
+			$paletteObject = $this->createPaletteObjectFromDefinition($paletteDefinition);
+
+			$elementObject->setPaletteObject($paletteObject);
+		}
+
+		$elementObject->init();
 
 		return $elementObject;
 	}
 
+	/**
+	 * Creates a palette container object from a TCA datastructure definition of a palette
+	 *
+	 * @param t3lib_TCA_DataStructure_Palette $paletteObject
+	 * @return t3lib_TCEforms_Container_Palette
+	 */
+	protected function createPaletteObjectFromDefinition(t3lib_TCA_DataStructure_Palette $paletteDataStructureObject) {
+		$dataStructureElements = $paletteDataStructureObject->getElements();
+
+		/* @var $paletteObject t3lib_TCEforms_Container_Palette */
+		$paletteObject = $this->createPaletteContainerObject($paletteDataStructureObject->getNumber());
+
+		foreach ($dataStructureElements as $element) {
+			$fieldObject = $this->createObjectFromFieldDefinition($element);
+
+			$paletteObject->addElement($fieldObject);
+		}
+
+		return $paletteObject;
+	}
+
 	public function createPaletteElement($paletteNumber, $label) {
-		$classname = $this->createElementObject('palette', array());
-		return new $classname($paletteNumber, $label);
+		return $this->createElementObject('palette');
 	}
 
 	/**
@@ -125,7 +170,7 @@ class t3lib_TCEforms_FormBuilder {
 	 * is not found.
 	 *
 	 * @param  string  $type  The type of record to create - directly taken from TCA
-	 * @return t3lib_TCEforms_AbstractElement  The element object
+	 * @return t3lib_TCEforms_Element_Abstract  The element object
 	 */
 	// TODO: refactor this as soon as the autoloader is available in core
 	protected function createElementObject($type, $theField = '', $fieldConf = array()) {
@@ -143,7 +188,16 @@ class t3lib_TCEforms_FormBuilder {
 			include_once PATH_t3lib.'tceforms/element/class.'.strtolower($className).'.php';
 		}
 
-		return t3lib_div::makeInstance($className, $theField, $fieldConf);
+		$elementObject = t3lib_div::makeInstance($className, $theField, $fieldConf);#
+		$elementObject->setContextObject($this->contextObject)
+		              ->setContextRecordObject($this->recordObject->getContextRecordObject())
+		              ->setRecordObject($this->recordObject)
+		              ->setParentFormObject($this->recordObject->getParentFormObject())
+		              ->setTable($this->recordObject->getTable())
+		              ->setRecord($this->recordObject->getRecordData())
+		              ->injectFormBuilder($this);
+
+		return $elementObject;
 	}
 
 	/**
@@ -161,6 +215,20 @@ class t3lib_TCEforms_FormBuilder {
 		  $sheetDefinition->getName());
 
 		return $sheetObject;
+	}
+
+	/**
+	 * Enter description here ...
+	 *
+	 * @return t3lib_TCEforms_Container_Palette
+	 */
+	protected function createPaletteContainerObject($paletteNumber) {
+		$paletteObject = new t3lib_TCEforms_Container_Palette($paletteNumber);
+		$paletteObject->setContextObject($this->contextObject)
+		              ->setRecordObject($this->recordObject)
+		              ->init();
+
+		return $paletteObject;
 	}
 
 	/**
