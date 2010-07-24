@@ -207,6 +207,8 @@ class t3lib_TCEforms_FormBuilder {
 	 *                                     (and all sub-forms!)
 	 * @param   t3lib_TCA_DataStructure_Sheet  $sheetDefinition
 	 * @return  t3lib_TCEforms_Sheet
+	 *
+	 * @TODO Check if this must be public
 	 */
 	public function createSheetObject($number, t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
 		$sheetIdentString = $this->recordObject->getShortSheetIdentifier() . '-' . $number;
@@ -237,6 +239,8 @@ class t3lib_TCEforms_FormBuilder {
 	 * section of TCA, key "mainpalette". Multiple palettes are separated by commas.
 	 *
 	 * @return void
+	 *
+	 * @deprecated
 	 */
 	protected function resolveMainPalettes() {
 		t3lib_div::devLog('Building top-level palette elements for ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
@@ -277,6 +281,8 @@ class t3lib_TCEforms_FormBuilder {
 	 *
 	 * @param   string  Language label reference, eg. 'LLL:EXT:lang/locallang_core.php:labels.blablabla'
 	 * @return  string  The value of the label, fetched for the current backend language.
+	 *
+	 * @deprecated
 	 */
 	protected function sL($str) {
 		return $GLOBALS['LANG']->sL($str);

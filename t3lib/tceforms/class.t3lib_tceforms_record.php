@@ -62,6 +62,7 @@ class t3lib_TCEforms_Record {
 	 * The TCA definition for the record
 	 *
 	 * @var array
+	 * @deprecated remove when dataStructure object is used everywhere
 	 */
 	protected $TCAdefinition;
 
@@ -269,6 +270,8 @@ class t3lib_TCEforms_Record {
 	 * Creates the list of fields to display
 	 *
 	 * This function is mainly copied from t3lib_TCEforms::getMainFields()
+	 *
+	 * @deprecated This is done by t3lib_TCA_DisplayConfiguration; fieldOrder should be moved there, if it is neccessary at all
 	 */
 	protected function createFieldsList() {
 		if (count($this->fieldList) > 0) {
@@ -286,6 +289,9 @@ class t3lib_TCEforms_Record {
 		$this->fieldList = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd());
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function getDisplayConfiguration() {
 		/*
 		 * TODO change the way this method works. It should first check if a list of fields is set
@@ -429,6 +435,8 @@ class t3lib_TCEforms_Record {
 	 *
 	 * @param  string  $elementName  The name of the element to check
 	 * @return boolean
+	 *
+	 * @deprecated
 	 */
 	public function isExcludedElement($elementName) {
 		return t3lib_div::inArray($this->excludedElements, $elementName);
@@ -438,6 +446,7 @@ class t3lib_TCEforms_Record {
 	 * Returns the full array of elements which are excluded and thus not displayed on the form
 	 *
 	 * @return array
+	 * @deprecated
 	 */
 	public function getExcludedElements() {
 		return $this->excludedElements;
@@ -453,6 +462,8 @@ class t3lib_TCEforms_Record {
 	 * those which should NOT be displayed "anyways"
 	 *
 	 * @return void
+	 *
+	 * @deprecated This data is now delivered by t3lib_TCA_DisplayConfiguration
 	 */
 	protected function setExcludedElements() {
 			// Init:
@@ -494,6 +505,8 @@ class t3lib_TCEforms_Record {
 	 *
 	 * @return	array		An array containing two values: 1. Another array containing fieldnames to add and 2. the subtype value field.
 	 * @see getMainFields()
+	 *
+	 * @deprecated
 	 */
 	protected function getFieldsToAdd()	{
 			// Init:
@@ -518,6 +531,8 @@ class t3lib_TCEforms_Record {
 	 * @param	array		The output from getFieldsToAdd()
 	 * @return	array		Return the modified $fields array.
 	 * @see getMainFields(),getFieldsToAdd()
+	 *
+	 * @deprecated
 	 */
 	protected function mergeFieldsWithAddedFields($fields, $fieldsToAdd)	{
 		if (count($fieldsToAdd[0])) {

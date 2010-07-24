@@ -108,6 +108,13 @@ class t3lib_TCA_DataStructure_Type {
 		$this->typeNum = $typeNum;
 	}
 
+	/**
+	 * Handles construction from a complex TCA configuration array (with subarrays ctrl, columns, types etc.)
+	 *
+	 * @param t3lib_TCA_DataStructure $dataStructure
+	 * @param unknown_type $typeNum
+	 * @param array $configuration
+	 */
 	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, $typeNum, array $configuration) {
 		$obj = new t3lib_TCA_DataStructure_Type($dataStructure, $typeNum);
 		$obj->resolveConfiguration($configuration);
@@ -115,6 +122,13 @@ class t3lib_TCA_DataStructure_Type {
 		return $obj;
 	}
 
+	/**
+	 * Handles construction from a simple array of sheets containing fields. This will be used for e.g. FlexForm data structures
+	 *
+	 * @param t3lib_TCA_DataStructure $dataStructure
+	 * @param integer $typeNum
+	 * @param array $sheets
+	 */
 	public static function createFromSheets(t3lib_TCA_DataStructure $dataStructure, $typeNum, array $sheets) {
 		$obj = new t3lib_TCA_DataStructure_Type($dataStructure, $typeNum);
 		$obj->resolveSheetsDefinition($sheets);
@@ -232,7 +246,13 @@ class t3lib_TCA_DataStructure_Type {
 		return $content;
 	}
 
-
+	/**
+	 * Returns the sheet definitions for a given subtype. If the record has no subtype, the default sheetset
+	 * is returned.
+	 *
+	 * @param unknown_type $subtypeNumber
+	 * @TODO remove parameter and subtype handling
+	 */
 	public function getSheets($subtypeNumber = '') {
 		if (!$this->hasSubtypeValueField() || empty($subtypeNumber)) {
 			return $this->sheets;
@@ -250,6 +270,9 @@ class t3lib_TCA_DataStructure_Type {
 		return $sheets;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	protected function addSubtypeElementsToSheets(&$sheets, $subtypeNumber) {
 		if (!empty($this->subtypesAddList[$subtypeNumber])) {
 			$addElements = t3lib_div::trimExplode(',', $this->subtypesAddList[$subtypeNumber], TRUE);
@@ -267,6 +290,9 @@ class t3lib_TCA_DataStructure_Type {
 		}
 	}
 
+	/**
+	 * @deprecated
+	 */
 	protected function removeSubtypeExcludedElementsFromSheets(&$sheets, $subtypeNumber) {
 		if (!empty($this->subtypesExcludeList[$subtypeNumber])) {
 			$excludeElements = t3lib_div::trimExplode(',', $this->subtypesExcludeList[$subtypeNumber], TRUE);

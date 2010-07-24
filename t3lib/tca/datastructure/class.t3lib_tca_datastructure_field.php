@@ -2,14 +2,36 @@
 
 class t3lib_TCA_DataStructure_Field {
 
+	/**
+	 * The data structure this field belongs to
+	 *
+	 * @var t3lib_TCA_DataStructure
+	 */
 	protected $dataStructure;
 
+	/**
+	 * The name of this field. Used as key in the "columns" array of TCA
+	 *
+	 * @var string
+	 */
 	protected $name;
 
+	/**
+	 * Configuration of this field as defined in TCA section "columns".
+	 *
+	 * @var array
+	 */
 	protected $configuration;
 
 	protected $label;
 
+	/**
+	 * The special configuration of this field.
+	 *
+	 * May be stored in TCA as the fourth part of a showitem entry in a type.
+	 *
+	 * @var string
+	 */
 	protected $specialConfiguration;
 
 	/**
@@ -32,14 +54,29 @@ class t3lib_TCA_DataStructure_Field {
 		$this->label = $this->configuration['label'];
 	}
 
+	/**
+	 * The fieldname of this field
+	 *
+	 * @return string
+	 */
 	public function getName() {
 		return $this->name;
 	}
 
+	/**
+	 * Returns the configuration of this field
+	 *
+	 * @return array
+	 */
 	public function getConfiguration() {
 		return $this->configuration;
 	}
 
+	/**
+	 * Returns the label of this field
+	 *
+	 * @return string
+	 */
 	public function getLabel() {
 		return $this->label;
 	}

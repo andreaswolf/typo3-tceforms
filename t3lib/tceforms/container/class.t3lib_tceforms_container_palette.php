@@ -42,6 +42,9 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		$this->paletteNumber = $paletteNumber;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function injectFormBuilder(t3lib_TCEforms_FormBuilder $formBuilder) {
 		$this->formBuilder = $formBuilder;
 

@@ -11,7 +11,7 @@ class t3lib_TCA_DataStructure {
 	/**
 	 * The definition of the fields this data structure contains
 	 *
-	 * @var array
+	 * @var array<t3lib_TCA_DataStructure_Field>
 	 */
 	protected $fields = array();
 

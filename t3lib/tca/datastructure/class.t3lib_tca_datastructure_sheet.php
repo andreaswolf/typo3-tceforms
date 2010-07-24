@@ -1,7 +1,7 @@
 <?php
 
 /**
- * A sheet belonging to a data structure.
+ * A sheet inside a data structure.
  *
  * A sheet is a collection of elements grouped together. Usually the different sheets in
  * a data structure will be displayed on different tabs in an editing window.
