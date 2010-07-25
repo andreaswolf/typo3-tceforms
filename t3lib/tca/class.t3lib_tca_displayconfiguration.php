@@ -154,7 +154,7 @@ class t3lib_TCA_DisplayConfiguration {
 	 */
 	protected function addElements($addFieldList) {
 		/* @var $sheet t3lib_TCA_DataStructure_Sheet */
-		$sheet = array_pop($this->sheets);
+		$sheet = end($this->sheets);
 
 		foreach ($addFieldList as $fieldName) {
 			$fieldObject = $this->dataStructure->getFieldObject($fieldName);
