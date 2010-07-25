@@ -174,6 +174,11 @@ class t3lib_TCEforms_Record {
 	 */
 	protected $typeConfiguration;
 
+	/**
+	 * @var boolean
+	 */
+	protected $new = FALSE;
+
 
 	public function __construct($table, array $recordData, array $TCAdefinition, t3lib_TCA_DataStructure $dataStructure) {
 		$this->table = $table;
@@ -181,6 +186,10 @@ class t3lib_TCEforms_Record {
 		$this->TCAdefinition = $TCAdefinition;
 		$this->dataStructure = $dataStructure;
 		$this->contextRecordObject = $this;
+
+		if (!is_numeric($recordData['uid'])) {
+			$this->new = TRUE;
+		}
 
 		$this->setRecordTypeNumber();
 	}
@@ -364,6 +373,10 @@ class t3lib_TCEforms_Record {
 	 */
 	public function getTitle() {
 		return t3lib_BEfunc::getRecordTitle($this->table, $this->recordData);
+	}
+
+	public function isNew() {
+		return $this->new;
 	}
 
 	/**

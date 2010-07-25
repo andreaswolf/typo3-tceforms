@@ -81,10 +81,14 @@ class t3lib_TCA_DataStructure {
 		$subtypeExcludeList = array();
 		$bitmaskExcludeList = array();
 
-		if ($this->hasTypeField()) {
+		if ($this->hasTypeField() && !$record->isNew()) {
 			$typeValue = $record->getValue($this->getTypeField());
+
+			if (!$this->typeExists($typeValue)) {
+				$typeValue = "1";
+			}
 		} else {
-			$typeValue = "1";
+			$typeValue = "0";
 		}
 
 		/* @var $typeConfiguration t3lib_TCA_DataStructure_Type */
@@ -230,9 +234,9 @@ class t3lib_TCA_DataStructure {
 	 * @param string/integer $typeNum
 	 * @return array
 	 */
-	public function getTypeConfiguration($typeNum = 0) {
+	public function getTypeConfiguration($typeNum = '0') {
 			// See "TYPO3 Core APIs, section "$TCA array reference", subsection "['types'][key] section"
-		if (!in_array($typeNum, $this->getPossibleTypeValues())) {
+		if (!$this->typeExists($typeNumber)) {
 			$typeNum = 1;
 		}
 
