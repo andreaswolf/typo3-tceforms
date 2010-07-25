@@ -234,17 +234,17 @@ class t3lib_TCA_DataStructure {
 	 * @param string/integer $typeNum
 	 * @return array
 	 */
-	public function getTypeConfiguration($typeNum = '0') {
+	public function getTypeConfiguration($typeNumber = '0') {
 			// See "TYPO3 Core APIs, section "$TCA array reference", subsection "['types'][key] section"
 		if (!$this->typeExists($typeNumber)) {
 			$typeNum = 1;
 		}
 
-		if (!array_key_exists($typeNum, $this->types)) {
-			$this->createTypeObject($typeNum);
+		if (!array_key_exists($typeNumber, $this->types)) {
+			$this->createTypeObject($typeNumber);
 		}
 
-		return $this->types[$typeNum];
+		return $this->types[$typeNumber];
 	}
 
 	public function getPossibleTypeValues() {
