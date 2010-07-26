@@ -153,13 +153,10 @@ class t3lib_TCA_DisplayConfiguration {
 	 * @TODO check if additional configuration (alt. label etc.) may exist in these items
 	 */
 	protected function addElements($addFieldList) {
-		/* @var $sheet t3lib_TCA_DataStructure_Sheet */
-		$sheet = end($this->sheets);
-
 		foreach ($addFieldList as $fieldName) {
 			$fieldObject = $this->dataStructure->getFieldObject($fieldName);
 
-			$sheet->addElement($sheet);
+			$this->subtypeValueFieldSheet->addElement($fieldObject);
 		}
 	}
 
