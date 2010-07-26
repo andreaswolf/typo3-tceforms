@@ -163,32 +163,38 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 				$imgs = array();
 
 					// Thumbnails:
-				$temp_itemArray = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
+				$temp_itemArray = t3lib_div::trimExplode(',', $this->itemFormElValue, 1);
 				foreach($temp_itemArray as $dbRead)	{
-					$recordParts = explode('|',$dbRead);
-					list($this_table,$this->_uid) = t3lib_BEfunc::splitTable_Uid($recordParts[0]);
-					$itemArray[] = array('table'=>$this_table, 'id'=>$this_uid);
+					$recordParts = explode('|', $dbRead);
+					list($table,$uid) = t3lib_BEfunc::splitTable_Uid($recordParts[0]);
+
+					$itemArray[] = array(
+						'table' => $table,
+						'id' => $uid
+					);
+
 					// For the case that no table was found and only a single table is defined to be allowed, use that one:
-					if (!$this->table && $onlySingleTableAllowed) {
+					if (!$table && $onlySingleTableAllowed) {
 						$itemArray[] = $allowed;
 					}
+
 					if (!$disabled && $show_thumbs)	{
-						$rr = t3lib_BEfunc::getRecordWSOL($this_table,$this_uid);
+						$rr = t3lib_BEfunc::getRecordWSOL($table, $uid);
 						$imgs[] = '<span class="nobr">'.
 								$this->getClickMenu(
 									t3lib_iconWorks::getSpriteIconForRecord(
-										$this_table,
+										$table,
 										$rr,
 										array(
 											'style' => 'vertical-align:top',
 											'title' => htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'], $perms_clause, 15) . ' [UID: ' . $rr['uid'] . ']"')
 										)
 									),
-									$this_table,
-									$this_uid
+									$table,
+									$uid
 								) .
 								'&nbsp;' .
-								t3lib_BEfunc::getRecordTitle($this_table,$rr,TRUE).' <span class="typo3-dimmed"><em>['.$rr['uid'].']</em></span>'.
+								t3lib_BEfunc::getRecordTitle($table, $rr, TRUE) . ' <span class="typo3-dimmed"><em>[' . $rr['uid'] . ']</em></span>' .
 								'</span>';
 					}
 				}

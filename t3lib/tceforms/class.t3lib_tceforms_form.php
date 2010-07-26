@@ -99,6 +99,11 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 	protected $readOnly = FALSE;
 
+	/**
+	 * @var boolean
+	 */
+	protected $clickmenuEnabled = FALSE;
+
 	protected $doSaveFieldName = '';
 
 	/**
@@ -909,6 +914,26 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 	public function getDoSaveFieldName() {
 		return $this->doSaveFieldName;
+	}
+
+	/**
+	 * @param boolean $clickmenuEnabled
+	 *
+	 * @TODO add to Context interface
+	 */
+	public function setClickmenuEnabled($clickmenuEnabled) {
+		$this->clickmenuEnabled = $clickmenuEnabled;
+
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 *
+	 * @TODO add to Context interface
+	 */
+	public function isClickmenuEnabled() {
+		return $this->clickmenuEnabled;
 	}
 
 	/**

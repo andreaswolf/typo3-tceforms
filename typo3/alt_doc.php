@@ -641,6 +641,7 @@ class SC_alt_doc {
 		            ->setBackpath($BACK_PATH)
 		            ->setRTEEnabled($BE_USER->isRTE())
 		            ->setDoSaveFieldName('doSave')
+		            ->setClickmenuEnabled(TRUE)
 		            ->init();
 
 			// Traverse the GPvar edit array
