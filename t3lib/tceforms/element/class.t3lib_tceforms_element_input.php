@@ -120,7 +120,7 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 				$checkSetValue = gmdate('Y');
 			}
 			$cOnClick = 'typo3form.fieldGet(' . $this->paramsList . ',1,\'' . $checkSetValue . '\');' . implode('', $this->fieldChangeFunc);
-			$item .= '<input type="checkbox" id="' . uniqid('tceforms-check-') . '" class="' . $this->formElStyleClassValue('check', TRUE) . ' alignToInputText" name="' . $PA['itemFormElName'] . '_cb" onclick="' . htmlspecialchars($cOnClick) . '" />';
+			$item .= '<input type="checkbox" id="' . uniqid('tceforms-check-') . '" class="' . $this->formElStyleClassValue('check', TRUE) . '" name="' . $PA['itemFormElName'] . '_cb" onclick="' . htmlspecialchars($cOnClick) . '" />';
 		}
 		if ((in_array('date', $evalList) || in_array('datetime', $evalList)) && $this->itemFormElValue > 0) {
 				// Add server timezone offset to UTC to our stored date
