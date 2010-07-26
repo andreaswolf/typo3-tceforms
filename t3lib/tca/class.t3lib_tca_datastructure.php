@@ -237,7 +237,7 @@ class t3lib_TCA_DataStructure {
 	public function getTypeConfiguration($typeNumber = '0') {
 			// See "TYPO3 Core APIs, section "$TCA array reference", subsection "['types'][key] section"
 		if (!$this->typeExists($typeNumber)) {
-			$typeNum = 1;
+			$typeNumber = 1;
 		}
 
 		if (!array_key_exists($typeNumber, $this->types)) {
