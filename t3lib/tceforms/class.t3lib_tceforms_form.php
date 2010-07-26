@@ -77,6 +77,14 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	protected $editFieldHelpMode;
 
 	/**
+	 * If TRUE, upload fields are shown e.g. near group[special=file] elements
+	 *
+	 * @var boolean
+	 */
+	protected $fileUploadEnabled = FALSE;
+
+
+	/**
 	 * The page renderer object
 	 *
 	 * @var t3lib_PageRenderer
@@ -934,6 +942,28 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 */
 	public function isClickmenuEnabled() {
 		return $this->clickmenuEnabled;
+	}
+
+	/**
+	 * Enables/disables the file upload elements at some fields
+	 *
+	 * @param boolean $fileUploadEnabled
+	 *
+	 * @TODO add to Context interface
+	 */
+	public function setFileUploadEnabled($fileUploadEnabled) {
+		$this->fileUploadEnabled = $fileUploadEnabled;
+
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 *
+	 * @TODO add to Context interface
+	 */
+	public function isFileUploadEnabled() {
+		return $this->fileUploadEnabled;
 	}
 
 	/**

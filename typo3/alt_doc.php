@@ -638,6 +638,7 @@ class SC_alt_doc {
 		            ->setPalettesCollapsed(!$this->MOD_SETTINGS['showPalettes'])
 		            ->setTemplateFile(PATH_typo3 . 'templates/tceforms.html')
 		            ->setEditFieldHelpMode($BE_USER->uc['edit_showFieldHelp'])
+		            ->setFileUploadEnabled($BE_USER->uc['edit_docModuleUpload'])
 		            ->setBackpath($BACK_PATH)
 		            ->setRTEEnabled($BE_USER->isRTE())
 		            ->setDoSaveFieldName('doSave')
