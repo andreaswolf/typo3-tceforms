@@ -37,6 +37,6 @@ $tempField = array(
 
 t3lib_div::loadTCA('sys_template');
 t3lib_extMgm::addTCAcolumns('sys_template', $tempField, 1);
-t3lib_extMgm::addToAllTCAtypes('sys_template', 'include_static;;2;;5-5-5', '', 'before:includeStaticAfterBasedOn');
+t3lib_extMgm::addToAllTCAtypes('sys_template', 'include_static;;;;5-5-5', '', 'before:includeStaticAfterBasedOn');
 
 ?>
