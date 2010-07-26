@@ -99,7 +99,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					'info' => $info,
 					'thumbnails' => $thumbsnail,
 					'readOnly' => $disabled,
-					'noBrowser' => $noList || isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser'),
+					'noBrowser' => $noList || (isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser')),
 					'noList' => $noList,
 				);
 				$item.= $this->dbFileIcons($this->itemFormElName, 'file', implode(',',$tempFT), $itemArray, '', $params ,$this->onFocus);
@@ -117,6 +117,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 				$itemArray = t3lib_div::trimExplode(',', $this->itemFormElValue, 1);
 
 					// Creating the element:
+				$noList = isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'list');
 				$params = array(
 					'size'              => $size,
 					'dontShowMoveIcons' => ($maxitems <= 1),
@@ -126,7 +127,9 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 							' style="'.htmlspecialchars($config['selectedListStyle']).'"'
 						:	' style="'.$this->defaultMultipleSelectorStyle.'"',
 					'info'              => $info,
-					'readOnly'          => $disabled
+					'readOnly'          => $disabled,
+					'noBrowser'         => $noList || (isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser')),
+					'noList'            => $noList,
 				);
 
 				$item.= $this->dbFileIcons(
@@ -204,6 +207,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 				}
 
 					// Creating the element:
+				$noList = isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'list');
 				$params = array(
 					'size' => $size,
 					'dontShowMoveIcons' => ($maxitems<=1),
@@ -212,7 +216,9 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					'style' => isset($config['selectedListStyle']) ? ' style="'.htmlspecialchars($config['selectedListStyle']).'"' : ' style="'.$this->defaultMultipleSelectorStyle.'"',
 					'info' => $info,
 					'thumbnails' => $thumbsnail,
-					'readOnly' => $disabled
+					'readOnly' => $disabled,
+					'noBrowser' => $noList || (isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser')),
+					'noList' => $noList,
 				);
 				$item.= $this->dbFileIcons($this->itemFormElName,'db',implode(',',$tempFT),$itemArray,'',$params,$this->onFocus,$table,$field,$row['uid']);
 
