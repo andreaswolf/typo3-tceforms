@@ -67,8 +67,18 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 						$absFilePath = t3lib_div::getFileAbsFileName($config['uploadfolder'] ? $config['uploadfolder'] . '/' . $imgPath : $imgPath);
 
 						$fI = pathinfo($imgPath);
-						$fileIcon = t3lib_BEfunc::getFileIcon(strtolower($fI['extension']));
-						$fileIcon = '<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/fileicons/'.$fileIcon,'width="18" height="16"').' class="absmiddle" title="'.htmlspecialchars($fI['basename'].($absFilePath && @is_file($absFilePath) ? ' ('.t3lib_div::formatSize(filesize($absFilePath)).'bytes)' : ' - FILE NOT FOUND!')).'" alt="" />';
+						$fileIcon = t3lib_iconWorks::getSpriteIconForFile(
+							strtolower($fI['extension']),
+							array(
+								'title' => htmlspecialchars(
+									$fI['basename'] .
+									($absFilePath && @is_file($absFilePath)
+										? ' (' . t3lib_div::formatSize(filesize($absFilePath)) . 'bytes)' :
+										' - FILE NOT FOUND!'
+									)
+								)
+							)
+						);
 
 						$imgs[] = '<span class="nobr">'.t3lib_BEfunc::thumbCode($rowCopy,$table,$field,$this->backPath,'thumbs.php',$config['uploadfolder'],0,' align="middle"').
 									($absFilePath ? $this->getClickMenu($fileIcon, $absFilePath) : $fileIcon).
@@ -165,8 +175,19 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					if (!$disabled && $show_thumbs)	{
 						$rr = t3lib_BEfunc::getRecordWSOL($this_table,$this_uid);
 						$imgs[] = '<span class="nobr">'.
-								$this->getClickMenu(t3lib_iconWorks::getIconImage($this_table,$rr,$this->backPath,'align="top" title="'.htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'],$perms_clause,15)).' [UID: '.$rr['uid'].']"'),$this_table, $this_uid).
-								'&nbsp;'.
+								$this->getClickMenu(
+									t3lib_iconWorks::getSpriteIconForRecord(
+										$this_table,
+										$rr,
+										array(
+											'style' => 'vertical-align:top',
+											'title' => htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'], $perms_clause, 15) . ' [UID: ' . $rr['uid'] . ']"')
+										)
+									),
+									$this_table,
+									$this_uid
+								) .
+								'&nbsp;' .
 								t3lib_BEfunc::getRecordTitle($this_table,$rr,TRUE).' <span class="typo3-dimmed"><em>['.$rr['uid'].']</em></span>'.
 								'</span>';
 					}
