@@ -46,7 +46,7 @@ class t3lib_TCA_DataStructure_Field {
 	 * @param string $name The field name of this field
 	 * @return void
 	 */
-	public function __construct(t3lib_TCA_DataStructure $dataStructure, $name, $configuration) {
+	public function __construct(t3lib_TCA_DataStructure $dataStructure, $name, array $configuration) {
 		$this->dataStructure = $dataStructure;
 		$this->name = $name;
 		$this->configuration = $configuration;

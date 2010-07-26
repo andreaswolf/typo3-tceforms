@@ -197,8 +197,7 @@ class t3lib_TCA_DataStructure_Type {
 	 * @return t3lib_TCA_DataStructure_Field
 	 */
 	protected function createElementObject($name, $label, $configuration, $specialConfiguration) {
-		$object = new t3lib_TCA_DataStructure_Field($this->dataStructure, $name, $label, $configuration,
-		  $specialConfiguration);
+		$object = new t3lib_TCA_DataStructure_Field($this->dataStructure, $name, $configuration);
 
 		return $object;
 	}
