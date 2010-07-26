@@ -315,8 +315,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 
 					if ($hasHelp && $this->contextObject->getEditFieldHelpMode == 'icon') {
 						$helpIcon  = '<a class="typo3-csh-link" href="#">';
-						$helpIcon .= '<img' . t3lib_iconWorks::skinImg($this->contextObject->getBackPath(), 'gfx/helpbubble.gif', 'width="14" height="14"');
-						$helpIcon .= ' hspace="2" border="0" class="absmiddle"' . ($GLOBALS['CLIENT']['FORMSTYLE'] ? ' style="cursor:help;"' : '') . ' alt="" />' . $help;
+						$helpIcon .= t3lib_iconWorks::getSpriteIcon('actions-system-help-open');
+						$helpIcon .= $help;
 						$helpIcon .= '</a>';
 						$help = $helpIcon;
 					}
@@ -371,8 +371,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 			// Add revert icon
 		if (is_array($restoreCmd)) {
 			$item .= '<a href="#" onclick="' . implode('', $restoreCmd).' return false;' . '">' .
-				'<img'.t3lib_iconWorks::skinImg($this->contextObject->getBackPath(),'gfx/undo.gif','width="13" height="12"') . ' title="' .
-				htmlspecialchars($this->getLL('l_revertSelection')) . '" alt="" />' .'</a>';
+				t3lib_iconWorks::getSpriteIcon('actions-edit-undo', array('title' => htmlspecialchars($this->getLL('l_revertSelection')))) . '</a>';
 		}
  			// Implode rows in table:
 		$item .= '
@@ -469,8 +468,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 					</td>
 					<td valign="top">
 					<a href="#" onclick="'.htmlspecialchars($this->contextObject->elName($this->itemFormElName.'[]').'.selectedIndex=-1;'.implode('',$restoreCmd).' return false;').'">'.
-						'<img'.t3lib_iconWorks::skinImg($this->contextObject->getBackPath(),'gfx/undo.gif','width="13" height="12"').' title="'.htmlspecialchars($this->getLL('l_revertSelection')).'" alt="" />'.
-						'</a>
+						t3lib_iconWorks::getSpriteIcon('actions-edit-undo') . '</a>
 					</td>
 				</tr>
 			</table>

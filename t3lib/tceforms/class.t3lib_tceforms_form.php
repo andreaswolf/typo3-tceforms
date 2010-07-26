@@ -419,8 +419,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		}
 
 			// Toggle icons:
-		$toggleIcon_open = '<img' . t3lib_iconWorks::skinImg($this->backPath, 'gfx/pil2down.gif', 'width="12" height="7"') . ' hspace="2" alt="Open" title="Open" />';
-		$toggleIcon_close = '<img' . t3lib_iconWorks::skinImg($this->backPath, 'gfx/pil2right.gif', 'width="7" height="12"') . ' hspace="2" alt="Close" title="Close" />';
+		$toggleIcon_open = t3lib_iconWorks::getSpriteIcon('actions-move-down');
+		$toggleIcon_close = t3lib_iconWorks::getSpriteIcon('actions-move-right');
 
 		$out .= '
 		var toggleIcon_open = \'' . $toggleIcon_open . '\';

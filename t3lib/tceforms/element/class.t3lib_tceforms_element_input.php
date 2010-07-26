@@ -20,17 +20,25 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 		if (in_array('date', $evalList)) {
 			$inputId = uniqid('tceforms-datefield-');
 			$cssClasses[] = 'tceforms-textfield tceforms-datefield';
-			$fieldAppendix = '<img' . t3lib_iconWorks::skinImg(
-				$this->backPath, 'gfx/datepicker.gif', '', 0)
-				. ' style="cursor:pointer; vertical-align:middle;" alt=""'
-				. ' id="picker-' . $inputId . '" />';
+			$fieldAppendix = t3lib_iconWorks::getSpriteIcon(
+				'actions-edit-pick-date',
+				array(
+					'style' => 'cursor:pointer;',
+					'id' => 'picker-' . $inputId
+				)
+			);
+
 		} elseif (in_array('datetime', $evalList)) {
 			$inputId = uniqid('tceforms-datetimefield-');
 			$cssClasses[] = 'tceforms-textfield tceforms-datetimefield';
-			$fieldAppendix = '<img' . t3lib_iconWorks::skinImg(
-				$this->backPath, 'gfx/datepicker.gif', '', 0)
-				. ' style="cursor:pointer; vertical-align:middle;" alt=""'
-				. ' id="picker-' . $inputId . '" />';
+			$fieldAppendix = t3lib_iconWorks::getSpriteIcon(
+				'actions-edit-pick-date',
+				array(
+					'style' => 'cursor:pointer;',
+					'id' => 'picker-' . $inputId
+				)
+			);
+
 		} elseif (in_array('timesec', $evalList)) {
 			$inputId = uniqid('tceforms-timesecfield-');
 			$cssClasses[] = 'tceforms-textfield tceforms-timesecfield';
