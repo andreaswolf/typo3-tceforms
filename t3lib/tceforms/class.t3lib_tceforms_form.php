@@ -616,7 +616,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 		$markerArray = t3lib_div::array_merge($recordLabels, array(
 			'###TABLE_TITLE###' => htmlspecialchars($this->sL($TCA[$recordObject->getTable()]['ctrl']['title'])),
-			'###RECORD_ICON###' => t3lib_iconWorks::getIconImage($recordObject->getTable(), $recordObject->getRecordData(), $this->getBackpath(), 'class="absmiddle"' . $titleA),
+			'###RECORD_ICON###' => t3lib_iconWorks::getSpriteIconForRecord($table, $rec, array('title' => $this->getRecordPath($table, $rec))),
 			'###WRAP_CONTENT###' => $recordContent
 		));
 
