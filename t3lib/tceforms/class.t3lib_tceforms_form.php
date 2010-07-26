@@ -599,16 +599,13 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			throw new RuntimeException('No template wrap for record found.');
 		}
 
-		list($rLabel, $newLabel) = $this->getRecordLabels($recordObject);
+		$recordLabels = $this->getRecordLabels($recordObject);
 
-		$markerArray = array(
-			'###ID_NEW_INDICATOR###' => $newLabel,
-			'###RECORD_LABEL###' => $rLabel,
+		$markerArray = t3lib_div::array_merge($recordLabels, array(
 			'###TABLE_TITLE###' => htmlspecialchars($this->sL($TCA[$recordObject->getTable()]['ctrl']['title'])),
-
 			'###RECORD_ICON###' => t3lib_iconWorks::getIconImage($recordObject->getTable(), $recordObject->getRecordData(), $this->getBackpath(), 'class="absmiddle"' . $titleA),
 			'###WRAP_CONTENT###' => $recordContent
-		);
+		));
 
 		$content = t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
 
@@ -623,19 +620,30 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 */
 	protected function getRecordLabels(t3lib_TCEforms_Record $recordObject) {
 		if (strstr($recordObject->getValue('uid'), 'NEW')) {
-			$newLabel = ' <span class="typo3-TCEforms-newToken">'.
-			  $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.new', 1).
-			  '</span>';
-
 			#t3lib_BEfunc::fixVersioningPid($this->table,$this->record);	// Kasper: Should not be used here because NEW records are not offline workspace versions...
+
 			$truePid = t3lib_BEfunc::getTSconfig_pidValue($recordObject->getTable(), $recordObject->getValue('uid'), $recordObject->getValue('pid'));
 			$prec = t3lib_BEfunc::getRecordWSOL('pages', $truePid, 'title');
-			$rLabel = '<em>[PID: ' . $truePid . '] ' . t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE) . '</em>';
+			$pageTitle = t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE);
+
+			$recordLabels = array(
+				'###ID_NEW_INDICATOR###' => ' <span class="typo3-TCEforms-newToken">'.
+				  $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.new', 1).
+				  '</span>',
+				'###PAGE_TITLE###' => $pageTitle,
+				'###RECORD_LABEL###' => '<em>[PID: ' . $truePid . '] ' . $pageTitle . '</em>'
+			);
+
 		} else {
-			$newLabel = ' <span class="typo3-TCEforms-recUid">[' . $recordObject->getValue('uid') . ']</span>';
-			$rLabel = t3lib_BEfunc::getRecordTitle($table, $rec, TRUE, FALSE);
+			$prec = t3lib_BEfunc::getRecordWSOL('pages', $recordObject->getValue('pid'), 'title');
+
+			$recordLabels = array(
+				'###ID_NEW_INDICATOR###' => ' <span class="typo3-TCEforms-recUid">[' . $recordObject->getValue('uid') . ']</span>',
+				'###PAGE_TITLE###' => t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE),
+				'###RECORD_LABEL###' => t3lib_BEfunc::getRecordTitle($recordObject->getTable(), $recordObject->getRecordData(), TRUE, FALSE)
+			);
 		}
-		return array($rLabel, $newLabel);
+		return $recordLabels;
 	}
 
 	/**
