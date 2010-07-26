@@ -638,22 +638,67 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			$truePid = t3lib_BEfunc::getTSconfig_pidValue($recordObject->getTable(), $recordObject->getValue('uid'), $recordObject->getValue('pid'));
 			$prec = t3lib_BEfunc::getRecordWSOL('pages', $truePid, 'title');
 			$pageTitle = t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE);
+			$rLabel = '<em>[PID: ' . $truePid . '] ' . $pageTitle . '</em>';
+
+		        // Fetch translated title of the table
+			$tableTitle = $GLOBALS['LANG']->sL($recordObject->getDataStructure()->getControlValue('title'));
+			if ($table === 'pages') {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.createNewPage', TRUE);
+				$pageTitle = sprintf($label, $tableTitle);
+			} else {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.createNewRecord', TRUE);
+
+				if ($recordObject->getValue('pid') == 0) {
+					$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.createNewRecordRootLevel', TRUE);
+				}
+				$pageTitle = sprintf($label, $tableTitle, $pageTitle);
+			}
 
 			$recordLabels = array(
 				'###ID_NEW_INDICATOR###' => ' <span class="typo3-TCEforms-newToken">'.
 				  $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.new', 1).
 				  '</span>',
 				'###PAGE_TITLE###' => $pageTitle,
-				'###RECORD_LABEL###' => '<em>[PID: ' . $truePid . '] ' . $pageTitle . '</em>'
+				'###RECORD_LABEL###' => $rLabel
 			);
-
 		} else {
+			$newLabel = ' <span class="typo3-TCEforms-recUid">[' . $recordObject->getValue('uid') . ']</span>';
+			$rLabel   = t3lib_BEfunc::getRecordTitle($recordObject->getTable(), $recordObject->getRecordData(), TRUE, FALSE);
 			$prec = t3lib_BEfunc::getRecordWSOL('pages', $recordObject->getValue('pid'), 'title');
 
+				// Fetch translated title of the table
+			$tableTitle = $GLOBALS['LANG']->sL($recordObject->getDataStructure()->getControlValue('title'));
+			if ($recordObject->getTable() === 'pages') {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editPage', TRUE);
+
+					// Just take the record title and prepend an edit label.
+				$pageTitle = sprintf($label, $tableTitle, $rLabel);
+			} else {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editRecord', TRUE);
+
+				$pageTitle = t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE);
+				if ($rLabel === t3lib_BEfunc::getNoRecordTitle(TRUE)) {
+					$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editRecordNoTitle', TRUE);
+				}
+				if ($recordObject->getValue('pid') == 0) {
+					$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editRecordRootLevel', TRUE);
+				}
+
+				if ($rLabel !== t3lib_BEfunc::getNoRecordTitle(TRUE)) {
+
+						// Just take the record title and preped an edit label.
+					$pageTitle = sprintf($label, $tableTitle, $rLabel, $pageTitle);
+				} else {
+
+						// Leave out the record title since it is not set.
+					$pageTitle = sprintf($label, $tableTitle, $pageTitle);
+				}
+			}
+
 			$recordLabels = array(
-				'###ID_NEW_INDICATOR###' => ' <span class="typo3-TCEforms-recUid">[' . $recordObject->getValue('uid') . ']</span>',
-				'###PAGE_TITLE###' => t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE),
-				'###RECORD_LABEL###' => t3lib_BEfunc::getRecordTitle($recordObject->getTable(), $recordObject->getRecordData(), TRUE, FALSE)
+				'###ID_NEW_INDICATOR###' => $newLabel,
+				'###PAGE_TITLE###' => $pageTitle,
+				'###RECORD_LABEL###' => $rLabel
 			);
 		}
 		return $recordLabels;
