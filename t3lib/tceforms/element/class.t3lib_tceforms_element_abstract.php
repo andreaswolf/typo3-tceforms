@@ -1894,6 +1894,10 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	public function getNestedStackEntry() {
 		return false;
 	}
+
+	public function getIdentifier() {
+		return $this->recordObject->getIdentifier() . ':' . $this->field;
+	}
 }
 
 ?>
