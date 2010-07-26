@@ -320,7 +320,17 @@ class t3lib_TCA_DataStructure_Type {
 	}
 
 	public function getAddListForSubtype($subtypeValue) {
-		return $this->subtypesAddList[$subtypeValue];
+		return (array)t3lib_div::trimExplode(',', $this->subtypesAddList[$subtypeValue]);
+	}
+
+	/**
+	 * Enter description here ...
+	 *
+	 * @param string $subtypeValue
+	 * @return array
+	 */
+	public function getExcludeListForSubtype($subtypeValue) {
+		return (array)t3lib_div::trimExplode(',', $this->subtypesExcludeList[$subtypeValue]);
 	}
 
 	/**
