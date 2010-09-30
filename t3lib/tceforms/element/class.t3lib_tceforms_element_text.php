@@ -6,6 +6,7 @@ require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.
 class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
 			// Init config:
+		$config = $this->fieldConfig['config'];
 
 		if($this->contextObject->isReadOnly() || $config['readOnly']) {
 			// TODO: make this render again
