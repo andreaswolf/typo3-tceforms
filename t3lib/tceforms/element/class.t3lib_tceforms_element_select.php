@@ -313,7 +313,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 					$help = $hasHelp ? '<span class="typo3-csh-inline show-right"><span class="header">' . $label . '</span>' .
 						'<span class="paragraph">' . $GLOBALS['LANG']->hscAndCharConv(nl2br(trim(htmlspecialchars($p[3]))), false) . '</span></span>' : '';
 
-					if ($hasHelp && $this->contextObject->getEditFieldHelpMode == 'icon') {
+					if ($hasHelp && $this->contextObject->getEditFieldHelpMode() == 'icon') {
 						$helpIcon  = '<a class="typo3-csh-link" href="#">';
 						$helpIcon .= t3lib_iconWorks::getSpriteIcon('actions-system-help-open');
 						$helpIcon .= $help;
