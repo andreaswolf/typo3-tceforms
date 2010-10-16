@@ -48,6 +48,13 @@ class t3lib_TCA_DisplayConfiguration {
 		return $obj;
 	}
 
+	public static function createFromSheets(t3lib_TCA_DataStructure $dataStructure, array $sheets) {
+		$obj = new t3lib_TCA_DisplayConfiguration($dataStructure);
+		$obj->sheets = $sheets;
+
+		return $obj;
+	}
+
 	protected function resolveConfiguration($configuration, array $addFieldList, array $excludeFieldList) {
 		// TODO store styling information from the showitem subarray
 		$fields = $this->typeConfiguration->getShowitemString();
@@ -58,7 +65,6 @@ class t3lib_TCA_DisplayConfiguration {
 		if (isset($fieldList[0]) && strpos($fieldList[0], '--div--') !== 0) {
 			++$sheetCounter;
 			$currentSheet = $this->createSheetObject($this->getLL('l_generalTab'));
-			$this->sheets[] = $currentSheet;
 		}
 
 		foreach ($fieldList as $fieldInfo) {
@@ -77,7 +83,6 @@ class t3lib_TCA_DisplayConfiguration {
 				++$sheetCounter;
 
 				$currentSheet = $this->createSheetObject($GLOBALS['LANG']->sL($parts[1]));
-				$this->sheets[] = $currentSheet;
 			} else {
 
 				if (in_array($theField, $excludeFieldList)) {
@@ -166,6 +171,7 @@ class t3lib_TCA_DisplayConfiguration {
 
 	protected function createSheetObject($label, $name = '') {
 		$sheetObject = new t3lib_TCA_DataStructure_Sheet($label, $name);
+		$this->sheets[] = $sheetObject;
 
 		return $sheetObject;
 	}
