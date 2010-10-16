@@ -3,7 +3,7 @@
 require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.php');
 
 
-class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
+class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelector {
 
 	/**
 	 * @var string
@@ -245,7 +245,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 	protected function initSubtypeCheckbox() {
 
 			// Get values in an array (and make unique, which is fine because there can be no duplicates anyway):
-		$itemArray = array_flip($this->extractValuesOnlyFromValueLabelList($this->itemFormElValue));
+		$this->items = array_flip($this->extractValuesOnlyFromValueLabelList($this->itemFormElValue));
 
 		$disabled = '';
 		if($this->contextObject->isReadOnly() || $this->fieldConfig['config']['readOnly'])  {
@@ -284,9 +284,9 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 				} else {
 						// Selected or not by default:
 					$sM = '';
-					if (isset($itemArray[$p[1]]))	{
+					if (isset($this->items[$p[1]]))	{
 						$sM = ' checked="checked"';
-						unset($itemArray[$p[1]]);
+						unset($this->items[$p[1]]);
 					}
 
 						// Icon:
@@ -351,8 +351,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		}
 
 			// Remaining values (invalid):
-		if (count($itemArray) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$this->fieldConfig['config']['disableNoMatchingValueElement'])	{
-			foreach($itemArray as $theNoMatchValue => $temp)	{
+		if (count($this->items) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$this->fieldConfig['config']['disableNoMatchingValueElement'])	{
+			foreach($this->items as $theNoMatchValue => $temp)	{
 					// Compile <checkboxes> tag:
 				array_unshift($tRows,'
 						<tr class="c-invalidItem">
@@ -385,7 +385,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 
 	protected function initSubtypeSinglebox() {
 			// Get values in an array (and make unique, which is fine because there can be no duplicates anyway):
-		$itemArray = array_flip($this->TCEformsObject->extractValuesOnlyFromValueLabelList($this->itemFormElValue));
+		$this->items = array_flip($this->extractValuesOnlyFromValueLabelList($this->itemFormElValue));
 
 		$disabled = '';
 		if($this->contextObject->isReadOnly() || $this->fieldConfig['config']['readOnly'])  {
@@ -399,10 +399,10 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		foreach($this->selectItems as $p)	{
 				// Selected or not by default:
 			$sM = '';
-			if (isset($itemArray[$p[1]]))	{
+			if (isset($this->items[$p[1]]))	{
 				$sM = ' selected="selected"';
 				$restoreCmd[] = $this->contextObject->elName($this->itemFormElName.'[]').'.options['.$c.'].selected=1;';
-				unset($itemArray[$p[1]]);
+				unset($this->items[$p[1]]);
 			}
 
 				// Non-selectable element:
@@ -426,8 +426,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		}
 
 			// Remaining values:
-		if (count($itemArray) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$this->fieldConfig['config']['disableNoMatchingValueElement'])	{
-			foreach($itemArray as $theNoMatchValue => $temp)	{
+		if (count($this->items) && !$this->fieldTSConfig['disableNoMatchingValueElement'] && !$this->fieldConfig['config']['disableNoMatchingValueElement'])	{
+			foreach($this->items as $theNoMatchValue => $temp)	{
 					// Compile <option> tag:
 				array_unshift($opt,'<option value="'.htmlspecialchars($theNoMatchValue).'" selected="selected">'.t3lib_div::deHSCentities(htmlspecialchars(@sprintf($nMV_label, $theNoMatchValue))).'</option>');
 			}
@@ -503,15 +503,15 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 		$removeItems = t3lib_div::trimExplode(',',$this->fieldTSConfig['removeItems'],1);
 
 			// Get the array with selected items:
-		$itemArray = t3lib_div::trimExplode(',', $this->itemFormElValue, 1);
+		$this->items = t3lib_div::trimExplode(',', $this->itemFormElValue, 1);
 
 			// Possibly filter some items:
 		$keepItemsFunc = create_function('$value', '$parts=explode(\'|\',$value,2); return rawurldecode($parts[0]);');
-		$itemArray = t3lib_div::keepItemsInArray($itemArray, $this->fieldTSConfig['keepItems'], $keepItemsFunc);
+		$this->items = t3lib_div::keepItemsInArray($this->items, $this->fieldTSConfig['keepItems'], $keepItemsFunc);
 
 			// Perform modification of the selected items array:
-		$itemArray = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
-		foreach($itemArray as $tk => $tv) {
+		$this->items = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
+		foreach($this->items as $tk => $tv) {
 			$tvP = explode('|',$tv,2);
 			$evalValue = $tvP[0];
 			$isRemoved = in_array($evalValue,$removeItems)  || ($this->fieldConfig['config']['form_type']=='select' && $this->fieldConfig['config']['authMode'] && !$GLOBALS['BE_USER']->checkAuthMode($this->table,$this->field,$evalValue,$this->fieldConfig['config']['authMode']));
@@ -529,7 +529,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 					}
 				}
 			}
-			$itemArray[$tk] = implode('|',$tvP);
+			$this->items[$tk] = implode('|',$tvP);
 		}
 		$itemsToSelect = '';
 
@@ -549,7 +549,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 				// Put together the selector box:
 			$selector_itemListStyle = isset($this->fieldConfig['config']['itemListStyle']) ? ' style="'.htmlspecialchars($this->fieldConfig['config']['itemListStyle']).'"' : ' style="'.$this->defaultMultipleSelectorStyle.'"';
 			$size = intval($this->fieldConfig['config']['size']);
-			$size = $this->fieldConfig['config']['autoSizeMax'] ? t3lib_div::intInRange(count($itemArray)+1,t3lib_div::intInRange($size,1),$this->fieldConfig['config']['autoSizeMax']) : $size;
+			$size = $this->fieldConfig['config']['autoSizeMax'] ? t3lib_div::intInRange(count($this->items)+1,t3lib_div::intInRange($size,1),$this->fieldConfig['config']['autoSizeMax']) : $size;
 			if ($this->fieldConfig['config']['exclusiveKeys'])	{
 				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text,\''.$this->fieldConfig['config']['exclusiveKeys'].'\'); ';
 			} else {
@@ -584,7 +584,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 			'thumbnails' => $itemsToSelect,
 			'readOnly' => $disabled
 		);
-		$item .= $this->dbFileIcons($this->itemFormElName,'','',$itemArray,'',$params,$this->onFocus);
+		$item .= $this->dbFileIcons($this->itemFormElName,'','',$this->items,'',$params,$this->onFocus);
 
 		return $item;
 	}
@@ -905,6 +905,21 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_Abstract {
 			$itemArray[$tk] = $tvP[0];
 		}
 		return $itemArray;
+	}
+
+	protected function renderOptions() {
+		if (!$this->hasItems()) {
+			return;
+		}
+
+		while(list(,$pp)=each($this->items)) {
+			$pParts = explode('|',$pp, 2);
+			$uidList[]=$pUid=$pParts[0];
+			$pTitle = $pParts[1];
+			$opt[]='<option value="'.htmlspecialchars(rawurldecode($pUid)).'">'.htmlspecialchars(rawurldecode($pTitle)).'</option>';
+		}
+
+		return $opt;
 	}
 }
 

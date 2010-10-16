@@ -3,7 +3,7 @@
 require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.php');
 
 
-class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
+class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelector {
 	protected function renderField() {
 			// Init:
 		$config = $this->fieldConfig['config'];
@@ -50,13 +50,13 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 				}
 
 					// Making the array of file items:
-				$itemArray = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
+				$this->items = t3lib_div::trimExplode(',',$this->itemFormElValue,1);
 
 					// Showing thumbnails:
 				$thumbsnail = '';
 				if ($show_thumbs)	{
 					$imgs = array();
-					foreach($itemArray as $imgRead)	{
+					foreach($this->items as $imgRead) {
 						$imgP = explode('|',$imgRead);
 						$imgPath = rawurldecode($imgP[0]);
 
@@ -102,7 +102,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					'noBrowser' => $noList || (isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser')),
 					'noList' => $noList,
 				);
-				$item.= $this->dbFileIcons($this->itemFormElName, 'file', implode(',',$tempFT), $itemArray, '', $params ,$this->onFocus);
+				$item.= $this->dbFileIcons($this->itemFormElName, 'file', implode(',',$tempFT), $this->items, '', $params ,$this->onFocus);
 
 				if(!$disabled && !(isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'upload'))) {
 						// Adding the upload field:
@@ -114,7 +114,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 			case 'folder':	// If the element is of the internal type "folder":
 
 					// array of folder items:
-				$itemArray = t3lib_div::trimExplode(',', $this->itemFormElValue, 1);
+				$this->items = t3lib_div::trimExplode(',', $this->itemFormElValue, 1);
 
 					// Creating the element:
 				$noList = isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'list');
@@ -136,7 +136,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					$this->itemFormElName,
 					'folder',
 					'',
-					$itemArray,
+					$this->items,
 					'',
 					$params,
 					$this->onFocus
@@ -155,14 +155,13 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					$onlySingleTableAllowed = (count($tempFT) == 1);
 					foreach ($tempFT as $theT) {
 						$info.= '<span class="nobr">&nbsp;&nbsp;&nbsp;&nbsp;' .
-								t3lib_iconWorks::getIconImage($theT, array(), $this->backPath, 'align="top"') .
+								t3lib_iconWorks::getSpriteIconForRecord($theT, array()) .
 								htmlspecialchars($this->sL($GLOBALS['TCA'][$theT]['ctrl']['title'])) .
 									'</span><br />';
 					}
 				}
 
 				$perms_clause = $GLOBALS['BE_USER']->getPagePermsClause(1);
-				$itemArray = array();
 				$imgs = array();
 
 					// Thumbnails:
@@ -171,14 +170,14 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					$recordParts = explode('|', $dbRead);
 					list($table,$uid) = t3lib_BEfunc::splitTable_Uid($recordParts[0]);
 
-					$itemArray[] = array(
+					$this->items[] = array(
 						'table' => $table,
 						'id' => $uid
 					);
 
 					// For the case that no table was found and only a single table is defined to be allowed, use that one:
 					if (!$table && $onlySingleTableAllowed) {
-						$itemArray[] = $allowed;
+						$this->items[] = $allowed;
 					}
 
 					if (!$disabled && $show_thumbs)	{
@@ -220,7 +219,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 					'noBrowser' => $noList || (isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser')),
 					'noList' => $noList,
 				);
-				$item.= $this->dbFileIcons($this->itemFormElName,'db',implode(',',$tempFT),$itemArray,'',$params,$this->onFocus,$table,$field,$row['uid']);
+				$item.= $this->dbFileIcons($this->itemFormElName,'db',implode(',',$tempFT),$this->items,'',$params,$this->onFocus,$table,$field,$row['uid']);
 
 			break;
 		}
@@ -232,6 +231,45 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_Abstract {
 		}
 
 		return $item;
+	}
+
+	protected function renderOptions() {
+		if (!$this->hasItems()) {
+			return;
+		}
+
+		$mode = $this->fieldConfig['config']['internal_type'];
+
+		switch($mode) {
+			case 'db':
+				while(list(,$pp)=each($this->items))	{
+					$pRec = t3lib_BEfunc::getRecordWSOL($pp['table'],$pp['id']);
+					if (is_array($pRec))	{
+						$pTitle = t3lib_BEfunc::getRecordTitle($pp['table'], $pRec, FALSE, TRUE);
+						$pUid = $pp['table'].'_'.$pp['id'];
+						$uidList[]=$pUid;
+						$opt[]='<option value="'.htmlspecialchars($pUid).'">'.htmlspecialchars($pTitle).'</option>';
+					}
+				}
+			break;
+			case 'file':
+			case 'file_reference':
+				foreach ($this->items as $item) {
+					$itemParts = explode('|', $item);
+					$uidList[] = $pUid = $pTitle = $itemParts[0];
+					$opt[] = '<option value="' . htmlspecialchars(rawurldecode($itemParts[0])) . '">' . htmlspecialchars(basename(rawurldecode($itemParts[0]))) . '</option>';
+				}
+			break;
+			case 'folder':
+				while(list(,$pp)=each($this->items))	{
+					$pParts = explode('|',$pp);
+					$uidList[]=$pUid=$pTitle = $pParts[0];
+					$opt[]='<option value="'.htmlspecialchars(rawurldecode($pParts[0])).'">'.htmlspecialchars(rawurldecode($pParts[0])).'</option>';
+				}
+			break;
+		}
+
+		return $opt;
 	}
 }
 

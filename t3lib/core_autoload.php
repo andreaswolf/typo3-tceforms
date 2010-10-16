@@ -160,6 +160,7 @@ return array(
 	't3lib_tceforms_container_palette' => PATH_t3lib . 'tceforms/container/class.t3lib_tceforms_container_palette.php',
 	't3lib_tceforms_container_sheet' => PATH_t3lib . 'tceforms/container/class.t3lib_tceforms_container_sheet.php',
 	't3lib_tceforms_element_abstract' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_abstract.php',
+	't3lib_tceforms_element_abstractselector' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_abstractselector.php',
 	't3lib_tceforms_element_check' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_check.php',
 	't3lib_tceforms_element_flex' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_flex.php',
 	't3lib_tceforms_element_group' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_group.php',
