@@ -28,6 +28,8 @@ interface t3lib_TCEforms_Context {
 	 */
 	public function isFieldHidden($table, $fieldName);
 
+	//public function registerRequiredField(t3lib_TCEforms_Element_Abstract $fields);
+
 	/**
 	 * Registers an IRRE object with the context object
 	 *
@@ -51,6 +53,13 @@ interface t3lib_TCEforms_Context {
 	 * @return array
 	 */
 	public function getAvailableLanguages($onlyIsoCoded = TRUE, $setDefault = TRUE);
+
+	/**
+	 * Returns TRUE if the context menu for record icons should be enabled.
+	 *
+	 * @return boolean
+	 */
+	public function isClickmenuEnabled();
 }
 
 ?>

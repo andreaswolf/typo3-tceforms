@@ -119,6 +119,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * Default style for the selector boxes used for multiple items in "select" and "group" types.
 	 *
 	 * @var string
+	 * @deprecated
 	 */
 	protected $defaultMultipleSelectorStyle = 'width:250px;';
 
@@ -1224,6 +1225,12 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @param	array		Record row
 	 * @param	string		Field name
 	 * @return	array		The modified $items array
+	 *
+	 * @TODO refactor this
+	 *  - use proper table, row, field
+	 *  - rename to processItems()
+	 *  - get config from object, not parameter
+	 *  - remove iArray parameter, get it from object properties
 	 */
 	protected function procItems($items,$iArray,$config,$table,$row,$field)	{
 		global $TCA;
@@ -1300,14 +1307,25 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @param	string		$field: (optional) Field of table name processing for
 	 * @param	string		$uid:	(optional) uid of table record processing for
 	 * @return	string		The form fields for the selection.
+	 *
+	 * @TODO refactor this
 	 */
 	function dbFileIcons($fName,$mode,$allowed,$itemArray,$selector='',$params=array(),$onFocus='',$table='',$field='',$uid='')	{
 
+		return ($this->renderItemList($selector, $onFocus));
 
-		$disabled = '';
-		if ($this->isReadOnly())  {
-			$disabled = ' disabled="disabled"';
-		}
+		/**
+		 * Refactoring:
+		 * - move method to Element_AbstractSelect
+		 * - move itemArray out of parameters
+		 * - remove $allowed from parameters -> only required in Element_Group
+		 * - remove $table, $field, $uid
+		 * - remove $onFocus from parameters
+		 * - replace $params[] by direct access to class members/methods
+		 * - change method name to e.g. renderItemList
+		 */
+
+		$disabled = $this->getDisabledCode();
 
 			// Sets a flag which means some JavaScript is included on the page to support this element.
 		$this->printNeededJS['dbFileIcons']=1;
@@ -1321,7 +1339,9 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		if (is_array($itemArray))	{
 			$itemArrayC=count($itemArray);
 			reset($itemArray);
+			// TODO: factor out to method renderOptions()
 			switch($mode)	{
+				// TODO: move all cases (except default) to Element_Group
 				case 'db':
 					while(list(,$pp)=each($itemArray))	{
 						$pRec = t3lib_BEfunc::getRecordWSOL($pp['table'],$pp['id']);
@@ -1348,6 +1368,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 						$opt[]='<option value="'.htmlspecialchars(rawurldecode($pParts[0])).'">'.htmlspecialchars(rawurldecode($pParts[0])).'</option>';
 					}
 				break;
+				// TODO: move default to Element_Select
 				default:
 					while(list(,$pp)=each($itemArray))	{
 						$pParts = explode('|',$pp, 2);
@@ -1362,7 +1383,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			// Create selector box of the options
 		$sSize = $params['autoSizeMax'] ? t3lib_div::intInRange($itemArrayC+1,t3lib_div::intInRange($params['size'],1),$params['autoSizeMax']) : $params['size'];
 		if (!$selector)	{
-			$selector = '<select id="' . uniqid('tceforms-multiselect-') . '" ' . ($params['noList'] ? 'style="display: none"' : 'size="' . $sSize . '"' . $this->insertDefaultElementStyle('group', 'tceforms-multiselect')) . ' multiple="multiple" name="' . $fName.'_list" ' . $onFocus . $params['style'] . $disabled . '>' . implode('', $opt) . '</select>';
+			$selector = '<select id="' . uniqid('tceforms-multiselect-') . '" ' . ($params['noList'] ? 'style="display: none"' : 'size="' . $sSize . '"' . $this->insertDefaultElementStyle('group', 'tceforms-multiselect')) . ' multiple="multiple" name="' . $this->itemFormElName.'_list" ' . $onFocus . $params['style'] . $disabled . '>' . implode('', $opt) . '</select>';
 		}
 
 
@@ -1370,7 +1391,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			'L' => array(),
 			'R' => array(),
 		);
-		if (!$params['readOnly'] && !$params['noList']) {
+		if (!$this->isReadOnly() && !$params['noList']) {
 			if (!$params['noBrowser'])	{
 					// check against inline uniqueness
 				// TODO: re-implement for IRRE
@@ -1382,30 +1403,31 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 						$rOnClickInline = 'inline.revertUnique(\''.$objectPrefix.'\',null,\''.$uid.'\');';
 					}
 				}*/
-				$aOnClick='setFormValueOpenBrowser(\''.$mode.'\',\''.($fName.'|||'.$allowed.'|'.$aOnClickInline).'\'); return false;';
+				$aOnClick='setFormValueOpenBrowser(\''.$mode.'\',\''.($this->itemFormElName.'|||'.$allowed.'|'.$aOnClickInline).'\'); return false;';
 				$icons['R'][]='<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
 						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars($this->getLL('l_browse_' . ($mode == 'db' ? 'db' : 'file'))))) .
 						'</a>';
 			}
 			if (!$params['dontShowMoveIcons'])	{
 				if ($sSize>=5)	{
-					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$fName.'\',\'Top\'); return false;">'.
+					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->itemFormElName.'\',\'Top\'); return false;">'.
 							t3lib_iconWorks::getSpriteIcon('actions-move-to-top', array('title' => htmlspecialchars($this->getLL('l_move_to_top')))) .
 							'</a>';
 				}
-				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$fName.'\',\'Up\'); return false;">'.
+				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->itemFormElName.'\',\'Up\'); return false;">'.
 						t3lib_iconWorks::getSpriteIcon('actions-move-up', array('title' => htmlspecialchars($this->getLL('l_move_up')))) .
 						'</a>';
-				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$fName.'\',\'Down\'); return false;">'.
+				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->itemFormElName.'\',\'Down\'); return false;">'.
 						t3lib_iconWorks::getSpriteIcon('actions-move-down', array('title' => htmlspecialchars($this->getLL('l_move_down')))) .
 						'</a>';
 				if ($sSize>=5)	{
-					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$fName.'\',\'Bottom\'); return false;">'.
+					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->itemFormElName.'\',\'Bottom\'); return false;">'.
 							t3lib_iconWorks::getSpriteIcon('actions-move-to-bottom', array('title' => htmlspecialchars($this->getLL('l_move_to_bottom')))) .
 							'</a>';
 				}
 			}
 
+			// move to Element_Group
 			$clipElements = $this->getClipboardElements($allowed,$mode);
 			if (count($clipElements))	{
 				$aOnClick = '';
@@ -1417,14 +1439,14 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 					} else {	// 'file', 'file_reference' and 'folder' mode
 						$itemTitle = 'unescape(\'' . rawurlencode(basename($elValue)) . '\')';
 					}
-					$aOnClick.= 'setFormValueFromBrowseWin(\''.$fName.'\',unescape(\''.rawurlencode(str_replace('%20',' ',$elValue)).'\'),'.$itemTitle.');';
+					$aOnClick.= 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',unescape(\''.rawurlencode(str_replace('%20',' ',$elValue)).'\'),'.$itemTitle.');';
 				}
 				$aOnClick.= 'return false;';
 				$icons['R'][]='<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
 						t3lib_iconWorks::getSpriteIcon('actions-document-paste-into', array('title' => htmlspecialchars(sprintf($this->getLL('l_clipInsert_' . ($mode == 'db' ? 'db' : 'file')), count($clipElements))))) .
 						'</a>';
 			}
-			$rOnClick = $rOnClickInline.'setFormValueManipulate(\''.$fName.'\',\'Remove\'); return false';
+			$rOnClick = $rOnClickInline.'setFormValueManipulate(\''.$this->itemFormElName.'\',\'Remove\'); return false';
 			$icons['L'][]='<a href="#" onclick="'.htmlspecialchars($rOnClick).'">'.
 					t3lib_iconWorks::getSpriteIcon('actions-selection-delete', array('title' => htmlspecialchars($this->getLL('l_remove_selected')))) .
 					'</a>';
@@ -1455,7 +1477,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		</table>';
 
 			// Creating the hidden field which contains the actual value as a comma list.
-		$str.='<input type="hidden" name="'.$fName.'" value="'.htmlspecialchars(implode(',',$uidList)).'" />';
+		$str.='<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars(implode(',',$uidList)).'" />';
 
 		return $str;
 	}
@@ -1466,6 +1488,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @param	string		Allowed elements, Eg "pages,tt_content", "gif,jpg,jpeg,png"
 	 * @param	string		Mode of relations: "db" or "file"
 	 * @return	array		Array of elements in values (keys are insignificant), if none found, empty array.
+	 *
+	 * @TODO move to Element_Group
 	 */
 	function getClipboardElements($allowed,$mode)	{
 
@@ -1520,7 +1544,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @return	string		The new item value.
 	 */
 	// TODO: refactor this!
-	function renderWizards($itemKinds, $wizConf, $itemName, $specConf, $RTE=0) {
+	function renderWizards($itemKinds, $wizConf, $itemName, $specConf, $RTE = FALSE) {
 
 			// Init:
 		$item = $itemKinds[0];
@@ -1816,7 +1840,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @return	string		HTML
 	 */
 	function getClickMenu($str,$table,$uid='')	{
-		if ($this->enableClickMenu) {
+		if ($this->contextObject->isClickmenuEnabled()) {
 			$onClick = $GLOBALS['SOBE']->doc->wrapClickMenuOnIcon($str, $table, $uid, 1, '', '+copy,info,edit,view', TRUE);
 			return '<a href="#" onclick="' . htmlspecialchars($onClick) . '">' . $str . '</a>';
 		}
