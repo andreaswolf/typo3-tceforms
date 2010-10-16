@@ -5,6 +5,8 @@
  *
  * This object is read-only after it has been constructed.
  *
+ * @see Document "TYPO3 Core API", section "$TCA array reference"
+ *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  */
 class t3lib_TCA_DataStructure {
@@ -88,7 +90,7 @@ class t3lib_TCA_DataStructure {
 				$typeValue = "1";
 			}
 		} else {
-			$typeValue = "0";
+			$typeValue = $this->getDefaultTypeForRecord($record);
 		}
 
 		/* @var $typeConfiguration t3lib_TCA_DataStructure_Type */
@@ -245,6 +247,26 @@ class t3lib_TCA_DataStructure {
 		}
 
 		return $this->types[$typeNumber];
+	}
+
+	/**
+	 * Returns the default type number for a record.
+	 *
+	 * If a type field exists, a default value may be set. If it is not or there is no type field,
+	 * the default value is always '0'.
+	 *
+	 * @param t3lib_TCEforms_Record $record
+	 * @return mixed The default type value for the record
+	 */
+	protected function getDefaultTypeForRecord(t3lib_TCEforms_Record $record) {
+		if ($this->hasTypeField()) {
+			$typeFieldConfiguration = $this->getFieldConfiguration($this->getTypeField());
+			if (array_key_exists('default', $typeFieldConfiguration['config'])) {
+				return $typeFieldConfiguration['config']['default'];
+			}
+		}
+
+		return '0';
 	}
 
 	public function getPossibleTypeValues() {
