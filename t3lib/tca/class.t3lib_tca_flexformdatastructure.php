@@ -9,8 +9,8 @@ class t3lib_TCA_FlexFormDataStructure extends t3lib_TCA_DataStructure {
 		$this->meta = $TCAinformation['meta'];
 
 		$typeObject = $this->createTypeObjectFromSheets($TCAinformation['sheets']);
-		$this->types[1] = $typeObject;
-		$this->definedTypeValues = array(1);
+		$this->types["0"] = $typeObject;
+		$this->definedTypeValues = array("0");
 	}
 
 	public function getDisplayConfigurationForRecord(t3lib_TCEforms_Record $record) {
