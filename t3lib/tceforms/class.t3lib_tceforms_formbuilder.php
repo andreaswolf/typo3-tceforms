@@ -64,56 +64,17 @@ class t3lib_TCEforms_FormBuilder {
 	}
 
 	/**
-	 * Takes a record object and builds the TCEforms object structure for it.
-	 *
-	 * @return void
+	 * @deprecated
 	 */
-	public function buildObjectStructure() {
-		t3lib_div::devLog('Started building object tree for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
-
-		// TODO use the data structure object here -- URGENT
-		$sheets = $this->displayConfiguration->getSheets();
-		//$fieldList = $this->recordObject->getFieldList();
-
-		foreach ($sheets as $sheet) {
-			$this->createSheetObjectFromDefinition($sheet);
-		}
-	}
-
-	protected function createSheetObjectFromDefinition(t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
-		$sheetObject = $this->createSheetObject($sheetDefinition);
-		$this->recordObject->addSheetObject($sheetObject);
-
-		foreach ($sheetDefinition->getElements() as $fieldObject) {
-			if (is_a($fieldObject, 't3lib_TCA_DataStructure_Field')) {
-				/* @var $element t3lib_TCA_DataStructure_Field */
-				$elementObject = $this->createObjectFromFieldDefinition($fieldObject);
-				$elementObject->init();
-
-				$sheetObject->addChildObject($elementObject);
-			} elseif (is_a($fieldObject, 't3lib_TCA_DataStructure_Palette')) {
-				$paletteContainerObject = $this->createPaletteObjectFromDefinition($fieldObject);
-
-				/* @var $paletteElementObject t3lib_TCEforms_Element_Palette */
-				$paletteElementObject = $this->createElementObject('palette', $fieldObject->getLabel());
-				$paletteElementObject->setPaletteObject($paletteContainerObject);
-				$paletteElementObject->init();
-
-				$sheetObject->addChildObject($paletteElementObject);
-			}
-		}
-	}
-
 	public function getFormFieldNamePrefix() {
 		return $this->formFieldNamePrefix;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function setFormFieldNamePrefix($prefix) {
 		$this->formFieldNamePrefix = $prefix;
-
-		if (is_object($this->formBuilder)) {
-			$this->formBuilder->setFormFieldNamePrefix($prefix);
-		}
 
 		return $this;
 	}
@@ -123,6 +84,27 @@ class t3lib_TCEforms_FormBuilder {
 
 		return $this;
 	}
+
+
+	/**
+	 * Takes a record object and builds the TCEforms object structure for it.
+	 *
+	 * @return void
+	 */
+	public function buildObjectStructure() {
+		t3lib_div::devLog('Started building object tree for record ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
+
+		$sheets = $this->displayConfiguration->getSheets();
+
+		foreach ($sheets as $sheet) {
+			$this->createSheetObjectFromDefinition($sheet);
+		}
+	}
+
+
+	/***********************************
+	 * Element handling
+	 ***********************************/
 
 	/**
 	 * Returns the object representation for a database table field.
@@ -176,10 +158,6 @@ class t3lib_TCEforms_FormBuilder {
 		return $paletteObject;
 	}
 
-	public function createPaletteElement($paletteNumber, $label) {
-		return $this->createElementObject('palette');
-	}
-
 	/**
 	 * Factory method for form element objects. Defaults to type "unknown" if the class(file)
 	 * is not found.
@@ -216,6 +194,35 @@ class t3lib_TCEforms_FormBuilder {
 		return $elementObject;
 	}
 
+
+	/***********************************
+	 * Sheet handling
+	 ***********************************/
+
+	protected function createSheetObjectFromDefinition(t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
+		$sheetObject = $this->createSheetObject($sheetDefinition);
+		$this->recordObject->addSheetObject($sheetObject);
+
+		foreach ($sheetDefinition->getElements() as $fieldObject) {
+			if (is_a($fieldObject, 't3lib_TCA_DataStructure_Field')) {
+				/* @var $element t3lib_TCA_DataStructure_Field */
+				$elementObject = $this->createObjectFromFieldDefinition($fieldObject);
+				$elementObject->init();
+
+				$sheetObject->addChildObject($elementObject);
+			} elseif (is_a($fieldObject, 't3lib_TCA_DataStructure_Palette')) {
+				$paletteContainerObject = $this->createPaletteObjectFromDefinition($fieldObject);
+
+				/* @var $paletteElementObject t3lib_TCEforms_Element_Palette */
+				$paletteElementObject = $this->createElementObject('palette', $fieldObject->getLabel());
+				$paletteElementObject->setPaletteObject($paletteContainerObject);
+				$paletteElementObject->init();
+
+				$sheetObject->addChildObject($paletteElementObject);
+			}
+		}
+	}
+
 	/**
 	 * Factory method for sheet objects on forms.
 	 *
@@ -235,6 +242,15 @@ class t3lib_TCEforms_FormBuilder {
 		$sheetObject->setElementIdentifierStack($this->elementIdentifierStack);
 
 		return $sheetObject;
+	}
+
+
+	/***********************************
+	 * Palette handling
+	 ***********************************/
+
+	public function createPaletteElement($paletteNumber, $label) {
+		return $this->createElementObject('palette');
 	}
 
 	/**
@@ -292,18 +308,6 @@ class t3lib_TCEforms_FormBuilder {
 				$this->renderDepth--;
 			}*/
 		}
-	}
-
-	/**
-	 * Fetches language label for key
-	 *
-	 * @param   string  Language label reference, eg. 'LLL:EXT:lang/locallang_core.php:labels.blablabla'
-	 * @return  string  The value of the label, fetched for the current backend language.
-	 *
-	 * @deprecated
-	 */
-	protected function sL($str) {
-		return $GLOBALS['LANG']->sL($str);
 	}
 
 	/**
