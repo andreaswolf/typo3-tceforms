@@ -34,6 +34,13 @@ class t3lib_TCEforms_FormBuilder {
 	 */
 	protected $displayConfiguration;
 
+	/**
+	 * The number of sheets this form builder has built
+	 *
+	 * @var integer
+	 */
+	protected $sheetCounter;
+
 
 	protected function __construct(t3lib_TCEforms_Record $recordObject) {
 		t3lib_div::devLog('Created new formbuilder object for record ' . $recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
@@ -211,8 +218,8 @@ class t3lib_TCEforms_FormBuilder {
 	 * @TODO Check if this must be public
 	 */
 	public function createSheetObject(t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
-		$number = $this->recordObject->getSheetCount() + 1;
-		$sheetIdentString = $this->recordObject->getShortSheetIdentifier() . '-' . $number;
+		++$this->sheetCounter;
+		$sheetIdentString = $this->recordObject->getShortSheetIdentifier() . '-' . $this->sheetCounter;
 
 		$sheetObject = new t3lib_TCEforms_Container_Sheet($sheetIdentString, $sheetDefinition->getLabel(),
 		  $sheetDefinition->getName());
