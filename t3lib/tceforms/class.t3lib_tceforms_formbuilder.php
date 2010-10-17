@@ -66,7 +66,7 @@ class t3lib_TCEforms_FormBuilder {
 	}
 
 	protected function createSheetObjectFromDefinition(t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
-		$sheetObject = $this->createSheetObject($this->recordObject->getSheetCount() + 1, $sheetDefinition);
+		$sheetObject = $this->createSheetObject($sheetDefinition);
 		$this->recordObject->addSheetObject($sheetObject);
 
 		foreach ($sheetDefinition->getElements() as $fieldObject) {
@@ -210,7 +210,8 @@ class t3lib_TCEforms_FormBuilder {
 	 *
 	 * @TODO Check if this must be public
 	 */
-	public function createSheetObject($number, t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
+	public function createSheetObject(t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
+		$number = $this->recordObject->getSheetCount() + 1;
 		$sheetIdentString = $this->recordObject->getShortSheetIdentifier() . '-' . $number;
 
 		$sheetObject = new t3lib_TCEforms_Container_Sheet($sheetIdentString, $sheetDefinition->getLabel(),
