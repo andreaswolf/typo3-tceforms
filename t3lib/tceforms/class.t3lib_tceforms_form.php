@@ -214,12 +214,17 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	/**
 	 * Creates an identifier for an element from a given element identifier stack.
 	 *
-	 * @param  array  $elementIdentifierStack  The stack with identifier parts for all elements in the hierarchy
+	 * @param  object $object  The element the identifier should be generated for
 	 * @param  string $type  'name': all parts wrapped in []; 'id': elements separated by '-'
 	 * @return string
 	 */
-	public function createElementIdentifier(array $elementIdentifierStack, $type) {
+	public function createElementIdentifier($object, $type) {
 		$elementIdentifier = $this->elementIdentifierPrefix;
+
+		$elementIdentifierStack = $this->elementIdentifierStack;
+		if (is_a($object, 't3lib_TCEforms_Element_Abstract')) {
+			$elementIdentifierStack[] = $object->getFieldName();
+		}
 
 		switch($type) {
 			case 'name':

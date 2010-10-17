@@ -3,19 +3,20 @@
 class t3lib_TCEforms_FormTest extends tx_phpunit_testcase {
 	/**
 	 * @test
-	 * @dataProvider createElementIdentifierDataProvider
+	 * @dataProvider createElementIdentifierDataProviderForElements
 	 */
-	public function createElementIdentifierCreatesCorrectIdentifiers($elementIdentifierPrefix,
-	  array $elementIdentifierStack, $type, $elementIdentifier, $message = '') {
+	public function createElementIdentifierCreatesCorrectIdentifiersForElements($elementIdentifierPrefix,
+	  array $elementIdentifierStack, $fieldName, $type, $expectedIdentifier, $message = '') {
 
 		$formObject = new t3lib_TCEforms_Form();
 		$formObject->setElementIdentifierPrefix($elementIdentifierPrefix)
 		           ->setElementIdentifierStack($elementIdentifierStack);
+		$mockedElement = $this->getMockForAbstractClass('t3lib_TCEforms_Element_Abstract', array($fieldName, array()));
 
-		$this->assertEquals($elementIdentifier, $formObject->createElementIdentifier($elementIdentifierStack, $type), $message);
+		$this->assertEquals($expectedIdentifier, $formObject->createElementIdentifier($mockedElement, $type), $message);
 	}
 
-	public static function createElementIdentifierDataProvider() {
+	public static function createElementIdentifierDataProviderForElements() {
 		return array(
 			array(
 				'formname',
@@ -23,8 +24,9 @@ class t3lib_TCEforms_FormTest extends tx_phpunit_testcase {
 					'table',
 					'uid'
 				),
+				'testfield',
 				'name',
-				'formname[table][uid]'
+				'formname[table][uid][testfield]'
 			),
 			array(
 				'formname',
@@ -32,16 +34,9 @@ class t3lib_TCEforms_FormTest extends tx_phpunit_testcase {
 					'table',
 					'uid'
 				),
+				'testfield',
 				'id',
-				'formname-table-uid'
-			),
-			array(
-				'formname',
-				array(
-				),
-				'name',
-				'formname',
-				'Empty braces [] are added if element identifier stack is empty.'
+				'formname-table-uid-testfield'
 			)
 		);
 	}

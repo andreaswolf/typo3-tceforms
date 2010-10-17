@@ -68,15 +68,6 @@ interface t3lib_TCEforms_Context {
 	 * @return t3lib_TCEforms_Context
 	 */
 	public function setElementIdentifierPrefix($elementIdentifierPrefix);
-
-	/**
-	 * Creates an identifier for an element from a given element identifier stack.
-	 *
-	 * @param  array  $elementIdentifierStack  The stack with identifier parts for all elements in the hierarchy
-	 * @param  string $type  'name': all parts wrapped in []; 'id': elements separated by '-'
-	 * @return string
-	 */
-	public function createElementIdentifier(array $elementIdentifierStack, $type);
 }
 
 ?>

@@ -210,6 +210,7 @@ class t3lib_TCEforms_FormBuilder {
 		              ->setParentFormObject($this->recordObject->getParentFormObject())
 		              ->setTable($this->recordObject->getTable())
 		              ->setRecord($this->recordObject->getRecordData())
+		              ->setElementIdentifierStack($this->elementIdentifierStack)
 		              ->injectFormBuilder($this);
 
 		return $elementObject;

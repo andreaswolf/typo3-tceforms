@@ -217,29 +217,9 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
-		// TODO: rename this to formFieldNamePrefix/formFieldFileNamePrefix
-		if (isset($this->container)) {
-			$this->prependFormFieldNames = $this->container->getFormFieldNamePrefix();
-			$this->prependFormFieldNames_file = $this->container->getFormFieldNamePrefix();
-			$this->formFieldIdPrefix = $this->container->getFormFieldIdPrefix();
-		} else {
-			$this->prependFormFieldNames = $this->recordObject->getFormFieldNamePrefix();
-			$this->prependFormFieldNames_file = $this->recordObject->getFormFieldNamePrefix();
-			$this->formFieldIdPrefix = $this->recordObject->getFormFieldIdPrefix();
-		}
-		$this->formFieldName = $this->fileFormFieldName = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'name');
-		$this->formFieldId = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'id');
+		$this->formFieldName = $this->fileFormFieldName = $this->parentFormObject->createElementIdentifier($this->elementIdentifierStack, 'name');
+		$this->formFieldId = $this->parentFormObject->createElementIdentifier($this->elementIdentifierStack, 'id');
 		$this->itemFormElValue = $this->record[$this->field]; // The value to show in the form field.
-
-		/**
-		 * TODO reenable this block as soon as the FormBuilder is localization-aware and able to set
-		 * the correct language for fields
-		if ($this->language != '') {
-			$this->prependFormFieldNames .= '[l' . $this->recordObject->getLanguage() . ']';
-			$this->prependFormFieldNames_file .= '[l' . $this->recordObject->getLanguage() . ']';
-			$this->formFieldIdPrefix .= '_l' . $this->recordObject->getLanguage();
-		}
-		 */
 
 			// Hook: getSingleField_preProcess
 		foreach (self::$hookObjects['getSingleFields'] as $hookObj)	{
