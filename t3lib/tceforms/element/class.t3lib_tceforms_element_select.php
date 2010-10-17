@@ -83,8 +83,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 			// Wizards:
 		if (!$disabled) {
-			$altItem = '<input type="hidden" name="' . $this->itemFormElName . '" value="' . htmlspecialchars($this->itemFormElValue)  .'" />';
-			$item = $this->renderWizards(array($item, $altItem), $this->fieldConfig['config']['wizards'], $this->itemFormElName, $specConf);
+			$altItem = '<input type="hidden" name="' . $this->formFieldName . '" value="' . htmlspecialchars($this->itemFormElValue)  .'" />';
+			$item = $this->renderWizards(array($item, $altItem), $this->fieldConfig['config']['wizards'], $this->formFieldName, $specConf);
 		}
 
 		return $item;
@@ -180,8 +180,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 				// If there is an icon for the selector box (rendered in table under)...:
 			if ($p[2] && !$suppressIcons && (!$onlySelectedIconShown || $sM))	{
 				list($selIconFile,$selIconInfo)=$this->getIcon($p[2]);
-				$iOnClick = $this->contextObject->elName($this->itemFormElName) . '.selectedIndex='.$c.'; ' .
-					$this->contextObject->elName($this->itemFormElName) . '.style.backgroundImage=' . $this->contextObject->elName($this->itemFormElName) . '.options[' . $c .'].style.backgroundImage; ' .
+				$iOnClick = $this->contextObject->elName($this->formFieldName) . '.selectedIndex='.$c.'; ' .
+					$this->contextObject->elName($this->formFieldName) . '.style.backgroundImage=' . $this->contextObject->elName($this->formFieldName) . '.options[' . $c .'].style.backgroundImage; ' .
 					implode('', $this->fieldChangeFunc) . $this->contextObject->blur().'return false;';
 				$selicons[]=array(
 					(!$onlySelectedIconShown ? '<a href="#" onclick="'.htmlspecialchars($iOnClick).'">' : '').
@@ -207,9 +207,9 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 			// Create item form fields:
 		$sOnChange = 'if (this.options[this.selectedIndex].value==\'--div--\') {this.selectedIndex='.$sI.';} '.implode('',$this->fieldChangeFunc);
 		if(!$disabled) {
-			$item.= '<input type="hidden" name="'.$this->itemFormElName.'_selIconVal" value="'.htmlspecialchars($sI).'" />';	// MUST be inserted before the selector - else is the value of the hiddenfield here mysteriously submitted...
+			$item.= '<input type="hidden" name="'.$this->formFieldName.'_selIconVal" value="'.htmlspecialchars($sI).'" />';	// MUST be inserted before the selector - else is the value of the hiddenfield here mysteriously submitted...
 		}
-		$item.= '<select'.$selectedStyle.' id="' . uniqid('tceforms-select-') . '" name="'.$this->itemFormElName.'"'.
+		$item.= '<select'.$selectedStyle.' id="' . uniqid('tceforms-select-') . '" name="'.$this->formFieldName.'"'.
 					($config['iconsInOptionTags'] ? ' class="icon-select"' : '') .
 					$this->insertDefaultElementStyle('select', 'tceforms-multiselect').
 					($size?' size="'.$size.'"':'').
@@ -297,13 +297,13 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 						// Compile row:
 					$this->recordId = uniqid('select_checkbox_row_');
-					$onClickCell = $this->contextObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked=!' . $this->contextObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked;';
-					$onClick = 'this.attributes.getNamedItem("class").nodeValue = ' . $this->contextObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked ? "c-selectedItem" : "c-unselectedItem";';
-					$setAll[] = $this->contextObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked=1;';
+					$onClickCell = $this->contextObject->elName($this->formFieldName . '[' . $c . ']') . '.checked=!' . $this->contextObject->elName($this->formFieldName . '[' . $c . ']') . '.checked;';
+					$onClick = 'this.attributes.getNamedItem("class").nodeValue = ' . $this->contextObject->elName($this->formFieldName . '[' . $c . ']') . '.checked ? "c-selectedItem" : "c-unselectedItem";';
+					$setAll[] = $this->contextObject->elName($this->formFieldName . '[' . $c . ']') . '.checked=1;';
 					$setAll[] .= '$(\'' . $this->recordId . '\').removeClassName(\'c-unselectedItem\');$(\'' . $this->recordId . '\').addClassName(\'c-selectedItem\');';
-					$unSetAll[] = $this->contextObject->elName($this->itemFormElName.'['.$c.']').'.checked=0;';
+					$unSetAll[] = $this->contextObject->elName($this->formFieldName.'['.$c.']').'.checked=0;';
 					$unSetAll[] .= '$(\'' . $this->recordId . '\').removeClassName(\'c-selectedItem\');$(\'' . $this->recordId . '\').addClassName(\'c-unselectedItem\');';
-					$restoreCmd[] = $this->contextObject->elName($this->itemFormElName . '[' . $c . ']') . '.checked=' . ($sM ? 1 : 0) . ';' .
+					$restoreCmd[] = $this->contextObject->elName($this->formFieldName . '[' . $c . ']') . '.checked=' . ($sM ? 1 : 0) . ';' .
 								'$(\'' . $this->recordId . '\').removeClassName(\'c-selectedItem\');$(\'' . $this->recordId . '\').removeClassName(\'c-unselectedItem\');' .
 								'$(\'' . $this->recordId . '\').addClassName(\'c-' . ($sM ? '' : 'un') . 'selectedItem\');';
 
@@ -323,7 +323,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 					$tRows[] = '
 						<tr id="' . $this->recordId . '" class="'.($sM ? 'c-selectedItem' : 'c-unselectedItem').'" onclick="'.htmlspecialchars($onClick).'" style="cursor: pointer;">
-							<td width="12"><input type="checkbox"'.$this->insertDefaultElementStyle('check').' name="'.htmlspecialchars($this->itemFormElName.'['.$c.']').'" value="'.htmlspecialchars($p[1]).'"'.$sM.' onclick="'.htmlspecialchars($sOnChange).'"'.$this->onFocus.' /></td>
+							<td width="12"><input type="checkbox"'.$this->insertDefaultElementStyle('check').' name="'.htmlspecialchars($this->formFieldName.'['.$c.']').'" value="'.htmlspecialchars($p[1]).'"'.$sM.' onclick="'.htmlspecialchars($sOnChange).'"'.$this->onFocus.' /></td>
 							<td class="c-labelCell" onclick="'.htmlspecialchars($onClickCell).'">'.
 								($selIconFile ? '<img src="'.$selIconFile.'" '.$selIconInfo[3].' vspace="2" border="0" class="absmiddle" style="margin-right: 4px;" alt="" />' : '').
 								$label .
@@ -356,7 +356,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 					// Compile <checkboxes> tag:
 				array_unshift($tRows,'
 						<tr class="c-invalidItem">
-							<td><input type="checkbox"'.$this->insertDefaultElementStyle('check').' name="'.htmlspecialchars($this->itemFormElName.'['.$c.']').'" value="'.htmlspecialchars($theNoMatchValue).'" checked="checked" onclick="'.htmlspecialchars($sOnChange).'"'.$this->onFocus.$disabled.' /></td>
+							<td><input type="checkbox"'.$this->insertDefaultElementStyle('check').' name="'.htmlspecialchars($this->formFieldName.'['.$c.']').'" value="'.htmlspecialchars($theNoMatchValue).'" checked="checked" onclick="'.htmlspecialchars($sOnChange).'"'.$this->onFocus.$disabled.' /></td>
 							<td class="c-labelCell">'.
 								t3lib_div::deHSCentities(htmlspecialchars(@sprintf($nMV_label, $theNoMatchValue))).
 								'</td><td>&nbsp;</td>
@@ -366,7 +366,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 		}
 
 			// Add an empty hidden field which will send a blank value if all items are unselected.
-		$item .= '<input type="hidden" name="'.htmlspecialchars($this->itemFormElName) . '" value="" />';
+		$item .= '<input type="hidden" name="'.htmlspecialchars($this->formFieldName) . '" value="" />';
 
 			// Add revert icon
 		if (is_array($restoreCmd)) {
@@ -401,7 +401,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 			$sM = '';
 			if (isset($this->items[$p[1]]))	{
 				$sM = ' selected="selected"';
-				$restoreCmd[] = $this->contextObject->elName($this->itemFormElName.'[]').'.options['.$c.'].selected=1;';
+				$restoreCmd[] = $this->contextObject->elName($this->formFieldName.'[]').'.options['.$c.'].selected=1;';
 				unset($this->items[$p[1]]);
 			}
 
@@ -438,7 +438,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 		$selector_itemListStyle = isset($this->fieldConfig['config']['itemListStyle']) ? ' style="'.htmlspecialchars($this->fieldConfig['config']['itemListStyle']).'"' : ' style="'.$this->defaultMultipleSelectorStyle.'"';
 		$size = intval($this->fieldConfig['config']['size']);
 		$size = $this->fieldConfig['config']['autoSizeMax'] ? t3lib_div::intInRange(count($this->selectItems)+1,t3lib_div::intInRange($size,1),$this->fieldConfig['config']['autoSizeMax']) : $size;
-		$selectBox = '<select id="' . uniqid('tceforms-multiselect-') . '" name="'.$this->itemFormElName.'[]"'.
+		$selectBox = '<select id="' . uniqid('tceforms-multiselect-') . '" name="'.$this->formFieldName.'[]"'.
 						$this->insertDefaultElementStyle('select', 'tceforms-multiselect').
 						($size ? ' size="'.$size.'"' : '').
 						' multiple="multiple" onchange="'.htmlspecialchars($sOnChange).'"'.
@@ -452,7 +452,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 			// Add an empty hidden field which will send a blank value if all items are unselected.
 		if (!$disabled) {
-			$item.='<input type="hidden" name="'.htmlspecialchars($this->itemFormElName).'" value="" />';
+			$item.='<input type="hidden" name="'.htmlspecialchars($this->formFieldName).'" value="" />';
 		}
 
 			// Put it all into a table:
@@ -467,7 +467,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 						'</em>
 					</td>
 					<td valign="top">
-					<a href="#" onclick="'.htmlspecialchars($this->contextObject->elName($this->itemFormElName.'[]').'.selectedIndex=-1;'.implode('',$restoreCmd).' return false;').'">'.
+					<a href="#" onclick="'.htmlspecialchars($this->contextObject->elName($this->formFieldName.'[]').'.selectedIndex=-1;'.implode('',$restoreCmd).' return false;').'">'.
 						t3lib_iconWorks::getSpriteIcon('actions-edit-undo') . '</a>
 					</td>
 				</tr>
@@ -486,7 +486,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 			// Setting this hidden field (as a flag that JavaScript can read out)
 		if (!$disabled) {
-			$item.= '<input type="hidden" name="'.$this->itemFormElName.'_mul" value="'.($this->fieldConfig['config']['multiple']?1:0).'" />';
+			$item.= '<input type="hidden" name="'.$this->formFieldName.'_mul" value="'.($this->fieldConfig['config']['multiple']?1:0).'" />';
 		}
 
 			// Set max and min items:
@@ -496,7 +496,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 			// Register the required number of elements:
 		// TODO: check if this works
-		$this->contextObject->registerRequiredFieldRange($this->itemFormElName,
+		$this->contextObject->registerRequiredFieldRange($this->formFieldName,
 			array($minitems, $maxitems, 'imgName' => $this->table.'_'.$this->record['uid'].'_'.$this->field));
 
 			// Get "removeItems":
@@ -551,13 +551,13 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 			$size = intval($this->fieldConfig['config']['size']);
 			$size = $this->fieldConfig['config']['autoSizeMax'] ? t3lib_div::intInRange(count($this->items)+1,t3lib_div::intInRange($size,1),$this->fieldConfig['config']['autoSizeMax']) : $size;
 			if ($this->fieldConfig['config']['exclusiveKeys'])	{
-				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text,\''.$this->fieldConfig['config']['exclusiveKeys'].'\'); ';
+				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->formFieldName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text,\''.$this->fieldConfig['config']['exclusiveKeys'].'\'); ';
 			} else {
-				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text); ';
+				$sOnChange = 'setFormValueFromBrowseWin(\''.$this->formFieldName.'\',this.options[this.selectedIndex].value,this.options[this.selectedIndex].text); ';
 			}
 			$sOnChange .= implode('',$this->fieldChangeFunc);
 			$itemsToSelect = '
-				<select id="' . uniqid('tceforms-multiselect-') . '" name="'.$this->itemFormElName.'_sel"'.
+				<select id="' . uniqid('tceforms-multiselect-') . '" name="'.$this->formFieldName.'_sel"'.
 							$this->insertDefaultElementStyle('select', 'tceforms-multiselect tceforms-itemstoselect').
 							($size ? ' size="'.$size.'"' : '').
 							' onchange="'.htmlspecialchars($sOnChange).'"'.

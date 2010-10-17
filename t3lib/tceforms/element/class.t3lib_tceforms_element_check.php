@@ -27,9 +27,9 @@ class t3lib_TCEforms_Element_Check extends t3lib_TCEforms_Element_Abstract {
 			for ($c=0;$c<count($selItems);$c++) {
 				$p = $selItems[$c];
 				if(!($c%$cols))	{ $item.='<tr>'; }
-				$cBP = $this->checkBoxParams($this->itemFormElName,$value,$c,count($selItems),implode('',$this->fieldChangeFunc));
-				$cBName = $this->itemFormElName.'_'.$c;
-				$cBID = $this->itemFormElID.'_'.$c;
+				$cBP = $this->checkBoxParams($this->formFieldName,$value,$c,count($selItems),implode('',$this->fieldChangeFunc));
+				$cBName = $this->formFieldName.'_'.$c;
+				$cBID = $this->formFieldId.'_'.$c;
 				$item.= '<td nowrap="nowrap">'.
 						'<input type="checkbox"'.$this->insertDefaultElementStyle('check').' value="1" name="'.$cBName.'"'.$cBP.$disabled.' id="'.$cBID.'" />'.
 						$this->wrapLabels('<label for="'.$cBID.'">'.htmlspecialchars($p[0]).'</label>&nbsp;').
@@ -49,16 +49,16 @@ class t3lib_TCEforms_Element_Check extends t3lib_TCEforms_Element_Abstract {
 		} else {
 			for ($c = 0; $c < count($selItems); $c++) {
 				$p = $selItems[$c];
-				$cBP = $this->checkBoxParams($this->itemFormElName, $value, $c, count($selItems), implode('', $this->fieldChangeFunc));
-				$cBName = $this->itemFormElName . '_' . $c;
-				$cBID = $this->itemFormElID . '_' . $c;
+				$cBP = $this->checkBoxParams($this->formFieldName, $value, $c, count($selItems), implode('', $this->fieldChangeFunc));
+				$cBName = $this->formFieldName . '_' . $c;
+				$cBID = $this->formFieldId . '_' . $c;
 				$item .= ($c > 0 ? '<br />' : '').
 				  '<input type="checkbox"'.$this->insertDefaultElementStyle('check').' value="1" name="'.$cBName.'"'.$cBP.$this->onFocus.$disabled.' id="'.$cBID.'" />'.
 				  htmlspecialchars($p[0]);
 			}
 		}
 		if (!$disabled) {
-			$item.= '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($value).'" />';
+			$item.= '<input type="hidden" name="'.$this->formFieldName.'" value="'.htmlspecialchars($value).'" />';
 		}
 
 		return $item;

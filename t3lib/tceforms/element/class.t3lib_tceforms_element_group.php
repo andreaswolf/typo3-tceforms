@@ -18,8 +18,8 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 
 		$disabled = $this->getDisabledCode();
 
-		$item.= '<input type="hidden" name="'.$this->itemFormElName.'_mul" value="'.($config['multiple']?1:0).'"'.$disabled.' />';
-		$this->contextObject->registerRequiredFieldRange($this->itemFormElName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
+		$item.= '<input type="hidden" name="'.$this->formFieldName.'_mul" value="'.($config['multiple']?1:0).'"'.$disabled.' />';
+		$this->contextObject->registerRequiredFieldRange($this->formFieldName, array($minitems,$maxitems,'imgName'=>$table.'_'.$row['uid'].'_'.$field));
 		$info='';
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. See http://typo3.org/documentation/document-library/doc_core_api/Wizards_Configuratio/.
@@ -102,7 +102,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 					'noBrowser' => $noList || (isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'browser')),
 					'noList' => $noList,
 				);
-				$item.= $this->dbFileIcons($this->itemFormElName, 'file', implode(',',$tempFT), $this->items, '', $params ,$this->onFocus);
+				$item.= $this->dbFileIcons($this->formFieldName, 'file', implode(',',$tempFT), $this->items, '', $params ,$this->onFocus);
 
 				if(!$disabled && !(isset($config['disable_controls']) && t3lib_div::inList($config['disable_controls'], 'upload'))) {
 						// Adding the upload field:
@@ -133,7 +133,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 				);
 
 				$item.= $this->dbFileIcons(
-					$this->itemFormElName,
+					$this->formFieldName,
 					'folder',
 					'',
 					$this->items,
@@ -225,9 +225,9 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 		}
 
 			// Wizards:
-		$altItem = '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
+		$altItem = '<input type="hidden" name="'.$this->formFieldName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 		if (!$disabled) {
-			$item = $this->renderWizards(array($item,$altItem),$config['wizards'],$this->itemFormElName,$specConf);
+			$item = $this->renderWizards(array($item,$altItem),$config['wizards'],$this->formFieldName,$specConf);
 		}
 
 		return $item;

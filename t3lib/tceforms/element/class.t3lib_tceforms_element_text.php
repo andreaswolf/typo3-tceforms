@@ -32,7 +32,7 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
 
 			// Setting up the altItem form field, which is a hidden field containing the value
-		$altItem = '<input type="hidden" name="'.htmlspecialchars($this->itemFormElName).'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
+		$altItem = '<input type="hidden" name="'.htmlspecialchars($this->formFieldName).'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 
 			// If RTE is generally enabled (TYPO3_CONF_VARS and user settings)
 		if ($this->contextObject->isRTEEnabled()) {
@@ -56,7 +56,7 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 							$RTErelPath = is_array($eFile) ? dirname($eFile['relEditFile']) : '';
 
 							$PA = array(
-								'itemFormElName' => $this->itemFormElName,
+								'itemFormElName' => $this->formFieldName,
 								'itemFormElValue' => $this->itemFormElValue
 							);
 
@@ -65,18 +65,18 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 							$item = $RTEobj->drawRTE($this->contextObject, $this->table, $this->field, $this->record, $PA, $specConf, $thisConfig, $RTEtypeVal, $RTErelPath, $thePidValue);
 
 								// Wizard:
-							$item = $this->renderWizards(array($item, $altItem), $config['wizards'], $this->itemFormElName, $specConf, 1);
+							$item = $this->renderWizards(array($item, $altItem), $config['wizards'], $this->formFieldName, $specConf, 1);
 
 							$RTEwasLoaded = 1;
 						} else {
 							$RTEwouldHaveBeenLoaded = 1;
-							$this->commentMessages[] = $this->PA['itemFormElName'].': RTE is disabled by the on-page RTE-flag (probably you can enable it by the check-box in the bottom of this page!)';
+							$this->commentMessages[] = $this->formFieldName.': RTE is disabled by the on-page RTE-flag (probably you can enable it by the check-box in the bottom of this page!)';
 						}
-					} else $this->commentMessages[] = $this->PA['itemFormElName'].': RTE is disabled by the Page TSconfig, "RTE"-key (eg. by RTE.default.disabled=0 or such)';
-				} else $this->commentMessages[] = $this->PA['itemFormElName'].': PID value could NOT be fetched. Rare error, normally with new records.';
+					} else $this->commentMessages[] = $this->formFieldName.': RTE is disabled by the Page TSconfig, "RTE"-key (eg. by RTE.default.disabled=0 or such)';
+				} else $this->commentMessages[] = $this->formFieldName.': PID value could NOT be fetched. Rare error, normally with new records.';
 			} else {
-				if (!isset($specConf['richtext']))	$this->commentMessages[] = $this->PA['itemFormElName'].': RTE was not configured for this field in TCA-types';
-				if (!(!$p['flag'] || !$this->record[$p['flag']]))	 $this->commentMessages[] = $this->PA['itemFormElName'].': Field-flag ('.$this->PA['flag'].') has been set to disable RTE!';
+				if (!isset($specConf['richtext']))	$this->commentMessages[] = $this->formFieldName.': RTE was not configured for this field in TCA-types';
+				if (!(!$p['flag'] || !$this->record[$p['flag']]))	 $this->commentMessages[] = $this->formFieldName.': Field-flag ('.$this->PA['flag'].') has been set to disable RTE!';
 			}
 		}
 
@@ -118,7 +118,7 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 				foreach ($evalList as $func) {
 					switch ($func) {
 						case 'required':
-							$this->contextObject->registerRequiredField($this->table.'_'.$this->record['uid'].'_'.$this->field, $this->PA['itemFormElName']);
+							$this->contextObject->registerRequiredField($this->table.'_'.$this->record['uid'].'_'.$this->field, $this->formFieldName);
 							break;
 						default:
 							if (substr($func, 0, 3) == 'tx_')	{
@@ -137,10 +137,10 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 
 				$iOnChange = implode('', $this->fieldChangeFunc);
 				$item.= '
-					<textarea id="' . uniqid('tceforms-textarea-') . '" name="' . $this->itemFormElName . '"' . $formWidthText.$class.' rows="'.$rows.'" wrap="'.$wrap.'" onchange="'.htmlspecialchars($iOnChange).'"'.$this->PA['onFocus'].'>'.
+					<textarea id="' . uniqid('tceforms-textarea-') . '" name="' . $this->formFieldName . '"' . $formWidthText.$class.' rows="'.$rows.'" wrap="'.$wrap.'" onchange="'.htmlspecialchars($iOnChange).'"'.$this->PA['onFocus'].'>'.
 					t3lib_div::formatForTextarea($this->itemFormElValue).
 					'</textarea>';
-				$item = $this->renderWizards(array($item, $altItem), $config['wizards'], $this->itemFormElName, $specConf, $RTEwouldHaveBeenLoaded);
+				$item = $this->renderWizards(array($item, $altItem), $config['wizards'], $this->formFieldName, $specConf, $RTEwouldHaveBeenLoaded);
 			}
 		}
 

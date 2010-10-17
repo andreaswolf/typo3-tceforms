@@ -19,10 +19,10 @@ class t3lib_TCEforms_Element_Radio extends t3lib_TCEforms_Element_Abstract {
 			// Traverse the items, making the form elements:
 		for ($c=0;$c<count($selItems);$c++) {
 			$p = $selItems[$c];
-			$rID = $this->itemFormElID.'_'.$c;
+			$rID = $this->formFieldId.'_'.$c;
 			$rOnClick = implode('',$this->fieldChangeFunc);
 			$rChecked = (!strcmp($p[1],$this->itemFormElValue)?' checked="checked"':'');
-			$item.= '<input type="radio"'.$this->insertDefaultElementStyle('radio').' name="'.$this->itemFormElName.'" value="'.htmlspecialchars($p[1]).'" onclick="'.htmlspecialchars($rOnClick).'"'.$rChecked.$this->onFocus.$disabled.' id="'.$rID.'" />
+			$item.= '<input type="radio"'.$this->insertDefaultElementStyle('radio').' name="'.$this->formFieldName.'" value="'.htmlspecialchars($p[1]).'" onclick="'.htmlspecialchars($rOnClick).'"'.$rChecked.$this->onFocus.$disabled.' id="'.$rID.'" />
 					<label for="'.$rID.'">'.htmlspecialchars($p[0]).'</label>
 					<br />';
 		}
