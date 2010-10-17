@@ -73,6 +73,26 @@ class t3lib_TCA_DataStructure_Field {
 	}
 
 	/**
+	 * Returns a value from the field configuration
+	 *
+	 * @param string $key
+	 * @return mixed
+	 */
+	public function getConfigurationValue($key) {
+		return $this->configuration[$key];
+	}
+
+	/**
+	 * Returns true if this field has a configuration value with name $key
+	 *
+	 * @param string $key
+	 * @return boolean
+	 */
+	public function hasConfigurationValue($key) {
+		return array_key_exists($key, $this->configuration);
+	}
+
+	/**
 	 * Returns the label of this field
 	 *
 	 * @return string
