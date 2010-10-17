@@ -13,6 +13,12 @@ class t3lib_TCA_FlexFormDataStructure extends t3lib_TCA_DataStructure {
 		$this->definedTypeValues = array(1);
 	}
 
+	public function getDisplayConfigurationForRecord(t3lib_TCEforms_Record $record) {
+		$displayConfiguration = t3lib_TCA_DisplayConfiguration::createFromSheets($this, $this->types["0"]->getSheets());
+
+		return $displayConfiguration;
+	}
+
 	protected function createTypeObjectFromSheets($sheets) {
 		$typeObject = t3lib_TCA_DataStructure_Type::createFromSheets($this, 1, $sheets);
 
