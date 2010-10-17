@@ -35,6 +35,13 @@ class t3lib_TCEforms_FormBuilder {
 	protected $displayConfiguration;
 
 	/**
+	 * The stack for generating element identifiers
+	 *
+	 * @var array<string>
+	 */
+	protected $elementIdentifierStack;
+
+	/**
 	 * The number of sheets this form builder has built
 	 *
 	 * @var integer
@@ -49,6 +56,7 @@ class t3lib_TCEforms_FormBuilder {
 		$this->contextObject = $recordObject->getContextObject();
 		$this->dataStructure = $recordObject->getDataStructure();
 		$this->displayConfiguration = $this->dataStructure->getDisplayConfigurationForRecord($this->recordObject);
+		$this->elementIdentifierStack = $this->recordObject->getElementIdentifierStack();
 	}
 
 	public static function createInstanceForRecordObject(t3lib_TCEforms_Record $recordObject) {
@@ -223,6 +231,7 @@ class t3lib_TCEforms_FormBuilder {
 
 		$sheetObject = new t3lib_TCEforms_Container_Sheet($sheetIdentString, $sheetDefinition->getLabel(),
 		  $sheetDefinition->getName());
+		$sheetObject->setElementIdentifierStack($this->elementIdentifierStack);
 
 		return $sheetObject;
 	}

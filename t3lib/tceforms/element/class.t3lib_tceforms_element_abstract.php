@@ -150,6 +150,15 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	protected $language;
 
+	/**
+	 * The stack of element identifier parts used for creating element identifiers.
+	 *
+	 * This will usually be imploded with a separator to create an identifier.
+	 *
+	 * @var array<string>
+	 */
+	protected $elementIdentifierStack = array();
+
 
 
 
@@ -197,6 +206,9 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$this->prependFormFieldNames_file = $this->recordObject->getFormFieldNamePrefix();
 			$this->formFieldIdPrefix = $this->recordObject->getFormFieldIdPrefix();
 		}
+		$this->itemFormElName = $this->itemFormElName_file = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'name');
+		$this->itemFormElID = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'id');
+		$this->itemFormElValue = $this->record[$this->field]; // The value to show in the form field.
 
 		/**
 		 * TODO reenable this block as soon as the FormBuilder is localization-aware and able to set
@@ -207,12 +219,6 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$this->formFieldIdPrefix .= '_l' . $this->recordObject->getLanguage();
 		}
 		 */
-
-			// Init variables:
-		$this->itemFormElName = $this->prependFormFieldNames.'['.$this->field.']'; // Form field name
-		$this->itemFormElName_file = $this->prependFormFieldNames_file.'['.$this->field.']'; // Form field name, in case of file uploads
-		$this->itemFormElValue = $this->record[$this->field]; // The value to show in the form field.
-		$this->itemFormElID = $this->formFieldIdPrefix . '_' . $this->field;
 
 			// Hook: getSingleField_preProcess
 		foreach (self::$hookObjects['getSingleFields'] as $hookObj)	{
@@ -364,6 +370,24 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 	public function setIsInPalette($inPalette) {
 		$this->isInPalette = $inPalette;
+
+		return $this;
+	}
+
+	/**
+	 * Sets all information that is required for proper element identifier generation.
+	 *
+	 * @param  array $elementIdentifierStack
+	 * @return t3lib_TCEforms_Container_Sheet
+	 */
+	public function setElementIdentifierStack(array $elementIdentifierStack) {
+		$this->elementIdentifierStack = $elementIdentifierStack;
+
+		if ($this->name != '') {
+			$this->elementIdentifierStack += array(
+				$this->name
+			);
+		}
 
 		return $this;
 	}

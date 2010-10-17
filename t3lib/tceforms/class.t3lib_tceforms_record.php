@@ -180,6 +180,16 @@ class t3lib_TCEforms_Record {
 	protected $new = FALSE;
 
 
+	/**
+	 * The stack of element identifier parts used for creating element identifiers.
+	 *
+	 * This will usually be imploded with a separator to create an identifier.
+	 *
+	 * @var array<string>
+	 */
+	protected $elementIdentifierStack = array();
+
+
 	public function __construct($table, array $recordData, array $TCAdefinition, t3lib_TCA_DataStructure $dataStructure) {
 		$this->table = $table;
 		$this->recordData = $recordData;
@@ -214,6 +224,30 @@ class t3lib_TCEforms_Record {
 		return FALSE;
 	}
 
+	/**
+	 * Sets all information that is required for proper element identifier generation.
+	 *
+	 * @param  array $elementIdentifierStack
+	 * @return t3lib_TCEforms_Record
+	 */
+	public function setElementIdentifierStack(array $elementIdentifierStack) {
+		$this->elementIdentifierStack = $elementIdentifierStack;
+
+		$this->elementIdentifierStack[] = $this->getTable();
+		$this->elementIdentifierStack[] = $this->recordData['uid'];
+
+		return $this;
+	}
+
+	/**
+	 * Returns the stack for building element identifiers
+	 *
+	 * @return array<string>
+	 */
+	public function getElementIdentifierStack() {
+		return $this->elementIdentifierStack;
+	}
+
 	public function init() {
 		$this->formBuilder = t3lib_TCEforms_Formbuilder::createInstanceForRecordObject($this);
 
@@ -223,9 +257,13 @@ class t3lib_TCEforms_Record {
 		$this->formBuilder->buildObjectStructure($this);
 	}
 
+	/**
+	 *
+	 * @return void
+	 */
 	protected function buildFormFieldPrefixes() {
-		$this->formFieldNamePrefix = $this->parentFormObject->getFormFieldNamePrefix().'[' . $this->getTable() . '][' . $this->recordData['uid'] . ']';
-		$this->formFieldIdPrefix = $this->parentFormObject->getFormFieldIdPrefix() . '_' . $this->getTable() . '_' . $this->recordData['uid'];
+		$this->formFieldNamePrefix = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'name');
+		$this->formFieldIdPrefix = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'id');
 	}
 
 
@@ -656,7 +694,9 @@ class t3lib_TCEforms_Record {
 	public function addSheetObject(t3lib_TCEforms_Container_Sheet $sheetObject) {
 		$sheetObject->setContextObject($this->contextObject)
 		            ->setFormObject($this->parentFormObject)
-		            ->setRecordObject($this);
+		            ->setElementIdentifierStack($this->elementIdentifierStack)
+		            ->setRecordObject($this)
+		            ->init();
 		$this->sheetObjects[] = $sheetObject;
 
 		t3lib_div::devLog('Added sheet no. ' . count($this->sheetObjects) . ' to record ' . $this->getIdentifier() . '.', 't3lib_TCEforms_Record', t3lib_div::SYSLOG_SEVERITY_INFO);

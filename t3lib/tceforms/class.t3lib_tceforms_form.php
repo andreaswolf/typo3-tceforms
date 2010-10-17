@@ -35,6 +35,25 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	protected $formFieldIdPrefix;
 
 	/**
+	 * The prefix for the element identifiers. This may be used to safely generate unique identifiers for
+	 * different forms on one page.
+	 *
+	 * Only used inside the context object.
+	 *
+	 * @var string
+	 */
+	protected $elementIdentifierPrefix;
+
+	/**
+	 * The stack of element identifier parts used for creating element identifiers.
+	 *
+	 * This will usually be imploded with a separator to create an identifier.
+	 *
+	 * @var array<string>
+	 */
+	protected $elementIdentifierStack = array();
+
+	/**
 	 *
 	 *
 	 * @var array
@@ -163,8 +182,59 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 		$this->setFormFieldNamePrefix('data');//$this->TCEformsObject->prependFormFieldNames;
 		$this->setFormFieldIdPrefix('data');
+		$this->setElementIdentifierPrefix('data');
 
 		$this->contextObject = $this;
+	}
+
+	/**
+	 * Sets the stack that is required for proper element identifier generation.
+	 *
+	 * @param  array $elementIdentifierStack
+	 * @return t3lib_TCEforms_Form
+	 */
+	public function setElementIdentifierStack(array $elementIdentifierStack) {
+		$this->elementIdentifierStack = $elementIdentifierStack;
+
+		return $this;
+	}
+
+	/**
+	 * Sets the prefix for all element identifiers inside this TCEforms context.
+	 *
+	 * @param  string $elementIdentifierPrefix
+	 * @return t3lib_TCEforms_Form
+	 */
+	public function setElementIdentifierPrefix($elementIdentifierPrefix) {
+		$this->elementIdentifierPrefix = $elementIdentifierPrefix;
+
+		return $this;
+	}
+
+	/**
+	 * Creates an identifier for an element from a given element identifier stack.
+	 *
+	 * @param  array  $elementIdentifierStack  The stack with identifier parts for all elements in the hierarchy
+	 * @param  string $type  'name': all parts wrapped in []; 'id': elements separated by '-'
+	 * @return string
+	 */
+	public function createElementIdentifier(array $elementIdentifierStack, $type) {
+		$elementIdentifier = $this->elementIdentifierPrefix;
+
+		switch($type) {
+			case 'name':
+				if (count($elementIdentifierStack) > 0) {
+					$elementIdentifier .= '[' . implode('][', $elementIdentifierStack) . ']';
+				}
+
+				break;
+			case 'id':
+				$elementIdentifier .= '-' . implode('-', $elementIdentifierStack);
+
+				break;
+		}
+
+		return $elementIdentifier;
 	}
 
 	public function init() {
@@ -202,6 +272,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 		$recordObject->setParentFormObject($this)
 		             ->setContextObject($this->contextObject)
+		             ->setElementIdentifierStack($this->elementIdentifierStack)
 		             ->init();
 
 		$this->recordObjects[] = $recordObject;
@@ -210,10 +281,16 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	}
 
 
+	/**
+	 * @deprecated
+	 */
 	public function getFormFieldNamePrefix() {
 		return $this->formFieldNamePrefix;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function setFormFieldNamePrefix($prefix) {
 		$this->formFieldNamePrefix = $prefix;
 		$this->formFieldFileNamePrefix = $prefix;
@@ -221,10 +298,16 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		return $this;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function getFormFieldIdPrefix() {
 		return $this->formFieldIdPrefix;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function setFormFieldIdPrefix($prefix) {
 		$this->formFieldIdPrefix = $prefix;
 	}
