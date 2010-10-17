@@ -408,16 +408,12 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * Sets all information that is required for proper element identifier generation.
 	 *
 	 * @param  array $elementIdentifierStack
-	 * @return t3lib_TCEforms_Container_Sheet
+	 * @return t3lib_TCEforms_Element_Abstract
 	 */
 	public function setElementIdentifierStack(array $elementIdentifierStack) {
 		$this->elementIdentifierStack = $elementIdentifierStack;
 
-		if ($this->name != '') {
-			$this->elementIdentifierStack += array(
-				$this->name
-			);
-		}
+		$this->elementIdentifierStack[] = $this->field;
 
 		return $this;
 	}
