@@ -133,6 +133,34 @@ class t3lib_TCA_DataStructure_Field {
 	public function getPalette() {
 		return $this->palette;
 	}
+
+	/**
+	 * Returns TRUE if this field has a localization mode set.
+	 *
+	 * @return bool
+	 * @see getLocalizationMode()
+	 */
+	public function hasLocalizationMode() {
+		return $this->hasConfigurationValue('l10n_mode') &&
+		    (in_array($this->getConfigurationValue('l10n_mode'), array('exclude', 'mergeIfNotBlank', 'noCopy', 'prefixLangTitle')));
+	}
+
+	/**
+	 * Returns the localization mode of this field.
+	 *
+	 * Possible modes are:
+	 *  - exclude: Field will not be displayed in localized records
+	 *  - mergeIfNotBlank: Value from the default translation will be used if this field is blank. In the backend the contents of this field are not copied when creating a translation.
+	 *  - noCopy: Like mergeIfNotBlank but without the implications for the frontend; the field is just not copied.
+	 *  - prefixLangTitle: Content of the field is prefixed with the language on copying. Works only for types text and input
+	 *
+	 * @return string
+	 */
+	public function getLocalizationMode() {
+		if ($this->hasLocalizationMode()) {
+			return $this->getConfigurationValue('l10n_mode');
+		}
+	}
 }
 
 ?>
