@@ -13,7 +13,7 @@ class t3lib_TCEforms_RecordTest extends tx_phpunit_testcase {
 		);
 		$dataStructure = $this->getMock('t3lib_TCA_DataStructure');
 		$contextObject = $this->getMock('t3lib_TCEforms_Form');
-		$recordObject = new t3lib_TCEforms_Record($table, $fakeRecord, array(), $dataStructure);
+		$recordObject = new t3lib_TCEforms_Record($table, $fakeRecord, $dataStructure);
 		$recordObject->setContextObject($contextObject)
 		             ->setElementIdentifierStack(array('formName'));
 

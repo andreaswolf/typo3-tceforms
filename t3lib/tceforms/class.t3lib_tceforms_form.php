@@ -269,7 +269,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			// TODO move this to a more appropriate place
 		$GLOBALS['LANG']->loadSingleTableDescription($table);
 
-		$recordObject = new t3lib_TCEforms_Record($table, $record, $GLOBALS['TCA'][$table], $dataStructure);
+		$recordObject = new t3lib_TCEforms_Record($table, $record, $dataStructure);
 
 		if (count($this->fieldList) > 0) {
 			$recordObject->setFieldList($this->fieldList);

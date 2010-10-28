@@ -59,14 +59,6 @@ class t3lib_TCEforms_Record {
 	protected $recordData;
 
 	/**
-	 * The TCA definition for the record
-	 *
-	 * @var array
-	 * @deprecated remove when dataStructure object is used everywhere
-	 */
-	protected $TCAdefinition;
-
-	/**
 	 * The data structure object for the record
 	 *
 	 * @var t3lib_TCA_DataStructure
@@ -168,7 +160,7 @@ class t3lib_TCEforms_Record {
 	protected $createdPalettes = array();
 
 	/**
-	 *
+	 * The type configuration for this record.
 	 *
 	 * @var t3lib_TCA_DataStructure_Type
 	 */
@@ -179,6 +171,12 @@ class t3lib_TCEforms_Record {
 	 */
 	protected $new = FALSE;
 
+	/**
+	 * The SQL clause for read permissions to a record
+	 *
+	 * @var string
+	 */
+	protected $readPermissionsClause;
 
 	/**
 	 * The stack of element identifier parts used for creating element identifiers.
@@ -190,10 +188,16 @@ class t3lib_TCEforms_Record {
 	protected $elementIdentifierStack = array();
 
 
-	public function __construct($table, array $recordData, array $TCAdefinition, t3lib_TCA_DataStructure $dataStructure) {
+	/**
+	 * The constructor for this class.
+	 *
+	 * @param string $table The table this record belongs to
+	 * @param array $recordData
+	 * @param t3lib_TCA_DataStructure $dataStructure
+	 */
+	public function __construct($table, array $recordData, t3lib_TCA_DataStructure $dataStructure) {
 		$this->table = $table;
 		$this->recordData = $recordData;
-		$this->TCAdefinition = $TCAdefinition;
 		$this->dataStructure = $dataStructure;
 		$this->contextRecordObject = $this;
 
@@ -313,56 +317,6 @@ class t3lib_TCEforms_Record {
 	}
 
 
-	/**
-	 * Creates the list of fields to display
-	 *
-	 * This function is mainly copied from t3lib_TCEforms::getMainFields()
-	 *
-	 * @deprecated This is done by t3lib_TCA_DisplayConfiguration; fieldOrder should be moved there, if it is neccessary at all
-	 */
-	protected function createFieldsList() {
-		if (count($this->fieldList) > 0) {
-			return;
-		}
-
-		$itemList = $this->TCAdefinition['types'][$this->typeNumber]['showitem'];
-
-		$fields = t3lib_div::trimExplode(',', $itemList, 1);
-		/* TODO: reenable this
-		if ($this->fieldOrder)	{
-			$fields = $this->rearrange($fields);
-		}*/
-
-		$this->fieldList = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd());
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function getDisplayConfiguration() {
-		/*
-		 * TODO change the way this method works. It should first check if a list of fields is set
-		 * for our table (by calling the context object or form object [which in turn would call the
-		 * context object]).
-		 * If not, it has to calculate the list of fields. For this, do the following:
-		 *  - get the list from the data structure object
-		 *  - check for a subtype, if there is one, take subtypes_addlist/subtypes_excludelist into account
-		 */
-		// Temporarily commented out because otherwise form rendering breaks
-		//if (count($this->fieldList) > 0) {
-			// FIXME this won't work right now. We have to deliver a DataStructure_Sheet object with the
-			// fields in it
-		//	return $this->fieldList;
-		//} else {
-			$subtypeValue = '';
-			if ($this->typeConfiguration->hasSubtypeValueField()) {
-				$subtypeField = $this->typeConfiguration->getSubtypeValueField();
-				$subtypeValue = $this->recordData[$subtypeField];
-			}
-			return $this->typeConfiguration->getSheets($subtypeValue);
-		//}
-	}
-
 	public function setFieldList($fieldList) {
 		if (!is_array($fieldList)) {
 			$fieldList = t3lib_div::trimExplode(',', $fieldList, 1);
@@ -401,7 +355,8 @@ class t3lib_TCEforms_Record {
 
 	protected function buildSheetIdentifiers() {
 		$this->sheetIdentifier = 'TCEforms:'.$this->getIdentifier();
-		$this->shortSheetIdentifier = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($this->sheetIdentifier);
+		// @TODO generate identifiers another way
+		$this->shortSheetIdentifier = 'DTM-' . t3lib_div::shortMD5($this->sheetIdentifier);
 	}
 
 	/**
@@ -682,6 +637,39 @@ class t3lib_TCEforms_Record {
 
 	public function getContextRecordObject() {
 		return $this->contextRecordObject;
+	}
+
+	/**
+	 * Return record path (visually formatted, using t3lib_BEfunc::getRecordPath() )
+	 *
+	 * @return	string		The record path.
+	 * @see t3lib_BEfunc::getRecordPath()
+	 *
+	 * @TODO Check if using fixVersioningPid (which modifies recordData) could do any harm.
+	 *       If not, it may be moved into the constructor.
+	 */
+	function getPath()	{
+		t3lib_BEfunc::fixVersioningPid($this->table, $this->recordData);
+		list($tscPID, $thePidValue) = $this->getTSCpid($this->table, $this->recordData['uid'], $this->recordData['pid']);
+		if ($thePidValue >= 0) {
+			return t3lib_BEfunc::getRecordPath($tscPID, $this->getReadPermissionsClause(), 15);
+		}
+	}
+
+
+	/**
+	 * Returns the select-page read-access SQL clause.
+	 * Returns cached string, so you can call this function as much as you like without performance loss.
+	 *
+	 * @return	string
+	 *
+	 * @TODO check if this should be moved to the context object
+	 */
+	function getReadPermissionsClause()	{
+		if (!isset($this->readPermissionsClause)) {
+			$this->readPermissionsClause = $GLOBALS['BE_USER']->getPagePermsClause(1);
+		}
+		return $this->readPermissionsClause;
 	}
 
 
