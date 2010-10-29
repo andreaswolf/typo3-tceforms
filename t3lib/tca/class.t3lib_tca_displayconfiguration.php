@@ -42,7 +42,7 @@ class t3lib_TCA_DisplayConfiguration {
 	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, $typeConfiguration, array $addFieldList, array $excludeFieldList) {
 		$obj = new t3lib_TCA_DisplayConfiguration($dataStructure);
 		$obj->typeConfiguration = $typeConfiguration;
-		$obj->resolveConfiguration($configuration, $addFieldList, $excludeFieldList);
+		$obj->resolveConfiguration($typeConfiguration, $addFieldList, $excludeFieldList);
 		$obj->addElements($addFieldList);
 
 		return $obj;
@@ -159,6 +159,9 @@ class t3lib_TCA_DisplayConfiguration {
 	 */
 	protected function addElements($addFieldList) {
 		foreach ($addFieldList as $fieldName) {
+			if (trim($fieldName) == '') {
+				continue;
+			}
 			$fieldObject = $this->dataStructure->getFieldObject($fieldName);
 
 			$this->subtypeValueFieldSheet->addElement($fieldObject);
