@@ -141,7 +141,7 @@ class t3lib_TCA_DataStructure_Field {
 	 * @see getLocalizationMode()
 	 */
 	public function hasLocalizationMode() {
-		return $this->hasConfigurationValue('l10n_mode') &&
+		return $this->dataStructure->hasControlValue('languageField') && $this->hasConfigurationValue('l10n_mode') &&
 		    (in_array($this->getConfigurationValue('l10n_mode'), array('exclude', 'mergeIfNotBlank', 'noCopy', 'prefixLangTitle')));
 	}
 
