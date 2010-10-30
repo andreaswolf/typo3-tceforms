@@ -219,6 +219,14 @@ class t3lib_TCA_DataStructure {
 		//
 	}
 
+	public function hasLanguageField() {
+		return $this->hasControlValue('languageField');
+	}
+
+	public function getLanguageField() {
+		return $this->getControlValue('languageField');
+	}
+
 	/**
 	 * Returns TRUE if a field for differentiating between different types of the record exists
 	 *
