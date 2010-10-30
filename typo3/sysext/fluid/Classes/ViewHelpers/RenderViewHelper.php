@@ -22,9 +22,6 @@
 
 /**
  *
- * @version $Id: RenderViewHelper.php 1734 2009-11-25 21:53:57Z stucki $
- * @package Fluid
- * @subpackage ViewHelpers
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
  * @api
  * @scope prototype
@@ -41,17 +38,29 @@ class Tx_Fluid_ViewHelpers_RenderViewHelper extends Tx_Fluid_Core_ViewHelper_Abs
 	 * @author Sebastian Kurfürst <sebastian@typo3.org>
 	 * @api
 	 */
-	public function render($section = '', $partial = '', $arguments = array()) {
-		if ($partial !== '') {
-			return $this->viewHelperVariableContainer->getView()->renderPartial($partial, $section, $arguments, $this->viewHelperVariableContainer);
-		} elseif ($section !== '') {
-			return $this->viewHelperVariableContainer->getView()->renderSection($section);
+	public function render($section = NULL, $partial = NULL, $arguments = array()) {
+		$arguments = $this->loadSettingsIntoArguments($arguments);
+
+		if ($partial !== NULL) {
+			return $this->viewHelperVariableContainer->getView()->renderPartial($partial, $section, $arguments);
+		} elseif ($section !== NULL) {
+			return $this->viewHelperVariableContainer->getView()->renderSection($section, $arguments);
 		}
 		return '';
 	}
 
-
+	/**
+	 * If $arguments['settings'] is not set, it is loaded from the TemplateVariableContainer (if it is available there).
+	 *
+	 * @param array $arguments
+	 * @return array
+	 */
+	protected function loadSettingsIntoArguments($arguments) {
+		if (!isset($arguments['settings']) && $this->templateVariableContainer->exists('settings')) {
+			$arguments['settings'] = $this->templateVariableContainer->get('settings');
+		}
+		return $arguments;
+	}
 }
-
 
 ?>

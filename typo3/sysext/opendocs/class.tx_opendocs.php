@@ -158,8 +158,12 @@ class tx_opendocs implements backend_toolbarItem {
 		$table  = $document[3]['table'];
 		$uid    = $document[3]['uid'];
 		$record = t3lib_BEfunc::getRecordWSOL($table, $uid);
+		if (!is_array($record)) {
+				// record seems to be deleted
+			return '';
+		}
 		$label  = htmlspecialchars(strip_tags(t3lib_div::htmlspecialchars_decode($document[0])));
-		$icon   = t3lib_iconWorks::getIconImage($table, $record, $GLOBALS['BACK_PATH']);
+		$icon   = t3lib_iconWorks::getSpriteIconForRecord($table, $record);
 		$link   = $GLOBALS['BACK_PATH'] . 'alt_doc.php?' . $document[2];
 
 		$firstRow = '';

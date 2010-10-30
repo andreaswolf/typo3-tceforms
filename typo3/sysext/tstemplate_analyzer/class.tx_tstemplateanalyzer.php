@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -25,7 +25,7 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 /**
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 
 $GLOBALS['LANG']->includeLLFile('EXT:tstemplate_analyzer/locallang.xml');
@@ -34,7 +34,7 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 	function init(&$pObj,$conf)	{
 		parent::init($pObj,$conf);
 
-		$this->pObj->modMenu_setDefaultList.= ',ts_analyzer_checkLinenum,ts_analyzer_checkSyntax,ts_analyzer_checkSyntaxBlockmode';
+		$this->pObj->modMenu_setDefaultList.= ',ts_analyzer_checkLinenum,ts_analyzer_checkSyntax';
 	}
 
 	function modMenu()	{
@@ -47,7 +47,6 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 			'ts_analyzer_checkComments' => '1',
 			'ts_analyzer_checkCrop' => '1',
 			'ts_analyzer_checkSyntax' => '1',
-			'ts_analyzer_checkSyntaxBlockmode' => '1',
 		);
 	}
 
@@ -146,8 +145,7 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 				t3lib_BEfunc::getFuncCheck($this->pObj->id, "SET[ts_analyzer_checkCrop]", $this->pObj->MOD_SETTINGS["ts_analyzer_checkCrop"], '', $addParams, 'id="checkTs_analyzer_checkCrop"') .
 				'<label for="checkTs_analyzer_checkCrop">' . $GLOBALS['LANG']->getLL('cropLines', true) . '</label> '
 				:
-				t3lib_BEfunc::getFuncCheck($this->pObj->id, "SET[ts_analyzer_checkSyntaxBlockmode]", $this->pObj->MOD_SETTINGS["ts_analyzer_checkSyntaxBlockmode"], '', $addParams, 'id="checkTs_analyzer_checkSyntaxBlockmode"') .
-				'<label for="checkTs_analyzer_checkSyntaxBlockmode">' . $GLOBALS['LANG']->getLL('blockMode', true) . '</label> '
+				''
 			) . '</div>';
 
 
@@ -157,7 +155,7 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 				$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('constants', true), "", 0, 1);
 				$theOutput .= $this->pObj->doc->sectionEnd();
 				$theOutput .= '
-					<table border=0 cellpadding=1 cellspacing=0>
+					<table border="0" cellpadding="1" cellspacing="0">
 				';
 				$tmpl->ext_lineNumberOffset = -2;	// Don't know why -2 and not 0... :-) But works.
 				$tmpl->ext_lineNumberOffset_mode = "const";
@@ -166,14 +164,14 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 				reset($tmpl->clearList_const);
 				foreach ($tmpl->constants as $key => $val) {
 					$cVal = current($tmpl->clearList_const);
-					if ($cVal == t3lib_div::_GET('template') || t3lib_div::_GET('template') == "all")	{
+					if ($cVal == t3lib_div::_GET('template') || t3lib_div::_GET('template') == 'all') {
 						$theOutput .= '
 							<tr>
-								<td><img src="clear.gif" width="3" height="1" /></td><td class="bgColor2"><strong>' . $tmpl->templateTitles[$cVal] . '</strong></td></tr>
+								<td><img src="clear.gif" width="3" height="1" alt="" /></td><td class="bgColor2"><strong>' . htmlspecialchars($tmpl->templateTitles[$cVal]) . '</strong></td></tr>
 							<tr>
-								<td><img src="clear.gif" width="3" height="1" /></td>
-								<td class="bgColor2"><table border=0 cellpadding=0 cellspacing=0 class="bgColor0" width="100%"><tr><td nowrap>' .
-								$tmpl->ext_outputTS(array($val), $this->pObj->MOD_SETTINGS["ts_analyzer_checkLinenum"], $this->pObj->MOD_SETTINGS["ts_analyzer_checkComments"], $this->pObj->MOD_SETTINGS["ts_analyzer_checkCrop"], $this->pObj->MOD_SETTINGS["ts_analyzer_checkSyntax"], $this->pObj->MOD_SETTINGS["ts_analyzer_checkSyntaxBlockmode"]) .
+								<td><img src="clear.gif" width="3" height="1" alt="" /></td>
+								<td class="bgColor2"><table border="0" cellpadding="0" cellspacing="0" class="bgColor0" width="100%"><tr><td nowrap="nowrap">' .
+								$tmpl->ext_outputTS(array($val), $this->pObj->MOD_SETTINGS['ts_analyzer_checkLinenum'], $this->pObj->MOD_SETTINGS['ts_analyzer_checkComments'], $this->pObj->MOD_SETTINGS['ts_analyzer_checkCrop'], $this->pObj->MOD_SETTINGS['ts_analyzer_checkSyntax'], 0) .
 								'</td></tr></table>
 								</td>
 							</tr>
@@ -196,7 +194,7 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 				$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('setup', true), "", 0, 1);
 				$theOutput .= $this->pObj->doc->sectionEnd();
 				$theOutput .= '
-					<table border=0 cellpadding=1 cellspacing=0>
+					<table border="0" cellpadding="1" cellspacing="0">
 				';
 				$tmpl->ext_lineNumberOffset = 0;
 				$tmpl->ext_lineNumberOffset_mode = "setup";
@@ -204,13 +202,13 @@ class tx_tstemplateanalyzer extends t3lib_extobjbase {
 
 				reset($tmpl->clearList_setup);
 				foreach ($tmpl->config as $key => $val)	{
-					if (current($tmpl->clearList_setup) == t3lib_div::_GET('template') || t3lib_div::_GET('template') == "all")	{
+					if (current($tmpl->clearList_setup) == t3lib_div::_GET('template') || t3lib_div::_GET('template') == 'all') {
 						$theOutput .= '
 							<tr>
-								<td><img src="clear.gif" width="3" height="1" /></td><td class="bgColor2"><strong>' . $tmpl->templateTitles[current($tmpl->clearList_setup)] . '</strong></td></tr>
+								<td><img src="clear.gif" width="3" height="1" alt="" /></td><td class="bgColor2"><strong>' . htmlspecialchars($tmpl->templateTitles[current($tmpl->clearList_setup)]) . '</strong></td></tr>
 							<tr>
-								<td><img src="clear.gif" width="3" height="1" /></td>
-								<td class="bgColor2"><table border=0 cellpadding=0 cellspacing=0 class="bgColor0" width="100%"><tr><td nowrap>'.$tmpl->ext_outputTS(array($val),$this->pObj->MOD_SETTINGS["ts_analyzer_checkLinenum"],$this->pObj->MOD_SETTINGS["ts_analyzer_checkComments"],$this->pObj->MOD_SETTINGS["ts_analyzer_checkCrop"],$this->pObj->MOD_SETTINGS["ts_analyzer_checkSyntax"],$this->pObj->MOD_SETTINGS["ts_analyzer_checkSyntaxBlockmode"]).'</td></tr></table>
+								<td><img src="clear.gif" width="3" height="1" alt="" /></td>
+								<td class="bgColor2"><table border="0" cellpadding="0" cellspacing="0" class="bgColor0" width="100%"><tr><td nowrap="nowrap">'.$tmpl->ext_outputTS(array($val),$this->pObj->MOD_SETTINGS['ts_analyzer_checkLinenum'],$this->pObj->MOD_SETTINGS['ts_analyzer_checkComments'],$this->pObj->MOD_SETTINGS['ts_analyzer_checkCrop'],$this->pObj->MOD_SETTINGS['ts_analyzer_checkSyntax'], 0).'</td></tr></table>
 								</td>
 							</tr>
 						';

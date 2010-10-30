@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,10 +29,10 @@
  * (Part of the 'cms' extension)
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compatible.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -87,7 +87,7 @@ t3lib_extMgm::isLoaded('cms',1);
 /**
  * Local position map class
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -139,7 +139,7 @@ class ext_posMap extends t3lib_positionMap {
 /**
  * Script Class for the New Content element wizard
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -185,7 +185,7 @@ class SC_db_new_content_el {
 			// Setting internal vars:
 		$this->id = intval(t3lib_div::_GP('id'));
 		$this->sys_language = intval(t3lib_div::_GP('sys_language_uid'));
-		$this->R_URI = t3lib_div::_GP('returnUrl');
+		$this->R_URI = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
 		$this->colPos = t3lib_div::_GP('colPos');
 		$this->uid_pid = intval(t3lib_div::_GP('uid_pid'));
 
@@ -200,7 +200,6 @@ class SC_db_new_content_el {
 		$this->doc->backPath = $BACK_PATH;
 		$this->doc->setModuleTemplate('templates/db_new_content_el.html');
 		$this->doc->JScode='';
-		$this->doc->JScodeLibArray['dyntabmenu'] = $this->doc->getDynTabMenuJScode();
 		$this->doc->form='<form action="" name="editForm"><input type="hidden" name="defValues" value="" />';
 
 			// Setting up the context sensitive menu:
@@ -309,11 +308,11 @@ class SC_db_new_content_el {
 						// Radio button:
 					$oC = "document.editForm.defValues.value=unescape('".rawurlencode($wInfo['params'])."');goToalt_doc();".(!$this->onClickEvent?"window.location.hash='#sel2';":'');
 					$content .= $this->elementWrapper['wizardPart'][0] .
-						'<input type="radio" name="tempB" value="' . htmlspecialchars($k) . '" onclick="' . htmlspecialchars($this->doc->thisBlur().$oC) . '" />' .
+						'<input type="radio" name="tempB" value="' . htmlspecialchars($k) . '" onclick="' . htmlspecialchars($oC) . '" />' .
 						$this->elementWrapper['wizardPart'][1];
 
 						// Onclick action for icon/title:
-					$aOnClick = 'document.getElementsByName(\'tempB\')['.$cc.'].checked=1;'.$this->doc->thisBlur().$oC.'return false;';
+					$aOnClick = 'document.getElementsByName(\'tempB\')['.$cc.'].checked=1;'.$oC.'return false;';
 
 						// Icon:
 					$iInfo = @getimagesize($wInfo['icon']);
@@ -347,7 +346,7 @@ class SC_db_new_content_el {
 					.typo3-dyntabmenu-divs table { margin: 15px; }
 					.typo3-dyntabmenu-divs table td { padding: 3px; }
 				';
-				$code = $LANG->getLL('sel1',1) . '<br /><br />' . $this->doc->getDynTabMenu($menuItems, 'new-content-element-wizard', false, false, 100);
+				$code = $LANG->getLL('sel1', 1) . '<br /><br />' . $this->doc->getDynTabMenu($menuItems, 'new-content-element-wizard', FALSE, FALSE);
 			} else {
 				$code = $LANG->getLL('sel1',1) . '<br /><br />';
 				foreach ($menuItems as $section) {
@@ -378,6 +377,9 @@ class SC_db_new_content_el {
 				$code.= $posMap->printContentElementColumns($this->id,0,$colPosList,1,$this->R_URI);
 				$this->content.= $this->doc->section($LANG->getLL('2_selectPosition'),$code,0,1);
 			}
+
+				// Close wrapper div
+			$this->content .= '</div>';
 		} else {		// In case of no access:
 			$this->content = '';
 			$this->content.= $this->doc->header($LANG->getLL('newContentElement'));

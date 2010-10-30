@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,12 +28,12 @@
  * Include file extending db_list.inc for use with the web_layout module
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
- 
+
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
  *
@@ -109,7 +109,7 @@
 /**
  * Child class for the Web > Page module
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -234,18 +234,18 @@ class tx_cms_layout extends recordList {
 	 * @return	string		HTML for the listing
 	 */
 	function getExternalTables($id, $table)	{
- 
+
 		$type = $GLOBALS['SOBE']->MOD_SETTINGS[$table];
 		if (!isset($type)) {
 			$type = 0;
 		}
-		
-		$fList = $this->externalTables[$table][$type]['fList'];	// eg. "name;title;email;company,image" 
+
+		$fList = $this->externalTables[$table][$type]['fList'];	// eg. "name;title;email;company,image"
 															// The columns are separeted by comma ','.
-															// Values separated by semicolon ';' are shown in the same column. 
+															// Values separated by semicolon ';' are shown in the same column.
 		$icon = $this->externalTables[$table][$type]['icon'];
 		$addWhere = $this->externalTables[$table][$type]['addWhere'];
-		
+
 			// Create listing
 		$out = $this->makeOrdinaryList($table, $id, $fList, $icon, $addWhere);
 		return $out;
@@ -762,13 +762,13 @@ class tx_cms_layout extends recordList {
 			$out = '
 				<table border="0" cellpadding="4" cellspacing="0" class="typo3-page-buttons">
 					<tr>
-						<td>'.implode('</td>
-						<td>',$bArray).'</td>
+						<td>' . implode('</td>
+						<td>', $bArray) . '</td>
+						<td>' . t3lib_BEfunc::cshItem($this->descrTable, 'button_panel', $GLOBALS['BACK_PATH']). '</td>
 					</tr>
 				</table>
-				<img src="clear.gif" width="1" height="5" alt="" /><br />
-				'.t3lib_BEfunc::cshItem($this->descrTable,'button_panel',$GLOBALS['BACK_PATH']).	// CSH
-				$out;
+				<br />
+				'. $out;
 		}
 
 			// Return content:
@@ -1192,7 +1192,7 @@ class tx_cms_layout extends recordList {
 		if ($dbCount)	{
 
 				// Set fields
-			$this->fieldArray = explode(',','__cmds__,'.$fList);
+			$this->fieldArray = t3lib_div::trimExplode(',', '__cmds__,' . $fList, TRUE);
 
 				// Header line is drawn
 			$theData = array();
@@ -1222,7 +1222,7 @@ class tx_cms_layout extends recordList {
 						}
 						if ($this->doEdit)	{
 							$Nrow['__cmds__'].= '<a href="#" onclick="'.htmlspecialchars(t3lib_BEfunc::editOnClick($params,$this->backPath)).'" title="' . $GLOBALS['LANG']->getLL('edit', TRUE) . '">' .
-											t3lib_iconWorks::getSpriteIcon('actions-document-open') . 
+											t3lib_iconWorks::getSpriteIcon('actions-document-open') .
 										'</a>';
 						} else {
 							$Nrow['__cmds__'].= $this->noEditIcon();
@@ -1616,7 +1616,7 @@ class tx_cms_layout extends recordList {
 				$confirm = $GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->getLL('deleteWarning') .
 					t3lib_BEfunc::translationCount('tt_content', $row['uid'], ' ' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.translationsOfRecord')));
 				$out.='<a href="'.htmlspecialchars($GLOBALS['SOBE']->doc->issueCommand($params)).'" onclick="'.htmlspecialchars('return confirm('. $confirm .');').'" title="'.$GLOBALS['LANG']->getLL('deleteItem', TRUE).'">'.
-							t3lib_iconWorks::getSpriteIcon('actions-edit-delete') . 
+							t3lib_iconWorks::getSpriteIcon('actions-edit-delete') .
 						'</a>';
 
 				if (!$disableMoveAndNewButtons) {

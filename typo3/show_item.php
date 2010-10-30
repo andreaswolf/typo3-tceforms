@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Shows information about a database or file item
  *
  * $Id$
- * Revised for TYPO3 3.7 May/2004 by Kasper Skaarhoj
+ * Revised for TYPO3 3.7 May/2004 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -74,7 +74,7 @@ require($BACK_PATH.'template.php');
 /**
  * Extension of transfer data class
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -125,7 +125,7 @@ class transferData extends t3lib_transferData	{
 /**
  * Script Class for showing information about an item.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -179,7 +179,7 @@ class SC_show_item {
 					$this->access = is_array($this->pageinfo) ? 1 : 0;
 					$this->row = $this->pageinfo;
 				} else {
-					$this->row = t3lib_BEfunc::getRecord($this->table,$this->uid);
+					$this->row = t3lib_BEfunc::getRecordWSOL($this->table, $this->uid);
 					if ($this->row)	{
 						$this->pageinfo = t3lib_BEfunc::readPageAccess($this->row['pid'],$this->perms_clause);
 						$this->access = is_array($this->pageinfo) ? 1 : 0;
@@ -221,7 +221,8 @@ class SC_show_item {
 	function main()	{
 
 		if ($this->access)	{
-			$returnLinkTag = t3lib_div::_GP('returnUrl') ? '<a href="'.t3lib_div::_GP('returnUrl').'" class="typo3-goBack">' : '<a href="#" onclick="window.close();">';
+			$returnLink =  t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
+			$returnLinkTag = $returnLink ? '<a href="' . $returnLink . '" class="typo3-goBack">' : '<a href="#" onclick="window.close();">';
 
 				// render type by user func
 			$typeRendered = false;
@@ -252,7 +253,7 @@ class SC_show_item {
 			}
 
 				// If return Url is set, output link to go back:
-			if (t3lib_div::_GP('returnUrl'))	{
+			if (t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl')))	{
 				$this->content = $this->doc->section('',$returnLinkTag.'<strong>'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.goBack',1).'</strong></a><br /><br />').$this->content;
 
 				$this->content .= $this->doc->section('','<br />'.$returnLinkTag.'<strong>'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.goBack',1).'</strong></a>');
@@ -277,16 +278,16 @@ class SC_show_item {
 		$i = 0;
 
 			// Traverse the list of fields to display for the record:
-		$fieldList = t3lib_div::trimExplode(',',$TCA[$this->table]['interface']['showRecordFieldList'],1);
-		foreach($fieldList as $name)	{
+		$fieldList = t3lib_div::trimExplode(',', $TCA[$this->table]['interface']['showRecordFieldList'], 1);
+		foreach ($fieldList as $name) {
 			$name = trim($name);
 			if ($TCA[$this->table]['columns'][$name])	{
-				if (!$TCA[$this->table]['columns'][$name]['exclude'] || $GLOBALS['BE_USER']->check('non_exclude_fields',$this->table.':'.$name))	{
+				if (!$TCA[$this->table]['columns'][$name]['exclude'] || $GLOBALS['BE_USER']->check('non_exclude_fields', $this->table . ':' . $name)) {
 					$i++;
 					$tableRows[] = '
 						<tr>
 							<td class="t3-col-header">' . $GLOBALS['LANG']->sL(t3lib_BEfunc::getItemLabel($this->table, $name), 1) . '</td>
-							<td>' . htmlspecialchars(t3lib_BEfunc::getProcessedValue($this->table, $name, $this->row[$name])) . '</td>
+							<td>' . htmlspecialchars(t3lib_BEfunc::getProcessedValue($this->table, $name, $this->row[$name], 0, 0, FALSE, $this->row['uid'])) . '</td>
 						</tr>';
 				}
 			}

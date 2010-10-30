@@ -96,53 +96,6 @@ class SC_mod_user_task_index extends t3lib_SCbase {
 			function jumpToUrl(URL) {
 				document.location = URL;
 			}
-
-			Event.observe(document, "dom:loaded", function(){
-				var changeEffect;
-				Sortable.create("task-list", { handles:$$("#task-list .drag"), tag: "li", ghosting:false, overlap:"vertical", constraint:false,
-				 onChange: function(item) {
-					 var list = Sortable.options(item).element;
-					 // deactivate link
-					$$("#task-list a").each(function(link) {
-						link.writeAttribute("onclick","return false;");
-					});
-
-				 },
-
-				 onUpdate: function(list) {
-					 new Ajax.Request("ajax.php", {
-						 method: "post",
-						 parameters: { ajaxID :"Taskcenter::saveSortingState", data:  Sortable.serialize(list)}
-					 });
-						// activate link
-					 Event.observe(window,"mouseup",function(){
-						$$("#task-list a").each(function(link) {
-							link.writeAttribute("onclick","");
-						});
-					});
-
-				 }
-				});
-
-				$$("#taskcenter-menu .down").invoke("observe", "click", function(event){
-					var item = Event.element(event);
-					var itemParent = item.up();
-					item = item.next("div").next("div").next("div").next("div");
-
-					if (itemParent.hasClassName("expanded")) {
-						itemParent.removeClassName("expanded").addClassName("collapsed");
-						Effect.BlindUp(item, {duration : 0.5});
-						state = 1;
-					} else {
-						itemParent.removeClassName("collapsed").addClassName("expanded");
-						Effect.BlindDown(item, {duration : 0.5});
-						state = 0;
-					}
-					new Ajax.Request("ajax.php", {
-						parameters : "ajaxID=Taskcenter::saveCollapseState&item=" + itemParent.id + "&state=" + state
-					});
-				});
-			});
 		';
 		$this->doc->postCode='
 			<script language="javascript" type="text/javascript">
@@ -242,7 +195,7 @@ class SC_mod_user_task_index extends t3lib_SCbase {
 
 		$content = '<div id="taskcenter-main">
 						<div id="taskcenter-menu">' . $this->indexAction() . '</div>
-						<div id="taskcenter-item" class="' . $extKey . '-' . $taskClass . '">' .
+						<div id="taskcenter-item" class="' . htmlspecialchars($extKey . '-' . $taskClass) . '">' .
 							$actionContent . '
 						</div>
 					</div>';
@@ -310,6 +263,7 @@ class SC_mod_user_task_index extends t3lib_SCbase {
 
 			// change the sorting of items to the user's one
 		if ($mainMenu) {
+			$this->doc->getPageRenderer()->addJsFile(t3lib_extMgm::extRelPath('taskcenter') . 'res/tasklist.js');
 			$userSorting = unserialize($GLOBALS['BE_USER']->uc['taskcenter']['sorting']);
 			if (is_array($userSorting)) {
 				$newSorting = array();
@@ -503,7 +457,7 @@ class SC_mod_user_task_index extends t3lib_SCbase {
 			return FALSE;
 		}
 
-		return FALSE;
+		return TRUE;
 	}
 
 	/**

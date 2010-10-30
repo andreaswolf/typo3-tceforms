@@ -32,7 +32,7 @@
  * @author	Dmitry Dulepov	<dmitry@typo3.org>
  * @author	Martin Kutschker <masi@typo3.org>
  * @author	Oliver Hader <oliver@typo3.org>
- * @author	Sebastian Kurfuerst <sebastian@typo3.org>
+ * @author	Sebastian Kurfürst <sebastian@typo3.org>
  */
 
 /**
@@ -115,10 +115,6 @@ class t3lib_autoloader {
 			} catch (LogicException $exception) {
 			}
 		}
-
-		if (!class_exists($className, false) && !interface_exists($className, false)) {
-			self::logLoadingFailure($className);
-		}
 	}
 
 	/**
@@ -173,21 +169,6 @@ class t3lib_autoloader {
 			self::$classNameToFileMapping = array_merge($extensionClassNameToFileMapping, self::$classNameToFileMapping);
 		} else {
 			self::$extensionHasAutoloadConfiguration[$extensionKey] = FALSE;
-		}
-	}
-
-	/**
-	 * Logs error message about failed autoloading
-	 *
-	 * @param	string	$className	Class name
-	 * @param	string	$filePath	File name
-	 * @return	void
-	 */
-	static protected function logLoadingFailure($className) {
-		$message = sprintf('Unable to autoload class "%s"', $className);
-		t3lib_div::sysLog($message, 'Core', 4);
-		if (TYPO3_DLOG) {
-			t3lib_div::devLog($message, 'Core', 3);
 		}
 	}
 }

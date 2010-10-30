@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,10 +30,10 @@
  * If configured to appear it will be displayed in the top-frame.
  *
  * $Id$
- * Revised for TYPO3 3.6 2/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -47,6 +47,7 @@
  * TOTAL FUNCTIONS: 2
  * (This index is automatically created/updated by the extension "extdeveval")
  *
+ * @deprecated since TYPO3 4.5, this file will be removed in TYPO3 4.7. The TYPO3 backend is using typo3/backend.php with less frames, which makes this file obsolete.
  */
 
 
@@ -55,6 +56,7 @@ require ('template.php');
 require_once ('class.alt_menu_functions.inc');
 
 
+t3lib_div::deprecationLog('alt_menu_sel.php is deprecated since TYPO3 4.5, this file will be removed in TYPO3 4.7. The TYPO3 backend is using typo3/backend.php with less frames, which makes this file obsolete.');
 
 
 
@@ -64,7 +66,7 @@ require_once ('class.alt_menu_functions.inc');
 /**
  * Script Class for rendering the selector box menu
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */

@@ -31,7 +31,7 @@
  * Used with the TypoScript parser.
  * Matches browserinfo, IPnumbers for use with templates
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -169,7 +169,7 @@ class t3lib_matchCondition_frontend extends t3lib_matchCondition_abstract {
 		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_matchcondition.php']['devices_class'])) {
 			foreach($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_matchcondition.php']['devices_class'] as $_classRef) {
 				$_procObj = t3lib_div::getUserObj($_classRef);
-				return $_procObj->whichDevice_ext($useragent);
+				return $_procObj->whichDevice_ext($userAgent);
 			}
 		}
 
@@ -219,6 +219,15 @@ class t3lib_matchCondition_frontend extends t3lib_matchCondition_abstract {
 	 */
 	protected function determinePageId() {
 		return (int)$GLOBALS['TSFE']->id;
+	}
+
+	/**
+	 * Gets the properties for the current page.
+	 *
+	 * @return	array		The properties for the current page.
+	 */
+	protected function getPage() {
+		return $GLOBALS['TSFE']->page;
 	}
 
 	/**

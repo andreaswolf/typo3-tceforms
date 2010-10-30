@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,11 +28,11 @@
  * Displays the vertical menu in the left most frame of TYPO3s backend
  *
  * $Id$
- * Revised for TYPO3 3.6 2/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  * XHTML-trans compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
- * @co-author Sebastian Kurfuerst <sebastian@garbage-group.de>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
+ * @co-author Sebastian Kurfürst <sebastian@garbage-group.de>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -47,6 +47,7 @@
  * TOTAL FUNCTIONS: 3
  * (This index is automatically created/updated by the extension "extdeveval")
  *
+ * @deprecated since TYPO3 4.5, this file will be removed in TYPO3 4.7. The TYPO3 backend is using typo3/backend.php with less frames, which makes this file obsolete.
  */
 
 
@@ -55,6 +56,7 @@ require ('template.php');
 require_once ('class.alt_menu_functions.inc');
 
 
+t3lib_div::deprecationLog('alt_palette.php is deprecated since TYPO3 4.5, this file will be removed in TYPO3 4.7. The TYPO3 backend is using typo3/backend.php with less frames, which makes this file obsolete.');
 
 
 
@@ -70,8 +72,8 @@ require_once ('class.alt_menu_functions.inc');
 /**
  * Script Class for rendering the vertical menu in the left side of the backend frameset
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
- * @co-author Sebastian Kurfuerst <sebastian@garbage-group.de>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
+ * @co-author Sebastian Kurfürst <sebastian@garbage-group.de>
  * @package TYPO3
  * @subpackage core
  */

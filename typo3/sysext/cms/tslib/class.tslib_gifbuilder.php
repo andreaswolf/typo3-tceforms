@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,9 +29,9 @@
  * Used by the menu-objects and imgResource in TypoScript.
  *
  * $Id$
- * Revised for TYPO3 3.6 June/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -94,7 +94,7 @@
  * }
  * return $gifCreator->getImageDimensions($theImage);
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tslib
  * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=377&cHash=e00ac666f3
@@ -287,6 +287,11 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 								$this->setup[$theKey.'.']['height'] = $this->calcOffset($this->setup[$theKey.'.']['height']);
 							}
 						break;
+						case 'ELLIPSE':
+							if ($this->setup[$theKey . '.']['dimensions']) {
+								$this->setup[$theKey . '.']['dimensions'] = $this->calcOffset($this->setup[$theKey . '.']['dimensions']);
+							}
+						break;
 					}
 				}
 			}
@@ -348,7 +353,7 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 		$XY = $this->XY;
 
 			// Gif-start
-		$this->im = $this->imagecreate($XY[0],$XY[1]);
+		$this->im = imagecreatetruecolor($XY[0], $XY[1]);
 		$this->w = $XY[0];
 		$this->h = $XY[1];
 
@@ -431,6 +436,9 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 							if (isset($conf['clear']))	{
 								$this->workArea = $this->defaultWorkArea;	// this sets the current to the default;
 							}
+						break;
+						case 'ELLIPSE':
+							$this->makeEllipse($this->im, $conf, $this->workArea);
 						break;
 					}
 				}

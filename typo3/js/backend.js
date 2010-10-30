@@ -28,7 +28,6 @@
  * general backend javascript functions
  */
 
-
 Ext.ns('TYPO3.configuration');
 
 /**
@@ -38,12 +37,13 @@ function jump(url, modName, mainModName) {
 		// clear information about which entry in nav. tree that might have been highlighted.
 	top.fsMod.navFrameHighlightedID = [];
 
-	if (top.content && top.content.nav_frame && top.content.nav_frame.refresh_nav) {
-		top.content.nav_frame.refresh_nav();
+	if (top.TYPO3.Backend.NavigationContainer.isVisible()) {
+		top.TYPO3.Backend.NavigationContainer.refresh();
 	}
 
 	top.nextLoadModuleUrl = url;
-	top.goToModule(modName);
+	top.TYPO3.ModuleMenu.App.showModule(modName);
+
 }
 
 /**
@@ -141,8 +141,9 @@ function loadEditId(id,addGetVars)	{	//
 	if (top.content && top.content.nav_frame && top.content.nav_frame.refresh_nav)	{
 		top.content.nav_frame.refresh_nav();
 	}
-
-	top.goToModule(TYPO3.configuration.pageModule, 0, addGetVars?addGetVars:"");
+	if (TYPO3.configuration.pageModule) {
+		top.goToModule(TYPO3.configuration.pageModule, 0, addGetVars?addGetVars:"");
+	}
 }
 
 /**

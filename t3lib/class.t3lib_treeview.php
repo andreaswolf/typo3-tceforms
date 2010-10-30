@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Contains base class for creating a browsable array/page/folder tree in HTML
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @coauthor	René Fritz <r.fritz@colorcube.de>
  */
 /**
@@ -103,7 +103,7 @@
 /**
  * Base class for creating a browsable array/page/folder tree in HTML
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @coauthor	René Fritz <r.fritz@colorcube.de>
  * @package TYPO3
  * @subpackage t3lib
@@ -661,7 +661,7 @@ class t3lib_treeView {
 				'title' => ($this->showDefaultTitleAttribute ? 'UID: ' . $row['uid'] : $this->getTitleAttrib($row)),
 				'class' => 'c-recIcon'
 			));
-		
+
 		}
 
 		return $this->wrapIcon($icon,$row);
@@ -765,6 +765,8 @@ class t3lib_treeView {
 		$c = $this->getDataCount($res);
 		$crazyRecursionLimiter = 999;
 
+		$idH = array();
+
 			// Traverse the records:
 		while ($crazyRecursionLimiter>0 && $row = $this->getDataNext($res,$subCSSclass))	{
 			$a++;
@@ -772,9 +774,8 @@ class t3lib_treeView {
 
 			$newID = $row['uid'];
 
-			if ($newID==0)	{
-				t3lib_BEfunc::typo3PrintError ('Endless recursion detected', 'TYPO3 has detected an error in the database. Please fix it manually (e.g. using phpMyAdmin) and change the UID of '.$this->table.':0 to a new value.<br /><br />See <a href="http://bugs.typo3.org/view.php?id=3495" target="_blank">bugs.typo3.org/view.php?id=3495</a> to get more information about a possible cause.',0);
-				exit;
+			if ($newID == 0) {
+				throw new RuntimeException('Endless recursion detected: TYPO3 has detected an error in the database. Please fix it manually (e.g. using phpMyAdmin) and change the UID of '.$this->table.':0 to a new value.<br /><br />See <a href="http://bugs.typo3.org/view.php?id=3495" target="_blank">bugs.typo3.org/view.php?id=3495</a> to get more information about a possible cause.');
 			}
 
 			$this->tree[]=array();		// Reserve space.

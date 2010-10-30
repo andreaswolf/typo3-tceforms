@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2001-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2001-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,7 +27,7 @@
 /**
  * External standard parsers for indexed_search
  *
- * @author	Kasper Sk�rh�j <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @coauthor	Olivier Simah <noname_paris@yahoo.fr>
  */
 /**
@@ -68,7 +68,7 @@
  * External standard parsers for indexed_search
  * MUST RETURN utf-8 content!
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tx_indexedsearch
  */
@@ -116,13 +116,15 @@ class tx_indexed_search_extparse {
 			return FALSE;
 		}
 
+		$safeModeEnabled = t3lib_utility_PhpOptions::isSafeModeEnabled();
+
 			// Switch on file extension:
 		switch($extension)	{
 			case 'pdf':
 					// PDF
 				if ($indexerConfig['pdftools'])	{
 					$pdfPath = rtrim($indexerConfig['pdftools'], '/').'/';
-					if (ini_get('safe_mode') || (@is_file($pdfPath.'pdftotext'.$exe) && @is_file($pdfPath.'pdfinfo'.$exe)))	{
+					if ($safeModeEnabled || (@is_file($pdfPath . 'pdftotext' . $exe) && @is_file($pdfPath . 'pdfinfo' . $exe))) {
 						$this->app['pdfinfo'] = $pdfPath.'pdfinfo'.$exe;
 						$this->app['pdftotext'] = $pdfPath.'pdftotext'.$exe;
 							// PDF mode:
@@ -135,7 +137,7 @@ class tx_indexed_search_extparse {
 					// Catdoc
 				if ($indexerConfig['catdoc'])	{
 					$catdocPath = rtrim($indexerConfig['catdoc'], '/').'/';
-					if (ini_get('safe_mode') || @is_file($catdocPath.'catdoc'.$exe))	{
+					if ($safeModeEnabled || @is_file($catdocPath . 'catdoc' . $exe)) {
 						$this->app['catdoc'] = $catdocPath.'catdoc'.$exe;
 						$extOK = TRUE;
 					} else $this->pObj->log_setTSlogMessage(sprintf($this->sL('LLL:EXT:indexed_search/locallang.xml:catdocNotFound'), $catdocPath), 3);
@@ -146,7 +148,7 @@ class tx_indexed_search_extparse {
 					// ppthtml
 				if ($indexerConfig['ppthtml'])	{
 					$ppthtmlPath = rtrim($indexerConfig['ppthtml'], '/').'/';
-					if (ini_get('safe_mode') || @is_file($ppthtmlPath.'ppthtml'.$exe)){
+					if ($safeModeEnabled || @is_file($ppthtmlPath . 'ppthtml' . $exe)) {
 						$this->app['ppthtml'] = $ppthtmlPath.'ppthtml'.$exe;
 						$extOK = TRUE;
 					} else $this->pObj->log_setTSlogMessage(sprintf($this->sL('LLL:EXT:indexed_search/locallang.xml:ppthtmlNotFound'), $ppthtmlPath), 3);
@@ -156,7 +158,7 @@ class tx_indexed_search_extparse {
 					// Xlhtml
 				if ($indexerConfig['xlhtml'])	{
 					$xlhtmlPath = rtrim($indexerConfig['xlhtml'], '/').'/';
-					if (ini_get('safe_mode') || @is_file($xlhtmlPath.'xlhtml'.$exe)){
+					if ($safeModeEnabled || @is_file($xlhtmlPath . 'xlhtml' . $exe)) {
 						$this->app['xlhtml'] = $xlhtmlPath.'xlhtml'.$exe;
 						$extOK = TRUE;
 					} else $this->pObj->log_setTSlogMessage(sprintf($this->sL('LLL:EXT:indexed_search/locallang.xml:xlhtmlNotFound'), $xlhtmlPath), 3);
@@ -170,7 +172,7 @@ class tx_indexed_search_extparse {
 			case 'odt':		// Oasis OpenDocument Text
 				if ($indexerConfig['unzip'])	{
 					$unzipPath = rtrim($indexerConfig['unzip'], '/').'/';
-					if (ini_get('safe_mode') || @is_file($unzipPath.'unzip'.$exe))	{
+					if ($safeModeEnabled || @is_file($unzipPath . 'unzip' . $exe)) {
 						$this->app['unzip'] = $unzipPath.'unzip'.$exe;
 						$extOK = TRUE;
 					} else $this->pObj->log_setTSlogMessage(sprintf($this->sL('LLL:EXT:indexed_search/locallang.xml:unzipNotFound'), $unzipPath), 3);
@@ -180,7 +182,7 @@ class tx_indexed_search_extparse {
 					// Catdoc
 				if ($indexerConfig['unrtf'])	{
 					$unrtfPath = rtrim($indexerConfig['unrtf'], '/').'/';
-					if (ini_get('safe_mode') || @is_file($unrtfPath.'unrtf'.$exe))	{
+					if ($safeModeEnabled || @is_file($unrtfPath . 'unrtf' . $exe)) {
 						$this->app['unrtf'] = $unrtfPath.'unrtf'.$exe;
 						$extOK = TRUE;
 					} else $this->pObj->log_setTSlogMessage(sprintf($this->sL('LLL:EXT:indexed_search/locallang.xml:unrtfNotFound'), $unrtfPath), 3);

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Contains a class for formmail
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -61,13 +61,13 @@
 /**
  * Formmail class, used by the TYPO3 "cms" extension (default frontend) to send email forms.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  * @see tslib_fe::sendFormmail(), t3lib/formmail.php
  */
 class t3lib_formmail extends t3lib_htmlmail {
-	var $reserved_names = 'recipient,recipient_copy,auto_respond_msg,redirect,subject,attachment,from_email,from_name,replyto_email,replyto_name,organisation,priority,html_enabled,quoted_printable,submit_x,submit_y';
+	protected $reserved_names = 'recipient,recipient_copy,auto_respond_msg,auto_respond_checksum,redirect,subject,attachment,from_email,from_name,replyto_email,replyto_name,organisation,priority,html_enabled,quoted_printable,submit_x,submit_y';
 	var $dirtyHeaders = array();	// collection of suspicious header data, used for logging
 
 
@@ -132,9 +132,20 @@ class t3lib_formmail extends t3lib_htmlmail {
 			$this->replyto_email = t3lib_div::validEmail($this->replyto_email) ? $this->replyto_email : '';
 			$this->priority = ($V['priority']) ? t3lib_div::intInRange($V['priority'],1,5) : 3;
 
-				// Auto responder.
+				// auto responder
 			$this->auto_respond_msg = (trim($V['auto_respond_msg']) && $this->from_email) ? trim($V['auto_respond_msg']) : '';
-			$this->auto_respond_msg = $this->sanitizeHeaderString($this->auto_respond_msg);
+
+			if ($this->auto_respond_msg !== '') {
+					// Check if the value of the auto responder message has been modified with evil intentions
+				$autoRespondChecksum = $V['auto_respond_checksum'];
+				$correctHmacChecksum = t3lib_div::hmac($this->auto_respond_msg);
+				if ($autoRespondChecksum !== $correctHmacChecksum) {
+					t3lib_div::sysLog('Possible misuse of t3lib_formmail auto respond method. Subject: ' . $V['subject'], 'Core', 3);
+					return;
+				} else {
+					$this->auto_respond_msg = $this->sanitizeHeaderString($this->auto_respond_msg);
+				}
+			}
 
 			$Plain_content = '';
 			$HTML_content = '<table border="0" cellpadding="2" cellspacing="2">';

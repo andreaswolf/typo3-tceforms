@@ -68,7 +68,7 @@ HTMLArea.DefaultImage = HTMLArea.Plugin.extend({
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: '2.0',
+			version		: '2.1',
 			developer	: 'Stanislas Rolland',
 			developerUrl	: 'http://www.sjbr.ca/',
 			copyrightOwner	: 'Stanislas Rolland',
@@ -98,6 +98,7 @@ HTMLArea.DefaultImage = HTMLArea.Plugin.extend({
 	configDefaults: {
 		combo: {
 			editable: true,
+			selectOnFocus: true,
 			typeAhead: true,
 			triggerAction: 'all',
 			forceSelection: true,
@@ -155,7 +156,7 @@ HTMLArea.DefaultImage = HTMLArea.Plugin.extend({
 			// Open dialogue window
 		this.openDialogue(
 			buttonId,
-			'Insert Image',
+			this.getButton(buttonId).tooltip.title,
 			this.getWindowDimensions(
 				{
 					width: 460,
@@ -179,7 +180,7 @@ HTMLArea.DefaultImage = HTMLArea.Plugin.extend({
 	 */
 	openDialogue: function (buttonId, title, dimensions, tabItems) {
 		this.dialog = new Ext.Window({
-			title: this.localize(title),
+			title: this.localize(title) || title,
 			cls: 'htmlarea-window',
 			border: false,
 			width: dimensions.width,
@@ -404,10 +405,18 @@ HTMLArea.DefaultImage = HTMLArea.Plugin.extend({
 			try {
 				window.ipreview.location.replace(url);
 			} catch (e) {
-				Ext.MessageBox.alert('', this.localize('image_url_invalid'), function () { tabPanel.setActiveTab(0); urlField.focus(); });
+				TYPO3.Dialog.InformationDialog({
+					title: this.localize('Image Preview'),
+					msg: this.localize('image_url_invalid'),
+					fn: function () { tabPanel.setActiveTab(0); urlField.focus(); }
+				});
 			}
 		} else {
-			Ext.MessageBox.alert('', this.localize('image_url_first'), function () { tabPanel.setActiveTab(0); urlField.focus(); });
+			TYPO3.Dialog.InformationDialog({
+				title: this.localize('Image Preview'),
+				msg: this.localize('image_url_first'),
+				fn: function () { tabPanel.setActiveTab(0); urlField.focus(); }
+			});
 		}
 		return false;
 	},
@@ -429,7 +438,11 @@ HTMLArea.DefaultImage = HTMLArea.Plugin.extend({
 			this.close();
 		} else {
 			var tabPanel = this.dialog.find('itemId', 'tabpanel')[0];
-			Ext.MessageBox.alert('', this.localize('image_url_required'), function () { tabPanel.setActiveTab(0); urlField.focus(); });
+			TYPO3.Dialog.InformationDialog({
+				title: this.localize('image_url'),
+				msg: this.localize('image_url_required'),
+				fn: function () { tabPanel.setActiveTab(0); urlField.focus(); }
+			});
 		}
 		return false;
 	},
@@ -502,6 +515,22 @@ HTMLArea.DefaultImage = HTMLArea.Plugin.extend({
 						break;
 				}
 			});
+		}
+	},
+	/*
+	 * This function gets called when the toolbar is updated
+	 */
+	onUpdateToolbar: function (button, mode, selectionEmpty, ancestors) {
+		if (mode === 'wysiwyg' && this.editor.isEditable() && button.itemId === 'InsertImage' && !button.disabled) {
+			var image = this.editor.getParentElement();
+			if (image && !/^img$/i.test(image.nodeName)) {
+				image = null;
+			}
+			if (image) {
+				button.setTooltip({ title: this.localize('Modify image') });
+			} else {
+				button.setTooltip({ title: this.localize('Insert image') });
+			}
 		}
 	}
 });

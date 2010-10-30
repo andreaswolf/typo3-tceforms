@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,10 +28,10 @@
  * Contains a class with "Page functions" mainly for the frontend
  *
  * $Id$
- * Revised for TYPO3 3.6 2/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  * XHTML-trans compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -101,7 +101,7 @@
  * Mainly used in the frontend but also in some cases in the backend.
  * It's important to set the right $where_hid_del in the object so that the functions operate properly
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  * @see tslib_fe::fetch_the_id()
@@ -128,6 +128,14 @@ class t3lib_pageSelect {
 	protected $cache_getPage_noCheck = array();
 	protected $cache_getPageIdFromAlias = array();
 	protected $cache_getMountPointInfo = array();
+
+	/**
+	 * Named constants for "magic numbers" of the field shortcut_mode
+	 */
+	const SHORTCUT_MODE_NONE = 0;
+	const SHORTCUT_MODE_FIRST_SUBPAGE = 1;
+	const SHORTCUT_MODE_RANDOM_SUBPAGE = 2;
+	const SHORTCUT_MODE_PARENT_PAGE = 3;
 
 	/**
 	 * init() MUST be run directly after creating a new template-object
@@ -516,13 +524,19 @@ class t3lib_pageSelect {
 
 					// if shortcut, look up if the target exists and is currently visible
 				if ($row['doktype'] == 4 && ($row['shortcut'] || $row['shortcut_mode']) && $checkShortcuts)	{
-					if ($row['shortcut_mode'] == 0)	{
+					if ($row['shortcut_mode'] == self::SHORTCUT_MODE_NONE) {
+							// no shortcut_mode set, so target is directly set in $row['shortcut']
 						$searchField = 'uid';
 						$searchUid = intval($row['shortcut']);
-					} else { // check subpages - first subpage or random subpage
+					} elseif ($row['shortcut_mode'] == self::SHORTCUT_MODE_FIRST_SUBPAGE || $row['shortcut_mode'] == self::SHORTCUT_MODE_RANDOM_SUBPAGE) {
+							// check subpages - first subpage or random subpage
 						$searchField = 'pid';
 							// If a shortcut mode is set and no valid page is given to select subpags from use the actual page.
 						$searchUid = intval($row['shortcut'])?intval($row['shortcut']):$row['uid'];
+					} elseif ($row['shortcut_mode'] == self::SHORTCUT_MODE_PARENT_PAGE) {
+							// shortcut to parent page
+						$searchField = 'uid';
+						$searchUid = $row['pid'];
 					}
 					$count = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
 						'uid',
@@ -641,7 +655,7 @@ class t3lib_pageSelect {
 		$loopCheck = 0;
 		$theRowArray = Array();
 
-		while ($uid!=0 && $loopCheck<20)	{	// Max 20 levels in the page tree.
+		while ($uid != 0 && $loopCheck < 99) {	// Max 99 levels in the page tree.
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($selFields, 'pages', 'uid='.intval($uid).' AND pages.deleted=0 AND pages.doktype!=255');
 			$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
@@ -1050,7 +1064,7 @@ class t3lib_pageSelect {
 					$hash,
 					$data,
 					array('ident_' . $ident),
-					$lifetime
+					intval($lifetime)
 				);
 			}
 		} else {
@@ -1150,7 +1164,12 @@ class t3lib_pageSelect {
 				}
 			}
 		} else {
-			die ('NO entry in the $TCA-array for the table "'.$table.'". This means that the function enableFields() is called with an invalid table name as argument.');
+			throw new InvalidArgumentException(
+				'There is no entry in the $TCA array for the table "' . $table .
+					'". This means that the function enableFields() is ' .
+					'called with an invalid table name as argument.',
+				1283790586
+			);
 		}
 
 		return $query;

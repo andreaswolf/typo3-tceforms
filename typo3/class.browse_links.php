@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,10 +30,10 @@
  * In other words: This is the ELEMENT BROWSER!
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -126,7 +126,7 @@ require_once (PATH_typo3.'/class.db_list_extra.inc');
 /**
  * Local version of the record list.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -231,7 +231,7 @@ class TBE_browser_recordList extends localRecordList {
 /**
  * Class which generates the page tree
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -380,7 +380,7 @@ class localPageTree extends t3lib_browseTree {
 /**
  * Page tree for the RTE - totally the same, no changes needed. (Just for the sake of beauty - or confusion... :-)
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -397,7 +397,7 @@ class rtePageTree extends localPageTree {
 /**
  * For TBE record browser
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -444,7 +444,7 @@ class TBE_PageTree extends localPageTree {
  * Base extension class which generates the folder tree.
  * Used directly by the RTE.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -553,7 +553,7 @@ class localFolderTree extends t3lib_folderTree {
 				// Put table row with folder together:
 			$out.='
 				<tr class="'.$bgColorClass.'">
-					<td nowrap="nowrap">'.$v['HTML'].$this->wrapTitle(t3lib_div::fixed_lgd_cs($v['row']['title'],$titleLen),$v['row']).'</td>
+					<td nowrap="nowrap">' . $v['HTML'] . $this->wrapTitle(htmlspecialchars(t3lib_div::fixed_lgd_cs($v['row']['title'], $titleLen)), $v['row']) . '</td>
 					'.$arrCol.'
 					<td>'.$cEbullet.'</td>
 				</tr>';
@@ -579,7 +579,7 @@ class localFolderTree extends t3lib_folderTree {
 /**
  * Folder tree for the RTE - totally the same, no changes needed. (Just for the sake of beauty - or confusion... :-)
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -595,7 +595,7 @@ class rteFolderTree extends localFolderTree {
 /**
  * For TBE File Browser
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -638,7 +638,7 @@ class TBE_FolderTree extends localFolderTree {
 /**
  * class for the Element Browser window.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -820,6 +820,7 @@ class browse_links {
 				'target' => $currentLinkParts[1],
 				'class'  => $currentLinkParts[2],
 				'title'  => $currentLinkParts[3],
+				'params'  => $currentLinkParts[4]
 			);
 			$this->curUrlArray = (is_array(t3lib_div::_GP('curUrl'))) ?
 				array_merge($initialCurUrlArray, t3lib_div::_GP('curUrl')) :
@@ -882,6 +883,9 @@ class browse_links {
 
 			// Initializing the title value (RTE)
 		$this->setTitle = ($this->curUrlArray['title'] != '-') ? $this->curUrlArray['title'] : '';
+		
+			// Initializing the params value
+		$this->setParams = ($this->curUrlArray['params'] != '-') ? $this->curUrlArray['params'] : '';
 
 			// BEGIN accumulation of header JavaScript:
 		$JScode = '
@@ -894,8 +898,9 @@ class browse_links {
 
 			var cur_href="'.($this->curUrlArray['href']?$this->curUrlArray['href']:'').'";
 			var cur_target="'.($this->setTarget?$this->setTarget:'').'";
-			var cur_class = "'.($this->setClass ? $this->setClass : '-').'";
+			var cur_class = "' . ($this->setClass ? $this->setClass : '') . '";
 			var cur_title="'.($this->setTitle?$this->setTitle:'').'";
+			var cur_params="' . ($this->setParams ? $this->setParams : '') . '";
 
 			function browse_links_setTarget(target)	{	//
 				cur_target=target;
@@ -913,9 +918,16 @@ class browse_links {
 				cur_href=value;
 				add_href="&curUrl[href]="+value;
 			}
+			function browse_links_setParams(params)	{	//
+				cur_params=params;
+				add_params="&curUrl[params]="+escape(params);
+			}
 		';
 
 		if ($this->mode == 'wizard')	{	// Functions used, if the link selector is in wizard mode (= TCEforms fields)
+			if (!$this->areFieldChangeFunctionsValid() && !$this->areFieldChangeFunctionsValid(TRUE)) {
+				$this->P['fieldChangeFunc'] = array();
+			}
 			unset($this->P['fieldChangeFunc']['alert']);
 			$update='';
 			foreach ($this->P['fieldChangeFunc'] as $k => $v) {
@@ -927,6 +939,7 @@ class browse_links {
 			$P2['itemName']=$this->P['itemName'];
 			$P2['formName']=$this->P['formName'];
 			$P2['fieldChangeFunc']=$this->P['fieldChangeFunc'];
+			$P2['fieldChangeFuncHash'] = t3lib_div::hmac(serialize($this->P['fieldChangeFunc']));
 			$P2['params']['allowedExtensions']=$this->P['params']['allowedExtensions'];
 			$P2['params']['blindLinkOptions']=$this->P['params']['blindLinkOptions'];
 			$addPassOnParams.=t3lib_div::implodeArrayForUrl('P',$P2);
@@ -971,21 +984,27 @@ class browse_links {
 				function updateValueInMainForm(input)	{	//
 					var field = checkReference();
 					if (field)	{
-						if (cur_target == "" && (cur_title != "" || cur_class != "-")) {
+						if (cur_target == "" && (cur_class != "" || cur_title != "" || cur_params != "")) {
 							cur_target = "-";
 						}
-						if (cur_title == "" && cur_class == "-") {
-							cur_class = "";
+						if (cur_class == "" && (cur_title != "" || cur_params != "")) {
+							cur_class = "-";
 						}
 						cur_class = cur_class.replace(/[\'\"]/g, "");
 						if (cur_class.indexOf(" ") != -1) {
 							cur_class = "\"" + cur_class + "\"";
 						}
+						if (cur_title == "" && cur_params != "") {
+ 							cur_title = "-";
+ 						}
 						cur_title = cur_title.replace(/(^\")|(\"$)/g, "");
 						if (cur_title.indexOf(" ") != -1) {
 							cur_title = "\"" + cur_title + "\"";
 						}
-						input = input + " " + cur_target + " " + cur_class + " " + cur_title;
+						if (cur_params) {
+							cur_params = cur_params.replace(/\bid\=.*?(\&|$)/, "");
+						}
+						input = input + " " + cur_target + " " + cur_class + " " + cur_title + " " + cur_params;
 						field.value = input;
 						'.$update.'
 					}
@@ -1420,6 +1439,8 @@ class browse_links {
 				$pagetree = t3lib_div::makeInstance('rtePageTree');
 				$pagetree->thisScript = $this->thisScript;
 				$pagetree->ext_showPageId = $GLOBALS['BE_USER']->getTSConfigVal('options.pageTree.showPageIdWithTitle');
+				$pagetree->ext_showNavTitle = $GLOBALS['BE_USER']->getTSConfigVal('options.pageTree.showNavTitle');
+				$pagetree->addField('nav_title');
 				$tree=$pagetree->getBrowsableTree();
 				$cElements = $this->expandPage();
 
@@ -1459,6 +1480,17 @@ class browse_links {
 		}
 
 		$content .= '
+			<!--
+				Selecting params for link:
+			-->
+				<form action="" name="lparamsform" id="lparamsform">
+					<table border="0" cellpadding="2" cellspacing="1" id="typo3-linkParams">
+						<tr>
+							<td style="width: 96px;">' . $GLOBALS['LANG']->getLL('params', 1) . '</td>
+							<td><input type="text" name="lparams" class="typo3-link-input" onchange="browse_links_setParams(this.value);" value="' . htmlspecialchars($this->setParams) . '" /></td>
+						</tr>
+					</table>
+				</form>
 
 			<!--
 				Selecting class for link:
@@ -1467,7 +1499,7 @@ class browse_links {
 					<table border="0" cellpadding="2" cellspacing="1" id="typo3-linkClass">
 						<tr>
 							<td style="width: 96px;">' . $GLOBALS['LANG']->getLL('class', 1) . '</td>
-							<td><input type="text" name="lclass" onchange="browse_links_setClass(this.value);" value="' . htmlspecialchars($this->setClass) . '"' . $this->doc->formWidth(10) . ' /></td>
+							<td><input type="text" name="lclass" class="typo3-link-input" onchange="browse_links_setClass(this.value);" value="' . htmlspecialchars($this->setClass) . '" /></td>
 						</tr>
 					</table>
 				</form>
@@ -1479,7 +1511,7 @@ class browse_links {
 					<table border="0" cellpadding="2" cellspacing="1" id="typo3-linkTitle">
 						<tr>
 							<td style="width: 96px;">' . $GLOBALS['LANG']->getLL('title', 1) . '</td>
-							<td><input type="text" name="ltitle" onchange="browse_links_setTitle(this.value);" value="' . htmlspecialchars($this->setTitle) . '"' . $this->doc->formWidth(10) . ' /></td>
+							<td><input type="text" name="ltitle" class="typo3-link-input" onchange="browse_links_setTitle(this.value);" value="' . htmlspecialchars($this->setTitle) . '" /></td>
 						</tr>
 					</table>
 				</form>
@@ -1518,6 +1550,7 @@ class browse_links {
 					browse_links_setTarget(document.ltargetform.ltarget.value);
 					browse_links_setClass(document.lclassform.lclass.value);
 					browse_links_setTitle(document.ltitleform.ltitle.value);
+					browse_links_setParams(document.lparamsform.lparams.value);
 					document.ltargetform.popup_width.selectedIndex=0;
 					document.ltargetform.popup_height.selectedIndex=0;
 				}
@@ -1819,7 +1852,7 @@ class browse_links {
 				// Create header for listing, showing the page title/icon:
 			$titleLen=intval($GLOBALS['BE_USER']->uc['titleLen']);
 			$mainPageRec = t3lib_BEfunc::getRecordWSOL('pages',$expPageId);
-			$picon = t3lib_iconWorks::getIconImage('pages', $mainPageRec, $BACK_PATH, '');
+			$picon = t3lib_iconWorks::getSpriteIconForRecord('pages', $mainPageRec);
 			$picon.= htmlspecialchars(t3lib_div::fixed_lgd_cs($mainPageRec['title'],$titleLen));
 			$out.=$picon.'<br />';
 
@@ -1839,7 +1872,7 @@ class browse_links {
 			$c=0;
 			while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
 				$c++;
-				$icon=t3lib_iconWorks::getIconImage('tt_content',$row,$BACK_PATH,'');
+				$icon = t3lib_iconWorks::getSpriteIconForRecord('tt_content', $row);
 				if ($this->curUrlInfo['act']=='page' && $this->curUrlInfo['cElement']==$row['uid'])	{
 					$arrCol='<img'.t3lib_iconWorks::skinImg($BACK_PATH,'gfx/blinkarrow_left.gif','width="5" height="9"').' class="c-blinkArrowL" alt="" />';
 				} else {
@@ -1903,14 +1936,18 @@ class browse_links {
 			$ATag='';
 			$ATag_e='';
 			$ATag2='';
-			if (in_array('pages',$tablesArr))	{
-				$ficon=t3lib_iconWorks::getIcon('pages',$mainPageRec);
-				$ATag="<a href=\"#\" onclick=\"return insertElement('pages', '".$mainPageRec['uid']."', 'db', ".t3lib_div::quoteJSvalue($mainPageRec['title']).", '', '', '".$ficon."','',1);\">";
-				$ATag2="<a href=\"#\" onclick=\"return insertElement('pages', '".$mainPageRec['uid']."', 'db', ".t3lib_div::quoteJSvalue($mainPageRec['title']).", '', '', '".$ficon."','',0);\">";
-				$ATag_alt=substr($ATag,0,-4).",'',1);\">";
-				$ATag_e='</a>';
+			$picon = '';
+			if (is_array($mainPageRec)) {
+				$picon = t3lib_iconWorks::getSpriteIconForRecord('pages', $mainPageRec);
+				if (in_array('pages', $tablesArr)) {
+					$ATag = "<a href=\"#\" onclick=\"return insertElement('pages', '" . $mainPageRec['uid'] .
+						"', 'db', " . t3lib_div::quoteJSvalue($mainPageRec['title']) . ", '', '', '','',1);\">";
+					$ATag2 = "<a href=\"#\" onclick=\"return insertElement('pages', '" . $mainPageRec['uid'] .
+						"', 'db', " . t3lib_div::quoteJSvalue($mainPageRec['title']) . ", '', '', '','',0);\">";
+					$ATag_alt = substr($ATag, 0, -4) . ",'',1);\">";
+					$ATag_e = '</a>';
+				}
 			}
-			$picon=t3lib_iconWorks::getIconImage('pages',$mainPageRec,$BACK_PATH,'');
 			$pBicon=$ATag2?'<img'.t3lib_iconWorks::skinImg($BACK_PATH,'gfx/plusbullet2.gif','width="18" height="16"').' alt="" />':'';
 			$pText=htmlspecialchars(t3lib_div::fixed_lgd_cs($mainPageRec['title'],$titleLen));
 			$out.=$picon.$ATag2.$pBicon.$ATag_e.$ATag.$pText.$ATag_e.'<br />';
@@ -2785,6 +2822,39 @@ class browse_links {
 				'</div>'.$this->doc->spacer(15);
 		}
 		return $out;
+	}
+
+	/**
+	 * Determines whether submitted field change functions are valid
+	 * and are coming from the system and not from an external abuse.
+	 *
+	 * @param boolean $allowFlexformSections Whether to handle flexform sections differently
+	 * @return boolean Whether the submitted field change functions are valid
+	 */
+	protected function areFieldChangeFunctionsValid($handleFlexformSections = FALSE) {
+		$result = FALSE;
+
+		if (isset($this->P['fieldChangeFunc']) && is_array($this->P['fieldChangeFunc']) && isset($this->P['fieldChangeFuncHash'])) {
+			$matches = array();
+			$pattern = '#\[el\]\[(([^]-]+-[^]-]+-)(idx\d+-)([^]]+))\]#i';
+
+			$fieldChangeFunctions = $this->P['fieldChangeFunc'];
+
+				// Special handling of flexform sections:
+				// Field change functions are modified in JavaScript, thus the hash is always invalid
+			if ($handleFlexformSections && preg_match($pattern, $this->P['itemName'], $matches)) {
+				$originalName = $matches[1];
+				$cleanedName = $matches[2] . $matches[4];
+
+				foreach ($fieldChangeFunctions as &$value) {
+					$value = str_replace($originalName, $cleanedName, $value);
+				}
+			}
+
+			$result = ($this->P['fieldChangeFuncHash'] === t3lib_div::hmac(serialize($fieldChangeFunctions)));
+		}
+
+		return $result;
 	}
 }
 

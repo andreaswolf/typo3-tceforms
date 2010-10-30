@@ -61,6 +61,7 @@ class TYPO3backend {
 	protected $toolbarItems;
 	private   $menuWidthDefault = 190; // intentionally private as nobody should modify defaults
 	protected $menuWidth;
+	protected $debug;
 
 	/**
 	 * Object for loading backend modules
@@ -89,6 +90,8 @@ class TYPO3backend {
 	 * @return	void
 	 */
 	public function __construct() {
+			// set debug flag for BE development only
+		$this->debug = intval($GLOBALS['TYPO3_CONF_VARS']['BE']['debug']) === 1;
 
 			// Initializes the backend modules structure for use later.
 		$this->moduleLoader = t3lib_div::makeInstance('t3lib_loadModules');
@@ -100,18 +103,19 @@ class TYPO3backend {
 		$this->pageRenderer->loadScriptaculous('builder,effects,controls,dragdrop');
 		$this->pageRenderer->loadExtJS();
 
-			// register the extDirect API providers
-			// Note: we need to iterate thru the object, because the addProvider method
-			// does this only with multiple arguments
 		$this->pageRenderer->addExtOnReadyCode(
-			'for (var api in Ext.app.ExtDirectAPI) {
-				Ext.Direct.addProvider(Ext.app.ExtDirectAPI[api]);
+			'TYPO3.Backend = new TYPO3.Viewport(TYPO3.Viewport.configuration);
+			if (typeof console === "undefined") {
+				console = TYPO3.Backend.DebugConsole;
 			}
-			TYPO3.Backend = new TYPO3.Viewport(TYPO3.Viewport.configuration);
-			',
+			TYPO3.ContextHelpWindow.init();',
 			TRUE
 		);
-
+		$this->pageRenderer->addJsInlineCode(
+			'consoleOverrideWithDebugPanel',
+			'//already done'
+		);
+		$this->pageRenderer->addExtDirectCode();
 
 			// add default BE javascript
 		$this->js      = '';
@@ -122,7 +126,6 @@ class TYPO3backend {
 			'contrib/swfupload/plugins/swfupload.queue.js',
 			'md5.js',
 			'js/common.js',
-			'js/extjs/backendsizemanager.js',
 			'js/toolbarmanager.js',
 			'js/modulemenu.js',
 			'js/iecompatibility.js',
@@ -130,12 +133,18 @@ class TYPO3backend {
 			'../t3lib/jsfunc.evalfield.js',
 			'../t3lib/js/extjs/ux/flashmessages.js',
 			'../t3lib/js/extjs/ux/ext.ux.tabclosemenu.js',
+			'../t3lib/js/extjs/notifications.js',
 			'js/backend.js',
 			'js/loginrefresh.js',
 			'js/extjs/debugPanel.js',
 			'js/extjs/viewport.js',
+			'js/extjs/iframepanel.js',
 			'js/extjs/viewportConfiguration.js',
 		);
+
+		if ($this->debug) {
+			unset($this->jsFiles['js/loginrefresh.js']);
+		}
 
 			// add default BE css
 		$this->css      = '';
@@ -197,34 +206,17 @@ class TYPO3backend {
 		$logo         = t3lib_div::makeInstance('TYPO3Logo');
 		$logo->setLogo('gfx/typo3logo_mini.png');
 
-		$menu         = $this->moduleMenu->render();
 
-		if ($this->menuWidth != $this->menuWidthDefault) {
-			$this->css .= '
-				#typo3-top {
-					margin-left: ' . $this->menuWidth . 'px;
-				}
-			';
-		}
 
 			// create backend scaffolding
 		$backendScaffolding = '
-	<div id="typo3-backend">
 		<div id="typo3-top-container" class="x-hide-display">
 			<div id="typo3-logo">'.$logo->render().'</div>
 			<div id="typo3-top" class="typo3-top-toolbar">' .
 				$this->renderToolbar() .
 			'</div>
 		</div>
-		<div id="typo3-main-container">
-			<div id="typo3-side-menu" class="x-hide-display">' .
-				$menu .
-			'</div>
-			<div id="typo3-content" class="x-hide-display">
-				<iframe src="alt_intro.php" name="content" id="content" marginwidth="0" marginheight="0" frameborder="0" scrolling="auto"></iframe>
-			</div>
-		</div>
-	</div>
+
 ';
 
 		/******************************************************
@@ -252,14 +244,14 @@ class TYPO3backend {
 		$hasExtDirectRouter = FALSE;
 		if (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect']) && is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'])) {
 			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'] as $key => $value) {
-				if (strpos($key, 'TYPO3.Backend') !== FALSE) {
+				if (strpos($key, 'TYPO3.Ajax.ExtDirect') !== FALSE) {
 					$hasExtDirectRouter = TRUE;
 					break;
 				}
 			}
 		}
 		if ($hasExtDirectRouter) {
-			$this->pageRenderer->addJsFile('ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.Backend', NULL, FALSE);
+			$this->pageRenderer->addJsFile('ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.Ajax.ExtDirect', NULL, FALSE);
 		}
 
 		$this->generateJavascript();
@@ -351,12 +343,13 @@ class TYPO3backend {
 	protected function generateJavascript() {
 
 		$pathTYPO3          = t3lib_div::dirname(t3lib_div::getIndpEnv('SCRIPT_NAME')).'/';
-		$goToModuleSwitch   = $this->moduleMenu->getGotoModuleJavascript();
-		$moduleFramesHelper = implode(LF, $this->moduleMenu->getFsMod());
 
 			// If another page module was specified, replace the default Page module with the new one
 		$newPageModule = trim($GLOBALS['BE_USER']->getTSConfigVal('options.overridePageModule'));
 		$pageModule    = t3lib_BEfunc::isModuleSetInTBE_MODULES($newPageModule) ? $newPageModule : 'web_layout';
+		if (!$GLOBALS['BE_USER']->check('modules', $pageModule)) {
+			$pageModule = '';
+		}
 
 		$menuFrameName = 'menu';
 		if($GLOBALS['BE_USER']->uc['noMenuMode'] === 'icons') {
@@ -385,8 +378,14 @@ class TYPO3backend {
 			'veriCode' => $GLOBALS['BE_USER']->veriCode(),
 			'denyFileTypes' => PHP_EXTENSIONS_DEFAULT,
 			'moduleMenuWidth' => $this->menuWidth - 1,
-			'topBarHeight' => (int) $GLOBALS['TBE_STYLES']['dims']['topFrameH'],
+			'topBarHeight' => (isset($GLOBALS['TBE_STYLES']['dims']['topFrameH']) ? intval($GLOBALS['TBE_STYLES']['dims']['topFrameH']) : 30),
 			'showRefreshLoginPopup' => isset($GLOBALS['TYPO3_CONF_VARS']['BE']['showRefreshLoginPopup']) ? intval($GLOBALS['TYPO3_CONF_VARS']['BE']['showRefreshLoginPopup']) : FALSE,
+			'listModulePath' => t3lib_extMgm::isLoaded('list') ? t3lib_extMgm::extRelPath('list') . 'mod1/' : '',
+			'debugInWindow' => $GLOBALS['BE_USER']->uc['debugInWindow'] ? 1 : 0,
+			'ContextHelpWindows' => array(
+				'width' => 600,
+				'height' => 400
+			)
 		);
 		$t3LLLcore = array(
 			'waitTitle' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_logging_in') ,
@@ -400,6 +399,7 @@ class TYPO3backend {
 			'refresh_login_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_button'),
 			'refresh_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_logout_button'),
 			'please_wait' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.please_wait'),
+			'loadingIndicator' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:loadingIndicator'),
 			'be_locked' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.be_locked'),
 			'refresh_login_countdown_singular' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown_singular'),
 			'refresh_login_countdown' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown'),
@@ -410,6 +410,7 @@ class TYPO3backend {
 			'tabs_closeAll' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.closeAll'),
 			'tabs_closeOther' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.closeOther'),
 			'tabs_close' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.close'),
+			'tabs_openInBrowserWindow' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.openInBrowserWindow'),
 			'donateWindow_title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.title'),
 			'donateWindow_message' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.message'),
 			'donateWindow_button_donate' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.button_donate'),
@@ -477,9 +478,7 @@ class TYPO3backend {
 		this.denyFileTypes = TYPO3.configuration.denyFileTypes;
 	}
 	var TS = new typoSetup();
-
-	var currentModuleLoaded = "";
-
+		//backwards compatibility
 	/**
 	 * Frameset Module object
 	 *
@@ -494,16 +493,16 @@ class TYPO3backend {
 		this.currentMainLoaded="";
 		this.currentBank="0";
 	}
-	var fsMod = new fsModules();' . $moduleFramesHelper . ';';
+	var fsMod = new fsModules();
 
-			// add goToModule code
-		$this->pageRenderer->addExtOnReadyCode('
-			top.goToModule = ' . $goToModuleSwitch . ';
-		');
+	top.goToModule = function(modName, cMR_flag, addGetVars) {
+		TYPO3.ModuleMenu.App.showModule(modName, addGetVars);
+	}
+	' . $this->setStartupModule();
 
 			// Check editing of page:
 		$this->handlePageEditing();
-		$this->setStartupModule();
+
 	}
 
 	/**
@@ -580,17 +579,14 @@ class TYPO3backend {
 
 		$moduleParameters = t3lib_div::_GET('modParams');
 		if($startModule) {
-			$this->pageRenderer->addExtOnReadyCode('
-			// start in module:
-		function startInModule(modName, cMR_flag, addGetVars)	{
-			Ext.onReady(function() {
-				top.goToModule(modName, cMR_flag, addGetVars);
-			});
+			return '
+					// start in module:
+				top.startInModule = [\'' . $startModule . '\', ' . t3lib_div::quoteJSvalue($moduleParameters) . '];
+			';
+		} else {
+			return '';
 		}
 
-		startInModule(\''.$startModule.'\', false, '.t3lib_div::quoteJSvalue($moduleParameters).');
-			');
-		}
 	}
 
 	/**
@@ -599,7 +595,7 @@ class TYPO3backend {
 	 * @return	string	HTML code snippet to display the TYPO3 logo
 	 */
 	protected function getLogo() {
-		$logo = '<a href="http://www.typo3.com/" target="_blank" onclick="'.$GLOBALS['TBE_TEMPLATE']->thisBlur().'">'.
+		$logo = '<a href="http://www.typo3.com/" target="_blank">'.
 				'<img'.t3lib_iconWorks::skinImg('','gfx/alt_backend_logo.gif','width="117" height="32"').' title="TYPO3 Content Management Framework" alt="" />'.
 				'</a>';
 
@@ -608,7 +604,7 @@ class TYPO3backend {
 			if(substr($GLOBALS['TBE_STYLES']['logo'], 0, 3) == '../')	{
 				$imgInfo = @getimagesize(PATH_site.substr($GLOBALS['TBE_STYLES']['logo'], 3));
 			}
-			$logo = '<a href="http://www.typo3.com/" target="_blank" onclick="'.$GLOBALS['TBE_TEMPLATE']->thisBlur().'">'.
+			$logo = '<a href="http://www.typo3.com/" target="_blank">'.
 				'<img src="'.$GLOBALS['TBE_STYLES']['logo'].'" '.$imgInfo[3].' title="TYPO3 Content Management Framework" alt="" />'.
 				'</a>';
 		}

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,7 +29,7 @@
  *
  * This module lets you view the changelog.
  *
- * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
+ * @author	Kasper SkÃ¥rhÃ¸j <kasperYYYY@typo3.com>
  */
 
 
@@ -43,7 +43,7 @@ $BE_USER->modAccess($MCONF,1);
 /**
  * Tools log script class
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tx_belog
  */
@@ -168,6 +168,7 @@ class SC_mod_tools_log_index {
 				0 => $GLOBALS['LANG']->getLL('any'),
 				1 => $GLOBALS['LANG']->getLL('actionDatabase'),
 				2 => $GLOBALS['LANG']->getLL('actionFile'),
+				3 => $GLOBALS['LANG']->getLL('actionCache'),
 				254 => $GLOBALS['LANG']->getLL('actionSettings'),
 				255 => $GLOBALS['LANG']->getLL('actionLogin'),
 				'-1' => $GLOBALS['LANG']->getLL('actionErrors')
@@ -263,7 +264,7 @@ class SC_mod_tools_log_index {
 			array(
 				array($GLOBALS['LANG']->getLL('users'), $menuU),
 				array($GLOBALS['LANG']->getLL('time'), $menuT . ($this->MOD_SETTINGS['time'] == 30 ?
-				'<br />' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:from', true) . ' ' . $inputDate . $pickerInputDate . 
+				'<br />' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:from', true) . ' ' . $inputDate . $pickerInputDate .
 				' ' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:to', true) . ' ' . $inputDate_end . $pickerInputDate_end . '&nbsp;' . $setButton : ''))
 			),
 			array(

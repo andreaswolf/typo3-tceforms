@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,7 +29,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @author	Ingmar Schlecht <ingmar@typo3.org>
  */
 /**
@@ -159,7 +159,7 @@ require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_co
 /**
  * Install Tool module
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @author	Ingmar Schlecht <ingmar@typo3.org>
  * @package TYPO3
  * @subpackage tx_install
@@ -231,6 +231,19 @@ class tx_install extends t3lib_install {
 		'logout' => 'Logout from Install Tool',
 	);
 
+		// PHP modules which are required. Can be changed by hook in getMissingPhpModules()
+	protected $requiredPhpModules = array(
+		'filter',
+		'gd',
+		'json',
+		'mysql',
+		'pcre',
+		'session',
+		'SPL',
+		'standard',
+		'xml',
+		'zlib'
+	);
 
 
 
@@ -254,6 +267,12 @@ class tx_install extends t3lib_install {
 			header('Pragma: no-cache');
 		}
 
+			// Let DBAL decide whether to load itself
+		$dbalLoaderFile = $this->backPath . 'sysext/dbal/class.tx_dbal_autoloader.php';
+		if (@is_file($dbalLoaderFile)) {
+			include($dbalLoaderFile);
+		}
+
 			// ****************************
 			// Initializing incoming vars.
 			// ****************************
@@ -261,13 +280,22 @@ class tx_install extends t3lib_install {
 		$this->mode = t3lib_div::_GP('mode');
 		if ($this->mode !== '123') {
 			$this->mode = '';
+		} else {
+				// Check for mandatory PHP modules
+			$missingPhpModules = $this->getMissingPhpModules();
+			if (count($missingPhpModules) > 0) {
+				throw new RuntimeException('TYPO3 Installation Error: The following PHP module(s) is/are missing: <em>' .
+						implode(', ', $missingPhpModules) .
+						'</em><br /><br />You need to install and enable these modules first to be able to install TYPO3.'
+				);
+			}
 		}
 		if (t3lib_div::_GP('step') === 'go') {
 			$this->step = 'go';
 		} else {
 			$this->step = intval(t3lib_div::_GP('step'));
 		}
-		$this->redirect_url = t3lib_div::_GP('redirect_url');
+		$this->redirect_url = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('redirect_url'));
 
 		$this->INSTALL['type'] = '';
 		if ($_GET['TYPO3_INSTALL']['type']) {
@@ -317,7 +345,11 @@ class tx_install extends t3lib_install {
 			die('Install Tool needs to write to typo3temp/. Make sure this directory is writeable by your webserver: '. $this->typo3temp_path);
 		}
 
-		$this->session = t3lib_div::makeInstance('tx_install_session');
+		try {
+			$this->session = t3lib_div::makeInstance('tx_install_session');
+		} catch (Exception $exception) {
+			$this->outputErrorAndExit($exception->getMessage());
+		}
 
 			// *******************
 			// Check authorization
@@ -334,12 +366,6 @@ class tx_install extends t3lib_install {
 			if (is_file ($enableInstallToolFile)) {
 					// Extend the age of the ENABLE_INSTALL_TOOL file by one hour
 				@touch($enableInstallToolFile);
-			}
-
-				// Let DBAL decide whether to load itself
-			$dbalLoaderFile = $this->backPath . 'sysext/dbal/class.tx_dbal_autoloader.php';
-			if (@is_file($dbalLoaderFile)) {
-				include($dbalLoaderFile);
 			}
 
 			if($this->redirect_url) {
@@ -471,7 +497,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 			// Define the markers content
 		$markers = array(
 			'siteName' => 'Site: ' .
-				$GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'],
+				htmlspecialchars($GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']),
 			'headTitle' => 'Login to TYPO3 ' . TYPO3_version . ' Install Tool',
 			'redirectUrl' => htmlspecialchars($redirect_url),
 			'enterPassword' => 'Password',
@@ -1252,7 +1278,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		}
 
 		asort($paths);
-		if (ini_get('safe_mode')) {
+		if (t3lib_utility_PhpOptions::isSafeModeEnabled()) {
 			$paths=array(ini_get('safe_mode_exec_dir'),'/usr/local/php/bin/');
 		}
 		if ($this->INSTALL['checkIM']['lzw']) {
@@ -1960,8 +1986,8 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						$textLineSubpart = '';
 
 						$description = trim($commentArr[1][$k][$vk]);
-						$isTextarea = preg_match('/^string \(textarea\)/i',$description) ? TRUE : FALSE;
-						$doNotRender = preg_match('/^string \(exclude\)/i', $description) ? TRUE : FALSE;
+						$isTextarea = preg_match('/^(<.*?>)?string \(textarea\)/i', $description) ? TRUE : FALSE;
+						$doNotRender = preg_match('/^(<.*?>)?string \(exclude\)/i', $description) ? TRUE : FALSE;
 
 						if (!is_array($value) && !$doNotRender && ($this->checkForBadString($value) || $isTextarea)) {
 							$k2 = '['.$vk.']';
@@ -1973,8 +1999,9 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 								$textAreaMarkers = array(
 									'id' => $k . '-' . $vk,
 									'name' => 'TYPO3_INSTALL[extConfig]['.$k.']['.$vk.']',
-									'value' => $value
+									'value' => str_replace(array("'.chr(10).'", "' . LF . '"), array(LF, LF), $value)
 								);
+								$value = str_replace(array("'.chr(10).'", "' . LF . '"), array(' | ', ' | '), $value);
 									// Fill the markers in the subpart
 								$textAreaSubpart = t3lib_parsehtml::substituteMarkerArray(
 									$textAreaSubpart,
@@ -1983,7 +2010,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 									TRUE,
 									FALSE
 								);
-							} elseif (preg_match('/^boolean/i',$description)) {
+							} elseif (preg_match('/^(<.*?>)?boolean/i', $description)) {
 									// Get the subpart for a checkbox
 								$booleanSubpart = t3lib_parsehtml::getSubpart($template, '###BOOLEAN###');
 									// Define the markers content
@@ -2039,7 +2066,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 							);
 								// Define the markers content
 							$markers = array(
-								'description' => htmlspecialchars($description),
+								'description' => $description,
 								'key' => '[' . $k . '][' . $vk . ']',
 								'label' => htmlspecialchars(t3lib_div::fixed_lgd_cs($value, 40))
 							);
@@ -2082,9 +2109,9 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 									$description = trim($commentArr[1][$k][$vk]);
 									if (preg_match('/^string \(textarea\)/i', $description)) {
 											// Force Unix linebreaks in textareas
-										$value = str_replace(chr(13),'',$value);
+										$value = str_replace(chr(13), '', $value);
 											// Preserve linebreaks
-										$value = str_replace(chr(10),"'.chr(10).'",$value);
+										$value = str_replace(LF, "' . LF . '", $value);
 									}
 									if (preg_match('/^boolean/i', $description)) {
 											// When submitting settings in the Install Tool, values that default to "false" or "true"
@@ -2381,7 +2408,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 			// *****************
 			// Safe mode related
 			// *****************
-		if (ini_get('safe_mode')) {
+		if (t3lib_utility_PhpOptions::isSafeModeEnabled()) {
 			$this->message($ext, 'Safe mode turned on', '
 				<p>
 					<em>safe_mode=' . ini_get('safe_mode') . '</em>
@@ -2461,7 +2488,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		} else {
 			$this->message($ext, 'safe_mode: off',"",-1);
 		}
-		if (ini_get('sql.safe_mode')) {
+		if (t3lib_utility_PhpOptions::isSqlSafeModeEnabled()) {
 			$this->message($ext, 'sql.safe_mode is enabled', '
 				<p>
 					<em>sql.safe_mode=' . ini_get('sql.safe_mode') . '</em>
@@ -4110,15 +4137,43 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		return (is_array($test) ? 1 : 0);
 	}
 
+	/**
+	 * Checks if the essential PHP modules are loaded
+	 *
+	 * @return array list of modules which are missing
+	 */
+	protected function getMissingPhpModules() {
 
-
-
-
-
-
-
-
-
+			// Hook to adjust the required PHP modules in the 1-2-3 installer
+		$modules = $this->requiredPhpModules;
+		if (is_array ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install/mod/class.tx_install.php']['requiredPhpModules'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install/mod/class.tx_install.php']['requiredPhpModules'] as $classData) {
+				$hookObject = t3lib_div::getUserObj($classData);
+				$modules = $hookObject->setRequiredPhpModules($modules, $this);
+			}
+		}
+		$this->requiredPhpModules = $modules;
+		
+		$result = array();
+		foreach ($this->requiredPhpModules as $module) {
+			if (is_array($module)) {
+				$detectedSubmodules = FALSE;
+				foreach ($module as $submodule) {
+					if (extension_loaded($submodule)) {
+						$detectedSubmodules = TRUE;
+					}
+				}
+				if ($detectedSubmodules === FALSE) {
+					$result[] = 'one of: (' . implode(', ', $module) . ')';
+				}
+			} else {
+				if (!extension_loaded($module)) {
+					$result[] = $module;
+				}
+			}
+		}
+		return $result;
+	}
 
 	/*****************************************
 	 *
@@ -4805,7 +4860,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 				if ($gdActive) {
 					// GD with box
 					$imageProc->IM_commands=array();
-					$im = $imageProc->imageCreate(170,136);
+					$im = imagecreatetruecolor(170, 136);
 					$Bcolor = ImageColorAllocate ($im, 0, 0, 0);
 					ImageFilledRectangle($im, 0, 0, 170, 136, $Bcolor);
 					$workArea=array(0,0,170,136);
@@ -4841,7 +4896,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 
 						// GD with text
 					$imageProc->IM_commands=array();
-					$im = $imageProc->imageCreate(170,136);
+					$im = imagecreatetruecolor(170, 136);
 					$Bcolor = ImageColorAllocate ($im, 128,128,150);
 					ImageFilledRectangle($im, 0, 0, 170, 136, $Bcolor);
 					$workArea=array(0,0,170,136);
@@ -6350,17 +6405,8 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 	 * @return void
 	 */
 	function updateWizard() {
-		global $TYPO3_CONF_VARS;
-
 			// clear cache files
-		t3lib_extMgm::removeCacheFiles();
-
-			// generate new cache files and include them
-		$GLOBALS['TYPO3_CONF_VARS']['EXT']['extCache'] = 1;
-		$TYPO3_LOADED_EXT = t3lib_extMgm::typo3_loadExtensions();
-		if ($TYPO3_LOADED_EXT['_CACHEFILE']) {
-			require(PATH_typo3conf . $TYPO3_LOADED_EXT['_CACHEFILE'] . '_ext_localconf.php');
-		}
+		t3lib_extMgm::removeCacheFiles(t3lib_extMgm::getCacheFilePrefix());
 
 			// call wizard
 		$action = ($this->INSTALL['database_type'] ? $this->INSTALL['database_type'] : 'checkForUpdate');
@@ -7631,7 +7677,7 @@ $out="
 		} else {
 			$this->markers['headTitle'] = '
 				TYPO3 ' . TYPO3_version . '
-				Install Tool on site: ' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] . '
+				Install Tool on site: ' . htmlspecialchars($GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']) . '
 			';
 		}
 		$this->markers['title'] = 'TYPO3 ' . TYPO3_version;
@@ -7731,6 +7777,47 @@ $out="
 		);
 
 		return $this->template;
+	}
+
+	/**
+	 * Outputs an error and dies.
+	 * Should be used by all errors that occur before even starting the install tool process.
+	 *
+	 * @param string The content of the error
+	 * @return void
+	 */
+	protected function outputErrorAndExit($content, $title = 'Install Tool error') {
+			// Define the stylesheet
+		$stylesheet = '<link rel="stylesheet" type="text/css" href="' .
+			'../stylesheets/install/install.css" />';
+		$javascript = '<script type="text/javascript" src="' .
+			'../contrib/prototype/prototype.js"></script>' . LF;
+		$javascript .= '<script type="text/javascript" src="' .
+			'../sysext/install/Resources/Public/Javascript/install.js"></script>';
+
+			// Get the template file
+		$template = @file_get_contents(PATH_site . '/typo3/templates/install.html');
+			// Define the markers content
+		$markers = array(
+			'styleSheet' => $stylesheet,
+			'javascript' => $javascript,
+			'title' => $title,
+			'content' => $content,
+		);
+			// Fill the markers
+		$content = t3lib_parsehtml::substituteMarkerArray(
+			$template,
+			$markers,
+			'###|###',
+			1,
+			1
+		);
+			// Output the warning message and exit
+		header('Content-Type: text/html; charset=utf-8');
+		header('Cache-Control: no-cache, must-revalidate');
+		header('Pragma: no-cache');
+		echo $content;
+		exit();
 	}
 
 	/**
@@ -7858,7 +7945,7 @@ $out="
 					Change the Install Tool password.
 				</li>
 				<li>
-					Delete the ENABLE_INSTALL_TOOL file in the /typo3conf folder. This can be done 
+					Delete the ENABLE_INSTALL_TOOL file in the /typo3conf folder. This can be done
 					manually or through User tools &gt; User settings in the backend.
 				</li>
 				<li>
@@ -7932,7 +8019,7 @@ $out="
 	function messageBasicFinished() {
 		return '
 			<p>
-				You have completed the basic setup of the TYPO3 Content Management System. 
+				You have completed the basic setup of the TYPO3 Content Management System.
 				Choose between these options to continue:
 			</p>
 			<ul>
@@ -8131,6 +8218,7 @@ $out="
 			if (count($warnings)) {
 					// Get the subpart for warnings
 				$warningsSubpart = t3lib_parsehtml::getSubpart($content, '###WARNINGS###');
+				$warningItems = array();
 
 				foreach ($warnings as $warning) {
 						// Get the subpart for single warning items
@@ -8138,7 +8226,7 @@ $out="
 						// Define the markers content
 					$warningItemMarker['warning'] = $warning;
 						// Fill the markers in the subpart
-					$warningItem[] = t3lib_parsehtml::substituteMarkerArray(
+					$warningItems[] = t3lib_parsehtml::substituteMarkerArray(
 						$warningItemSubpart,
 						$warningItemMarker,
 						'###|###',

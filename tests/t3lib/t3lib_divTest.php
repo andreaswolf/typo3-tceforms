@@ -33,56 +33,360 @@
  * @subpackage t3lib
  */
 class t3lib_divTest extends tx_phpunit_testcase {
+
 	/**
-	 * backup of the global variables _GET, _POST, _SERVER
+	 * Enable backup of global and system variables
+	 *
+	 * @var boolean
+	 */
+	protected $backupGlobals = TRUE;
+
+	/**
+	 * Exclude TYPO3_DB from backup/ restore of $GLOBALS
+	 * because resource types cannot be handled during serializing
 	 *
 	 * @var array
 	 */
-	private $backupGlobalVariables;
+	protected $backupGlobalsBlacklist = array('TYPO3_DB');
 
-	public function setUp() {
-		$this->backupGlobalVariables = array(
-			'_GET' => $_GET,
-			'_POST' => $_POST,
-			'_SERVER' => $_SERVER,
-			'TYPO3_CONF_VARS' =>  $GLOBALS['TYPO3_CONF_VARS'],
+
+	///////////////////////////////
+	// Tests concerning validIP
+	///////////////////////////////
+
+	/**
+	 * Data provider for checkValidIpReturnsTrueForValidIp
+	 *
+	 * @return array Data sets
+	 */
+	public static function validIpDataProvider() {
+		return array(
+			'0.0.0.0' => array('0.0.0.0'),
+			'private IPv4 class C' => array('192.168.0.1'),
+			'private IPv4 class A' => array('10.0.13.1'),
+			'private IPv6' => array('fe80::daa2:5eff:fe8b:7dfb'),
 		);
 	}
 
-	public function tearDown() {
-		foreach ($this->backupGlobalVariables as $key => $data) {
-			$GLOBALS[$key] = $data;
-		}
-	}
-
-
 	/**
 	 * @test
+	 * @dataProvider validIpDataProvider
 	 */
-	public function calcPriorityCalculatesBasicArithmeticOperation() {
-		$this->assertEquals(9, t3lib_div::calcPriority('6 + 3'));
-		$this->assertEquals(3, t3lib_div::calcPriority('6 - 3'));
-		$this->assertEquals(-3, t3lib_div::calcPriority('3 - 6'));
-		$this->assertEquals(6, t3lib_div::calcPriority('2 * 3'));
-		$this->assertEquals(2.5, t3lib_div::calcPriority('5 / 2'));
-		$this->assertEquals(1, t3lib_div::calcPriority('5 % 2'));
-		$this->assertEquals(8, t3lib_div::calcPriority('2 ^ 3'));
+	public function validIpReturnsTrueForValidIp($ip) {
+		$this->assertTrue(t3lib_div::validIP($ip));
 	}
 
 	/**
-	 * @test
+	 * Data provider for checkValidIpReturnsFalseForInvalidIp
+	 *
+	 * @return array Data sets
 	 */
-	public function calcPriorityCalculatesArithmeticOperationWithMultipleOperands() {
-		$this->assertEquals(6.5, t3lib_div::calcPriority('5 + 3 / 2'));
-		$this->assertEquals(14, t3lib_div::calcPriority('5 + 3 ^ 2'));
-		$this->assertEquals(4, t3lib_div::calcPriority('5 % 2 + 3'));
-		$this->assertEquals(3, t3lib_div::calcPriority('2 + 6 / 2 - 2'));
+	public static function invalidIpDataProvider() {
+		return array(
+			'null' => array(null),
+			'zero' => array(0),
+			'string' => array('test'),
+			'string empty' => array(''),
+			'string null' => array('null'),
+			'out of bounds IPv4' => array('300.300.300.300'),
+			'dotted decimal notation with only two dots' => array('127.0.1'),
+		);
 	}
 
 	/**
 	 * @test
+	 * @dataProvider invalidIpDataProvider
 	 */
-	public function checkIntExplodeConvertsStringsToInteger() {
+	public function validIpReturnsFalseForInvalidIp($ip) {
+		$this->assertFalse(t3lib_div::validIP($ip));
+	}
+
+
+	///////////////////////////////
+	// Tests concerning testInt
+	///////////////////////////////
+
+	/**
+	 * Data provider for testIntReturnsTrue
+	 *
+	 * @return array Data sets
+	 */
+	public function functionTestIntValidDataProvider() {
+		return array(
+			'int' => array(32425),
+			'negative int' => array(-32425),
+			'largest int' => array(PHP_INT_MAX),
+			'int as string' => array('32425'),
+			'negative int as string' => array('-32425'),
+			'zero' => array(0),
+			'zero as string' => array('0'),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider functionTestIntValidDataProvider
+	 */
+	public function testIntReturnsTrue($int) {
+		$this->assertTrue(t3lib_div::testInt($int));
+	}
+
+	/**
+	 * Data provider for testIntReturnsFalse
+	 *
+	 * @return array Data sets
+	 */
+	public function functionTestIntInvalidDataProvider() {
+		return array(
+			'int as string with leading zero' => array('01234'),
+			'positive int as string with plus modifier' => array('+1234'),
+			'negative int as string with leading zero' => array('-01234'),
+			'largest int plus one' => array(PHP_INT_MAX + 1),
+			'string' => array('testInt'),
+			'empty string' => array(''),
+			'int in string' => array('5 times of testInt'),
+			'int as string with space after' => array('5 '),
+			'int as string with space before' => array(' 5'),
+			'int as string with many spaces before' => array('     5'),
+			'float' => array(3.14159),
+			'float as string' => array('3.14159'),
+			'float as string only a dot' => array('10.'),
+			'float as string trailing zero would evaluate to int 10' => array('10.0'),
+			'float as string trailing zeros	 would evaluate to int 10' => array('10.00'),
+			'null' => array(NULL),
+			'empty array' => array(array()),
+			'int in array' => array(array(32425)),
+			'int as string in array' => array(array('32425')),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider functionTestIntInvalidDataProvider
+	 */
+	public function testIntReturnsFalse($int) {
+		$this->assertFalse(t3lib_div::testInt($int));
+	}
+
+
+	///////////////////////////////
+	// Tests concerning isFirstPartOfStr
+	///////////////////////////////
+
+	/**
+	 * Data provider for isFirstPartOfStrReturnsTrueForMatchingFirstParts
+	 *
+	 * @return array
+	 */
+	public function isFirstPartOfStrReturnsTrueForMatchingFirstPartDataProvider() {
+		return array(
+			'match first part of string' => array('hello world', 'hello'),
+			'match whole string' => array('hello', 'hello'),
+			'integer is part of string with same number' => array('24', 24),
+			'string is part of integer with same number' => array(24, '24'),
+			'integer is part of string starting with same number' => array('24 beer please', 24),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider isFirstPartOfStrReturnsTrueForMatchingFirstPartDataProvider
+	 */
+	public function isFirstPartOfStrReturnsTrueForMatchingFirstPart($string, $part) {
+		$this->assertTrue(t3lib_div::isFirstPartOfStr($string, $part));
+	}
+
+	/**
+	 * Data provider for checkIsFirstPartOfStrReturnsFalseForNotMatchingFirstParts
+	 *
+	 * @return array
+	 */
+	public function isFirstPartOfStrReturnsFalseForNotMatchingFirstPartDataProvider() {
+		return array(
+			'no string match' => array('hello', 'bye'),
+			'no case sensitive string match' => array('hello world', 'Hello'),
+			'array is not part of string' => array('string', array()),
+			'string is not part of array' => array(array(), 'string'),
+			'null is not part of string' => array('string', NULL),
+			'string is not part of array' => array(NULL, 'string'),
+			'null is not part of array' => array(array(), NULL),
+			'array is not part of string' => array(NULL, array()),
+			'empty string is not part of empty string' => array('', ''),
+			'null is not part of empty string' => array('', NULL),
+			'false is not part of empty string' => array('', FALSE),
+			'empty string is not part of null' => array(NULL, ''),
+			'empty string is not part of false' => array(FALSE, ''),
+			'empty string is not part of zero integer' => array(0, ''),
+			'zero integer is not part of null' => array(NULL, 0),
+			'zero integer is not part of empty string' => array('', 0),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider isFirstPartOfStrReturnsFalseForNotMatchingFirstPartDataProvider
+	 */
+	public function isFirstPartOfStrReturnsFalseForNotMatchingFirstPart($string, $part) {
+		$this->assertFalse(t3lib_div::isFirstPartOfStr($string, $part));
+	}
+
+
+	///////////////////////////////
+	// Tests concerning splitCalc
+	///////////////////////////////
+
+	/**
+	 * Data provider for splitCalc
+	 *
+	 * @return array expected values, arithmetic expression
+	 */
+	public function splitCalcDataProvider() {
+		return array(
+			'empty string returns empty array' => array(
+				array(),
+				'',
+			),
+			'number without operator returns array with plus and number' => array(
+				array(array('+', 42)),
+				'42',
+			),
+			'two numbers with asterisk return first number with plus and second number with asterisk' => array(
+				array(array('+', 42), array('*', 31)),
+				'42 * 31',
+			),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider splitCalcDataProvider
+	 */
+	public function splitCalcCorrectlySplitsExpression($expected, $expression) {
+		$this->assertEquals($expected, t3lib_div::splitCalc($expression, '+-*/'));
+	}
+
+
+	//////////////////////////////////
+	// Tests concerning calcPriority
+	//////////////////////////////////
+
+	/**
+	 * Data provider for calcPriority
+	 *
+	 * @return array expected values, arithmetic expression
+	 */
+	public function calcPriorityDataProvider() {
+		return array(
+			'add' => array(9, '6 + 3'),
+			'substract with positive result' => array(3, '6 - 3'),
+			'substract with negative result' => array(-3, '3 - 6'),
+			'multiply' => array(6, '2 * 3'),
+			'divide' => array(2.5, '5 / 2'),
+			'modulus' => array(1, '5 % 2'),
+			'power' => array(8, '2 ^ 3'),
+			'three operands with non integer result' => array(6.5, '5 + 3 / 2'),
+			'three operands with power' => array(14, '5 + 3 ^ 2'),
+			'three operads with modulus' => array(4, '5 % 2 + 3'),
+			'four operands' => array(3, '2 + 6 / 2 - 2'),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider calcPriorityDataProvider
+	 */
+	public function calcPriorityCorrectlyCalculatesExpression($expected, $expression) {
+		$this->assertEquals($expected, t3lib_div::calcPriority($expression));
+	}
+
+
+	//////////////////////////////////
+	// Tests concerning calcPriority
+	//////////////////////////////////
+
+	/**
+	 * Data provider for valid validEmail's
+	 *
+	 * @return array Valid email addresses
+	 */
+	public function validEmailValidDataProvider() {
+		return array(
+			'short mail address' => array('a@b.c'),
+			'simple mail address' => array('test@example.com'),
+			'uppercase characters' => array('QWERTYUIOPASDFGHJKLZXCVBNM@QWERTYUIOPASDFGHJKLZXCVBNM.NET'),
+				// Fix / change if TYPO3 php requirement changed: Address ok with 5.2.6 and 5.3.2 but fails with 5.3.0 on windows
+			// 'equal sign in local part' => array('test=mail@example.com'),
+			'dash in local part' => array('test-mail@example.com'),
+			'plus in local part' => array('test+mail@example.com'),
+				// Fix / change if TYPO3 php requirement changed: Address ok with 5.2.6 and 5.3.2 but fails with 5.3.0 on windows
+			// 'question mark in local part' => array('test?mail@example.com'),
+			'slash in local part' => array('foo/bar@example.com'),
+			'hash in local part' => array('foo#bar@example.com'),
+				// Fix / change if TYPO3 php requirement changed: Address ok with 5.2.6 and 5.3.2 but fails with 5.3.0 on windows
+			// 'dot in local part' => array('firstname.lastname@employee.2something.com'),
+				// Fix / change if TYPO3 php requirement changed: Address ok with 5.2.6, but not ok with 5.3.2
+			// 'dash as local part' => array('-@foo.com'),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider validEmailValidDataProvider
+	 */
+	public function validEmailReturnsTrueForValidMailAddress($address) {
+		$this->assertTrue(t3lib_div::validEmail($address));
+	}
+
+	/**
+	 * Data provider for invalid validEmail's
+	 *
+	 * @return array Invalid email addresses
+	 */
+	public function validEmailInvalidDataProvider() {
+		return array(
+			'@ sign only' => array('@'),
+			'duplicate @' => array('test@@example.com'),
+			'duplicate @ combined with further special characters in local part' => array('test!.!@#$%^&*@example.com'),
+			'opening parenthesis in local part' => array('foo(bar@example.com'),
+			'closing parenthesis in local part' => array('foo)bar@example.com'),
+			'opening square bracket in local part' => array('foo[bar@example.com'),
+			'closing square bracket as local part' => array(']@example.com'),
+				// Fix / change if TYPO3 php requirement changed: Address ok with 5.2.6, but not ok with 5.3.2
+			// 'top level domain only' => array('test@com'),
+			'dash as second level domain' => array('foo@-.com'),
+			'domain part starting with dash' => array('foo@-foo.com'),
+			'domain part ending with dash' => array('foo@foo-.com'),
+			'number as top level domain' => array('foo@bar.123'),
+				// Fix / change if TYPO3 php requirement changed: Address not ok with 5.2.6, but ok with 5.3.2 (?)
+			// 'dash as top level domain' => array('foo@bar.-'),
+			'dot at beginning of domain part' => array('test@.com'),
+				// Fix / change if TYPO3 php requirement changed: Address ok with 5.2.6, but not ok with 5.3.2
+			// 'local part ends with dot' => array('e.x.a.m.p.l.e.@example.com'),
+			'trailing whitespace' => array('test@example.com '),
+			'trailing carriage return' => array('test@example.com' . CR),
+			'trailing linefeed' => array('test@example.com' . LF),
+			'trailing carriage return linefeed' => array('test@example.com' . CRLF),
+			'trailing tab' => array('test@example.com' . TAB),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider validEmailInvalidDataProvider
+	 */
+	public function validEmailReturnsFalseForInvalidMailAddress($address) {
+		$this->assertFalse(t3lib_div::validEmail($address));
+	}
+
+
+	//////////////////////////////////
+	// Tests concerning intExplode
+	//////////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function intExplodeConvertsStringsToInteger() {
 		$testString = '1,foo,2';
 		$expectedArray = array(1, 0, 2);
 		$actualArray = t3lib_div::intExplode(',', $testString);
@@ -90,16 +394,26 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		$this->assertEquals($expectedArray, $actualArray);
 	}
 
+
+	//////////////////////////////////
+	// Tests concerning revExplode
+	//////////////////////////////////
+
 	/**
 	 * @test
 	 */
-	public function checkRevExplodeCorrectlyExplodesString() {
+	public function revExplodeExplodesString() {
 		$testString = 'my:words:here';
 		$expectedArray = array('my:words', 'here');
 		$actualArray = t3lib_div::revExplode(':', $testString, 2);
 
 		$this->assertEquals($expectedArray, $actualArray);
 	}
+
+
+	//////////////////////////////////
+	// Tests concerning trimExplode
+	//////////////////////////////////
 
 	/**
 	 * @test
@@ -118,7 +432,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	public function checkTrimExplodeRemovesNewLines() {
 		$testString = ' a , b , ' . LF . ' ,d ,,  e,f,';
 		$expectedArray = array('a', 'b', 'd', 'e', 'f');
-		$actualArray = t3lib_div::trimExplode(',', $testString, true);
+		$actualArray = t3lib_div::trimExplode(',', $testString, TRUE);
 
 		$this->assertEquals($expectedArray, $actualArray);
 	}
@@ -129,7 +443,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	public function checkTrimExplodeRemovesEmptyElements() {
 		$testString = 'a , b , c , ,d ,, ,e,f,';
 		$expectedArray = array('a', 'b', 'c', 'd', 'e', 'f');
-		$actualArray = t3lib_div::trimExplode(',', $testString, true);
+		$actualArray = t3lib_div::trimExplode(',', $testString, TRUE);
 
 		$this->assertEquals($expectedArray, $actualArray);
 	}
@@ -139,8 +453,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	 */
 	public function checkTrimExplodeKeepsRemainingResultsWithEmptyItemsAfterReachingLimitWithPositiveParameter() {
 		$testString = ' a , b , c , , d,, ,e ';
-		$expectedArray = array('a', 'b', 'c,,d,,,e'); // limiting returns the rest of the string as the last element
-		$actualArray = t3lib_div::trimExplode(',', $testString, false, 3);
+		$expectedArray = array('a', 'b', 'c,,d,,,e');
+			// Limiting returns the rest of the string as the last element
+		$actualArray = t3lib_div::trimExplode(',', $testString, FALSE, 3);
 
 		$this->assertEquals($expectedArray, $actualArray);
 	}
@@ -150,8 +465,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	 */
 	public function checkTrimExplodeKeepsRemainingResultsWithoutEmptyItemsAfterReachingLimitWithPositiveParameter() {
 		$testString = ' a , b , c , , d,, ,e ';
-		$expectedArray = array('a', 'b', 'c,d,e'); // limiting returns the rest of the string as the last element
-		$actualArray = t3lib_div::trimExplode(',', $testString, true, 3);
+		$expectedArray = array('a', 'b', 'c,d,e');
+			// Limiting returns the rest of the string as the last element
+		$actualArray = t3lib_div::trimExplode(',', $testString, TRUE, 3);
 
 		$this->assertEquals($expectedArray, $actualArray);
 	}
@@ -161,8 +477,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	 */
 	public function checkTrimExplodeKeepsRamainingResultsWithEmptyItemsAfterReachingLimitWithNegativeParameter() {
 		$testString = ' a , b , c , d, ,e, f , , ';
-		$expectedArray = array('a', 'b', 'c', 'd', '', 'e'); // limiting returns the rest of the string as the last element
-		$actualArray = t3lib_div::trimExplode(',', $testString, false, -3);
+		$expectedArray = array('a', 'b', 'c', 'd', '', 'e');
+			// limiting returns the rest of the string as the last element
+		$actualArray = t3lib_div::trimExplode(',', $testString, FALSE, -3);
 
 		$this->assertEquals($expectedArray, $actualArray);
 	}
@@ -172,8 +489,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	 */
 	public function checkTrimExplodeKeepsRamainingResultsWithoutEmptyItemsAfterReachingLimitWithNegativeParameter() {
 		$testString = ' a , b , c , d, ,e, f , , ';
-		$expectedArray = array('a', 'b', 'c'); // limiting returns the rest of the string as the last element
-		$actualArray = t3lib_div::trimExplode(',', $testString, true, -3);
+		$expectedArray = array('a', 'b', 'c');
+			// Limiting returns the rest of the string as the last element
+		$actualArray = t3lib_div::trimExplode(',', $testString, TRUE, -3);
 
 		$this->assertEquals($expectedArray, $actualArray);
 	}
@@ -183,8 +501,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	 */
 	public function checkTrimExplodeReturnsExactResultsWithoutReachingLimitWithPositiveParameter() {
 		$testString = ' a , b , , c , , , ';
-		$expectedArray = array('a', 'b', 'c'); // limiting returns the rest of the string as the last element
-		$actualArray = t3lib_div::trimExplode(',', $testString, true, 4);
+		$expectedArray = array('a', 'b', 'c');
+			// Limiting returns the rest of the string as the last element
+		$actualArray = t3lib_div::trimExplode(',', $testString, TRUE, 4);
 
 		$this->assertEquals($expectedArray, $actualArray);
 	}
@@ -195,89 +514,237 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	public function checkTrimExplodeKeepsZeroAsString() {
 		$testString = 'a , b , c , ,d ,, ,e,f, 0 ,';
 		$expectedArray = array('a', 'b', 'c', 'd', 'e', 'f', '0');
-		$actualArray = t3lib_div::trimExplode(',', $testString, true);
+		$actualArray = t3lib_div::trimExplode(',', $testString, TRUE);
 
 		$this->assertEquals($expectedArray, $actualArray);
 	}
 
+
+	//////////////////////////////////
+	// Tests concerning removeArrayEntryByValue
+	//////////////////////////////////
+
 	/**
-	 * Checks whether measurement strings like "100k" return the accordant
-	 * byte representation like 102400 in this case.
+	 * @test
+	 */
+	public function checkRemoveArrayEntryByValueRemovesEntriesFromOneDimensionalArray() {
+		$inputArray = array(
+			'0' => 'test1',
+			'1' => 'test2',
+			'2' => 'test3',
+			'3' => 'test2',
+		);
+		$compareValue = 'test2';
+		$expectedResult = array(
+			'0' => 'test1',
+			'2' => 'test3',
+		);
+		$actualResult = t3lib_div::removeArrayEntryByValue($inputArray, $compareValue);
+		$this->assertEquals($expectedResult, $actualResult);
+	}
+
+	/**
+	 * @test
+	 */
+	public function checkRemoveArrayEntryByValueRemovesEntriesFromMultiDimensionalArray() {
+		$inputArray = array(
+			'0' => 'foo',
+			'1' => array(
+				'10' => 'bar',
+			),
+			'2' => 'bar',
+		);
+		$compareValue = 'bar';
+		$expectedResult = array(
+			'0' => 'foo',
+			'1' => array(),
+		);
+		$actualResult = t3lib_div::removeArrayEntryByValue($inputArray, $compareValue);
+		$this->assertEquals($expectedResult, $actualResult);
+	}
+
+	/**
+	 * @test
+	 */
+	public function checkRemoveArrayEntryByValueRemovesEntryWithEmptyString() {
+		$inputArray = array(
+			'0' => 'foo',
+			'1' => '',
+			'2' => 'bar',
+		);
+		$compareValue = '';
+		$expectedResult = array(
+			'0' => 'foo',
+			'2' => 'bar',
+		);
+		$actualResult = t3lib_div::removeArrayEntryByValue($inputArray, $compareValue);
+		$this->assertEquals($expectedResult, $actualResult);
+	}
+
+	//////////////////////////////////
+	// Tests concerning getBytesFromSizeMeasurement
+	//////////////////////////////////
+
+	/**
+	 * Data provider for getBytesFromSizeMeasurement
 	 *
-	 * @test
+	 * @return array expected value, input string
 	 */
-	public function checkGetBytesFromSizeMeasurement() {
-		$this->assertEquals(
-			'102400',
-			t3lib_div::getBytesFromSizeMeasurement('100k')
-		);
-
-		$this->assertEquals(
-			'104857600',
-			t3lib_div::getBytesFromSizeMeasurement('100m')
-		);
-
-		$this->assertEquals(
-			'107374182400',
-			t3lib_div::getBytesFromSizeMeasurement('100g')
+	public function getBytesFromSizeMeasurementDataProvider() {
+		return array(
+			'100 kilo Bytes' => array('102400', '100k'),
+			'100 mega Bytes' => array('104857600', '100m'),
+			'100 giga Bytes' => array('107374182400', '100g'),
 		);
 	}
 
 	/**
 	 * @test
+	 * @dataProvider getBytesFromSizeMeasurementDataProvider
 	 */
-	public function checkIndpEnvTypo3SitePathNotEmpty() {
-		$actualEnv = t3lib_div::getIndpEnv('TYPO3_SITE_PATH');
-		$this->assertTrue(strlen($actualEnv) >= 1);
-		$this->assertEquals('/', $actualEnv{0});
-		$this->assertEquals('/', $actualEnv{strlen($actualEnv) - 1});
+	public function getBytesFromSizeMeasurementCalculatesCorrectByteValue($expected, $byteString) {
+		$this->assertEquals($expected, t3lib_div::getBytesFromSizeMeasurement($byteString));
+	}
+
+
+	//////////////////////////////////
+	// Tests concerning getIndpEnv
+	//////////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function getIndpEnvTypo3SitePathReturnNonEmptyString() {
+		$this->assertTrue(strlen(t3lib_div::getIndpEnv('TYPO3_SITE_PATH')) >= 1);
 	}
 
 	/**
 	 * @test
-	 * @see t3lib_div::underscoredToUpperCamelCase
 	 */
-	public function canConvertFromUnderscoredToUpperCamelCase() {
-		$this->assertEquals('BlogExample', t3lib_div::underscoredToUpperCamelCase('blog_example'));
-		$this->assertEquals('Blogexample', t3lib_div::underscoredToUpperCamelCase('blogexample'));
+	public function getIndpEnvTypo3SitePathReturnsStringStartingWithSlash() {
+		$result = t3lib_div::getIndpEnv('TYPO3_SITE_PATH');
+		$this->assertEquals('/', $result[0]);
 	}
 
 	/**
 	 * @test
-	 * @see t3lib_div::underscoredToLowerCamelCase
 	 */
-	public function canConvertFromUnderscoredToLowerCamelCase() {
-		$this->assertEquals('minimalValue', t3lib_div::underscoredToLowerCamelCase('minimal_value'));
-		$this->assertEquals('minimalvalue', t3lib_div::underscoredToLowerCamelCase('minimalvalue'));
+	public function getIndpEnvTypo3SitePathReturnsStringEndingWithSlash() {
+		$result = t3lib_div::getIndpEnv('TYPO3_SITE_PATH');
+		$this->assertEquals('/', $result[strlen($result) - 1]);
+	}
+
+
+	//////////////////////////////////
+	// Tests concerning underscoredToUpperCamelCase
+	//////////////////////////////////
+
+	/**
+	 * Data provider for underscoredToUpperCamelCase
+	 *
+	 * @return array expected, input string
+	 */
+	public function underscoredToUpperCamelCaseDataProvider() {
+		return array(
+			'single word' => array('Blogexample', 'blogexample'),
+			'multiple words' => array('BlogExample', 'blog_example'),
+		);
 	}
 
 	/**
 	 * @test
-	 * @see t3lib_div::camelCaseToLowerCaseUnderscored
+	 * @dataProvider underscoredToUpperCamelCaseDataProvider
 	 */
-	public function canConvertFromCamelCaseToLowerCaseUnderscored() {
-		$this->assertEquals('blog_example', t3lib_div::camelCaseToLowerCaseUnderscored('BlogExample'));
-		$this->assertEquals('blogexample', t3lib_div::camelCaseToLowerCaseUnderscored('Blogexample'));
-		$this->assertEquals('blogexample', t3lib_div::camelCaseToLowerCaseUnderscored('blogexample'));
+	public function underscoredToUpperCamelCase($expected, $inputString) {
+		$this->assertEquals($expected, t3lib_div::underscoredToUpperCamelCase($inputString));
+	}
 
-		$this->assertEquals('minimal_value', t3lib_div::camelCaseToLowerCaseUnderscored('minimalValue'));
+
+	//////////////////////////////////
+	// Tests concerning underscoredToLowerCamelCase
+	//////////////////////////////////
+
+	/**
+	 * Data provider for underscoredToLowerCamelCase
+	 *
+	 * @return array expected, input string
+	 */
+	public function underscoredToLowerCamelCaseDataProvider() {
+		return array(
+			'single word' => array('minimalvalue', 'minimalvalue'),
+			'multiple words' => array('minimalValue', 'minimal_value'),
+		);
 	}
 
 	/**
 	 * @test
-	 * @see t3lib_div::lcfirst
+	 * @dataProvider underscoredToLowerCamelCaseDataProvider
 	 */
-	public function canConvertFirstCharacterToBeLowerCase() {
-		$this->assertEquals('blogexample', t3lib_div::lcfirst('Blogexample'));
-		$this->assertEquals('blogExample', t3lib_div::lcfirst('BlogExample'));
-		$this->assertEquals('blogexample', t3lib_div::lcfirst('blogexample'));
+	public function underscoredToLowerCamelCase($expected, $inputString) {
+		$this->assertEquals($expected, t3lib_div::underscoredToLowerCamelCase($inputString));
+	}
+
+	//////////////////////////////////
+	// Tests concerning camelCaseToLowerCaseUnderscored
+	//////////////////////////////////
+
+	/**
+	 * Data provider for camelCaseToLowerCaseUnderscored
+	 *
+	 * @return array expected, input string
+	 */
+	public function camelCaseToLowerCaseUnderscoredDataProvider() {
+		return array(
+			'single word' => array('blogexample', 'blogexample'),
+			'single word starting upper case' => array('blogexample', 'Blogexample'),
+			'two words starting lower case' => array('minimal_value', 'minimalValue'),
+			'two words starting upper case' => array('blog_example', 'BlogExample'),
+		);
 	}
 
 	/**
-	 * Tests whether whitespaces are encoded correctly in a quoted-printable mail header.
+	 * @test
+	 * @dataProvider camelCaseToLowerCaseUnderscoredDataProvider
+	 */
+	public function camelCaseToLowerCaseUnderscored($expected, $inputString) {
+		$this->assertEquals($expected, t3lib_div::camelCaseToLowerCaseUnderscored($inputString));
+	}
+
+
+	//////////////////////////////////
+	// Tests concerning lcFirst
+	//////////////////////////////////
+
+	/**
+	 * Data provider for lcFirst
+	 *
+	 * @return array expected, input string
+	 */
+	public function lcfirstDataProvider() {
+		return array(
+			'single word' => array('blogexample', 'blogexample'),
+			'single Word starting upper case' => array('blogexample', 'Blogexample'),
+			'two words' => array('blogExample', 'BlogExample'),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider lcfirstDataProvider
+	 */
+	public function lcFirst($expected, $inputString) {
+		$this->assertEquals($expected, t3lib_div::lcfirst($inputString));
+	}
+
+
+	//////////////////////////////////
+	// Tests concerning encodeHeader
+	//////////////////////////////////
+
+	/**
 	 * @test
 	 */
-	public function areWhitespacesEncodedInQuotedPrintableMailHeader() {
+	public function encodeHeaderEncodesWhitespacesInQuotedPrintableMailHeader() {
 		$this->assertEquals(
 			'=?utf-8?Q?We_test_whether_the_copyright_character_=C2=A9_is_encoded_correctly?=',
 			t3lib_div::encodeHeader(
@@ -289,10 +756,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Tests whether question marks are encoded correctly in a quoted-printable mail header.
 	 * @test
 	 */
-	public function areQuestionMarksEncodedInQuotedPrintableMailHeader() {
+	public function encodeHeaderEncodesQuestionmarksInQuotedPrintableMailHeader() {
 		$this->assertEquals(
 			'=?utf-8?Q?Is_the_copyright_character_=C2=A9_really_encoded_correctly=3F_Really=3F?=',
 			t3lib_div::encodeHeader(
@@ -303,170 +769,102 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		);
 	}
 
-	/**
-	 * Data provider for valid URLs, like PHP's source code test cases
-	 */
-	public function validUrlDataProvider() {
-		return array(
-			array('http://example.com/index.html'),
-			array('http://www.example.com/index.php'),
-			array('http://www.example/img/test.png'),
-			array('http://www.example/img/dir/'),
-			array('http://www.example/img/dir'),
-			array('file:///tmp/test.c'),
-			array('ftp://ftp.example.com/tmp/'),
-			array('mailto:foo@bar.com'),
-			array('news:news.php.net'),
-			array('file://foo/bar'),
-			array('http://qwe'),
-		);
-	}
+
+	//////////////////////////////////
+	// Tests concerning isValidUrl
+	//////////////////////////////////
 
 	/**
-	 * Data provider for invalid URLs, like PHP's source code test cases
+	 * Data provider for valid isValidUrl's
+	 *
+	 * @return array Valid ressource
 	 */
-	public function invalidUrlDataProvider() {
+	public function validUrlValidRessourceDataProvider() {
 		return array(
-			array('http//www.example/wrong/url/'),
-			array('http:/www.example'),
-			array('/tmp/test.c'),
-			array('/'),
-			array('http://'),
-			array('http:/'),
-			array('http:'),
-			array('http'),
-			array(''),
-			array('-1'),
-			array('array()'),
-			array('qwe'),
+			'http' => array('http://www.example.org/'),
+			'http without trailing slash' => array('http://qwe'),
+			'http directory with trailing slash' => array('http://www.example/img/dir/'),
+			'http directory without trailing slash' => array('http://www.example/img/dir'),
+			'http index.html' => array('http://example.com/index.html'),
+			'http index.php' => array('http://www.example.com/index.php'),
+			'http test.png' => array('http://www.example/img/test.png'),
+			'http username password querystring and ancher' => array('https://user:pw@www.example.org:80/path?arg=value#fragment'),
+			'file' => array('file:///tmp/test.c'),
+			'file directory' => array('file://foo/bar'),
+			'ftp directory' => array('ftp://ftp.example.com/tmp/'),
+			'mailto' => array('mailto:foo@bar.com'),
+			'news' => array('news:news.php.net'),
+			'telnet'=> array('telnet://192.0.2.16:80/'),
+			'ldap' => array('ldap://[2001:db8::7]/c=GB?objectClass?one'),
 		);
 	}
 
 	/**
 	 * @test
-	 * @dataProvider validUrlDataProvider
-	 * @see	t3lib_div::isValidUrl()
+	 * @dataProvider validUrlValidRessourceDataProvider
 	 */
-	public function checkisValidURL($url) {
+	public function validURLReturnsTrueForValidRessource($url) {
 		$this->assertTrue(t3lib_div::isValidUrl($url));
 	}
 
 	/**
-	 * @test
-	 * @dataProvider invalidUrlDataProvider
-	 * @see	t3lib_div::isValidUrl()
+	 * Data provider for invalid isValidUrl's
+	 *
+	 * @return array Invalid ressource
 	 */
-	public function checkisInValidURL($url) {
+	public function isValidUrlInvalidRessourceDataProvider() {
+		return array(
+			'http missing colon' => array('http//www.example/wrong/url/'),
+			'http missing slash' => array('http:/www.example'),
+			'hostname only' => array('www.example.org/'),
+			'file missing protocol specification' => array('/tmp/test.c'),
+			'slash only' => array('/'),
+			'string http://' => array('http://'),
+			'string http:/' => array('http:/'),
+			'string http:' => array('http:'),
+			'string http' => array('http'),
+			'empty string' => array(''),
+			'string -1' => array('-1'),
+			'string array()' => array('array()'),
+			'random string' => array('qwe'),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider isValidUrlInvalidRessourceDataProvider
+	 */
+	public function validURLReturnsFalseForInvalidRessoure($url) {
 		$this->assertFalse(t3lib_div::isValidUrl($url));
 	}
 
-	/**
-	 * @test
-	 * @see t3lib_div::isValidUrl()
-	 */
-	public function checkisValidURLSucceedsWithWebRessource() {
-		$testUrl = 'http://www.example.org/';
-		$this->assertTrue(t3lib_div::isValidUrl($testUrl));
-	}
 
-	/**
-	 * @test
-	 * @see t3lib_div::isValidUrl()
-	 */
-	public function checkisValidURLSucceedsWithExtentedWebRessource() {
-		$testUrl = 'https://user:pw@www.example.org:80/path?arg=value#fragment';
-		$this->assertTrue(t3lib_div::isValidUrl($testUrl));
-	}
-
-	/**
-	 * @test
-	 * @see t3lib_div::isValidUrl()
-	 */
-	public function checkisValidURLSucceedsWithTelnetRessource() {
-		$testUrl = 'telnet://192.0.2.16:80/';
-		$this->assertTrue(t3lib_div::isValidUrl($testUrl));
-	}
+	//////////////////////////////////
+	// Tests concerning isOnCurrentHost
+	//////////////////////////////////
 
 	/**
 	 * @test
 	 */
-	public function checkisValidURLSucceedsWithLdapRessource() {
-		$testUrl = 'ldap://[2001:db8::7]/c=GB?objectClass?one';
-		$this->assertTrue(t3lib_div::isValidUrl($testUrl));
-	}
-
-	/**
-	 * @test
-	 * @see t3lib_div::isValidUrl()
-	 */
-	public function checkisValidURLSucceedsWithFileRessource() {
-		$testUrl = 'file:///etc/passwd';
-		$this->assertTrue(t3lib_div::isValidUrl($testUrl));
-	}
-
-	/**
-	 * @test
-	 * @see t3lib_div::isValidUrl()
-	 */
-	public function checkisValidURLFailsWithHostnameOnly() {
-		$testUrl = 'www.example.org/';
-		$this->assertFalse(t3lib_div::isValidUrl($testUrl));
-	}
-
-	/**
-	 * @test
-	 * @see t3lib_div::isOnCurrentHost()
-	 */
-	public function checkisOnCurrentHostFailsWithLocalhostIPOnly() {
-		$testUrl = '127.0.0.1';
-		$this->assertFalse(t3lib_div::isOnCurrentHost($testUrl));
-	}
-
-	/**
-	 * @test
-	 * @see t3lib_div::isOnCurrentHost()
-	 */
-	public function checkisOnCurrentHostFailsWithPathsOnly() {
-		$testUrl = './relpath/file.txt';
-		$this->assertFalse(t3lib_div::isOnCurrentHost($testUrl));
-		$testUrl = '/abspath/file.txt?arg=value';
-		$this->assertFalse(t3lib_div::isOnCurrentHost($testUrl));
-	}
-
-	/**
-	 * @test
-	 * @see t3lib_div::isOnCurrentHost()
-	 */
-	public function checkisOnCurrentHostFailsWithArbitraryString() {
-		$testUrl = 'arbitrary string';
-		$this->assertFalse(t3lib_div::isOnCurrentHost($testUrl));
-	}
-
-	/**
-	 * @test
-	 * @see t3lib_div::isOnCurrentHost()
-	 */
-	public function checkisOnCurrentHostFailsWithEmptyUrl() {
-		$testUrl = '';
-		$this->assertFalse(t3lib_div::isOnCurrentHost($testUrl));
-	}
-
-	/**
-	 * @test
-	 * @see t3lib_div::isOnCurrentHost()
-	 */
-	public function checkisOnCurrentHostFailsWithDifferentHost() {
-		$testUrl = t3lib_div::getIndpEnv('TYPO3_REQUEST_HOST') . '.example.org';
-		$this->assertFalse(t3lib_div::isOnCurrentHost($testUrl));
-	}
-
-	/**
-	 * @test
-	 * @see t3lib_div::isOnCurrentHost()
-	 */
-	public function checkisOnCurrentHostSucceedsWithCurrentHost() {
+	public function isOnCurrentHostReturnsTrueWithCurrentHost() {
 		$testUrl = t3lib_div::getIndpEnv('TYPO3_REQUEST_URL');
 		$this->assertTrue(t3lib_div::isOnCurrentHost($testUrl));
+	}
+
+	/**
+	 * Data provider for invalid isOnCurrentHost's
+	 *
+	 * @return array Invalid Hosts
+	 */
+	public function checkisOnCurrentHostInvalidHosts() {
+		return array(
+			'empty string' => array(''),
+			'arbitrary string' => array('arbitrary string'),
+			'localhost IP' => array('127.0.0.1'),
+			'relative path' => array('./relpath/file.txt'),
+			'absolute path' => array('/abspath/file.txt?arg=value'),
+			'differnt host' => array(t3lib_div::getIndpEnv('TYPO3_REQUEST_HOST') . '.example.org'),
+		);
 	}
 
 
@@ -475,85 +873,85 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	////////////////////////////////////////
 
 	/**
-	 * Data provider for valid URLs.
-	 * @see	sanitizeLocalUrlAcceptsValidUrls
+	 * Data provider for valid sanitizeLocalUrl's
+	 *
+	 * @return array Valid url
 	 */
-	public function validLocalUrlDataProvider() {
+	public function sanitizeLocalUrlValidUrlDataProvider() {
+		$subDirectory = t3lib_div::getIndpEnv('TYPO3_SITE_PATH');
+		$typo3SiteUrl = t3lib_div::getIndpEnv('TYPO3_SITE_URL');
+		$typo3RequestHost = t3lib_div::getIndpEnv('TYPO3_REQUEST_HOST');
+
 		return array(
-			array('alt_intro.php'),
-			array('alt_intro.php?foo=1&bar=2'),
-			array('/typo3/alt_intro.php'),
-			array('/index.php'),
-			array('../index.php'),
-			array('../typo3/alt_intro.php'),
-			array('../~userDirectory/index.php'),
-			array('../typo3/mod.php?var1=test-case&var2=~user'),
-			array(PATH_site . 'typo3/alt_intro.php'),
-			array(t3lib_div::getIndpEnv('TYPO3_SITE_URL') . 'typo3/alt_intro.php'),
-			array(t3lib_div::getIndpEnv('TYPO3_REQUEST_HOST') . '/index.php'),
+			'alt_intro.php' => array('alt_intro.php'),
+			'alt_intro.php?foo=1&bar=2' => array('alt_intro.php?foo=1&bar=2'),
+			$subDirectory . 'typo3/alt_intro.php' => array($subDirectory . 'typo3/alt_intro.php'),
+			$subDirectory . 'index.php' => array($subDirectory . 'index.php'),
+			'../index.php' => array('../index.php'),
+			'../typo3/alt_intro.php' => array('../typo3/alt_intro.php'),
+			'../~userDirectory/index.php' => array('../~userDirectory/index.php'),
+			'../typo3/mod.php?var1=test-case&var2=~user' => array('../typo3/mod.php?var1=test-case&var2=~user'),
+			PATH_site . 'typo3/alt_intro.php' => array(PATH_site . 'typo3/alt_intro.php'),
+			$typo3SiteUrl . 'typo3/alt_intro.php' => array($typo3SiteUrl . 'typo3/alt_intro.php'),
+			$typo3RequestHost . $subDirectory . '/index.php' => array($typo3RequestHost . $subDirectory . '/index.php'),
 		);
 	}
 
 	/**
-	 * Data provider for invalid URLs.
-	 * @see	sanitizeLocalUrlDeniesInvalidUrls
-	 */
-	public function invalidLocalUrlDataProvider() {
-		return array(
-			array(''),
-			array('http://www.google.de/'),
-			array('https://www.google.de/'),
-			array('../typo3/whatever.php?argument=javascript:alert(0)'),
-		);
-	}
-
-	/**
-	 * Tests whether valid local URLs are handled correctly.
-	 * @dataProvider	validLocalUrlDataProvider
 	 * @test
+	 * @dataProvider sanitizeLocalUrlValidUrlDataProvider
 	 */
-	public function sanitizeLocalUrlAcceptsPlainValidUrls($url) {
+	public function sanitizeLocalUrlAcceptsNotEncodedValidUrls($url) {
 		$this->assertEquals($url, t3lib_div::sanitizeLocalUrl($url));
 	}
 
 	/**
-	 * Tests whether valid local URLs are handled correctly.
-	 * @dataProvider	validLocalUrlDataProvider
 	 * @test
+	 * @dataProvider sanitizeLocalUrlValidUrlDataProvider
 	 */
 	public function sanitizeLocalUrlAcceptsEncodedValidUrls($url) {
 		$this->assertEquals(rawurlencode($url), t3lib_div::sanitizeLocalUrl(rawurlencode($url)));
 	}
 
 	/**
-	 * Tests whether valid local URLs are handled correctly.
-	 * @dataProvider	invalidLocalUrlDataProvider
+	 * Data provider for invalid sanitizeLocalUrl's
+	 *
+	 * @return array Valid url
+	 */
+	public function sanitizeLocalUrlInvalidDataProvider() {
+		return array(
+			'empty string' => array(''),
+			'http domain' => array('http://www.google.de/'),
+			'https domain' => array('https://www.google.de/'),
+			'relative path with XSS' => array('../typo3/whatever.php?argument=javascript:alert(0)'),
+		);
+	}
+
+	/**
 	 * @test
+	 * @dataProvider sanitizeLocalUrlInvalidDataProvider
 	 */
 	public function sanitizeLocalUrlDeniesPlainInvalidUrls($url) {
 		$this->assertEquals('', t3lib_div::sanitizeLocalUrl($url));
 	}
 
 	/**
-	 * Tests whether valid local URLs are handled correctly.
-	 * @dataProvider	invalidLocalUrlDataProvider
 	 * @test
+	 * @dataProvider sanitizeLocalUrlInvalidDataProvider
 	 */
 	public function sanitizeLocalUrlDeniesEncodedInvalidUrls($url) {
 		$this->assertEquals('', t3lib_div::sanitizeLocalUrl(rawurlencode($url)));
 	}
+
 
 	//////////////////////////////////////
 	// Tests concerning arrayDiffAssocRecursive
 	//////////////////////////////////////
 
 	/**
-	 * Test if a one dimensional array is correctly diffed.
-	 *
 	 * @test
-	 * @see t3lib_div::arrayDiffAssocRecursive
 	 */
-	public function doesArrayDiffAssocRecursiveCorrectlyHandleOneDimensionalArrays() {
+	public function arrayDiffAssocRecursiveHandlesOneDimensionalArrays() {
 		$array1 = array(
 			'key1' => 'value1',
 			'key2' => 'value2',
@@ -571,12 +969,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Test if a three dimensional array is correctly diffed.
-	 *
 	 * @test
-	 * @see t3lib_div::arrayDiffAssocRecursive
 	 */
-	public function doesArrayDiffAssocRecursiveCorrectlyHandleMultiDimensionalArrays() {
+	public function arrayDiffAssocRecursiveHandlesMultiDimensionalArrays() {
 		$array1 = array(
 			'key1' => 'value1',
 			'key2' => array(
@@ -610,12 +1005,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Test if arrays are correctly diffed if types are different.
-	 *
 	 * @test
-	 * @see t3lib_div::arrayDiffAssocRecursive
 	 */
-	public function doesArrayDiffAssocRecursiveCorrectlyHandleMixedArrays() {
+	public function arrayDiffAssocRecursiveHandlesMixedArrays() {
 		$array1 = array(
 			'key1' => array(
 				'key11' => 'value11',
@@ -637,16 +1029,15 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		$this->assertEquals($expectedResult, $actualResult);
 	}
 
+
 	//////////////////////////////////////
 	// Tests concerning removeDotsFromTS
 	//////////////////////////////////////
 
 	/**
-	 * Tests whether removeDotsFromTS() behaves correctly.
 	 * @test
-	 * @see t3lib_div::removeDotsFromTS()
 	 */
-	public function doesRemoveDotsFromTypoScriptSucceed() {
+	public function removeDotsFromTypoScriptSucceedsWithDottedArray() {
 		$typoScript = array(
 			'propertyA.' => array(
 				'keyA.' => array(
@@ -671,11 +1062,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Tests whether removeDotsFromTS() behaves correctly.
 	 * @test
-	 * @see t3lib_div::removeDotsFromTS()
 	 */
-	public function doesRemoveDotsFromTypoScriptCorrectlyOverrideWithArray() {
+	public function removeDotsFromTypoScriptOverridesSubArray() {
 		$typoScript = array(
 			'propertyA.' => array(
 				'keyA' => 'getsOverridden',
@@ -701,11 +1090,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Tests whether removeDotsFromTS() behaves correctly.
 	 * @test
-	 * @see t3lib_div::removeDotsFromTS()
 	 */
-	public function doesRemoveDotsFromTypoScriptCorrectlyOverrideWithScalar() {
+	public function removeDotsFromTypoScriptOverridesWithScalar() {
 		$typoScript = array(
 			'propertyA.' => array(
 				'keyA.' => array(
@@ -728,12 +1115,15 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		$this->assertEquals($expectedResult, t3lib_div::removeDotsFromTS($typoScript));
 	}
 
+
+	//////////////////////////////////////
+	// Tests concerning get_dirs
+	//////////////////////////////////////
+
 	/**
-	 * Tests whether getDirs() returns an array of diretories from a given path
 	 * @test
-	 * @see t3lib_div::getDirs($path)
 	 */
-	public function checkGetDirsReturnsArrayOfDirectoriesFromGivenDirectory() {
+	public function getDirsReturnsArrayOfDirectoriesFromGivenDirectory() {
 		$path = PATH_t3lib;
 		$directories = t3lib_div::get_dirs($path);
 
@@ -741,11 +1131,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Tests whether getDirs() returns the string 'error' in case of problems reading from the given path
 	 * @test
-	 * @see t3lib_div::getDirs($path)
 	 */
-	public function checkGetDirsReturnsStringErrorOnPathFailure() {
+	public function getDirsReturnsStringErrorOnPathFailure() {
 		$path = 'foo';
 		$result = t3lib_div::get_dirs($path);
 		$expectedResult = 'error';
@@ -779,7 +1167,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
-	public function hmacReturnsNotEqualHashesForNotEqualInput() {
+	public function hmacReturnsNoEqualHashesForNonEqualInput() {
 		$msg0 = 'message0';
 		$msg1 = 'message1';
 		$this->assertNotEquals(t3lib_div::hmac($msg0), t3lib_div::hmac($msg1));
@@ -910,11 +1298,14 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		);
 	}
 
+	//////////////////////////////////
+	// Tests concerning readLLfile
+	//////////////////////////////////
+
 	/**
-	 * Tests the locallangXMLOverride feature of readLLfile()
 	 * @test
 	 */
-	public function readLLfileLocallangXMLOverride() {
+	public function readLLfileHandlesLocallangXMLOverride() {
 		$unique = uniqid('locallangXMLOverrideTest');
 
 		$xml = '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
@@ -929,20 +1320,21 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		$file = PATH_site . 'typo3temp/' . $unique . '.xml';
 		t3lib_div::writeFileToTypo3tempDir($file, $xml);
 
-			// get default value
+			// Get default value
 		$defaultLL = t3lib_div::readLLfile('EXT:lang/locallang_core.xml', 'default');
 
-			// set override file
+			// Set override file
 		$GLOBALS['TYPO3_CONF_VARS']['SYS']['locallangXMLOverride']['EXT:lang/locallang_core.xml'][$unique] = $file;
 
-			// get override value
+			// Get override value
 		$overrideLL = t3lib_div::readLLfile('EXT:lang/locallang_core.xml', 'default');
+
+			// Clean up again
+		unlink($file);
 
 		$this->assertNotEquals($overrideLL['default']['buttons.logout'], '');
 		$this->assertNotEquals($defaultLL['default']['buttons.logout'], $overrideLL['default']['buttons.logout']);
 		$this->assertEquals($overrideLL['default']['buttons.logout'], 'EXIT');
-
-		unlink($file);
 	}
 
 
@@ -953,19 +1345,25 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
-	public function getSetCanSetWholeArray() {
+	public function getSetWritesArrayToGetSystemVariable() {
 		$_GET = array();
 		$GLOBALS['HTTP_GET_VARS'] = array();
-		t3lib_div::_GETset(array('oneKey' => 'oneValue'));
 
-		$this->assertEquals(
-			array('oneKey' => 'oneValue'),
-			$_GET
-		);
-		$this->assertEquals(
-			array('oneKey' => 'oneValue'),
-			$GLOBALS['HTTP_GET_VARS']
-		);
+		$getParameters = array('foo' => 'bar');
+		t3lib_div::_GETset($getParameters);
+		$this->assertSame($getParameters, $_GET);
+	}
+
+	/**
+	 * @test
+	 */
+	public function getSetWritesArrayToGlobalsHttpGetVars() {
+		$_GET = array();
+		$GLOBALS['HTTP_GET_VARS'] = array();
+
+		$getParameters = array('foo' => 'bar');
+		t3lib_div::_GETset($getParameters);
+		$this->assertSame($getParameters, $GLOBALS['HTTP_GET_VARS']);
 	}
 
 	/**
@@ -976,12 +1374,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		$GLOBALS['HTTP_GET_VARS'] = array();
 
 		t3lib_div::_GETset(array('foo' => 'bar'));
+
 		t3lib_div::_GETset(array('oneKey' => 'oneValue'));
 
-		$this->assertEquals(
-			array('oneKey' => 'oneValue'),
-			$_GET
-		);
 		$this->assertEquals(
 			array('oneKey' => 'oneValue'),
 			$GLOBALS['HTTP_GET_VARS']
@@ -991,16 +1386,12 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
-	public function getSetCanAssignOneValueToOneKey() {
+	public function getSetAssignsOneValueToOneKey() {
 		$_GET = array();
 		$GLOBALS['HTTP_GET_VARS'] = array();
 
 		t3lib_div::_GETset('oneValue', 'oneKey');
 
-		$this->assertEquals(
-			'oneValue',
-			$_GET['oneKey']
-		);
 		$this->assertEquals(
 			'oneValue',
 			$GLOBALS['HTTP_GET_VARS']['oneKey']
@@ -1010,7 +1401,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
-	public function getSetForOneValueNotDropsExistingValues() {
+	public function getSetForOneValueDoesNotDropUnrelatedValues() {
 		$_GET = array();
 		$GLOBALS['HTTP_GET_VARS'] = array();
 
@@ -1019,10 +1410,6 @@ class t3lib_divTest extends tx_phpunit_testcase {
 
 		$this->assertEquals(
 			array('foo' => 'bar', 'oneKey' => 'oneValue'),
-			$_GET
-		);
-		$this->assertEquals(
-			array('foo' => 'bar', 'oneKey' => 'oneValue'),
 			$GLOBALS['HTTP_GET_VARS']
 		);
 	}
@@ -1030,7 +1417,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
-	public function getSetCanAssignAnArrayToSpecificArrayElement() {
+	public function getSetCanAssignsAnArrayToASpecificArrayElement() {
 		$_GET = array();
 		$GLOBALS['HTTP_GET_VARS'] = array();
 
@@ -1038,10 +1425,6 @@ class t3lib_divTest extends tx_phpunit_testcase {
 
 		$this->assertEquals(
 			array('parentKey' => array('childKey' => 'oneValue')),
-			$_GET
-		);
-		$this->assertEquals(
-			array('parentKey' => array('childKey' => 'oneValue')),
 			$GLOBALS['HTTP_GET_VARS']
 		);
 	}
@@ -1049,7 +1432,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
-	public function getSetCanAssignAValueToSpecificArrayChildElement() {
+	public function getSetCanAssignAStringValueToASpecificArrayChildElement() {
 		$_GET = array();
 		$GLOBALS['HTTP_GET_VARS'] = array();
 
@@ -1057,10 +1440,6 @@ class t3lib_divTest extends tx_phpunit_testcase {
 
 		$this->assertEquals(
 			array('parentKey' => array('childKey' => 'oneValue')),
-			$_GET
-		);
-		$this->assertEquals(
-			array('parentKey' => array('childKey' => 'oneValue')),
 			$GLOBALS['HTTP_GET_VARS']
 		);
 	}
@@ -1068,7 +1447,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
-	public function getSetCanAssignAnArrayToSpecificArrayChildElement() {
+	public function getSetCanAssignAnArrayToASpecificArrayChildElement() {
 		$_GET = array();
 		$GLOBALS['HTTP_GET_VARS'] = array();
 
@@ -1083,27 +1462,19 @@ class t3lib_divTest extends tx_phpunit_testcase {
 					'childKey' => array('key1' => 'value1', 'key2' => 'value2')
 				)
 			),
-			$_GET
-		);
-		$this->assertEquals(
-			array(
-				'parentKey' => array(
-					'childKey' => array('key1' => 'value1', 'key2' => 'value2')
-				)
-			),
 			$GLOBALS['HTTP_GET_VARS']
 		);
 	}
 
+
+	///////////////////////////////
+	// Tests concerning fixPermissions
+	///////////////////////////////
+
 	/**
-	 * Checks if t3lib_div::fixPermissions() correctly sets permissions to single file
-	 * This test assumes directory 'PATH_site'/typo3temp exists
-	 * This test is not available on windows OS
-	 *
 	 * @test
-	 * @see t3lib_div::fixPermissions()
 	 */
-	public function checkFixPermissionsCorrectlySetsPermissionsToFile() {
+	public function fixPermissionsCorrectlySetsPermissionsToFile() {
 		if (TYPO3_OS == 'WIN') {
 			$this->markTestSkipped('fixPermissions() tests not available on Windows');
 		}
@@ -1131,14 +1502,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Checks if t3lib_div::fixPermissions() correctly sets permissions to hidden file
-	 * This test assumes directory 'PATH_site'/typo3temp exists
-	 * This test is not available on windows OS
-	 *
 	 * @test
-	 * @see t3lib_div::fixPermissions()
 	 */
-	public function checkFixPermissionsCorrectlySetsPermissionsToHiddenFile() {
+	public function fixPermissionsCorrectlySetsPermissionsToHiddenFile() {
 		if (TYPO3_OS == 'WIN') {
 			$this->markTestSkipped('fixPermissions() tests not available on Windows');
 		}
@@ -1166,14 +1532,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Checks if t3lib_div::fixPermissions() correctly sets permissions to directory with trailing slash
-	 * This test assumes directory 'PATH_site'/typo3temp exists
-	 * This test is not available on windows OS
-	 *
 	 * @test
-	 * @see t3lib_div::fixPermissions()
 	 */
-	public function checkFixPermissionsCorrectlySetsPermissionsToDirectory() {
+	public function fixPermissionsCorrectlySetsPermissionsToDirectory() {
 		if (TYPO3_OS == 'WIN') {
 			$this->markTestSkipped('fixPermissions() tests not available on Windows');
 		}
@@ -1201,14 +1562,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Checks if t3lib_div::fixPermissions() correctly sets permissions to hidden directory
-	 * This test assumes directory 'PATH_site'/typo3temp exists
-	 * This test is not available on windows OS
-	 *
 	 * @test
-	 * @see t3lib_div::fixPermissions()
 	 */
-	public function checkFixPermissionsCorrectlySetsPermissionsToHiddenDirectory() {
+	public function fixPermissionsCorrectlySetsPermissionsToHiddenDirectory() {
 		if (TYPO3_OS == 'WIN') {
 			$this->markTestSkipped('fixPermissions() tests not available on Windows');
 		}
@@ -1236,14 +1592,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Checks if t3lib_div::fixPermissions() correctly sets permissions recursivly
-	 * This test assumes directory 'PATH_site'/typo3temp exists
-	 * This test is not available on windows OS
-	 *
 	 * @test
-	 * @see t3lib_div::fixPermissions()
 	 */
-	public function checkFixPermissionsCorrectlySetsPermissionsRecursive() {
+	public function fixPermissionsCorrectlySetsPermissionsRecursive() {
 		if (TYPO3_OS == 'WIN') {
 			$this->markTestSkipped('fixPermissions() tests not available on Windows');
 		}
@@ -1319,14 +1670,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Checks if t3lib_div::fixPermissions() does not fix permissions on not allowed path
-	 * This test assumes directory 'PATH_site'/typo3temp exists
-	 * This test is not available on windows OS
-	 *
 	 * @test
-	 * @see t3lib_div::fixPermissions()
 	 */
-	public function checkFixPermissionsDoesNotSetPermissionsToNotAllowedPath() {
+	public function fixPermissionsDoesNotSetPermissionsToNotAllowedPath() {
 		if (TYPO3_OS == 'WIN') {
 			$this->markTestSkipped('fixPermissions() tests not available on Windows');
 		}
@@ -1350,14 +1696,15 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		$this->assertEquals($resultFilePermissions, '0742');
 	}
 
+
+	///////////////////////////////
+	// Tests concerning mkdir
+	///////////////////////////////
+
 	/**
-	 * Checks if t3lib_div::mkdir() correctly creates a directory
-	 * This test assumes directory 'PATH_site'/typo3temp exists
-	 *
 	 * @test
-	 * @see t3lib_div::mkdir()
 	 */
-	public function checkMkdirCorrectlyCreatesDirectory() {
+	public function mkdirCorrectlyCreatesDirectory() {
 		$directory = PATH_site . 'typo3temp/' . uniqid('test_');
 		$mkdirResult = t3lib_div::mkdir($directory);
 		$directoryCreated = is_dir($directory);
@@ -1367,13 +1714,9 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Checks if t3lib_div::mkdir() correctly creates a hidden directory
-	 * This test assumes directory 'PATH_site'/typo3temp exists
-	 *
 	 * @test
-	 * @see t3lib_div::mkdir()
 	 */
-	public function checkMkdirCorrectlyCreatesHiddenDirectory() {
+	public function mkdirCorrectlyCreatesHiddenDirectory() {
 		$directory = PATH_site . 'typo3temp/' . uniqid('.test_');
 		$mkdirResult = t3lib_div::mkdir($directory);
 		$directoryCreated = is_dir($directory);
@@ -1383,19 +1726,94 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	/**
-	 * Checks if t3lib_div::mkdir() correctly creates a directory with trailing slash
-	 * This test assumes directory 'PATH_site'/typo3temp exists
-	 *
 	 * @test
-	 * @see t3lib_div::mkdir()
 	 */
-	public function checkMkdirCorrectlyCreatesDirectoryWithTrailingSlash() {
+	public function mkdirCorrectlyCreatesDirectoryWithTrailingSlash() {
 		$directory = PATH_site . 'typo3temp/' . uniqid('test_');
 		$mkdirResult = t3lib_div::mkdir($directory);
 		$directoryCreated = is_dir($directory);
 		t3lib_div::rmdir($directory);
 		$this->assertTrue($mkdirResult);
 		$this->assertTrue($directoryCreated);
+	}
+
+
+	///////////////////////////////
+	// Tests concerning split_fileref
+	///////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function splitFileRefReturnsFileTypeNotForFolders(){
+		$directoryName = uniqid('test_') . '.com';
+		$directoryPath = PATH_site . 'typo3temp/';
+		$directory = $directoryPath . $directoryName;
+		mkdir($directory, octdec($GLOBALS['TYPO3_CONF_VARS']['BE']['folderCreateMask']));
+
+		$fileInfo = t3lib_div::split_fileref($directory);
+
+		$directoryCreated = is_dir($directory);
+		rmdir($directory);
+
+		$this->assertTrue($directoryCreated);
+		$this->assertType(PHPUnit_Framework_Constraint_IsType::TYPE_ARRAY, $fileInfo);
+		$this->assertEquals($directoryPath, $fileInfo['path']);
+		$this->assertEquals($directoryName, $fileInfo['file']);
+		$this->assertEquals($directoryName, $fileInfo['filebody']);
+		$this->assertEquals('', $fileInfo['fileext']);
+		$this->assertArrayNotHasKey('realFileext', $fileInfo);
+	}
+
+	/**
+	 * @test
+	 */
+	public function splitFileRefReturnsFileTypeForFilesWithoutPathSite() {
+		$testFile = 'fileadmin/media/someFile.png';
+
+		$fileInfo = t3lib_div::split_fileref($testFile);
+		$this->assertType(PHPUnit_Framework_Constraint_IsType::TYPE_ARRAY, $fileInfo);
+		$this->assertEquals('fileadmin/media/', $fileInfo['path']);
+		$this->assertEquals('someFile.png', $fileInfo['file']);
+		$this->assertEquals('someFile', $fileInfo['filebody']);
+		$this->assertEquals('png', $fileInfo['fileext']);
+	}
+
+
+	/////////////////////////////
+	// Tests concerning dirname
+	/////////////////////////////
+
+	/**
+	 * @see dirnameWithDataProvider
+	 *
+	 * @return array<array>
+	 */
+	public function dirnameDataProvider() {
+		return array(
+			'absolute path with multiple part and file' => array('/dir1/dir2/script.php', '/dir1/dir2'),
+			'absolute path with one part' => array('/dir1/', '/dir1'),
+			'absolute path to file without extension' => array('/dir1/something', '/dir1'),
+			'relative path with one part and file' => array('dir1/script.php', 'dir1'),
+			'relative one-character path with one part and file' => array('d/script.php', 'd'),
+			'absolute zero-part path with file' => array('/script.php', ''),
+			'empty string' => array('', ''),
+		);
+	}
+
+	/**
+	 * @test
+	 *
+	 * @dataProvider dirnameDataProvider
+	 *
+	 * @param string $input the input for dirname
+	 * @param string $expectedValue the expected return value expected from dirname
+	 */
+	public function dirnameWithDataProvider($input, $expectedValue) {
+		$this->assertEquals(
+			$expectedValue,
+			t3lib_div::dirname($input)
+		);
 	}
 }
 ?>

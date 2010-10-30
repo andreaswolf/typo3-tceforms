@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2004-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -24,7 +24,7 @@
 /**
  * Versioning module
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -84,14 +84,14 @@ require ($BACK_PATH.'template.php');
 $LANG->includeLLFile('EXT:version/locallang.xml');
 	// DEFAULT initialization of a module [END]
 
-require_once(PATH_typo3.'mod/user/ws/class.wslib.php');
+require_once('../ws/class.wslib.php');
 
 
 
 /**
  * Versioning module, including workspace management
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -162,7 +162,7 @@ class tx_version_cm1 extends t3lib_SCbase {
 			),
 			'diff' => ''
 		);
-		
+
 		if($this->showDraftWorkspace === TRUE) {
 			$this->MOD_MENU['display'][-1] = $GLOBALS['LANG']->getLL('defaultDraft');
 		}
@@ -188,7 +188,7 @@ class tx_version_cm1 extends t3lib_SCbase {
 	 */
 	function main()	{
 		global $BE_USER,$LANG,$BACK_PATH,$TCA_DESCR,$TCA,$CLIENT,$TYPO3_CONF_VARS;
-		
+
 			// Template markers
 		$markers = array(
 			'CSH' => '',
@@ -356,12 +356,11 @@ class tx_version_cm1 extends t3lib_SCbase {
 			}
 
 				// If access to Web>List for user, then link to that module.
-			if ($BE_USER->check('modules','web_list'))	{
-				$href = $BACK_PATH . 'db_list.php?id=' . $this->pageinfo['uid'] . '&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'));
-				$buttons['record_list'] = '<a href="' . htmlspecialchars($href) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE) . '">' .
-							t3lib_iconWorks::getSpriteIcon('actions-system-list-open') .
-						'</a>';
-			}
+			$buttons['record_list'] = t3lib_extMgm::createListViewLink(
+				$this->pageinfo['uid'],
+				'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
+				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+			);
 		}
 		return $buttons;
 	}
@@ -440,7 +439,7 @@ class tx_version_cm1 extends t3lib_SCbase {
 
 			// Element:
 		$record = t3lib_BEfunc::getRecord($this->table,$this->uid);
-		$recordIcon = t3lib_iconWorks::getIconImage($this->table,$record,$this->doc->backPath,'class="absmiddle"');
+		$recordIcon = t3lib_iconWorks::getSpriteIconForRecord($this->table, $record);
 		$recTitle = t3lib_BEfunc::getRecordTitle($this->table,$record,TRUE);
 
 			// Display versions:
@@ -762,7 +761,7 @@ class tx_version_cm1 extends t3lib_SCbase {
 	 * Rendering the overview of versions in the current workspace
 	 *
 	 * @return	string		HTML (table)
-	 * @see typo3/mod/user/ws/index.php for sister function!
+	 * @see ws/index.php for sister function!
 	 */
 	function displayWorkspaceOverview()	{
 
@@ -819,7 +818,8 @@ class tx_version_cm1 extends t3lib_SCbase {
 			$table = '<table border="0" cellpadding="0" cellspacing="1" class="lrPadding workspace-overview">'.implode('',$tableRows).'</table>';
 		} else $table = '';
 
-		$linkBack = t3lib_div::_GP('returnUrl') ? '<a href="' . htmlspecialchars(t3lib_div::_GP('returnUrl')) . '" class="typo3-goBack">' .
+		$returnUrl = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
+		$linkBack = t3lib_div::_GP('returnUrl') ? '<a href="' . htmlspecialchars($returnUrl) . '" class="typo3-goBack">' .
 				t3lib_iconWorks::getSpriteIcon('actions-view-go-back') . $GLOBALS['LANG']->getLL('goBack', TRUE) .
 			'</a><br /><br />' : '';
 		$resetDiffOnly = $this->diffOnly ? '<a href="index.php?id=' . intval($this->id) . '" class="typo3-goBack">' . $GLOBALS['LANG']->getLL('showAllInformation') . '</a><br /><br />' : '';
@@ -848,7 +848,7 @@ class tx_version_cm1 extends t3lib_SCbase {
 
 						// Get CURRENT online record and icon based on "t3ver_oid":
 					$rec_on = t3lib_BEfunc::getRecord($table,$oid);
-					$icon = t3lib_iconWorks::getIconImage($table, $rec_on, $this->doc->backPath,' align="top" title="'.t3lib_BEfunc::getRecordIconAltText($rec_on,$table).'"');
+					$icon = t3lib_iconWorks::getSpriteIconForRecord($table, $rec_on, array('title' => t3lib_BEfunc::getRecordIconAltText($rec_on,$table)));
 					if ($GLOBALS['BE_USER']->workspace===0) {	// Only edit online records if in ONLINE workspace:
 						$icon = $this->doc->wrapClickMenuOnIcon($icon, $table, $rec_on['uid'], 1, '', '+edit,view,info,delete');
 					}
@@ -887,7 +887,7 @@ class tx_version_cm1 extends t3lib_SCbase {
 						}
 
 						// Get icon
-						$icon = t3lib_iconWorks::getIconImage($table, $rec_off, $this->doc->backPath, ' align="top" title="'.t3lib_BEfunc::getRecordIconAltText($rec_off,$table).'"');
+						$icon = t3lib_iconWorks::getSpriteIconForRecord($table, $rec_off, array('title' => t3lib_BEfunc::getRecordIconAltText($rec_off, $table)));
 						$tempUid = ($table != 'pages' || $vType==='branch' || $GLOBALS['BE_USER']->workspace===0 ? $rec_off['uid'] : $rec_on['uid']);
 						$icon = $this->doc->wrapClickMenuOnIcon($icon, $table, $tempUid, 1, '', '+edit,' . ($table == 'pages' ? 'view,info,' : '') . 'delete');
 
@@ -1243,8 +1243,8 @@ class tx_version_cm1 extends t3lib_SCbase {
 			$entry[] = $text;
 		}
 
-		return count($entry) ? '<span onmouseover="document.getElementById(\'log_'.$table.$id.'\').style.visibility = \'visible\';" onmouseout="document.getElementById(\'log_'.$table.$id.'\').style.visibility = \'hidden\';">'.$stageCommands.' ('.count($entry).')</span>'.
-				'<div class="logLayer" style="visibility: hidden; position: absolute;" id="log_'.$table.$id.'">'.implode('<hr/>',array_reverse($entry)).'</div>' : $stageCommands;
+		return count($entry) ? '<span onmouseover="document.getElementById(\'log_' . $table . $id . '\').style.visibility = \'visible\';" onmouseout="document.getElementById(\'log_' . $table . $id . '\').style.visibility = \'hidden\';">' . $stageCommands . ' (' . count($entry) . ')</span>' .
+				'<div class="t3-version-infolayer logLayer" id="log_' . $table . $id . '">' . implode('<hr/>', array_reverse($entry)) . '</div>' : $stageCommands;
 	}
 
 	/**
@@ -1441,7 +1441,7 @@ class tx_version_cm1 extends t3lib_SCbase {
 								$HTMLdata.
 								($iconMode < 2 ?
 									'<img'.t3lib_iconWorks::skinImg($this->doc->backPath,'gfx/ol/join'.($iconMode ? 'bottom' : '').'.gif','width="18" height="16"').' alt="" />'.
-									t3lib_iconWorks::getIconImage($tN, $rec, $this->doc->backPath,'') : '').
+									t3lib_iconWorks::getSpriteIconForRecord($tN, $rec) : '').
 								t3lib_BEfunc::getRecordTitle($tN, $rec, TRUE).
 							'</td>
 							<td class="cmdCell">'.
@@ -1691,7 +1691,7 @@ class tx_version_cm1 extends t3lib_SCbase {
 						'&cmd['.$table.']['.$rec_on['uid'].'][version][action]=swap'.
 						'&cmd['.$table.']['.$rec_on['uid'].'][version][swapWith]='.$rec_off['uid']
 						)).'" title="' . $GLOBALS['LANG']->getLL('publish', TRUE) . '">'.
-					t3lib_iconWorks::getSpriteIcon('actions-version-swap-versions') .
+					t3lib_iconWorks::getSpriteIcon('actions-version-swap-version') .
 				'</a>';
 			if ($GLOBALS['BE_USER']->workspaceSwapAccess())	{
 				$actionLinks.=

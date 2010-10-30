@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,7 +30,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -55,7 +55,7 @@ require ('init.php');
  * Script Class for logging a user out.
  * Does not display any content, just calls the logout-function for the current user and then makes a redirect.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -71,8 +71,8 @@ class SC_logout {
 
 		$BE_USER->writelog(255,2,0,1,'User %s logged out from TYPO3 Backend',Array($BE_USER->user['username']));	// Logout written to log
 		$BE_USER->logoff();
-
-		$redirectUrl = (t3lib_div::_GP('redirect') ? t3lib_div::_GP('redirect') : 'index.php');
+		$redirect = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('redirect'));
+		$redirectUrl = $redirect ? $redirect : 'index.php';
 		t3lib_utility_Http::redirect($redirectUrl);
 	}
 }

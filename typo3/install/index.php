@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,7 +29,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -46,14 +46,19 @@ if (defined('E_DEPRECATED')) {
 	error_reporting(E_ALL ^ E_NOTICE);
 }
 
-$PATH_thisScript = str_replace('//','/', str_replace('\\','/', (PHP_SAPI=='cgi'||PHP_SAPI=='isapi' ||PHP_SAPI=='cgi-fcgi')&&($_SERVER['ORIG_PATH_TRANSLATED']?$_SERVER['ORIG_PATH_TRANSLATED']:$_SERVER['PATH_TRANSLATED'])? ($_SERVER['ORIG_PATH_TRANSLATED']?$_SERVER['ORIG_PATH_TRANSLATED']:$_SERVER['PATH_TRANSLATED']):($_SERVER['ORIG_SCRIPT_FILENAME']?$_SERVER['ORIG_SCRIPT_FILENAME']:$_SERVER['SCRIPT_FILENAME'])));
+$PATH_thisScript = str_replace('//', '/', str_replace('\\', '/',
+	(PHP_SAPI == 'fpm-fcgi' || PHP_SAPI == 'cgi' || PHP_SAPI == 'isapi' || PHP_SAPI == 'cgi-fcgi') &&
+	($_SERVER['ORIG_PATH_TRANSLATED'] ? $_SERVER['ORIG_PATH_TRANSLATED'] : $_SERVER['PATH_TRANSLATED']) ?
+	($_SERVER['ORIG_PATH_TRANSLATED'] ? $_SERVER['ORIG_PATH_TRANSLATED'] : $_SERVER['PATH_TRANSLATED']) :
+	($_SERVER['ORIG_SCRIPT_FILENAME'] ? $_SERVER['ORIG_SCRIPT_FILENAME'] : $_SERVER['SCRIPT_FILENAME'])));
+
 $PATH_site = dirname(dirname(dirname($PATH_thisScript)));
 
 $quickstartFile = $PATH_site . '/typo3conf/FIRST_INSTALL';
 $enableInstallToolFile = $PATH_site . '/typo3conf/ENABLE_INSTALL_TOOL';
 
-	// If typo3conf/QUICKSTART is present and can be deleted, automatically create typo3conf/ENABLE_INSTALL_TOOL
-if (is_file($quickstartFile) && unlink($quickstartFile)) {
+	// If typo3conf/FIRST_INSTALL is present and can be deleted, automatically create typo3conf/ENABLE_INSTALL_TOOL
+if (is_file($quickstartFile) && is_writeable($quickstartFile) && unlink($quickstartFile)) {
 	touch($enableInstallToolFile);
 }
 
@@ -81,7 +86,7 @@ if (1==2 || !is_file($enableInstallToolFile)) {
 		'../contrib/prototype/prototype.js"></script>' . LF;
 	$javascript .= '<script type="text/javascript" src="' .
 		'../sysext/install/Resources/Public/Javascript/install.js"></script>';
-	
+
 		// Get the template file
 	$template = @file_get_contents($PATH_site . '/typo3/templates/install.html');
 		// Define the markers content
@@ -95,12 +100,12 @@ if (1==2 || !is_file($enableInstallToolFile)) {
 			</p>
 			<ul>
 				<li>
-					In the typo3conf/ folder, create a file named ENABLE_INSTALL_TOOL. The file name is 
+					In the typo3conf/ folder, create a file named ENABLE_INSTALL_TOOL. The file name is
 					case sensitive, but the file itself can simply be an empty file.
 				</li>
 				<li class="t3-install-locked-user-settings">
 					Alternatively, in the Backend, go to <a href="../sysext/setup/mod/index.php">User tools &gt; User settings</a>
-					and let TYPO3 create this file for you. When you\'re finished, you can also visit 
+					and let TYPO3 create this file for you. When you\'re finished, you can also visit
 					<a href="../sysext/setup/mod/index.php">User tools &gt; User settings</a> and delete the file from there.
 				</li>
 			</ul>

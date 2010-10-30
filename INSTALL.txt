@@ -32,6 +32,7 @@ The following configuration is the minimum required:
 	- SPL
 	- standard
 	- xml
+	- zlib
 	Some extensions can be optionally compiled into PHP. A list of loaded
 	extensions can be checked using the phpinfo() function.
 - memory_limit set to at least to 64M in php.ini
@@ -56,6 +57,7 @@ The following configuration is recommended:
 	- SPL
 	- standard
 	- xml
+	- zlib
 	Some extensions can be optionally compiled into PHP. A list of loaded
 	extensions can be checked using the phpinfo() function.
 - memory_limit set to 128M or more in php.ini
@@ -65,6 +67,12 @@ The following configuration is recommended:
 - AllowOverride in the Apache configuration includes "Indexes" and "FileInfo"
   (see FAQ below)
 
+TYPO3 uses /dev/urandom or /dev/random on Unix-like platforms for security
+purposes. Access to these files is highly recommended and increases TYPO3
+security. Make sure to add "/dev/random:/dev/urandom" to open_basedir
+settings if you use it. If these paths are unavailable, TYPO3 will attempt to
+simulate random number generation. This is less secure, causes performance
+issues and warnings in the TYPO3 system log.
 
 ===============================================================================
 Obtaining TYPO3
@@ -200,6 +208,11 @@ A:	Make sure that AllowOverride allows "Indexes" and "FileInfo" in the Apache
 	Apache, the error log is usually located in /var/log/apache2 or
 	/var/log/httpd. Check with your hosting provider if you are in doubt where
 	the logs are located.
+
+Q:	Backend or Installer looks strange, no images just black and white?
+A:	Maybe you missed some configuration in your .htaccess file.
+	Have a look at typo3_src/misc/advanced.htaccess to find the options
+	you might need.
 
 Q:	I went through the setup process and created an admin user. Why can't I log
 	in now?

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasper@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasper@typo3.com)
 *  (c) 2004-2010 Stanislas Rolland <typo3(arobas)jbr.ca>
 *  All rights reserved
 *
@@ -28,7 +28,7 @@
 /**
  * Displays image selector for the RTE
  *
- * @author	Kasper Skaarhoj <kasper@typo3.com>
+ * @author	Kasper Skårhøj <kasper@typo3.com>
  * @author	Stanislas Rolland <typo3(arobas)jbr.ca>
  *
  * $Id$  *
@@ -39,7 +39,6 @@ unset($MCONF);
 require('conf.php');
 require($BACK_PATH.'init.php');
 require($BACK_PATH.'template.php');
-require_once('class.tx_rtehtmlarea_select_image.php');
 $LANG->includeLLFile('EXT:lang/locallang_browse_links.xml');
 $LANG->includeLLFile('EXT:rtehtmlarea/mod4/locallang.xml');
 $LANG->includeLLFile('EXT:rtehtmlarea/htmlarea/locallang_dialogs.xml');
@@ -47,7 +46,7 @@ $LANG->includeLLFile('EXT:rtehtmlarea/htmlarea/locallang_dialogs.xml');
 /**
  * Script class for the Element Browser window.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */

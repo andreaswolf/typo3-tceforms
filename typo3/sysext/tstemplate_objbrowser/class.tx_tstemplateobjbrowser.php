@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -35,7 +35,7 @@ $GLOBALS['LANG']->includeLLFile('EXT:tstemplate_objbrowser/locallang.xml');
 /**
  * This class displays the submodule "TypoScript Object Browser" inside the Web > Template module
  *
- * @author		Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author		Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package		TYPO3
  * @subpackage	tx_tstemplateobjbrowser
  */
@@ -465,7 +465,14 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 					$errMsg[]=($inf[1]).": &nbsp; &nbsp;".$inf[0];
 				}
 				$theOutput .= $this->pObj->doc->spacer(10);
-				$theOutput .= $this->pObj->doc->section($GLOBALS['TBE_TEMPLATE']->rfw($GLOBALS['LANG']->getLL('errorsWarnings')), implode($errMsg, "<br />"), 0, 1, 0, 1);
+
+				$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						implode($errMsg, '<br />'),
+						$GLOBALS['LANG']->getLL('errorsWarnings'),
+						t3lib_FlashMessage::ERROR
+					);
+				$theOutput .= $flashMessage->render();
 			}
 
 
@@ -484,15 +491,15 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 			$theOutput .= $this->pObj->doc->sectionEnd();
 			$theOutput .= '<table border="0" cellpadding="1" cellspacing="0" id="typo3-objectBrowser" width="100%">
 					<tr>
-						<td><img src=clear.gif width=4 height=1></td>
+						<td><img src="clear.gif" width="4px" height="1px" /></td>
 						<td class="bgColor2">
-							<table border=0 cellpadding=0 cellspacing=0 class="bgColor5" width="100%"><tr class="t3-row-header"><td nowrap width="99%"><strong>'.$label.'</strong></td>'.$remove.'</tr></table>
+							<table border="0" cellpadding="0" cellspacing="0" class="bgColor5" width="100%"><tr class="t3-row-header"><td nowrap="nowrap" width="99%"><strong>' . $label . '</strong></td>' . $remove . '</tr></table>
 						</td>
 					</tr>
 					<tr>
-						<td><img src=clear.gif width=4 height=1></td>
+						<td><img src="clear.gif" width="4px" height="1px" /></td>
 						<td class="bgColor2">
-							<table border=0 cellpadding=0 cellspacing=0 class="bgColor4" width="100%"><tr><td nowrap>'.$tree.'</td></tr></table></td>
+							<table border="0" cellpadding="0" cellspacing="0" class="bgColor4" width="100%"><tr><td nowrap="nowrap">' . $tree . '</td></tr></table></td>
 					</tr>
 				</table>
 			';

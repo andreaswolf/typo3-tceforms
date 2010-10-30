@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,7 +30,7 @@
  * $Id$
  * Contains functions for the TS module in TYPO3 backend
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -97,7 +97,7 @@
 /**
  * TSParser extension class to t3lib_TStemplate
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -396,7 +396,10 @@ class t3lib_tsparser_ext extends t3lib_TStemplate	{
 				if ($PM=='join')	{
 					$HTML.=$theIcon;
 				} else {
-					$aHref='index.php?id='.$GLOBALS['SOBE']->id.'&tsbr['.$depth.']='.($deeper?0:1).'#'.$goto;
+					$aHref='index.php?id=' . $GLOBALS['SOBE']->id .
+						'&tsbr[' . $depth.']=' . ($deeper ? 0 : 1) .
+						(t3lib_div::_GP("breakPointLN") ? '&breakPointLN=' . t3lib_div::_GP("breakPointLN") : '') .
+						'#' .$goto;
 					$HTML.='<a name="'.$goto.'" href="'.htmlspecialchars($aHref).'">'.$theIcon.'</a>';
 				}
 
@@ -405,7 +408,9 @@ class t3lib_tsparser_ext extends t3lib_TStemplate	{
 					$label='<font color="#666666">'.$label.'</font>';
 				} else {
 					if ($this->linkObjects)	{
-						$aHref = 'index.php?id='.$GLOBALS['SOBE']->id.'&sObj='.$depth;
+						$aHref = 'index.php?id='.$GLOBALS['SOBE']->id .
+							'&sObj=' . $depth .
+							(t3lib_div::_GP("breakPointLN") ? '&breakPointLN=' . t3lib_div::_GP("breakPointLN") : '');
 						if ($this->bType!='const')	{
 							$ln = is_array($arr[$key.'.ln..']) ? 'Defined in: '.$this->lineNumberToScript($arr[$key.'.ln..']) : 'N/A';
 						} else {
@@ -582,7 +587,7 @@ class t3lib_tsparser_ext extends t3lib_TStemplate	{
 		}
 		$a=0;
 		$c=count($keyArr);
-		static $i;
+		static $i = 0;
 		foreach ($keyArr as $key => $value) {
 			$HTML = '';
 			$a++;
@@ -599,12 +604,12 @@ class t3lib_tsparser_ext extends t3lib_TStemplate	{
 			$alttext = '[' . $row['templateID'] . ']';
 			$alttext .= $row['pid'] ? ' - ' . t3lib_BEfunc::getRecordPath($row['pid'], $GLOBALS['SOBE']->perms_clause, 20) : '';
 
-			$icon = (substr($row['templateID'],0,3) == 'sys' ? 
-						t3lib_iconWorks::getSpriteIconForRecord('sys_template', $row['root'], array('title' => $alttext)) 
+			$icon = (substr($row['templateID'],0,3) == 'sys' ?
+						t3lib_iconWorks::getSpriteIconForRecord('sys_template', $row, array('title' => $alttext))
 						: t3lib_iconWorks::getSpriteIcon('mimetypes-x-content-template-static', array('title' => $alttext))
 					);
 			if (in_array($row['templateID'], $this->clearList_const) || in_array($row['templateID'], $this->clearList_setup)) {
-				$A_B = '<a href="index.php?id=' . $GLOBALS['SOBE']->id . '&template=' . $row['templateID'] . '">';
+				$A_B = '<a href="index.php?id=' . htmlspecialchars($GLOBALS['SOBE']->id . '&template=' . $row['templateID']) . '">';
 				$A_E = '</a>';
 				if (t3lib_div::_GP('template') == $row['templateID']) {
 					$A_B = '<strong>' . $A_B;
@@ -614,12 +619,12 @@ class t3lib_tsparser_ext extends t3lib_TStemplate	{
 				$A_B = '';
 				$A_E = '';
 			}
-			$HTML .= ($first ? '' : '<img src="' . $GLOBALS['BACK_PATH'] . 'gfx/ol/' . $PM . $BTM . '.gif" width="18" height="16" align="top" border="0" />') .
+			$HTML .= ($first ? '' : '<img src="' . $GLOBALS['BACK_PATH'] . 'gfx/ol/' . $PM . $BTM . '.gif" width="18" height="16" align="top" border="0" alt="" />') .
 				 $icon .
-				$A_B . t3lib_div::fixed_lgd_cs($row['title'], $GLOBALS['BE_USER']->uc['titleLen']) . $A_E . '&nbsp;&nbsp;';
+				$A_B . htmlspecialchars(t3lib_div::fixed_lgd_cs($row['title'], $GLOBALS['BE_USER']->uc['titleLen'])) . $A_E . '&nbsp;&nbsp;';
 			$RL = $this->ext_getRootlineNumber($row['pid']);
 			$keyArray[] = '<tr class="' . ($i++ % 2 == 0 ? 'bgColor4' : 'bgColor6') . '">
-							<td nowrap>' . $HTML . '</td>
+							<td nowrap="nowrap">' . $HTML . '</td>
 							<td align="center">' . ($row['root'] ? t3lib_iconWorks::getSpriteIcon('status-status-checked') : '') . '&nbsp;&nbsp;</td>
 							<td align="center">' . ($row['clConf'] ? t3lib_iconWorks::getSpriteIcon('status-status-checked') :'') . '&nbsp;&nbsp;' . '</td>
 							<td align="center">' . ($row['clConst'] ? t3lib_iconWorks::getSpriteIcon('status-status-checked') : '') . '&nbsp;&nbsp;' . '</td>
@@ -683,6 +688,7 @@ class t3lib_tsparser_ext extends t3lib_TStemplate	{
 			$all = chop($all);
 			$tsparser = t3lib_div::makeInstance('t3lib_TSparser');
 			$tsparser->lineNumberOffset=$this->ext_lineNumberOffset+1;
+			$tsparser->parentObject = $this;
 			return $tsparser->doSyntaxHighlight($all,$lineNumbers?array($this->ext_lineNumberOffset+1):'',$syntaxHLBlockmode);
 		} else {
 			return $this->ext_formatTS($all,$lineNumbers,$comments,$crop);

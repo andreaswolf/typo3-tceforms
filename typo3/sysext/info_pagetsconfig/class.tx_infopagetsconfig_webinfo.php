@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,10 +27,10 @@
 /**
  * Contains class for Page TSconfig wizard
  *
- * Revised for TYPO3 3.7 June/2004 by Kasper Sk�rh�j
+ * Revised for TYPO3 3.7 June/2004 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Sk�rh�j <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -48,7 +48,7 @@
 /**
  * Page TSconfig viewer
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tx_infopagetsconfig
  */
@@ -119,7 +119,7 @@ class tx_infopagetsconfig_webinfo extends t3lib_extobjbase {
 						$params = '&edit[pages]['.$editIdList.']=edit&columnsOnly=TSconfig';
 						$onclickUrl = t3lib_BEfunc::editOnClick($params,$GLOBALS['BACK_PATH'],'');
 						$editIcon = '<a href="#" onclick="'.htmlspecialchars($onclickUrl).'" title="'.$GLOBALS['LANG']->getLL('editTSconfig',1).'">'.
-									t3lib_iconWorks::getSpriteIcon('actions-document-open') . 
+									t3lib_iconWorks::getSpriteIcon('actions-document-open') .
 								'</a>';
 					}
 
@@ -127,7 +127,7 @@ class tx_infopagetsconfig_webinfo extends t3lib_extobjbase {
 
 					$tsparser = t3lib_div::makeInstance('t3lib_TSparser');
 					$tsparser->lineNumberOffset=0;
-					$TScontent = $tsparser->doSyntaxHighlight(trim($v).chr(10),'',1);
+					$TScontent = $tsparser->doSyntaxHighlight(trim($v) .LF, '', 0);
 
 					$lines[]='
 						<tr><td nowrap="nowrap" class="bgColor5">'.$pTitle.'</td></tr>

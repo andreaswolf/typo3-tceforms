@@ -34,6 +34,8 @@ T3editor.instances = {};
 // path to the editor ext dir
 // can be overwritten in class.tx_t3editor.php
 T3editor.PATH_t3e = "../../../sysext/t3editor/";
+T3editor.PATH_codemirror = "../../../contrib/codemirror/js/";
+
 
 function T3editor(textarea) {
 	var self = this;
@@ -74,7 +76,7 @@ function T3editor(textarea) {
 		content: $(this.textarea).value,
 		parserfile: T3editor.parserfile,
 		stylesheet: T3editor.stylesheet,
-		path: T3editor.PATH_t3e + "res/jslib/codemirror/",
+		path: T3editor.PATH_codemirror,
 		outerEditor: this,
 		saveFunction: this.saveFunction.bind(this),
 		initCallback: this.init.bind(this),
@@ -308,6 +310,28 @@ if (!Prototype.Browser.MobileSafari) {
 					}
 				}
 			);
+			
+			if (T3editor.ajaxSavetype != "") {
+				Event.observe(document, 't3editor:save',
+					function(event) {
+						var params = Object.extend({
+							ajaxID: "tx_t3editor::saveCode",
+							t3editor_savetype: T3editor.ajaxSavetype
+						}, event.memo.parameters);
+
+						new Ajax.Request(
+							T3editor.URL_typo3 + "ajax.php", {
+								parameters: params,
+								onComplete: function(ajaxrequest) {
+									var wasSuccessful = ajaxrequest.status == 200
+									&& ajaxrequest.headerJSON.result == true
+									event.memo.t3editor.saveFunctionComplete(wasSuccessful);
+								}
+							}
+						);
+					}
+				);
+			}
 		}
 	);
 }

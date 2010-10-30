@@ -29,10 +29,7 @@
  * TYPO3 SVN ID: $Id$
  *
  */
-
-require_once(t3lib_extMgm::extPath('rtehtmlarea').'class.tx_rtehtmlareaapi.php');
-
-class tx_rtehtmlarea_spellchecker extends tx_rtehtmlareaapi {
+class tx_rtehtmlarea_spellchecker extends tx_rtehtmlarea_api {
 
 	protected $extensionKey = 'rtehtmlarea';	// The key of the extension that is extending htmlArea RTE
 	protected $pluginName = 'SpellChecker';		// The name of the plugin registered by the extension
@@ -79,7 +76,7 @@ class tx_rtehtmlarea_spellchecker extends tx_rtehtmlareaapi {
 			// Set the use of personal dictionary
 			// $this->thisConfig['enablePersonalDicts'] is DEPRECATED as of 4.3.0
 		$enablePersonalDicts = ($this->thisConfig['buttons.'][$button.'.']['enablePersonalDictionaries'] || $this->thisConfig['enablePersonalDicts']) ? ((isset($GLOBALS['BE_USER']->userTS['options.']['enablePersonalDicts']) && $GLOBALS['BE_USER']->userTS['options.']['enablePersonalDicts']) ? true : false) : false;
-		if (ini_get('safe_mode') || $this->htmlAreaRTE->is_FE()) {
+		if (t3lib_utility_PhpOptions::isSafeModeEnabled() || $this->htmlAreaRTE->is_FE()) {
 			$enablePersonalDicts = false;
 		}
 

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Contains a class with Extension Management functions
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -107,7 +107,7 @@
  * This class is never instantiated, rather the methods inside is called as functions like
  * 		t3lib_extMgm::isLoaded('my_extension');
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -812,7 +812,7 @@ final class t3lib_extMgm {
 	 *
 	 *	 Adding SERVICES features
 	 *
-	 *   @author	Rene Fritz <r.fritz@colorcube.de>
+	 *   @author	René Fritz <r.fritz@colorcube.de>
 	 *
 	 ***************************************/
 
@@ -824,7 +824,7 @@ final class t3lib_extMgm {
 	 * @param	string		Service key, must be prefixed "tx_" or "user_"
 	 * @param	array		Service description array
 	 * @return	void
-	 * @author	Rene Fritz <r.fritz@colorcube.de>
+	 * @author	René Fritz <r.fritz@colorcube.de>
 	 */
 	public static function addService($extKey, $serviceType, $serviceKey, $info) {
 		global $T3_SERVICES, $TYPO3_CONF_VARS;
@@ -892,7 +892,7 @@ final class t3lib_extMgm {
 	 * @param	string		Service sub type
 	 * @param	mixed		Service keys that should be excluded in the search for a service. Array or comma list.
 	 * @return	mixed		Service info array if a service was found, FLASE otherwise
-	 * @author	Rene Fritz <r.fritz@colorcube.de>
+	 * @author	René Fritz <r.fritz@colorcube.de>
 	 */
 	public static function findService($serviceType, $serviceSubType = '', $excludeServiceKeys = array()) {
 		global $T3_SERVICES, $TYPO3_CONF_VARS;
@@ -961,7 +961,7 @@ final class t3lib_extMgm {
 	 * @param	string		Service type
 	 * @param	string		Service key
 	 * @return	void
-	 * @author	Rene Fritz <r.fritz@colorcube.de>
+	 * @author	René Fritz <r.fritz@colorcube.de>
 	 */
 	public static function deactivateService($serviceType, $serviceKey) {
 		global $T3_SERVICES;
@@ -1269,20 +1269,10 @@ tt_content.'.$key.$prefix.' {
 	public static function typo3_loadExtensions() {
 		global $TYPO3_CONF_VARS;
 
-			// Select mode how to load extensions in order to speed up the FE
-		if (TYPO3_MODE == 'FE') {
-			if (!($extLoadInContext = $TYPO3_CONF_VARS['EXT']['extList_FE'])) {
-					// fall back to standard 'extList' if 'extList_FE' is not (yet) set
-				$extLoadInContext = $TYPO3_CONF_VARS['EXT']['extList'];
-			}
-			$cacheFileSuffix = '_FE';
-		} else {
-			$extLoadInContext = $TYPO3_CONF_VARS['EXT']['extList'];
-				// Works as before
-			$cacheFileSuffix = '';
-		}
+			// Caching behaviour of ext_tables.php and ext_localconf.php files:
+		$extensionCacheBehaviour = self::getExtensionCacheBehaviour();
 			// Full list of extensions includes both required and extList:
-		$rawExtList = $TYPO3_CONF_VARS['EXT']['requiredExt'] . ',' . $extLoadInContext;
+		$rawExtList = self::getEnabledExtensionList();
 
 			// Empty array as a start.
 		$extensions = array();
@@ -1290,13 +1280,10 @@ tt_content.'.$key.$prefix.' {
 			//
 		if ($rawExtList) {
 				// The cached File prefix.
-			$cacheFilePrefix = 'temp_CACHED' . $cacheFileSuffix;
-				// Setting the name for the cache files:
-			if (intval($TYPO3_CONF_VARS['EXT']['extCache'])==1)	$cacheFilePrefix.= '_ps'.substr(t3lib_div::shortMD5(PATH_site.'|'.$GLOBALS['TYPO_VERSION']), 0, 4);
-			if (intval($TYPO3_CONF_VARS['EXT']['extCache'])==2)	$cacheFilePrefix.= '_'.t3lib_div::shortMD5($rawExtList);
+			$cacheFilePrefix = self::getCacheFilePrefix();
 
 				// If cache files available, set cache file prefix and return:
-			if ($TYPO3_CONF_VARS['EXT']['extCache'] && self::isCacheFilesAvailable($cacheFilePrefix)) {
+			if ($extensionCacheBehaviour && self::isCacheFilesAvailable($cacheFilePrefix)) {
 					// Return cache file prefix:
 				$extensions['_CACHEFILE'] = $cacheFilePrefix;
 			} else {	// ... but if not, configure...
@@ -1329,7 +1316,7 @@ tt_content.'.$key.$prefix.' {
 				unset($extensions['_CACHEFILE']);
 
 					// write cache?
-				if ($TYPO3_CONF_VARS['EXT']['extCache'] &&
+				if ($extensionCacheBehaviour &&
 						@is_dir(PATH_typo3.'sysext/') &&
 						@is_dir(PATH_typo3.'ext/'))	{	// Must also find global and system extension directories to exist, otherwise caching cannot be allowed (since it is most likely a temporary server problem). This might fix a rare, unrepeatable bug where global/system extensions are not loaded resulting in fatal errors if that is cached!
 					$wrError = self::cannotCacheFilesWritable($cacheFilePrefix);
@@ -1422,11 +1409,16 @@ $_EXTCONF = $TYPO3_CONF_VARS[\'EXT\'][\'extConf\'][$_EXTKEY];
 	 * Evaluation relies on $TYPO3_LOADED_EXT['_CACHEFILE']
 	 * Usage: 2
 	 *
+	 * @param string $cacheFilePrefix Cache file prefix to be used (optional)
 	 * @return	array
 	 * @internal
 	 */
-	public static function currentCacheFiles() {
-		if (($cacheFilePrefix = $GLOBALS['TYPO3_LOADED_EXT']['_CACHEFILE'])) {
+	public static function currentCacheFiles($cacheFilePrefix = NULL) {
+		if (is_null($cacheFilePrefix)) {
+			$cacheFilePrefix = $GLOBALS['TYPO3_LOADED_EXT']['_CACHEFILE'];
+		}
+
+		if ($cacheFilePrefix) {
 			$cacheFilePrefixFE = str_replace('temp_CACHED','temp_CACHED_FE',$cacheFilePrefix);
 			$files = array();
 			if (self::isCacheFilesAvailable($cacheFilePrefix)) {
@@ -1491,10 +1483,12 @@ $TYPO3_LOADED_EXT = unserialize(stripslashes(\''.addslashes(serialize($extension
 	/**
 	 * Unlink (delete) cache files
 	 *
+	 * @param string $cacheFilePrefix Cache file prefix to be used (optional)
 	 * @return	integer		Number of deleted files.
 	 */
-	public static function removeCacheFiles() {
-		$cacheFiles = self::currentCacheFiles();
+	public static function removeCacheFiles($cacheFilePrefix = NULL) {
+		$cacheFiles = self::currentCacheFiles($cacheFilePrefix);
+
 		$out = 0;
 		if (is_array($cacheFiles)) {
 			reset($cacheFiles);
@@ -1505,6 +1499,91 @@ $TYPO3_LOADED_EXT = unserialize(stripslashes(\''.addslashes(serialize($extension
 			}
 		}
 		return $out;
+	}
+
+	/**
+	 * Static function for create a link to list view
+	 *
+	 * @param string $id page id / resource id
+	 * @param string $additionalParams eg "&returnUrl=..."
+	 * @param string $linkTitle title for the link tag
+	 * @param string $linkText optional link text after the icon
+	 * @param boolean $linkOnly if true only the href will be returned
+	 * @return string link / href
+	 */
+	public function createListViewLink($id, $additionalParams = '', $linkTitle = '', $linkText = '', $linkOnly = FALSE) {
+		if (!self::isLoaded('list') || !$GLOBALS['BE_USER']->check('modules', 'web_list')) {
+			return '';
+		}
+		$href = $GLOBALS['BACK_PATH'] . self::extRelPath('list') . 'mod1/db_list.php?id=' .
+			$id . $additionalParams;
+		if ($linkOnly) {
+			return $href;
+		} else {
+			return '<a href="' . htmlspecialchars($href) . '" title="' . htmlspecialchars($linkTitle) . '">' .
+				t3lib_iconWorks::getSpriteIcon('actions-system-list-open') .
+				$linkText .
+				'</a>';
+		}
+	}
+
+	/**
+	 * Gets the behaviour for caching ext_tables.php and ext_localconf.php files
+	 * (see $TYPO3_CONF_VARS['EXT']['extCache'] setting in the install tool).
+	 *
+	 * @param boolean $usePlainValue Whether to use the value as it is without modifications
+	 * @return integer
+	 */
+	public static function getExtensionCacheBehaviour($usePlainValue = FALSE) {
+		$extensionCacheBehaviour = intval($GLOBALS['TYPO3_CONF_VARS']['EXT']['extCache']);
+
+		// Caching of extensions is disabled when install tool is used:
+		if (!$usePlainValue && defined('TYPO3_enterInstallScript') && TYPO3_enterInstallScript) {
+			$extensionCacheBehaviour = 0;
+		} 
+
+		return $extensionCacheBehaviour;
+	}
+
+	/**
+	 * Gets the prefix used for the ext_tables.php and ext_localconf.php cached files.
+	 *
+	 * @return string
+	 */
+	public static function getCacheFilePrefix() {
+		$extensionCacheBehaviour = self::getExtensionCacheBehaviour(TRUE);
+
+		$cacheFileSuffix = (TYPO3_MODE == 'FE' ? '_FE' : '');
+		$cacheFilePrefix = 'temp_CACHED' . $cacheFileSuffix;
+
+		if ($extensionCacheBehaviour == 1) {
+			$cacheFilePrefix.= '_ps' . substr(t3lib_div::shortMD5(PATH_site . '|' . $GLOBALS['TYPO_VERSION']), 0, 4);
+		} elseif ($extensionCacheBehaviour == 2) {
+			$cacheFilePrefix.= '_' . t3lib_div::shortMD5(self::getEnabledExtensionList());
+		}
+
+		return $cacheFilePrefix;
+	}
+
+	/**
+	 * Gets the list of enabled extensions for the accordant context (frontend or backend).
+	 *
+	 * @return string
+	 */
+	public static function getEnabledExtensionList() {
+			// Select mode how to load extensions in order to speed up the FE
+		if (TYPO3_MODE == 'FE') {
+			if (!($extLoadInContext = $GLOBALS['TYPO3_CONF_VARS']['EXT']['extList_FE'])) {
+					// fall back to standard 'extList' if 'extList_FE' is not (yet) set
+				$extLoadInContext = $GLOBALS['TYPO3_CONF_VARS']['EXT']['extList'];
+			}
+		} else {
+			$extLoadInContext = $GLOBALS['TYPO3_CONF_VARS']['EXT']['extList'];
+		}
+
+		$extensionList = $GLOBALS['TYPO3_CONF_VARS']['EXT']['requiredExt'] . ',' . $extLoadInContext;
+
+		return $extensionList;
 	}
 }
 

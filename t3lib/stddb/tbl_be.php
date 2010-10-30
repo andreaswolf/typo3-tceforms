@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Contains the dynamic configuation of the fields in the core tables of TYPO3: be_users, be_groups, sys_filemounts and sys_workspace
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @see tables.php, tables.sql
  */
 
@@ -817,6 +817,88 @@ $TCA['sys_language'] = array(
 	),
 	'types' => array(
 		'1' => array('showitem' => 'hidden;;;;1-1-1,title;;;;2-2-2,static_lang_isocode,flag')
+	)
+);
+
+
+
+
+/**
+ * System News (displayed on Login screen)
+ */
+$TCA['sys_news'] = array(
+	'ctrl' => $TCA['sys_news']['ctrl'],
+	'interface' => array(
+		'showRecordFieldList' => 'hidden,title,content,starttime,endtime'
+	),
+	'columns' => array(
+		'hidden' => array(
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.disable',
+			'exclude' => 1,
+			'config' => array(
+				'type' => 'check',
+				'default' => '0'
+			)
+		),
+		'starttime' => array(
+			'exclude' => 1,
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.starttime',
+			'config' => array(
+				'type' => 'input',
+				'size' => '8',
+				'max' => '20',
+				'eval' => 'date',
+				'checkbox' => '0',
+				'default' => '0'
+			)
+		),
+		'endtime' => array(
+			'exclude' => 1,
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.endtime',
+			'config' => array(
+				'type' => 'input',
+				'size' => '8',
+				'max' => '20',
+				'eval' => 'date',
+				'checkbox' => '0',
+				'default' => '0'
+			)
+		),
+		'title' => array(
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.title',
+			'config' => array(
+				'type' => 'input',
+				'size' => '30',
+				'max' => '255',
+				'eval' => 'required'
+			)
+		),
+		'content' => array(
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.text',
+			'config' => array(
+				'type' => 'text',
+				'cols' => '48',
+				'rows' => '5',
+				'wizards' => array(
+					'_PADDING' => 4,
+					'_VALIGN' => 'middle',
+					'RTE' => array(
+						'notNewRecords' => 1,
+						'RTEonly' => 1,
+						'type' => 'script',
+						'title' => 'LLL:EXT:cms/locallang_ttc.php:bodytext.W.RTE',
+						'icon' => 'wizard_rte2.gif',
+						'script' => 'wizard_rte.php'
+					),
+				),
+			),
+		),
+	),
+	'types' => array(
+		'1' => array('showitem' => '
+			hidden, title, content;;9;richtext:rte_transform[flag=rte_enabled|mode=ts_css];3-3-3,
+			--div--;LLL:EXT:lang/locallang_tca.xml:sys_news.tabs.access, starttime, endtime'
+		)
 	)
 );
 

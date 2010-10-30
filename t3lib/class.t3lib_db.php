@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2004-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -32,7 +32,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -133,7 +133,7 @@
  * In all TYPO3 scripts the global variable $TYPO3_DB is an instance of this class. Use that.
  * Eg. 		$GLOBALS['TYPO3_DB']->sql_fetch_assoc()
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -432,7 +432,7 @@ class t3lib_DB {
 
 				// Build query:
 			$query = 'INSERT INTO ' . $table .
-				'(' . implode(',', array_keys($fields_values)) . ') VALUES ' .
+				' (' . implode(',', array_keys($fields_values)) . ') VALUES ' .
 				'(' . implode(',', $fields_values) . ')';
 
 				// Return query:
@@ -627,8 +627,9 @@ class t3lib_DB {
 	 * Returns a WHERE clause that can find a value ($value) in a list field ($field)
 	 * For instance a record in the database might contain a list of numbers,
 	 * "34,234,5" (with no spaces between). This query would be able to select that
-	 * record based on the value "34", "234" or "5" regardless of their positioni in
+	 * record based on the value "34", "234" or "5" regardless of their position in
 	 * the list (left, middle or right).
+	 * The value must not contain a comma (,)
 	 * Is nice to look up list-relations to records or files in TYPO3 database tables.
 	 *
 	 * @param	string		Field name
@@ -636,13 +637,13 @@ class t3lib_DB {
 	 * @param	string		Table in which we are searching (for DBAL detection of quoteStr() method)
 	 * @return	string		WHERE clause for a query
 	 */
-	function listQuery($field, $value, $table) {
+	public function listQuery($field, $value, $table) {
+		$value = (string)$value;
+		if (strpos(',', $value) !== FALSE) {
+			throw new InvalidArgumentException('$value must not contain a comma (,) in $this->listQuery() !');
+		}
 		$pattern = $this->quoteStr($value, $table);
-		$patternForLike = $this->escapeStrForLike($pattern, $table);
-		$where = '(' . $field . ' LIKE \'%,' . $patternForLike . ',%\' OR  ' .
-			$field . ' LIKE \'' . $patternForLike . ',%\' OR ' .
-			$field . ' LIKE \'%,' . $patternForLike . '\' OR ' .
-			$field . '=\'' . $pattern . '\')';
+		$where = 'FIND_IN_SET(\'' . $pattern . '\',' . $field . ')';
 		return $where;
 	}
 
@@ -669,6 +670,79 @@ class t3lib_DB {
 
 
 
+
+
+
+
+
+
+	/**************************************
+	 *
+	 * Prepared Query Support
+	 *
+	 **************************************/
+
+	/**
+	 * Creates a SELECT prepared SQL statement.
+	 *
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param array $input_parameters An array of values with as many elements as there are bound parameters in the SQL statement being executed. All values are treated as t3lib_db_PreparedStatement::PARAM_AUTOTYPE.
+	 * @return t3lib_db_PreparedStatement Prepared statement
+	 */
+	public function prepare_SELECTquery($select_fields, $from_table, $where_clause, $groupBy = '', $orderBy = '', $limit = '', array $input_parameters = array()) {
+		$query = $this->SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
+		$preparedStatement = t3lib_div::makeInstance('t3lib_db_PreparedStatement', $query, $from_table, array());
+		/* @var $preparedStatement t3lib_db_PreparedStatement */
+
+			// Bind values to parameters
+		foreach ($input_parameters as $key => $value) {
+			$preparedStatement->bindValue($key, $value, t3lib_db_PreparedStatement::PARAM_AUTOTYPE);
+		}
+
+			// Return prepared statement
+		return $preparedStatement;
+	}
+
+	/**
+	 * Creates a SELECT prepared SQL statement based on input query parts array
+	 *
+	 * @param array Query parts array
+	 * @param array $input_parameters An array of values with as many elements as there are bound parameters in the SQL statement being executed. All values are treated as t3lib_db_PreparedStatement::PARAM_AUTOTYPE.
+	 * @return t3lib_db_PreparedStatement Prepared statement
+	 */
+	public function prepare_SELECTqueryArray(array $queryParts, array $input_parameters = array()) {
+		return $this->prepare_SELECTquery(
+			$queryParts['SELECT'],
+			$queryParts['FROM'],
+			$queryParts['WHERE'],
+			$queryParts['GROUPBY'],
+			$queryParts['ORDERBY'],
+			$queryParts['LIMIT'],
+			$input_parameters
+		);
+	}
+
+	/**
+	 * Executes a prepared query.
+	 * This method may only be called by t3lib_db_PreparedStatement.
+	 *
+	 * @param string $query The query to execute
+	 * @param array $queryComponents The components of the query to execute
+	 * @return pointer MySQL result pointer / DBAL object
+	 * @access private
+	 */
+	public function exec_PREPAREDquery($query, array $queryComponents) {
+		$res = mysql_query($query, $this->link);
+		if ($this->debugOutput) {
+			$this->debug('stmt_execute', $query);
+		}
+		return $res;
+	}
 
 
 
@@ -754,7 +828,7 @@ class t3lib_DB {
 	 * @see quoteStr()
 	 */
 	function escapeStrForLike($str, $table) {
-		return preg_replace('/[_%]/', '\\\$0', $str);
+		return addcslashes($str, '_%');
 	}
 
 	/**
@@ -890,7 +964,7 @@ class t3lib_DB {
 	 * @param	string		Database name
 	 * @param	string		Query to execute
 	 * @return	pointer		Result pointer / DBAL object
-	 * @deprecated since TYPO3 3.6, will be removed in TYPO3 4.5
+	 * @deprecated since TYPO3 3.6, will be removed in TYPO3 4.6
 	 * @see sql_query()
 	 */
 	function sql($db, $query) {
@@ -1097,7 +1171,7 @@ class t3lib_DB {
 		} else {
 			if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['dbClientCompress'] && !$isLocalhost) {
 					// See comment about 4th parameter in block above
-				$this->link = @mysql_pconnect($TYPO3_db_host, $TYPO3_db_username, $TYPO3_db_password, false, MYSQL_CLIENT_COMPRESS);
+				$this->link = @mysql_pconnect($TYPO3_db_host, $TYPO3_db_username, $TYPO3_db_password, MYSQL_CLIENT_COMPRESS);
 			} else {
 				$this->link = @mysql_pconnect($TYPO3_db_host, $TYPO3_db_username, $TYPO3_db_password);
 			}
@@ -1114,7 +1188,7 @@ class t3lib_DB {
 				4
 			);
 		} else {
-			$setDBinit = t3lib_div::trimExplode(LF, $GLOBALS['TYPO3_CONF_VARS']['SYS']['setDBinit'], TRUE);
+			$setDBinit = t3lib_div::trimExplode(LF, str_replace("' . LF . '", LF, $GLOBALS['TYPO3_CONF_VARS']['SYS']['setDBinit']), TRUE);
 			foreach ($setDBinit as $v) {
 				if (mysql_query($v, $this->link) === FALSE) {
 					t3lib_div::sysLog('Could not initialize DB connection with query "' . $v .
@@ -1368,13 +1442,13 @@ class t3lib_DB {
 	function debug($func, $query='') {
 
 		$error = $this->sql_error();
-		if ($error) {
+		if ($error || $this->debugOutput == 2) {
 			debug(
 				array(
 					'caller' => 't3lib_DB::' . $func,
 					'ERROR' => $error,
 					'lastBuiltQuery' => ($query ? $query : $this->debug_lastBuiltQuery),
-					'debug_backtrace' => t3lib_div::debug_trail(),
+					'debug_backtrace' => t3lib_utility_Debug::debugTrail(),
 				),
 				$func,
 				is_object($GLOBALS['error']) && @is_callable(array($GLOBALS['error'], 'debug')) ? '' : 'DB Error'
@@ -1449,7 +1523,7 @@ class t3lib_DB {
 		}
 
 		$error = $this->sql_error();
-		$trail = t3lib_div::debug_trail();
+		$trail = t3lib_utility_Debug::debugTrail();
 
 		$explain_tables = array();
 		$explain_output = array();
@@ -1504,7 +1578,7 @@ class t3lib_DB {
 				}
 
 				if ($explainMode == 1) {
-					t3lib_div::debug($data, 'Tables: ' . $from_table, 'DB SQL EXPLAIN');
+					t3lib_utility_Debug::debug($data, 'Tables: ' . $from_table, 'DB SQL EXPLAIN');
 				} elseif ($explainMode == 2) {
 					$GLOBALS['TT']->setTSselectQuery($data);
 				}

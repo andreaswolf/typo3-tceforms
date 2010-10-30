@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,7 +27,7 @@
 /**
  * Import / Export module
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -123,7 +123,7 @@ t3lib_extMgm::isLoaded('impexp',1);
 /**
  * Extension of the page tree class. Used to get the tree of pages to export.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tx_impexp
  */
@@ -221,7 +221,7 @@ class localPageTree extends t3lib_browseTree {
 
 		if ($pid>0)	{
 			$rootRec = t3lib_befunc::getRecordWSOL('pages',$pid);
-			$firstHtml.= $this->wrapIcon(t3lib_iconWorks::getIconImage('pages',$rootRec,$this->backPath,'align="top"'),$rootRec);
+			$firstHtml.= $this->wrapIcon(t3lib_iconWorks::getSpriteIconForRecord('pages', $rootRec), $rootRec);
 		} else {
 			$rootRec = array(
 				'title' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'],
@@ -266,7 +266,7 @@ class localPageTree extends t3lib_browseTree {
 /**
  * Main script class for the Import / Export facility
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tx_impexp
  */
@@ -298,9 +298,6 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 				window.location.href = URL;
 			}
 		');
-
-			// Set up JS for dynamic tab menu
-		$this->doc->JScode .= $this->doc->getDynTabMenuJScode();
 
 		// Setting up the context sensitive menu:
 		$this->doc->getContextMenuCode();
@@ -388,16 +385,16 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 				if (is_array($this->pageinfo) && $this->pageinfo['uid']) {
 					// View
 					$buttons['view'] = '<a href="#" onclick="' . htmlspecialchars(t3lib_BEfunc::viewOnClick($this->pageinfo['uid'], $this->doc->backPath, t3lib_BEfunc::BEgetRootLine($this->pageinfo['uid']))) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showPage', TRUE) . '">' .
-						t3lib_iconWorks::getSpriteIcon('actions-document-view') . 
+						t3lib_iconWorks::getSpriteIcon('actions-document-view') .
 				  '</a>';
 
-					// Record list
-					if ($GLOBALS['BE_USER']->check('modules', 'web_list')) {
-						$href = $this->doc->backPath . 'db_list.php?id=' . $this->pageinfo['uid'] . '&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'));
-						$buttons['record_list'] = '<a href="' . htmlspecialchars($href) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE) . '">' .
-							t3lib_iconWorks::getSpriteIcon('actions-system-list-open') . 
-					  '</a>';
-					}
+						// Record list
+						// If access to Web>List for user, then link to that module.
+					$buttons['record_list'] = t3lib_extMgm::createListViewLink(
+						$this->pageinfo['uid'],
+						'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
+						$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+					);
 				}
 			}
 		}
@@ -537,7 +534,7 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 					$tree = t3lib_div::makeInstance('t3lib_pageTree');
 					$tree->init('AND '.$this->perms_clause.$this->filterPageIds($this->export->excludeMap));
 
-					$HTML = t3lib_iconWorks::getIconImage('pages',$sPage,$GLOBALS['BACK_PATH'],'align="top"');
+					$HTML = t3lib_iconWorks::getSpriteIconForRecord('pages', $sPage);
 					$tree->tree[] = Array('row'=>$sPage,'HTML'=>$HTML);
 					$tree->buffer_idH = array();
 					if ($inData['pagetree']['levels']>0)	{
@@ -815,7 +812,7 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 				$row[] = '
 				<tr class="bgColor4">
 					<td><strong>'.$LANG->getLL('makeconfig_record',1).'</strong></td>
-					<td>'.t3lib_iconworks::getIconImage($tName,$rec,$GLOBALS['BACK_PATH'],' align="top"').
+					<td>' . t3lib_iconworks::getSpriteIconForRecord($tName, $rec) .
 						t3lib_BEfunc::getRecordTitle($tName,$rec,TRUE).
 						'<input type="hidden" name="tx_impexp[record][]" value="'.htmlspecialchars($tName.':'.$rUid).'" /></td>
 				</tr>';
@@ -836,8 +833,8 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 
 				if ($GLOBALS['BE_USER']->check('tables_select',$tName))	{
 					$rec = t3lib_BEfunc::getRecordWSOL('pages', $rParts[1]);
-					$tblList.='Table "'.$tName.'" from '.t3lib_iconworks::getIconImage('pages',$rec,$GLOBALS['BACK_PATH'],' align="top"').
-					t3lib_BEfunc::getRecordTitle('pages',$rec,TRUE).
+					$tblList .= 'Table "' . $tName . '" from ' . t3lib_iconworks::getSpriteIconForRecord('pages', $rec) .
+					t3lib_BEfunc::getRecordTitle('pages', $rec, TRUE).
 					'<input type="hidden" name="tx_impexp[list][]" value="'.htmlspecialchars($ref).'" /><br/>';
 				}
 			}
@@ -1290,7 +1287,8 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 						unset($passParams['import_file']);
 
 						$thisScriptUrl = t3lib_div::getIndpEnv('REQUEST_URI').'?M=xMOD_tximpexp&id='.$this->id.t3lib_div::implodeArrayForUrl('tx_impexp',$passParams);
-						$emURL = $this->doc->backPath.'mod/tools/em/index.php?CMD[requestInstallExtensions]='.implode(',',$extKeysToInstall).'&returnUrl='.rawurlencode($thisScriptUrl);
+						$emURL = $this->doc->backPath . t3lib_extMgm::extRelPath('em') . 'mod1/index.php?CMD[requestInstallExtensions]=' .
+							implode(',', $extKeysToInstall) . '&returnUrl=' . rawurlencode($thisScriptUrl);
 						$extensionInstallationMessage = 'Before you can install this T3D file you need to install the extensions "'.implode('", "',$extKeysToInstall).'". Clicking Import will first take you to the Extension Manager so these dependencies can be resolved.';
 					}
 
@@ -1452,7 +1450,7 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 					'preset_data' => serialize($inData)
 				);
 				$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_impexp_presets',$fields_values);
-				$msg = 'New preset "'.$inData['preset']['title'].'" is created';
+				$msg = 'New preset "' . htmlspecialchars($inData['preset']['title']) . '" is created';
 			}
 		}
 
@@ -1642,7 +1640,7 @@ class SC_mod_tools_log_index extends t3lib_SCbase {
 			$optValues['_ALL'] = '['.$LANG->getLL('ALL_tables').']';
 		}
 
-		foreach ($TCA as $table => $value) {
+		foreach ($TCA as $table => $_) {
 			if ($GLOBALS['BE_USER']->check('tables_select',$table) && !t3lib_div::inList($excludeList,$table))	{
 				$optValues[$table] = $table;
 			}

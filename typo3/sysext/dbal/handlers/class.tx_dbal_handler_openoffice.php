@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2010 Kasper Skaarhoj (kasper@typo3.com)
+*  (c) 2004-2009 Kasper Skårhøj (kasper@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,9 +27,9 @@
 /**
  * Contains an example DBAL handler class
  *
- * $Id: class.tx_dbal_handler_openoffice.php 28898 2010-01-16 14:32:35Z xperseguers $
+ * $Id: class.tx_dbal_handler_openoffice.php 35523 2010-07-11 14:04:44Z xperseguers $
  *
- * @author	Kasper Skaarhoj <kasper@typo3.com>
+ * @author	Kasper Skårhøj <kasper@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -67,7 +67,7 @@
  * Example DBAL handler class
  * Stores data in an Open Office Calc Spreadsheet
  *
- * @author	Kasper Skaarhoj <kasper@typo3.com>
+ * @author	Kasper Skårhøj <kasper@typo3.com>
  * @package TYPO3
  * @subpackage tx_dbal
  */

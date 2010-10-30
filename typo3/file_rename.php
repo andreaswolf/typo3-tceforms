@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Web>File: Renaming files and folders
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -65,7 +65,7 @@ require('template.php');
 /**
  * Script Class for the rename-file form.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -108,7 +108,7 @@ class SC_file_rename {
 
 			// Initialize GPvars:
 		$this->target = t3lib_div::_GP('target');
-		$this->returnUrl = t3lib_div::_GP('returnUrl');
+		$this->returnUrl = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
 
 			// Init basic-file-functions object:
 		$this->basicff = t3lib_div::makeInstance('t3lib_basicFileFunctions');
@@ -121,9 +121,10 @@ class SC_file_rename {
 			$this->target='';
 		}
 		$key=$this->basicff->checkPathAgainstMounts($this->target.'/');
-		if (!$this->target || !$key)	{
-			t3lib_BEfunc::typo3PrintError ($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:paramError', true), $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:targetNoDir', true), '');
-			exit;
+		if (!$this->target || !$key) {
+			$title = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:paramError', TRUE);
+			$message = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:targetNoDir', TRUE);
+			throw new RuntimeException($title . ': ' . $message);
 		}
 
 			// Finding the icon

@@ -28,7 +28,7 @@ require_once('FakeDbConnection.php');
 
 /**
  * Testcase for class ux_t3lib_db. Testing PostgreSQL database handling.
- * 
+ *
  * $Id$
  *
  * @author Xavier Perseguers <typo3@perseguers.ch>
@@ -86,7 +86,7 @@ class dbPostgresqlTest extends BaseTestCase {
 
 	/**
 	 * Cleans a SQL query.
-	 *  
+	 *
 	 * @param mixed $sql
 	 * @return mixed (string or array)
 	 */
@@ -101,7 +101,7 @@ class dbPostgresqlTest extends BaseTestCase {
 	}
 
 	/**
-	 * @test 
+	 * @test
 	 */
 	public function configurationIsUsingAdodbAndDriverPostgres() {
 		$configuration = $GLOBALS['TYPO3_DB']->conf['handlerCfg'];
@@ -110,7 +110,7 @@ class dbPostgresqlTest extends BaseTestCase {
 		$this->assertTrue($GLOBALS['TYPO3_DB']->runningADOdbDriver('postgres') !== FALSE, 'Not using postgres driver');
 	}
 
-	/** 
+	/**
 	 * @test
 	 */
 	public function tablesWithMappingAreDetected() {
@@ -158,6 +158,76 @@ class dbPostgresqlTest extends BaseTestCase {
 			'20,40'
 		));
 		$expected = 'SELECT * FROM "be_users" WHERE 1 = 1 LIMIT 40 OFFSET 20';
+		$this->assertEquals($expected, $query);
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=14985
+	 */
+	public function findInSetIsProperlyRemapped() {
+		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery(
+			'*',
+			'fe_users',
+			'FIND_IN_SET(10, usergroup)'
+		));
+		$expected = 'SELECT * FROM "fe_users" WHERE FIND_IN_SET(10, "usergroup") != 0';
+		$this->assertEquals($expected, $query);
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=12535
+	 */
+	public function likeBinaryOperatorIsRemappedToLike() {
+		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery(
+			'*',
+			'tt_content',
+			'bodytext LIKE BINARY \'test\''
+		));
+		$expected = 'SELECT * FROM "tt_content" WHERE "bodytext" LIKE \'test\'';
+		$this->assertEquals($expected, $query);
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=12535
+	 */
+	public function notLikeBinaryOperatorIsRemappedToNotLike() {
+		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery(
+			'*',
+			'tt_content',
+			'bodytext NOT LIKE BINARY \'test\''
+		));
+		$expected = 'SELECT * FROM "tt_content" WHERE "bodytext" NOT LIKE \'test\'';
+		$this->assertEquals($expected, $query);
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=12535
+	 */
+	public function likeOperatorIsRemappedToIlike() {
+		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery(
+			'*',
+			'tt_content',
+			'bodytext LIKE \'test\''
+		));
+		$expected = 'SELECT * FROM "tt_content" WHERE "bodytext" ILIKE \'test\'';
+		$this->assertEquals($expected, $query);
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=12535
+	 */
+	public function notLikeOperatorIsRemappedToNotIlike() {
+		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery(
+			'*',
+			'tt_content',
+			'bodytext NOT LIKE \'test\''
+		));
+		$expected = 'SELECT * FROM "tt_content" WHERE "bodytext" NOT ILIKE \'test\'';
 		$this->assertEquals($expected, $query);
 	}
 }

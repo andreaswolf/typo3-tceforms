@@ -1,8 +1,8 @@
 <?php
 /**
  * MS SQL configuration
- * 
- * $Id: mssql.config.php 29886 2010-02-09 21:39:29Z xperseguers $
+ *
+ * $Id: mssql.config.php 37022 2010-08-19 19:34:19Z xperseguers $
  *
  * @author Xavier Perseguers <typo3@perseguers.ch>
  *
@@ -12,13 +12,13 @@
 global $TYPO3_CONF_VARS;
 
 $TYPO3_CONF_VARS['EXTCONF']['dbal']['handlerCfg'] = array(
-	'_DEFAULT' => array( 
-		'type' => 'adodb', 
+	'_DEFAULT' => array(
+		'type' => 'adodb',
 		'config' => array(
 			'driver' => 'mssql',
 			'useNameQuote' => FALSE,
 		),
-	), 
+	),
 );
 
 $TYPO3_CONF_VARS['EXTCONF']['dbal']['mapping'] = array(

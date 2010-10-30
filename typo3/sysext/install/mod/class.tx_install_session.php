@@ -93,7 +93,7 @@ class tx_install_session {
 		$sessionSavePath = $this->getSessionSavePath();
 		if (!is_dir($sessionSavePath)) {
 			if (!t3lib_div::mkdir($sessionSavePath)) {
-				die('Could not create session folder in typo3temp/. Make sure it is writeable!');
+				throw new Exception('<p><strong>Could not create session folder in typo3temp/.</strong></p><p>Make sure it is writeable!</p>');
 			}
 			t3lib_div::writeFile($sessionSavePath.'/.htaccess', 'Order deny, allow'."\n".'Deny from all'."\n");
 			$indexContent = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">';
@@ -120,6 +120,16 @@ class tx_install_session {
 		if (version_compare(phpversion(), '5.2', '<')) {
 			ini_set('session.cookie_httponly', TRUE);
 		}
+		if (ini_get('session.auto_start')) {
+			$sessionCreationError = '<p><strong>Error: session.auto-start is enabled</strong></p>';
+			$sessionCreationError .= '<p>The PHP option session.auto-start is enabled. Disable this option in php.ini or .htaccess:</p>';
+			$sessionCreationError .= '<pre>php_value session.auto_start Off</pre>';
+			throw new Exception($sessionCreationError);
+		} else if (defined('SID')) {
+			$sessionCreationError = '<p><strong>Error: Session already started by session_start().</strong></p>';
+			$sessionCreationError .= '<p>Make sure no installed extension is starting a session in its ext_localconf.php or ext_tables.php.</p>';
+			throw new Exception($sessionCreationError);
+		}
 		session_start();
 	}
 
@@ -143,8 +153,8 @@ class tx_install_session {
 	 */
 	public function startSession() {
 		$_SESSION['created'] = time();
-
-		return session_id();
+			// Be sure to use our own session id, so create a new one
+		return $this->renewSession();
 	}
 
 	/**
@@ -218,6 +228,8 @@ class tx_install_session {
 		$_SESSION['lastSessionId'] = time();
 		$_SESSION['tstamp'] = time();
 		$_SESSION['expires'] = (time() + ($this->expireTimeInMinutes*60));
+			// Renew the session id to avoid session fixation
+		$this->renewSession();
 	}
 
 	/**

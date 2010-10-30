@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Class with template object that is responsible for generating the template
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -99,7 +99,7 @@
 /**
  * Template object that is responsible for generating the TypoScript template based on template records.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  * @see	t3lib_tsparser.php, t3lib_matchcondition.php
@@ -279,6 +279,7 @@ class t3lib_TStemplate	{
 			if ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
 				$currentPageData = unserialize($row['content']);
 			}
+			$GLOBALS['TYPO3_DB']->sql_free_result($res);
 		}
 
 		return $currentPageData;
@@ -572,7 +573,7 @@ class t3lib_TStemplate	{
 					$GLOBALS['TYPO3_DB']->sql_free_result($res);
 				}
 			} else {
-					// Normal Operation, which is to include the "based-on" sys_templates, 
+					// Normal Operation, which is to include the "based-on" sys_templates,
 					// if they are not already included, and maintaining the sorting of the templates
 				$basedOnIds = t3lib_div::intExplode(',', $row['basedOn']);
 
@@ -591,7 +592,7 @@ class t3lib_TStemplate	{
 				);
 
 					// traversing list again to ensure the sorting of the templates
-				foreach ($basedOnIds as $id) { 
+				foreach ($basedOnIds as $id) {
 					if (is_array($subTemplates[$id])) {
 						$this->versionOL($subTemplates[$id]);
 						$this->processTemplate($subTemplates[$id], $idList . ',sys_' . $id, $pid, 'sys_' . $id, $templateID);
@@ -1301,7 +1302,7 @@ class t3lib_TStemplate	{
 	 * @param	string		Property name in the menu array
 	 * @param	array		Menu array to traverse
 	 * @return	array		Modified menu array
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5.
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6.
 	 * @internal
 	 */
 	function checkFile($name,$menuArr)	{

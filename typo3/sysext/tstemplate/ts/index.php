@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,7 +31,7 @@
  * 	$TYPO3_CONF_VARS["MODS"]["web_ts"]["onlineResourceDir"]  = Directory of default resources. Eg. "fileadmin/res/" or so.
  *
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 
 
@@ -143,7 +143,7 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 				.tsob-search-submit {margin-left: 3px; margin-right: 3px;}
 				.tst-analyzer-options { margin:5px 0; }
 				.tst-analyzer-options label {padding-left:5px; vertical-align:text-top; }
-				.bgColor0 {background-color:#fff;}
+				.bgColor0 {background-color:#fff; color: #000; }
 			';
 
 
@@ -249,16 +249,15 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 		if ($this->id && $this->access) {
 				// View page
 			$buttons['view'] = '<a href="#" onclick="' . htmlspecialchars(t3lib_BEfunc::viewOnClick($this->pageinfo['uid'], $GLOBALS['BACK_PATH'], t3lib_BEfunc::BEgetRootLine($this->pageinfo['uid']))) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showPage', TRUE) . '">' .
-						t3lib_iconWorks::getSpriteIcon('actions-document-view') . 
+						t3lib_iconWorks::getSpriteIcon('actions-document-view') .
 					'</a>';
 
 				// If access to Web>List for user, then link to that module.
-			if ($GLOBALS['BE_USER']->check('modules', 'web_list')) {
-				$href = $GLOBALS['BACK_PATH'] . 'db_list.php?id=' . $this->pageinfo['uid'] . '&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'));
-				$buttons['record_list'] = '<a href="' . htmlspecialchars($href) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE) . '">' .
-							t3lib_iconWorks::getSpriteIcon('actions-system-list-open') . 
-						'</a>';
-			}
+			$buttons['record_list'] = t3lib_extMgm::createListViewLink(
+				$this->pageinfo['uid'],
+				'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
+				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+			);
 
 			if ($this->extClassConf['name'] == 'tx_tstemplateinfo') {
 					// NEW button
@@ -272,8 +271,8 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 					$buttons['save'] = t3lib_iconWorks::getSpriteIcon('actions-document-save',
 						array(
 							'html' => '<input type="image" class="c-inputButton" name="submit" src="clear.gif" ' .
-								'title="'. $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.saveDoc', TRUE) .'" ' . 
-								'value="'. $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.saveDoc', TRUE) .'" ' . 
+								'title="'. $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.saveDoc', TRUE) .'" ' .
+								'value="'. $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.saveDoc', TRUE) .'" ' .
 								'/>'
 						));
 
@@ -289,7 +288,7 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 						// CLOSE button
 					$buttons['close'] = t3lib_iconWorks::getSpriteIcon('actions-document-close',
 						array(
-							'html' => '<input type="image" class="c-inputButton" name="abort" src="clear.gif" ' . 
+							'html' => '<input type="image" class="c-inputButton" name="abort" src="clear.gif" ' .
 								'title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.closeDoc', TRUE) . '" ' .
 								'value="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.closeDoc', TRUE) . '" ' .
 								'/>'
@@ -307,7 +306,7 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 				if(!empty($this->sObj)) {
 						// BACK
 					$buttons['back'] = '<a href="index.php?id=' . $this->id . '" class="typo3-goBack" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.goBack', TRUE) . '">' .
-									t3lib_iconWorks::getSpriteIcon('actions-view-go-back') . 
+									t3lib_iconWorks::getSpriteIcon('actions-view-go-back') .
 								'</a>';
 				}
 			}
@@ -335,9 +334,11 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 	*
 	* @param boolean $humanReadable: Returns human readable string instead of an array
 	* @return mixed The number of records in cache_* tables as array or string
-	* @deprecated since TYPO3 4.2.0
+	* @deprecated since TYPO3 4.2.0, will be removed in TYPO3 4.6
 	*/
 	function getCountCacheTables($humanReadable) {
+		t3lib_div::logDeprecatedFunction();
+
 		$out = array();
 
 		$out['cache_pages'] = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('id', 'cache_pages');
@@ -356,9 +357,9 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 
 	function linkWrapTemplateTitle($title, $onlyKey = '') {
 		if ($onlyKey) {
-			$title = '<a href="index.php?id=' . $GLOBALS['SOBE']->id . '&e[' . $onlyKey . ']=1&SET[function]=tx_tstemplateinfo">' . htmlspecialchars($title) . '</a>';
+			$title = '<a href="index.php?id=' . htmlspecialchars($GLOBALS['SOBE']->id . '&e[' . $onlyKey . ']=1&SET[function]=tx_tstemplateinfo') . '">' . htmlspecialchars($title) . '</a>';
 		} else {
-			$title = '<a href="index.php?id=' . $GLOBALS['SOBE']->id . '&e[constants]=1&e[config]=1&SET[function]=tx_tstemplateinfo">' . htmlspecialchars($title) . '</a>';
+			$title = '<a href="index.php?id=' . htmlspecialchars($GLOBALS['SOBE']->id . '&e[constants]=1&e[config]=1&SET[function]=tx_tstemplateinfo') . '">' . htmlspecialchars($title) . '</a>';
 		}
 		return $title;
 	}
@@ -372,7 +373,7 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 
 			// No template
 		$theOutput .= $this->doc->spacer(10);
-		
+
 		$flashMessage = t3lib_div::makeInstance(
 			't3lib_FlashMessage',
 			$GLOBALS['LANG']->getLL('noTemplateDescription') . '<br />' . $GLOBALS['LANG']->getLL('createTemplateToEditConfiguration'),
@@ -380,8 +381,8 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 			t3lib_FlashMessage::INFO
 		);
 		$theOutput .= $flashMessage->render();
-		
-		
+
+
 			// New standard?
 		if ($newStandardTemplate) {
 			if (t3lib_extMgm::isLoaded('statictemplates')) { // check wether statictemplates are supported
@@ -402,7 +403,7 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 				// Extension?
 			$theOutput .= $this->doc->spacer(10);
 			$theOutput .= $this->doc->section($GLOBALS['LANG']->getLL('newWebsite') . $staticsText, $GLOBALS['LANG']->getLL('newWebsiteDescription') . '<br /><br />' .
-			$selector . 
+			$selector .
 			'<input type="Submit" name="newWebsite" value="' . $GLOBALS['LANG']->getLL('newWebsiteAction') . '" />', 0, 1);
 		}
 			// Extension?

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,10 +29,10 @@
  * Most of these functions are considered obsolete!
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -86,7 +86,7 @@
  *
  * @todo	Need to really extend this class when the tcemain library has been updated and the whole API is better defined. There are some known bugs in this library. Further it would be nice with a facility to not only analyze but also clean up!
  * @see SC_mod_tools_dbint_index::func_relations(), SC_mod_tools_dbint_index::func_records()
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -167,7 +167,7 @@ class t3lib_admin {
 				$this->genTree_HTML.= $depthData.
 					'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/'.$PM.$BTM.'.gif','width="18" height="16"').' align="top" alt="" />'.
 					$versionLabel.
-					t3lib_iconWorks::getIconImage('pages',$row,$this->backPath,'align="top"').
+					t3lib_iconWorks::getSpriteIconForRecord('pages', $row) .
 					htmlspecialchars($row['uid'].': '.t3lib_div::fixed_lgd_cs(strip_tags($row['title']),50)).'</span></div>';
 			}
 
@@ -257,7 +257,7 @@ class t3lib_admin {
 				$this->genTree_HTML.= $depthData.
 					'<img'.t3lib_iconWorks::skinImg($this->backPath,'gfx/ol/'.$PM.$BTM.'.gif','width="18" height="16"').' align="top" alt="" />'.
 					$versionLabel.
-					t3lib_iconWorks::getIconImage($table,$row,$this->backPath,'align="top" title="'.$table.'"').htmlspecialchars($row['uid'].': '.t3lib_BEfunc::getRecordTitle($table,$row)).'</span></div>';
+					t3lib_iconWorks::getSpriteIconForRecord($table, $row, array('title'=> $table)) . htmlspecialchars($row['uid'] . ': ' . t3lib_BEfunc::getRecordTitle($table,$row)) . '</span></div>';
 			}
 
 				// Register various data for this item:
@@ -652,7 +652,7 @@ class t3lib_admin {
 		global $TCA;
 		foreach ($theArray as $table => $dbArr) {
 			if ($TCA[$table])	{
-				$idlist = array_keys($dbArr); 
+				$idlist = array_keys($dbArr);
 
 				$theList = implode(',',$idlist);
 				if ($theList)	{

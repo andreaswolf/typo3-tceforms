@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,7 +29,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -176,7 +176,7 @@
 /**
  * HTML mail class
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package	TYPO3
  * @subpackage	t3lib
  */
@@ -248,7 +248,7 @@ class t3lib_htmlmail {
 	public function t3lib_htmlmail() {
 		$this->forceReturnPath = $GLOBALS['TYPO3_CONF_VARS']['SYS']['forceReturnPath'];
 
-		$this->mailer = 'TYPO3 '.TYPO3_version;
+		$this->mailer = 'TYPO3';
 	}
 
 
@@ -732,7 +732,7 @@ class t3lib_htmlmail {
 		$recipient = t3lib_div::normalizeMailAddress($this->recipient);
 
 		// If safe mode is on, the fifth parameter to mail is not allowed, so the fix wont work on unix with safe_mode=On
-		$returnPathPossible = (!ini_get('safe_mode') && $this->forceReturnPath);
+		$returnPathPossible = (!t3lib_utility_PhpOptions::isSafeModeEnabled() && $this->forceReturnPath);
 		if ($returnPathPossible) {
 			$mailWasSent = t3lib_utility_Mail::mail($recipient,
 				  $this->subject,
@@ -751,7 +751,7 @@ class t3lib_htmlmail {
 			$theParts = explode('/',$this->auto_respond_msg,2);
 			$theParts[0] = str_replace('###SUBJECT###', $this->subject, $theParts[0]);
 			$theParts[1] = str_replace("/",LF,$theParts[1]);
-			$theParts[1] = str_replace("###MESSAGE###", $this->getContent('plain'), $theParts[1]);			
+			$theParts[1] = str_replace("###MESSAGE###", $this->getContent('plain'), $theParts[1]);
 			if ($returnPathPossible) {
 				$mailWasSent = t3lib_utility_Mail::mail($this->from_email,
 					$theParts[0],
@@ -1419,9 +1419,9 @@ class t3lib_htmlmail {
 		$c = count($tags);
 		foreach($tags as $tag) {
 			$c--;
-			$regexp .= '<' . sql_regcase($tag) . "[[:space:]]" . (($c) ? '|' : '');
+			$regexp .= '<' . $tag . '[[:space:]]' . (($c) ? '|' : '');
 		}
-		return $regexp . '/';
+		return $regexp . '/i';
 	}
 
 
@@ -1477,9 +1477,11 @@ class t3lib_htmlmail {
 	 *
 	 * @param	string		Content to encode
 	 * @return	string		The QP encoded string
-	 * @deprecated since TYPO3 4.0, remove in TYPO 4.3
+	 * @deprecated since TYPO3 4.0, will be removed in TYPO3 4.6 
 	 */
 	public function quoted_printable($string) {
+		t3lib_div::logDeprecatedFunction();
+
 		return t3lib_div::quoted_printable($string, 76);
 	}
 
@@ -1490,9 +1492,11 @@ class t3lib_htmlmail {
 	 *
 	 * @param	string		$name: the name
 	 * @return	string		the name
-	 * @deprecated since TYPO3 4.0, remove in TYPO3 4.3
+	 * @deprecated since TYPO3 4.0, will be removed in TYPO3 4.6 
 	 */
 	public function convertName($name) {
+		t3lib_div::logDeprecatedFunction();
+
 		return $name;
 	}
 }

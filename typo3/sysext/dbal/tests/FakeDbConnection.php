@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2010 Xavier Perseguers <typo3@perseguers.ch>
+*  (c) 2009 Xavier Perseguers <typo3@perseguers.ch>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -25,8 +25,8 @@
 
 /**
  * Fake ADOdb connection factory.
- * 
- * $Id: FakeDbConnection.php 27006 2009-11-25 22:08:07Z xperseguers $
+ *
+ * $Id: FakeDbConnection.php 37022 2010-08-19 19:34:19Z xperseguers $
  *
  * @author Xavier Perseguers <typo3@perseguers.ch>
  *
@@ -37,7 +37,7 @@ class FakeDbConnection {
 
 	/**
 	 * Creates a fake database connection.
-	 * 
+	 *
 	 * @param ux_t3lib_db $db
 	 * @param string $databaseType Type of the database (e.g., 'oracle')
 	 * @param string $driver Driver to use (e.g., 'oci8')

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasper@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasper@typo3.com)
 *  (c) 2004-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
@@ -28,7 +28,7 @@
 /**
  * Displays image selector for the RTE
  *
- * @author	Kasper Skaarhoj <kasper@typo3.com>
+ * @author	Kasper Skårhøj <kasper@typo3.com>
  * @author	Stanislas Rolland <typo3(arobas)sjbr.ca>
  *
  * $Id$  *
@@ -38,7 +38,7 @@ require_once(PATH_typo3.'class.browse_links.php');
 /**
  * Local Folder Tree
  *
- * @author	Kasper Skaarhoj <kasper@typo3.com>
+ * @author	Kasper Skårhøj <kasper@typo3.com>
  * @package TYPO3
  * @subpackage tx_rte
  */
@@ -53,6 +53,8 @@ class tx_rtehtmlarea_image_folderTree extends t3lib_folderTree {
 	 * @return	string		Wrapping title string.
 	 */
 	function wrapTitle($title,$v)	{
+		$title = htmlspecialchars($title);
+		
 		if ($this->ext_isLinkable($v))	{
 			$aOnClick = 'return jumpToUrl(\'?editorNo='.$GLOBALS['SOBE']->browser->editorNo.'&expandFolder='.rawurlencode($v['path']).'\');';
 			return '<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.$title.'</a>';
@@ -125,7 +127,7 @@ class tx_rtehtmlarea_image_folderTree extends t3lib_folderTree {
 /**
  * Script Class
  *
- * @author	Kasper Skaarhoj <kasper@typo3.com>
+ * @author	Kasper Skårhøj <kasper@typo3.com>
  * @package TYPO3
  * @subpackage tx_rte
  */
@@ -1153,6 +1155,10 @@ class tx_rtehtmlarea_select_image extends browse_links {
 			// Call hook for extra options
 		foreach ($this->hookObjects as $hookObject) {
 			$allowedItems = $hookObject->addAllowedItems($allowedItems);
+		}
+			// Remove tab "image" if there is no current image
+		if ($this->act !== 'image') {
+			$allowedItems = array_diff($allowedItems, array('image'));
 		}
 			// Remove options according to RTE configuration
 		if (is_array($this->buttonConfig['options.']) && $this->buttonConfig['options.']['removeItems']) {

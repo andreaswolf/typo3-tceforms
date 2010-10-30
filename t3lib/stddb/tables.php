@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -42,9 +42,9 @@
  *
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @see tslib_fe::includeTCA(), typo3/init.php, t3lib/stddb/load_ext_tables.php
  * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=262&cHash=4f12caa011
  */
@@ -54,21 +54,35 @@
  * $PAGES_TYPES defines the various types of pages (field: doktype) the system can handle and what restrictions may apply to them.
  * Here you can set the icon and especially you can define which tables are allowed on a certain pagetype (doktype)
  * NOTE: The 'default' entry in the $PAGES_TYPES-array is the 'base' for all types, and for every type the entries simply overrides the entries in the 'default' type!
+ *
+ * NOTE: usage of 'icon' is deprecated since TYPO3 4.4, use t3lib_SpriteManager::addTcaTypeIcon() instead
  */
 $PAGES_TYPES = array(
+	'3' => array(
+	),
+	'4' => array(
+	),
+	'5' => array(
+	),
+	'6' => array(
+		'type' => 'web',
+		'allowedTables' => '*'
+	),
+	'7' => array(
+	),
+	'199' => array(		// TypoScript: Limit is 200. When the doktype is 200 or above, the page WILL NOT be regarded as a 'page' by TypoScript. Rather is it a system-type page
+		'type' => 'sys',
+	),
 	'254' => array(		//  Doktype 254 is a 'sysFolder' - a general purpose storage folder for whatever you like. In CMS context it's NOT a viewable page. Can contain any element.
 		'type' => 'sys',
-		'icon' => 'sysf.gif',
 		'allowedTables' => '*'
 	),
 	'255' => array(		// Doktype 255 is a recycle-bin.
 		'type' => 'sys',
-		'icon' => 'recycler.gif',
 		'allowedTables' => '*'
 	),
 	'default' => array(
 		'type' => 'web',
-		'icon' => 'pages.gif',
 		'allowedTables' => 'pages',
 		'onlyAllowedTables' => '0'
 	)
@@ -80,6 +94,7 @@ $PAGES_TYPES = array(
  * Each key is a value from the "module" field of page records and the value is an array with a key/value pair, eg. "icon" => "modules_shop.gif"
  *
  * @see t3lib_iconWorks::getIcon(), typo3/sysext/cms/ext_tables.php
+ * @deprecated since TYPO3 4.4, use t3lib_SpriteManager::addTcaTypeIcon instead
  */
 $ICON_TYPES = array();
 
@@ -147,7 +162,15 @@ $TCA['pages'] = array(
 		'prependAtCopy' => 'LLL:EXT:lang/locallang_general.php:LGL.prependAtCopy',
 		'cruser_id' => 'cruser_id',
 		'editlock' => 'editlock',
-		'useColumnsForDefaultValues' => 'doktype',
+		'useColumnsForDefaultValues' => 'doktype,fe_group,hidden',
+		'dividers2tabs' => 1,
+		'enablecolumns' => array(
+			'disabled' => 'hidden',
+			'starttime' => 'starttime',
+			'endtime' => 'endtime',
+			'fe_group' => 'fe_group',
+		),
+		'transForeignTable' => 'pages_language_overlay',
 		'typeicon_column' => 'doktype',
 		'typeicon_classes' => array(
 			'1' => 'apps-pagetree-page-default',
@@ -179,124 +202,18 @@ $TCA['pages'] = array(
 			'contains-board' => 'apps-pagetree-folder-contains-board',
 			'contains-news' => 'apps-pagetree-folder-contains-news',
 			'default' => 'apps-pagetree-page-default',
-			
 		),
 		'typeicons' => array(
 			'1' => 'pages.gif',
 			'254' => 'sysf.gif',
 			'255' => 'recycler.gif',
-		)
-	),
-	'interface' => array(
-		'showRecordFieldList' => 'doktype,title',
-		'maxDBListItems' => 30,
-		'maxSingleDBListItems' => 50
-	),
-	'columns' => array(
-		'doktype' => array(
-			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.type',
-			'config' => array(
-				'type' => 'select',
-				'items' => array(
-					array('LLL:EXT:lang/locallang_tca.php:doktype.I.0', '1', 'i/pages.gif'),
-					array('LLL:EXT:lang/locallang_tca.php:doktype.I.1', '254', 'i/sysf.gif'),
-					array('LLL:EXT:lang/locallang_tca.php:doktype.I.2', '255', 'i/recycler.gif')
-				),
-				'default' => '1',
-				'iconsInOptionTags' => 1,
-				'noIconsBelowSelect' => 1,
-			)
 		),
-		'title' => array(
-			'label' => 'LLL:EXT:lang/locallang_tca.php:title',
-			'config' => array(
-				'type' => 'input',
-				'size' => '30',
-				'max' => '255',
-				'eval' => 'required'
-			)
-		),
-		'TSconfig' => array(
-			'exclude' => 1,
-			'label' => 'TSconfig:',
-			'config' => array(
-				'type' => 'text',
-				'cols' => '40',
-				'rows' => '5',
-				'wizards' => array(
-					'_PADDING' => 4,
-					'0' => array(
-						'type' => t3lib_extMgm::isLoaded('tsconfig_help')?'popup':'',
-						'title' => 'TSconfig QuickReference',
-						'script' => 'wizard_tsconfig.php?mode=page',
-						'icon' => 'wizard_tsconfig.gif',
-						'JSopenParams' => 'height=500,width=780,status=0,menubar=0,scrollbars=1',
-					)
-				),
-				'softref' => 'TSconfig'
-			),
-			'defaultExtras' => 'fixed-font : enable-tab',
-		),
-		'php_tree_stop' => array(
-			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_tca.php:php_tree_stop',
-			'config' => array(
-				'type' => 'check'
-			)
-		),
-		'is_siteroot' => array(
-			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_tca.php:is_siteroot',
-			'config' => array(
-				'type' => 'check'
-			)
-		),
-		'storage_pid' => array(
-			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_tca.php:storage_pid',
-			'config' => array(
-				'type' => 'group',
-				'internal_type' => 'db',
-				'allowed' => 'pages',
-				'size' => '1',
-				'maxitems' => '1',
-				'minitems' => '0',
-				'show_thumbs' => '1',
-				'wizards' => array(
-					'suggest' => array(
-						'type' => 'suggest',
-					),
-				),
-			)
-		),
-		'tx_impexp_origuid' => array('config'=>array('type'=>'passthrough')),
-		't3ver_label' => array(
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.versionLabel',
-			'config' => array(
-				'type' => 'input',
-				'size' => '30',
-				'max' => '255',
-			)
-		),
-		'editlock' => array(
-			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_tca.php:editlock',
-			'config' => array(
-				'type' => 'check'
-			)
-		),
-	),
-	'types' => array(
-		'1' => array('showitem' => 'doktype, title, TSconfig;;6;nowrap, storage_pid;;7'),
-		'254' => array('showitem' => 'doktype, title;LLL:EXT:lang/locallang_general.php:LGL.title, TSconfig;;6;nowrap, storage_pid;;7'),
-		'255' => array('showitem' => 'doktype, title, TSconfig;;6;nowrap, storage_pid;;7')
-	),
-	'palettes' => array(
-		'6' => array('showitem' => 'php_tree_stop, editlock'),
-		'7' => array('showitem' => 'is_siteroot')
+		'dynamicConfigFile' => 'T3LIB:tbl_pages.php',
 	)
 );
+
+// Initialize the additional configuration of the table 'pages':
+t3lib_div::loadTCA('pages');
 
 /**
  * Table "be_users":
@@ -329,7 +246,7 @@ $TCA['be_users'] = array(
 			'0' => 'status-user-backend',
 			'1' => 'status-user-admin',
 			'default' => 'status-user-backend',
-		), 
+		),
 		'mainpalette' => '1',
 		'useColumnsForDefaultValues' => 'usergroup,lockToDomain,options,db_mountpoints,file_mountpoints,fileoper_perms,userMods',
 		'dividers2tabs' => true,
@@ -361,7 +278,7 @@ $TCA['be_groups'] = array(
 		),
 		'typeicon_classes' => array(
 			'default' => 'status-user-group-backend',
-		), 
+		),
 		'enablecolumns' => array(
 			'disabled' => 'hidden'
 		),
@@ -417,13 +334,42 @@ $TCA['sys_language'] = array(
 		),
 		'typeicon_classes' => array(
 			'default' => 'mimetypes-x-sys_language',
-		), 
+		),
 		'dynamicConfigFile' => 'T3LIB:tbl_be.php',
 		'versioningWS_alwaysAllowLiveEdit' => TRUE
 	)
 );
 
 
+/**
+ * Table "sys_news":
+ * Holds news records to be displayed in the login screen
+ * This is only the 'header' part (ctrl). The full configuration is found
+ * in t3lib/stddb/tbl_be.php
+ */
+$TCA['sys_news'] = array(
+	'ctrl' => array(
+		'title'             => 'LLL:EXT:lang/locallang_tca.xml:sys_news',
+		'label'             => 'title',
+		'tstamp'            => 'tstamp',
+		'crdate'            => 'crdate',
+		'cruser_id'         => 'cruser_id',
+		'adminOnly'         => TRUE,
+		'rootLevel'         => TRUE,
+		'delete'            => 'deleted',
+		'enablecolumns'     => array(
+			'disabled'  => 'hidden',
+			'starttime' => 'starttime',
+			'endtime'   => 'endtime'
+		),
+		'default_sortby'    => 'crdate DESC',
+		'typeicon_classes'  => array(
+			'default' => 'mimetypes-x-sys_news',
+		),
+		'dynamicConfigFile' => 'T3LIB:tbl_be.php',
+		'dividers2tabs'     => TRUE
+	)
+);
 
 
 
@@ -471,6 +417,7 @@ t3lib_extMgm::addLLrefForTCAdescr('be_users','EXT:lang/locallang_csh_be_users.xm
 t3lib_extMgm::addLLrefForTCAdescr('be_groups','EXT:lang/locallang_csh_be_groups.xml');
 t3lib_extMgm::addLLrefForTCAdescr('sys_filemounts','EXT:lang/locallang_csh_sysfilem.xml');
 t3lib_extMgm::addLLrefForTCAdescr('sys_language','EXT:lang/locallang_csh_syslang.xml');
+t3lib_extMgm::addLLrefForTCAdescr('sys_news','EXT:lang/locallang_csh_sysnews.xml');
 t3lib_extMgm::addLLrefForTCAdescr('sys_workspace','EXT:lang/locallang_csh_sysws.xml');
 t3lib_extMgm::addLLrefForTCAdescr('xMOD_csh_corebe','EXT:lang/locallang_csh_corebe.xml');	// General Core
 t3lib_extMgm::addLLrefForTCAdescr('_MOD_tools_em','EXT:lang/locallang_csh_em.xml');		// Extension manager
@@ -573,6 +520,7 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'actions-document-save-new',
 	'actions-document-save-view',
 	'actions-document-select',
+	'actions-document-synchronize',
 	'actions-document-view',
 	'actions-edit-add',
 	'actions-edit-copy',
@@ -591,6 +539,7 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'actions-edit-undo',
 	'actions-edit-unhide',
 	'actions-edit-upload',
+	'actions-input-clear',
 	'actions-insert-record',
 	'actions-insert-reference',
 	'actions-move-down',
@@ -620,6 +569,7 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'actions-system-help-open',
 	'actions-system-list-open',
 	'actions-system-options-view',
+	'actions-system-pagemodule-open',
 	'actions-system-refresh',
 	'actions-system-shortcut-new',
 	'actions-system-tree-search-open',
@@ -630,6 +580,8 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'actions-version-page-open',
 	'actions-version-swap-version',
 	'actions-version-swap-workspace',
+	'actions-version-workspace-preview',
+	'actions-version-workspace-sendtostage',
 	'actions-view-go-back',
 	'actions-view-go-down',
 	'actions-view-go-forward',
@@ -655,6 +607,7 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'apps-filetree-folder-locked',
 	'apps-filetree-folder-media',
 	'apps-filetree-folder-news',
+	'apps-filetree-folder-recycler',
 	'apps-filetree-folder-temp',
 	'apps-filetree-folder-user',
 	'apps-filetree-mount',
@@ -747,6 +700,7 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'mimetypes-x-content-text-picture',
 	'mimetypes-x-sys_action',
 	'mimetypes-x-sys_language',
+	'mimetypes-x-sys_news',
 	'mimetypes-x-sys_workspace',
 	'places-folder-closed',
 	'places-folder-opened',
@@ -781,6 +735,14 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'status-user-group-backend',
 	'status-user-group-frontend',
 	'status-version-1',
+	'status-version-2',
+	'status-version-3',
+	'status-version-4',
+	'status-version-5',
+	'status-version-6',
+	'status-version-7',
+	'status-version-8',
+	'status-version-9',
 	'status-version-10',
 	'status-version-11',
 	'status-version-12',
@@ -791,7 +753,6 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'status-version-17',
 	'status-version-18',
 	'status-version-19',
-	'status-version-2',
 	'status-version-20',
 	'status-version-21',
 	'status-version-22',
@@ -802,7 +763,6 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'status-version-27',
 	'status-version-28',
 	'status-version-29',
-	'status-version-3',
 	'status-version-30',
 	'status-version-31',
 	'status-version-32',
@@ -813,7 +773,6 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'status-version-37',
 	'status-version-38',
 	'status-version-39',
-	'status-version-4',
 	'status-version-40',
 	'status-version-41',
 	'status-version-42',
@@ -824,16 +783,14 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'status-version-47',
 	'status-version-48',
 	'status-version-49',
-	'status-version-5',
 	'status-version-50',
-	'status-version-6',
-	'status-version-7',
-	'status-version-8',
-	'status-version-9',
 	'status-version-no-version',
 	'status-warning-in-use',
 	'status-warning-lock'
 );
+
+
+
 
 $GLOBALS['TBE_STYLES']['spriteIconApi']['spriteIconRecordOverlayPriorities'] = array('hidden', 'starttime', 'endtime', 'futureendtime', 'fe_group', 'protectedSection');
 $GLOBALS['TBE_STYLES']['spriteIconApi']['spriteIconRecordOverlayNames'] = array(

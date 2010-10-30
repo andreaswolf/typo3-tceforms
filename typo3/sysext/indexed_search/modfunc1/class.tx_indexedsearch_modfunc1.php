@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2001-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2001-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -24,7 +24,7 @@
 /**
  * Module extension (addition to function menu) 'Indexed search' for the 'indexed_search' extension.
  *
- * @author    Kasper Sk�rh�j <kasperYYYY@typo3.com>
+ * @author    Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -87,7 +87,7 @@ require_once(t3lib_extMgm::extPath('indexed_search').'class.indexer.php');
 /**
  * Indexing class for TYPO3 frontend
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tx_indexedsearch
  */
@@ -264,7 +264,7 @@ class tx_indexedsearch_modfunc1 extends t3lib_extobjbase {
 			$code.= $this->indexed_info(
 						$data['row'],
 						$data['HTML'].
-							$this->showPageDetails(t3lib_div::fixed_lgd_cs($data['row']['title'], 20),$data['row']['uid'])
+							$this->showPageDetails(t3lib_BEfunc::getRecordTitlePrep($data['row']['title']), $data['row']['uid'])
 					);
 		}
 

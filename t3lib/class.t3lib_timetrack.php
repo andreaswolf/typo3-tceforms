@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,10 +28,10 @@
 * Contains class with time tracking functions
 *
 * $Id$
-* Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+* Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
 * XHTML compliant
 *
-* @author  Kasper Skaarhoj <kasperYYYY@typo3.com>
+* @author  Kasper Skårhøj <kasperYYYY@typo3.com>
 */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -80,7 +80,7 @@
  * Is used to register how much time is used with operations in TypoScript
  * Used by index_ts
  *
- * @author  Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author  Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  * @see t3lib_tsfeBeUserAuth, tslib_fe, tslib_cObj, TSpagegen
@@ -257,7 +257,7 @@ class t3lib_timeTrack {
 	 * Returns the current time in milliseconds
 	 *
 	 * @return	integer
-	 * @deprecated	since TYPO3 4.3, this function will be removed in TYPO3 4.5, use getDifferenceToStarttime() instead
+	 * @deprecated	since TYPO3 4.3, this function will be removed in TYPO3 4.6, use getDifferenceToStarttime() instead
 	 */
 	protected function mtime() {
 		t3lib_div::logDeprecatedFunction();
@@ -270,7 +270,7 @@ class t3lib_timeTrack {
 	 *
 	 * @param	string		PHP microtime string
 	 * @return	integer
-	 * @deprecated	since TYPO3 4.3, this function will be removed in TYPO3 4.5, use getMilliseconds() instead that expects microtime as float instead of a string
+	 * @deprecated	since TYPO3 4.3, this function will be removed in TYPO3 4.6, use getMilliseconds() instead that expects microtime as float instead of a string
 	 */
 	public function convertMicrotime($microtime) {
 		t3lib_div::logDeprecatedFunction();
@@ -442,7 +442,7 @@ class t3lib_timeTrack {
 				}
 			}
 			if ($flag_queries && is_array($data['selectQuery'])) {
-				$msgArr[] = t3lib_div::view_array($data['selectQuery']);
+				$msgArr[] = t3lib_utility_Debug::viewArray($data['selectQuery']);
 			}
 			if ($flag_content && strcmp($data['content'],'')) {
 				$maxlen = 120;
@@ -587,37 +587,15 @@ class t3lib_timeTrack {
 	 * @param	boolean		If set, then this will produce a alert() line for inclusion in JavaScript.
 	 * @param	string		URL for the <base> tag (if you want it)
 	 * @return	string
+	 * @deprecated since TYPO3 4.5, will be removed in TYPO3 4.7 - use RuntimeException from now on
 	 */
 	public function debug_typo3PrintError($header, $text, $js, $baseUrl = '') {
 		if ($js) {
 			$errorMessage = 'alert(\'' . t3lib_div::slashJS($header . '\n' . $text) . '\');';
 		} else {
-			$errorMessage = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-					"http://www.w3.org/TR/xhtml1/DTD/xhtml11.dtd">
-				<?xml version="1.0" encoding="utf-8"?>
-				<html>
-					<head>
-						'.($baseUrl ? '<base href="'.htmlspecialchars($baseUrl).'" />' : '').'
-						<title>Error!</title>
-						<style type="text/css"><!--/*--><![CDATA[/*><!--*/
-							body { font-family:Verdana,Arial,Helvetica,sans-serif; font-size: 90%; text-align: center; background-color: #ffffff; }
-							h1 { font-size: 1.2em; margin: 0 0 1em 0; }
-							p { margin: 0; text-align: left; }
-							img { border: 0; margin: 10px 0; }
-							div.center div { margin: 0 auto; }
-							.errorBox { width: 400px; padding: 0.5em; border: 1px solid black; background-color: #F4F0E8; }
-						/*]]>*/--></style>
-					</head>
-					<body>
-						<div class="center">
-							<img src="'.TYPO3_mainDir.'gfx/typo3logo.gif" width="123" height="34" alt="" />
-							<div class="errorBox">
-								<h1>'.$header.'</h1>
-								<p>'.$text.'</p>
-							</div>
-						</div>
-					</body>
-				</html>';
+			t3lib_div::logDeprecatedFunction();
+			$messageObj = t3lib_div::makeInstance('t3lib_message_ErrorPageMessage', $text, $header);
+			$errorMessage = $messageObj->render();
 		}
 
 			// Hook to modify error message

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  (c) 2009-2010 Benjamin Mack (benn@typo3.org)
 *  All rights reserved
 *
@@ -39,7 +39,7 @@ class tx_statictemplates {
 	 * @return	void
 	 */
 	public function includeStaticTypoScriptSources(&$params, &$pObj) {
-			// Static Template Records (static_template): include_static is a 
+			// Static Template Records (static_template): include_static is a
 			// list of static templates to include
 		if (trim($params['row']['include_static'])) {
 			$includeStaticArr = t3lib_div::intExplode(',', $params['row']['include_static']);

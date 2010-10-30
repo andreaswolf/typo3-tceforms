@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,10 +28,10 @@
  * Contains a base class for authentication of users in TYPO3, both frontend and backend.
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
- * @author	Ren� Fritz <r.fritz@colorcube.de>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
+ * @author	René Fritz <r.fritz@colorcube.de>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -103,8 +103,8 @@ require_once(t3lib_extMgm::extPath('sv').'class.tx_sv_authbase.php');
  *
  * See Inside TYPO3 for more information about the API of the class and internal variables.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
- * @author	Ren� Fritz <r.fritz@colorcube.de>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
+ * @author	René Fritz <r.fritz@colorcube.de>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -289,8 +289,9 @@ class t3lib_userAuth {
 		}
 
 			// If any redirection (inclusion of file) then it will happen in this function
-		$this->redirect();
-
+		if (!$this->userid && $this->auth_url)	{ // if no userid AND an include-document for login is given
+			$this->redirect();
+		}
 			// Set all posible headers that could ensure that the script is not cached on the client-side
 		if ($this->sendNoCacheHeaders)	{
 			header('Expires: 0');
@@ -368,12 +369,18 @@ class t3lib_userAuth {
 	protected function getCookieDomain() {
 		$result = '';
 		$cookieDomain = $GLOBALS['TYPO3_CONF_VARS']['SYS']['cookieDomain'];
+			// If a specific cookie domain is defined for a given TYPO3_MODE,
+			// use that domain
+		if (!empty($GLOBALS['TYPO3_CONF_VARS'][$this->loginType]['cookieDomain'])) {
+			$cookieDomain = $GLOBALS['TYPO3_CONF_VARS'][$this->loginType]['cookieDomain'];
+		}
 
 		if ($cookieDomain) {
 			if ($cookieDomain{0} == '/') {
+				$match = array();
 				$matchCnt = @preg_match($cookieDomain, t3lib_div::getIndpEnv('TYPO3_HOST_ONLY'), $match);
 				if ($matchCnt === FALSE) {
-					t3lib_div::sysLog('The regular expression of $TYPO3_CONF_VARS[SYS][cookieDomain] contains errors. The session is not shared across sub-domains.', 'Core', 3);
+					t3lib_div::sysLog('The regular expression for the cookie domain (' . $cookieDomain . ') contains errors. The session is not shared across sub-domains.', 'Core', 3);
 				} elseif ($matchCnt) {
 					$result = $match[0];
 				}
@@ -403,9 +410,9 @@ class t3lib_userAuth {
 			$cookies = t3lib_div::trimExplode(';', $_SERVER['HTTP_COOKIE']);
 			foreach ($cookies as $cookie) {
 				list ($name, $value) = t3lib_div::trimExplode('=', $cookie);
-				if ($name == $cookieName) {
+				if (strcmp(trim($name), $cookieName) == 0) {
 					// Use the last one
-					$cookieValue = stripslashes($value);
+					$cookieValue = urldecode($value);
 				}
 			}
 		} else {
@@ -497,8 +504,9 @@ class t3lib_userAuth {
 				$this->logoff();
 			}
 
-				// Refuse login for _CLI users (used by commandline scripts)
-			if ((strtoupper(substr($loginData['uname'],0,5))=='_CLI_') && (!defined('TYPO3_cliMode') || !TYPO3_cliMode))	{	// although TYPO3_cliMode should never be set when using active login...
+				// Refuse login for _CLI users, if not processing a CLI request type
+				// (although we shouldn't be here in case of a CLI request type)
+			if ((strtoupper(substr($loginData['uname'],0,5)) == '_CLI_') && !(TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_CLI)) {
 				throw new RuntimeException(
 					'TYPO3 Fatal Error: You have tried to login using a CLI user. Access prohibited!',
 					1270853931
@@ -691,7 +699,7 @@ class t3lib_userAuth {
 	 * @return	string		The new session ID
 	 */
 	public function createSessionId() {
-		return substr(md5(uniqid('') . getmypid()), 0, $this->hash_length);
+		return t3lib_div::getRandomHexString($this->hash_length);
 	}
 
 
@@ -771,9 +779,15 @@ class t3lib_userAuth {
 		if ($this->writeDevLog) 	t3lib_div::devLog('Fetch session ses_id = '.$this->id, 't3lib_userAuth');
 
 			// fetch the user session from the DB
-		$dbres = $this->fetchUserSessionFromDB();
+		$statement = $this->fetchUserSessionFromDB();
+		$user = FALSE;
+		if ($statement) {
+			$statement->execute();
+			$user = $statement->fetch();
+			$statement->free();
+		}
 
-		if ($dbres && $user = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbres)) {
+		if ($statement && $user) {
 				// A user was found
 			if (is_string($this->auth_timeout_field))	{
 				$timeout = intval($user[$this->auth_timeout_field]);		// Get timeout-time from usertable
@@ -848,12 +862,16 @@ class t3lib_userAuth {
 	 * @return	boolean		Returns true if a corresponding session was found in the database
 	 */
 	function isExistingSessionRecord($id) {
-		$count = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
-						'ses_id',
-						$this->session_table,
-						'ses_id=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($id, $this->session_table)
-					);
-		return (($count ? true : false));
+		$statement = $GLOBALS['TYPO3_DB']->prepare_SELECTquery(
+			'COUNT(*)',
+			$this->session_table,
+			'ses_id = :ses_id'
+		);
+		$statement->execute(array(':ses_id' => $id));
+		$row = $statement->fetch(t3lib_db_PreparedStatement::FETCH_NUM);
+		$statement->free();
+
+		return (($row[0] ? TRUE : FALSE));
 	}
 
 
@@ -881,40 +899,50 @@ class t3lib_userAuth {
 	 * then don't evaluate with the hashLockClause, as the client/browser is included in this hash
 	 * and thus, the flash request would be rejected
 	 *
-	 * @return DB result object or false on error
+	 * @return t3lib_db_PreparedStatement
 	 * @access private
 	 */
 	protected function fetchUserSessionFromDB() {
+		$statement = null;
+		$ipLockClause = $this->ipLockClause();
 
 		if ($GLOBALS['CLIENT']['BROWSER'] == 'flash') {
 			// if on the flash client, the veri code is valid, then the user session is fetched
 			// from the DB without the hashLock clause
 			if (t3lib_div::_GP('vC') == $this->veriCode()) {
-				$dbres = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-						'*',
-						$this->session_table.','.$this->user_table,
-						$this->session_table.'.ses_id = '.$GLOBALS['TYPO3_DB']->fullQuoteStr($this->id, $this->session_table).'
-							AND '.$this->session_table.'.ses_name = '.$GLOBALS['TYPO3_DB']->fullQuoteStr($this->name, $this->session_table).'
-							AND '.$this->session_table.'.ses_userid = '.$this->user_table.'.'.$this->userid_column.'
-							'.$this->ipLockClause().'
-							'.$this->user_where_clause()
+				$statement = $GLOBALS['TYPO3_DB']->prepare_SELECTquery(
+					'*',
+					$this->session_table . ',' . $this->user_table,
+					$this->session_table . '.ses_id = :ses_id
+						AND ' . $this->session_table . '.ses_name = :ses_name
+						AND ' . $this->session_table . '.ses_userid = ' . $this->user_table . '.' . $this->userid_column . '
+						' . $ipLockClause['where'] . '
+						' . $this->user_where_clause()
 				);
-			} else {
-				$dbres = false;
+				$statement->bindValues(array(
+					':ses_id'     => $this->id,
+					':ses_name'   => $this->name,
+				));
+				$statement->bindValues($ipLockClause['parameters']);
 			}
 		} else {
-			$dbres = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-					'*',
-					$this->session_table.','.$this->user_table,
-					$this->session_table.'.ses_id = '.$GLOBALS['TYPO3_DB']->fullQuoteStr($this->id, $this->session_table).'
-						AND '.$this->session_table.'.ses_name = '.$GLOBALS['TYPO3_DB']->fullQuoteStr($this->name, $this->session_table).'
-						AND '.$this->session_table.'.ses_userid = '.$this->user_table.'.'.$this->userid_column.'
-						'.$this->ipLockClause().'
-						'.$this->hashLockClause().'
-						'.$this->user_where_clause()
+			$statement = $GLOBALS['TYPO3_DB']->prepare_SELECTquery(
+				'*',
+				$this->session_table . ',' . $this->user_table,
+				$this->session_table . '.ses_id = :ses_id
+					AND ' . $this->session_table . '.ses_name = :ses_name
+					AND ' . $this->session_table . '.ses_userid = ' . $this->user_table . '.' . $this->userid_column . '
+					' . $ipLockClause['where'] . '
+					' . $this->hashLockClause() . '
+					' . $this->user_where_clause()
 			);
+			$statement->bindValues(array(
+				':ses_id'     => $this->id,
+				':ses_name'   => $this->name,
+			));
+			$statement->bindValues($ipLockClause['parameters']);
 		}
-		return $dbres;
+		return $statement;
 	}
 
 
@@ -924,7 +952,7 @@ class t3lib_userAuth {
 	 * @return	string
 	 * @access private
 	 */
-	function user_where_clause()	{
+	protected function user_where_clause() {
 		return  (($this->enablecolumns['rootLevel']) ? 'AND '.$this->user_table.'.pid=0 ' : '').
 				(($this->enablecolumns['disabled']) ? ' AND '.$this->user_table.'.'.$this->enablecolumns['disabled'].'=0' : '').
 				(($this->enablecolumns['deleted']) ? ' AND '.$this->user_table.'.'.$this->enablecolumns['deleted'].'=0' : '').
@@ -933,19 +961,26 @@ class t3lib_userAuth {
 	}
 
 	/**
-	 * This returns the where-clause needed to lock a user to the IP address
+	 * This returns the where prepared statement-clause needed to lock a user to the IP address
 	 *
-	 * @return	string
+	 * @return array
 	 * @access private
 	 */
-	function ipLockClause()	{
+	protected function ipLockClause() {
+		$statementClause = array(
+			'where' => '',
+			'parameters' => array(),
+		);
 		if ($this->lockIP)	{
-			$wherePart = 'AND (
-				'.$this->session_table.'.ses_iplock='.$GLOBALS['TYPO3_DB']->fullQuoteStr($this->ipLockClause_remoteIPNumber($this->lockIP),$this->session_table).'
-				OR '.$this->session_table.'.ses_iplock=\'[DISABLED]\'
+			$statementClause['where'] = 'AND (
+				' . $this->session_table . '.ses_iplock = :ses_iplock
+				OR ' . $this->session_table . '.ses_iplock=\'[DISABLED]\'
 				)';
-			return $wherePart;
+			$statementClause['parameters'] = array(
+				':ses_iplock' => $this->ipLockClause_remoteIPNumber($this->lockIP),
+			);
 		}
+		return $statementClause;
 	}
 
 	/**
@@ -956,7 +991,7 @@ class t3lib_userAuth {
 	 * @return	string		(Partial) IP address for REMOTE_ADDR
 	 * @access private
 	 */
-	function ipLockClause_remoteIPNumber($parts)	{
+	protected function ipLockClause_remoteIPNumber($parts) {
 		$IP = t3lib_div::getIndpEnv('REMOTE_ADDR');
 
 		if ($parts>=4)	{
@@ -987,7 +1022,7 @@ class t3lib_userAuth {
 	 * @return	string
 	 * @access private
 	 */
-	function hashLockClause()	{
+	protected function hashLockClause() {
 		$wherePart = 'AND '.$this->session_table.'.ses_hashlock='.intval($this->hashLockClause_getHashInt());
 		return $wherePart;
 	}
@@ -998,7 +1033,7 @@ class t3lib_userAuth {
 	 * @return	integer		Hash integer
 	 * @access private
 	 */
-	function hashLockClause_getHashInt()	{
+	protected function hashLockClause_getHashInt() {
 		$hashStr = '';
 
 		if (t3lib_div::inList($this->lockHashKeyWords,'useragent'))	$hashStr.=':'.t3lib_div::getIndpEnv('HTTP_USER_AGENT');
@@ -1283,16 +1318,14 @@ class t3lib_userAuth {
 	 * Redirect to somewhere (obsolete).
 	 *
 	 * @return	void
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5.
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6.
 	 * @obsolete
 	 * @ignore
 	 */
 	function redirect() {
-		if (!$this->userid && $this->auth_url)	{	 // if no userid AND an include-document for login is given
-			t3lib_div::deprecationLog('Redirection after login via PHP include is deprecated.');
-			include ($this->auth_include);
-			exit;
-		}
+		t3lib_div::logDeprecatedFunction();
+		include ($this->auth_include);
+		exit;
 	}
 
 	/**

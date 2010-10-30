@@ -31,7 +31,7 @@
  * Used with the TypoScript parser.
  * Matches browserinfo, IPnumbers for use with templates
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -173,6 +173,16 @@ class t3lib_matchCondition_backend extends t3lib_matchCondition_abstract {
 		}
 
 		return $pageId;
+	}
+
+	/**
+	 * Gets the properties for the current page.
+	 *
+	 * @return	array		The properties for the current page.
+	 */
+	protected function getPage() {
+		$pageId = (isset($this->pageId) ? $this->pageId : $this->determinePageId());
+		return t3lib_BEfunc::getRecord('pages', $pageId);
 	}
 
 	/**

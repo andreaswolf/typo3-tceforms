@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Sk√•rh√∏j (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Generates a thumbnail and returns an image stream, either GIF/PNG or JPG
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Sk√•rh√∏j
  *
- * @author		Kasper Skaarhoj	<kasperYYYY@typo3.com>
+ * @author		Kasper Sk√•rh√∏j	<kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -72,7 +72,15 @@ if (defined('E_DEPRECATED')) {
 // ******************
 define('TYPO3_OS', stristr(PHP_OS,'win')&&!stristr(PHP_OS,'darwin')?'WIN':'');
 define('TYPO3_MODE','BE');
-if(!defined('PATH_thisScript')) define('PATH_thisScript',str_replace('//','/', str_replace('\\','/', (php_sapi_name()=='cgi'||php_sapi_name()=='isapi' ||php_sapi_name()=='cgi-fcgi')&&($_SERVER['ORIG_PATH_TRANSLATED']?$_SERVER['ORIG_PATH_TRANSLATED']:$_SERVER['PATH_TRANSLATED'])? ($_SERVER['ORIG_PATH_TRANSLATED']?$_SERVER['ORIG_PATH_TRANSLATED']:$_SERVER['PATH_TRANSLATED']):($_SERVER['ORIG_SCRIPT_FILENAME']?$_SERVER['ORIG_SCRIPT_FILENAME']:$_SERVER['SCRIPT_FILENAME']))));
+
+if(!defined('PATH_thisScript')) {
+	define('PATH_thisScript', str_replace('//', '/', str_replace('\\', '/',
+		(PHP_SAPI == 'fpm-fcgi' || PHP_SAPI == 'cgi' || PHP_SAPI == 'isapi' || PHP_SAPI == 'cgi-fcgi') &&
+		($_SERVER['ORIG_PATH_TRANSLATED'] ? $_SERVER['ORIG_PATH_TRANSLATED'] : $_SERVER['PATH_TRANSLATED']) ?
+		($_SERVER['ORIG_PATH_TRANSLATED'] ? $_SERVER['ORIG_PATH_TRANSLATED'] : $_SERVER['PATH_TRANSLATED']) :
+		($_SERVER['ORIG_SCRIPT_FILENAME'] ? $_SERVER['ORIG_SCRIPT_FILENAME'] : $_SERVER['SCRIPT_FILENAME']))));
+}
+
 if(!defined('PATH_site'))  		define('PATH_site', preg_replace('/[^\/]*.[^\/]*$/','',PATH_thisScript));		// the path to the website folder (see init.php)
 if(!defined('PATH_t3lib')) 		define('PATH_t3lib', PATH_site.'t3lib/');
 define('PATH_typo3conf', PATH_site.'typo3conf/');
@@ -114,7 +122,7 @@ if (!$TYPO3_CONF_VARS['GFX']['image_processing'])	die ('ImageProcessing was disa
  *
  * Relative paths MUST BE the first two characters ONLY: eg: '../dir/file.gif', otherwise it is expect to be absolute
  *
- * @author		Kasper Skaarhoj	<kasperYYYY@typo3.com>
+ * @author		Kasper Sk√•rh√∏j	<kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -224,7 +232,7 @@ class SC_t3lib_thumbs {
 			$outpath = PATH_site.$this->outdir;
 
 				// Should be - ? 'png' : 'gif' - , but doesn't work (ImageMagick prob.?)
-				// RenÈ: png work for me
+				// Ren√©: png work for me
 			$thmMode = t3lib_div::intInRange($TYPO3_CONF_VARS['GFX']['thumbnails_png'],0);
 			$outext = ($ext!='jpg' || ($thmMode & 2)) ? ($thmMode & 1 ? 'png' : 'gif') : 'jpg';
 
@@ -354,7 +362,7 @@ class SC_t3lib_thumbs {
 		$col = imageColorAllocate($im, 0,0,0);
 
 			// The test string and offset in x-axis.
-		$string = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz∆Êÿ¯≈Âƒ‰÷ˆ‹¸ﬂ';
+		$string = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz√Ü√¶√ò√∏√Ö√•√Ñ√§√ñ√∂√ú√º√ü';
 		$x=13;
 
 			// Print (with non-ttf font) the size displayed

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Contains a class with functions used to read email content
  *
  * $Id$
- * Revised for TYPO3 3.6 May 2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 May 2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -76,7 +76,7 @@
  * Functions used to read email content
  * The class is still just a bunch of miscellaneous functions used to read content out of emails
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -393,7 +393,7 @@ class t3lib_readmail {
 	 * The extended version of the extractMailHeader() which will also parse all the content body into an array and further process the header fields and decode content etc. Returns every part of the mail ready to go.
 	 *
 	 * @param	string		Raw email input.
-	 * @return	array		Multidimensional array with all parts of the message organized nicely. Use t3lib_div::debug() to analyse it visually.
+	 * @return	array		Multidimensional array with all parts of the message organized nicely. Use t3lib_utility_Debug::debug() to analyse it visually.
 	 */
 	function fullParse($content)	{
 			// *************************

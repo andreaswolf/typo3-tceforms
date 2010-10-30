@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2010 Francois Suter <francois@typo3.org>
+*  (c) 2009-2010 François Suter <francois@typo3.org>
 *  (c) 2005 Christian Jul Jensen <julle@typo3.org>
 *  All rights reserved
 *
@@ -31,7 +31,7 @@ $BE_USER->modAccess($MCONF, 1); // This checks permissions and exits if the user
 /**
  * Module 'TYPO3 Scheduler administration module' for the 'scheduler' extension.
  *
- * @author		Francois Suter <francois@typo3.org>
+ * @author		François Suter <francois@typo3.org>
  * @author		Christian Jul Jensen <julle@typo3.org>
  * @author		Ingo Renner <ingo@typo3.org>
  * @package		TYPO3
@@ -471,14 +471,14 @@ class tx_scheduler_Module extends t3lib_SCbase {
 		} else {
 				// Initialise table layout
 			$tableLayout = array (
-				'table' => array ('<table border="0" cellspacing="1" cellpadding="2" style="width:auto;">', '</table>'),
+				'table' => array ('<table border="0" cellspacing="1" cellpadding="2" class="typo3-dblist">', '</table>'),
 				'0' => array (
-					'tr' => array('<tr class="bgColor2" valign="top">', '</tr>'),
-					'defCol' => array('<td class="cell">', '</td>')
+					'tr' => array('<tr class="t3-row-header" valign="top">', '</tr>'),
+					'defCol' => array('<td>', '</td>')
 				),
 				'defRow' => array (
-					'tr' => array('<tr class="bgColor3-20">', '</tr>'),
-					'defCol' => array('<td class="cell">', '</td>')
+					'tr' => array('<tr class="db_list_normal">', '</tr>'),
+					'defCol' => array('<td>', '</td>')
 				)
 			);
 			$table = array();
@@ -497,7 +497,7 @@ class tx_scheduler_Module extends t3lib_SCbase {
 				$table[$tr][] = $classInfo['extension'];
 				$table[$tr][] = $classInfo['description'];
 				$link = $GLOBALS['MCONF']['_'] . '&SET[function]=list&CMD=add&tx_scheduler[class]=' . $class;
-				$table[$tr][] = '<a href="' . htmlspecialchars($link) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:new', TRUE) . '">' . t3lib_iconWorks::getSpriteIcon('actions-document-new') . '</a>';
+				$table[$tr][] = '<a href="' . htmlspecialchars($link) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:new', TRUE) . '" class="icon">' . t3lib_iconWorks::getSpriteIcon('actions-document-new') . '</a>';
 				$tr++;
 			}
 
@@ -727,7 +727,7 @@ class tx_scheduler_Module extends t3lib_SCbase {
 
 			// Define table layout for add/edit form
 		$tableLayout = array (
-			'table' => array ('<table border="0" cellspacing="1" cellpadding="0" id="edit_form">', '</table>'),
+			'table' => array ('<table border="0" cellspacing="0" cellpadding="0" id="edit_form" class="typo3-usersettings">', '</table>'),
 		);
 
 			// Define a style for hiding
@@ -744,23 +744,26 @@ class tx_scheduler_Module extends t3lib_SCbase {
 
 		$table = array();
 		$tr = 0;
-		$defaultCell = array('<td class="bgColor5 cell">', '</td>');
+		$defaultCell = array('<td class="td-input">', '</td>');
 
 			// Disable checkbox
-		$table[$tr][] = t3lib_BEfunc::cshItem($this->cshKey, 'task_disable', $this->backPath, '|', false, 'margin-bottom:0px;');
-		$table[$tr][] = '<label for="task_disable">' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:disable') . '</label>';
+		$cellContent  = t3lib_BEfunc::cshItem($this->cshKey, 'task_disable', $this->backPath, '|', false, 'margin-bottom:0px;');
+		$cellContent .= '<label for="task_disable">' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:disable') . '</label>';
+		$table[$tr][] = $cellContent;
 		$table[$tr][] =
 			'<input type="hidden"   name="tx_scheduler[disable]" value="0" />
 			 <input type="checkbox" name="tx_scheduler[disable]" value="1" id="task_disable"' . ($taskInfo['disable'] == 1 ? ' checked="checked"' : '') . ' />';
 		$tableLayout[$tr] = array (
 			'tr'     => array('<tr id="task_disable_row">', '</tr>'),
-			'defCol' => $defaultCell
+			'defCol' => $defaultCell,
+			'0'      => array('<td class="td-label">', '</td>')
 		);
 		$tr++;
 
 			// Task class selector
-		$table[$tr][] = t3lib_BEfunc::cshItem($this->cshKey, 'task_class', $this->backPath, '|', false, 'margin-bottom:0px;');
-		$table[$tr][] = '<label for="task_class">'.$GLOBALS['LANG']->getLL('label.class').'</label>';
+		$cellContent  = t3lib_BEfunc::cshItem($this->cshKey, 'task_class', $this->backPath, '|', false, 'margin-bottom:0px;');
+		$cellContent .= '<label for="task_class">'.$GLOBALS['LANG']->getLL('label.class').'</label>';
+		$table[$tr][] = $cellContent;
 			// On editing, don't allow changing of the task class, unless it was not valid
 		if ($this->submittedData['uid'] > 0 && !empty($taskInfo['class'])) {
 			$cell = $registeredClasses[$taskInfo['class']]['title'] . ' (' . $registeredClasses[$taskInfo['class']]['extension'] . ')';
@@ -778,13 +781,15 @@ class tx_scheduler_Module extends t3lib_SCbase {
 			// Make sure each row has a unique id, for manipulation with JS
 		$tableLayout[$tr] = array (
 			'tr'     => array('<tr id="task_class_row">', '</tr>'),
-			'defCol' => $defaultCell
+			'defCol' => $defaultCell,
+			'0'      => array('<td class="td-label">', '</td>')
 		);
 		$tr++;
 
 			// Task type selector
-		$table[$tr][] = t3lib_BEfunc::cshItem($this->cshKey, 'task_type', $this->backPath, '|', false, 'margin-bottom:0px;');
-		$table[$tr][] = '<label for="task_type">' . $GLOBALS['LANG']->getLL('label.type') . '</label>';
+		$cellContent  = t3lib_BEfunc::cshItem($this->cshKey, 'task_type', $this->backPath, '|', false, 'margin-bottom:0px;');
+		$cellContent .= '<label for="task_type">' . $GLOBALS['LANG']->getLL('label.type') . '</label>';
+		$table[$tr][] = $cellContent;
 		$table[$tr][] =
 			'<select name="tx_scheduler[type]" id="task_type" onchange="actOnChangedTaskType(this)">' .
 				'<option value="1"' . ($taskInfo['type'] == 1 ? ' selected="selected"' : '') . '>' . $GLOBALS['LANG']->getLL('label.type.single') . '</option>' .
@@ -792,54 +797,75 @@ class tx_scheduler_Module extends t3lib_SCbase {
 			'</select>';
 		$tableLayout[$tr] = array (
 			'tr'     => array('<tr id="task_type_row">', '</tr>'),
-			'defCol' => $defaultCell
+			'defCol' => $defaultCell,
+			'0'      => array('<td class="td-label">', '</td>'),
 		);
 		$tr++;
 
 			// Start date/time field
 			// NOTE: datetime fields need a special id naming scheme
-		$table[$tr][] = t3lib_BEfunc::cshItem($this->cshKey, 'task_start', $this->backPath, '|', false, 'margin-bottom:0px;');
-		$table[$tr][] = '<label for="tceforms-datetimefield-task_start">' . $GLOBALS['LANG']->getLL('label.start') . '</label>';
+		$cellContent  = t3lib_BEfunc::cshItem($this->cshKey, 'task_start', $this->backPath, '|', false, 'margin-bottom:0px;');
+		$cellContent .= '<label for="tceforms-datetimefield-task_start">' . $GLOBALS['LANG']->getLL('label.start') . '</label>';
+		$table[$tr][] = $cellContent;
 		$table[$tr][] = '<input name="tx_scheduler[start]" type="text" id="tceforms-datetimefield-task_start" value="' . strftime('%H:%M %d-%m-%Y', $taskInfo['start']) . '" />' .
-			'<img' . t3lib_iconWorks::skinImg($this->backPath, 'gfx/datepicker.gif', '', 0) . ' style="cursor:pointer; vertical-align:middle;" alt=""' . ' id="picker-tceforms-datetimefield-task_start" />';;
-		$tableLayout[$tr] = array (
-				'tr' => array('<tr id="task_start_row">', '</tr>'),
-				'defCol' => $defaultCell
+			t3lib_iconWorks::getSpriteIcon(
+				'actions-edit-pick-date',
+				array(
+					'style' => 'cursor:pointer;',
+					'id' => 'picker-tceforms-datetimefield-task_start'
+				)
 			);
+		$tableLayout[$tr] = array (
+			'tr' => array('<tr id="task_start_row">', '</tr>'),
+			'defCol' => $defaultCell,
+			'0'      => array('<td class="td-label">', '</td>')
+		);
 		$tr++;
 
 			// End date/time field
 			// NOTE: datetime fields need a special id naming scheme
-		$table[$tr][] = t3lib_BEfunc::cshItem($this->cshKey, 'task_end', $this->backPath, '|', false, 'margin-bottom:0px;');
-		$table[$tr][] = '<label for="tceforms-datetimefield-task_end">' . $GLOBALS['LANG']->getLL('label.end') . '</label>';
+		$cellContent  = t3lib_BEfunc::cshItem($this->cshKey, 'task_end', $this->backPath, '|', false, 'margin-bottom:0px;');
+		$cellContent .= '<label for="tceforms-datetimefield-task_end">' . $GLOBALS['LANG']->getLL('label.end') . '</label>';
+		$table[$tr][] = $cellContent;
 		$table[$tr][] = '<input name="tx_scheduler[end]" type="text" id="tceforms-datetimefield-task_end" value="' . ((empty($taskInfo['end'])) ? '' : strftime('%H:%M %d-%m-%Y', $taskInfo['end'])) . '" />' .
-			'<img' . t3lib_iconWorks::skinImg($this->backPath, 'gfx/datepicker.gif', '', 0) . ' style="cursor:pointer; vertical-align:middle;" alt=""' . ' id="picker-tceforms-datetimefield-task_end" />';
+			t3lib_iconWorks::getSpriteIcon(
+				'actions-edit-pick-date',
+				array(
+					'style' => 'cursor:pointer;',
+					'id' => 'picker-tceforms-datetimefield-task_end'
+				)
+			);
 		$tableLayout[$tr] = array (
 			'tr'     => array('<tr id="task_end_row"' . $style . '>', '</tr>'),
-			'defCol' => $defaultCell
+			'defCol' => $defaultCell,
+			'0'      => array('<td class="td-label">', '</td>'),
 		);
 		$tr++;
 
 			// Frequency input field
-		$table[$tr][] = t3lib_BEfunc::cshItem($this->cshKey, 'task_frequency', $this->backPath, '|', false, 'margin-bottom:0px;');
-		$table[$tr][] = '<label for="task_frequency">' . $GLOBALS['LANG']->getLL('label.frequency.long') . '</label>';
+		$cellContent  = t3lib_BEfunc::cshItem($this->cshKey, 'task_frequency', $this->backPath, '|', false, 'margin-bottom:0px;');
+		$cellContent .= '<label for="task_frequency">' . $GLOBALS['LANG']->getLL('label.frequency.long') . '</label>';
+		$table[$tr][] = $cellContent;
 		$cell = '<input type="text" name="tx_scheduler[frequency]" id="task_frequency" value="' . $taskInfo['frequency'] . '" />';
 		$table[$tr][] = $cell;
 		$tableLayout[$tr] = array (
 			'tr'     => array('<tr id="task_frequency_row"' . $style . '>', '</tr>'),
-			'defCol' => $defaultCell
+			'defCol' => $defaultCell,
+			'0'      => array('<td class="td-label">', '</td>'),
 		);
 		$tr++;
 
 			// Multiple execution selector
-		$table[$tr][] = t3lib_BEfunc::cshItem($this->cshKey, 'task_multiple', $this->backPath, '|', false, 'margin-bottom:0px;');
-		$table[$tr][] = '<label for="task_multiple">' . $GLOBALS['LANG']->getLL('label.parallel.long') . '</label>';
+		$cellContent  = t3lib_BEfunc::cshItem($this->cshKey, 'task_multiple', $this->backPath, '|', false, 'margin-bottom:0px;');
+		$cellContent .= '<label for="task_multiple">' . $GLOBALS['LANG']->getLL('label.parallel.long') . '</label>';
+		$table[$tr][] = $cellContent;
 		$table[$tr][] =
 			'<input type="hidden"   name="tx_scheduler[multiple]" value="0" />
 			 <input type="checkbox" name="tx_scheduler[multiple]" value="1" id="task_multiple"' . ($taskInfo['multiple'] == 1 ? ' checked="checked"' : '') . ' />';
 		$tableLayout[$tr] = array (
 			'tr'     => array('<tr id="task_multiple_row"' . $style . '>', '</tr>'),
-			'defCol' => $defaultCell
+			'defCol' => $defaultCell,
+			'0'      => array('<td class="td-label">', '</td>')
 		);
 		$tr++;
 
@@ -854,12 +880,14 @@ class tx_scheduler_Module extends t3lib_SCbase {
 				// Add each field to the display, if there are indeed any
 			if (isset($fields) && is_array($fields)) {
 				foreach ($fields as $fieldID => $fieldInfo) {
-					$table[$tr][] = t3lib_BEfunc::cshItem($fieldInfo['cshKey'], $fieldInfo['cshLabel'], $this->backPath, '|', false, 'margin-bottom:0px;');
-					$table[$tr][] = '<label for="' . $fieldID . '">' . $GLOBALS['LANG']->sL($fieldInfo['label']) . '</label>';
+					$cellContent  = t3lib_BEfunc::cshItem($fieldInfo['cshKey'], $fieldInfo['cshLabel'], $this->backPath, '|', false, 'margin-bottom:0px;');
+					$cellContent .= '<label for="' . $fieldID . '">' . $GLOBALS['LANG']->sL($fieldInfo['label']) . '</label>';
+					$table[$tr][] = $cellContent;
 					$table[$tr][] = $fieldInfo['code'];
 					$tableLayout[$tr] = array (
 						'tr'     => array('<tr id="' . $fieldID . '_row"' . $additionalFieldsStyle .' class="extraFields extra_fields_' . $class . '">', '</tr>'),
-						'defCol' => $defaultCell
+						'defCol' => $defaultCell,
+						'0'      => array('<td class="td-label">', '</td>')
 					);
 					$tr++;
 				}
@@ -867,10 +895,12 @@ class tx_scheduler_Module extends t3lib_SCbase {
 		}
 
 			// Render the add/edit task form
+		$content .= '<div style="float: left;"><div class="typo3-dyntabmenu-divs">';
 		$content .= $this->doc->table($table, $tableLayout);
+		$content .= '</div></div>';
 
-		$content .= '<input type="submit" name="save" class="button" value="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:save', TRUE) . '" /> '
-			. '<input type="button" name="cancel" class="button" value="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:cancel', TRUE) . '" onclick="document.location=\'' . $GLOBALS['MCONF']['_'] . '\'" />';
+		$content .= '<div style="padding-top: 20px; clear: both;"></div><div><input type="submit" name="save" class="button" value="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:save', TRUE) . '" /> '
+			. '<input type="button" name="cancel" class="button" value="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:cancel', TRUE) . '" onclick="document.location=\'' . $GLOBALS['MCONF']['_'] . '\'" /></div>';
 
 			// Display information about server time usage
 		$content .= $this->displayServerTime();
@@ -945,6 +975,7 @@ class tx_scheduler_Module extends t3lib_SCbase {
 		$query = array(
 			'SELECT'  => '*',
 			'FROM'    => 'tx_scheduler_task',
+			'WHERE'   => '1=1',
 			'ORDERBY' => 'nextexecution'
 		);
 
@@ -969,38 +1000,38 @@ class tx_scheduler_Module extends t3lib_SCbase {
 				// Initialise table layout
 			$tableLayout = array(
 				'table' => array(
-					'<table border="0" cellspacing="1" cellpadding="2" class="tx_scheduler_task_list">', '</table>'
+					'<table border="0" cellspacing="1" cellpadding="2" class="typo3-dblist">', '</table>'
 				),
 				'0'     => array(
-					'tr'     => array('<tr class="bgColor2">', '</tr>'),
-					'defCol' => array('<td class="cell">', '</td>'),
-					'1'      => array('<td style="width: 36px;" class="cell">', '</td>')
+					'tr'     => array('<tr class="t3-row-header">', '</tr>'),
+					'defCol' => array('<td>', '</td>'),
+					'1'      => array('<td style="width: 36px;">', '</td>')
 				),
 				'defRow' => array(
-					'tr'     => array('<tr class="bgColor3-20">', '</tr>'),
-					'defCol' => array('<td class="cell">', '</td>'),
-					'1'		 => array('<td class="cell right">', '</td>'),
-					'2'		 => array('<td class="cell right">', '</td>'),
+					'tr'     => array('<tr class="db_list_normal">', '</tr>'),
+					'defCol' => array('<td>', '</td>'),
+					'1'		 => array('<td class="right">', '</td>'),
+					'2'		 => array('<td class="right">', '</td>'),
 				)
 			);
 			$disabledTaskRow = array (
-				'tr'     => array('<tr class="bgColor3-20 disabled">', '</tr>'),
-				'defCol' => array('<td class="cell">', '</td>'),
-				'1'		 => array('<td class="cell right">', '</td>'),
-				'2'		 => array('<td class="cell right">', '</td>'),
+				'tr'     => array('<tr class="db_list_normal disabled">', '</tr>'),
+				'defCol' => array('<td>', '</td>'),
+				'1'		 => array('<td class="right">', '</td>'),
+				'2'		 => array('<td class="right">', '</td>'),
 			);
 			$rowWithSpan = array (
-				'tr'     => array('<tr class="bgColor3-20">', '</tr>'),
-				'defCol' => array('<td class="cell">', '</td>'),
-				'1'		 => array('<td class="cell right">', '</td>'),
-				'2'		 => array('<td class="cell right">', '</td>'),
-				'3'		 => array('<td class="cell" colspan="6">', '</td>'),
+				'tr'     => array('<tr class="db_list_normal">', '</tr>'),
+				'defCol' => array('<td>', '</td>'),
+				'1'		 => array('<td class="right">', '</td>'),
+				'2'		 => array('<td class="right">', '</td>'),
+				'3'		 => array('<td colspan="6">', '</td>'),
 			);
 			$table = array();
 			$tr = 0;
 
 				// Header row
-			$table[$tr][] = '<a href="#" onclick="toggleCheckboxes();" title="' . $GLOBALS['LANG']->getLL('label.checkAll', TRUE) . '">' .
+			$table[$tr][] = '<a href="#" onclick="toggleCheckboxes();" title="' . $GLOBALS['LANG']->getLL('label.checkAll', TRUE) . '" class="icon">' .
 				t3lib_iconWorks::getSpriteIcon('actions-document-select') .
 				'</a>';
 			$table[$tr][] = '&nbsp;';
@@ -1016,9 +1047,9 @@ class tx_scheduler_Module extends t3lib_SCbase {
 				// Loop on all tasks
 			while (($schedulerRecord = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))) {
 					// Define action icons
-				$editAction = '<a href="' . $GLOBALS['MCONF']['_'] . '&CMD=edit&tx_scheduler[uid]=' . $schedulerRecord['uid'] . '" title="'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:edit', TRUE) . '">' . t3lib_iconWorks::getSpriteIcon('actions-document-open') . '</a>';
-				$deleteAction = '<a href="' . $GLOBALS['MCONF']['_'] . '&CMD=delete&tx_scheduler[uid]=' . $schedulerRecord['uid'] . '" onclick="return confirm(\'' . $GLOBALS['LANG']->getLL('msg.delete') . '\');" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:delete', TRUE) . '">' . t3lib_iconWorks::getSpriteIcon('actions-edit-delete') . '</a>';
-				$stopAction = '<a href="' . $GLOBALS['MCONF']['_'] . '&CMD=stop&tx_scheduler[uid]=' . $schedulerRecord['uid'] . '" onclick="return confirm(\'' . $GLOBALS['LANG']->getLL('msg.stop') . '\');" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:stop', TRUE) . '"><img ' . t3lib_iconWorks::skinImg($this->backPath, t3lib_extMgm::extRelPath('scheduler') . '/res/gfx/stop.png') . ' alt="'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:stop') . '" /></a>';
+				$editAction = '<a href="' . $GLOBALS['MCONF']['_'] . '&CMD=edit&tx_scheduler[uid]=' . $schedulerRecord['uid'] . '" title="'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:edit', TRUE) . '" class="icon">' . t3lib_iconWorks::getSpriteIcon('actions-document-open') . '</a>';
+				$deleteAction = '<a href="' . $GLOBALS['MCONF']['_'] . '&CMD=delete&tx_scheduler[uid]=' . $schedulerRecord['uid'] . '" onclick="return confirm(\'' . $GLOBALS['LANG']->getLL('msg.delete') . '\');" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:delete', TRUE) . '" class="icon">' . t3lib_iconWorks::getSpriteIcon('actions-edit-delete') . '</a>';
+				$stopAction = '<a href="' . $GLOBALS['MCONF']['_'] . '&CMD=stop&tx_scheduler[uid]=' . $schedulerRecord['uid'] . '" onclick="return confirm(\'' . $GLOBALS['LANG']->getLL('msg.stop') . '\');" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:stop', TRUE) . '" class="icon"><img ' . t3lib_iconWorks::skinImg($this->backPath, t3lib_extMgm::extRelPath('scheduler') . '/res/gfx/stop.png') . ' alt="'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:stop') . '" /></a>';
 					// Define some default values
 				$lastExecution = '-';
 				$isRunning = false;

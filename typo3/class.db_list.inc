@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2009 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,10 +29,10 @@
  * Shared between Web>List (db_list.php) and Web>Page (sysext/cms/layout/db_layout.php)
  *
  * $Id$
- * Revised for TYPO3 3.6 December/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 December/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -78,7 +78,7 @@
 /**
  * Child class for rendering of Web > List (not the final class. see class.db_list_extra)
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  * @see localRecordList
@@ -210,8 +210,8 @@ class recordList extends t3lib_recordList {
 			// Save modified user uc
 			$GLOBALS['BE_USER']->uc['moduleData']['db_list.php'] = $this->tablesCollapsed;
 			$GLOBALS['BE_USER']->writeUC($GLOBALS['BE_USER']->uc);
-			if (t3lib_div::_GP('returnUrl')) {
-				$location = t3lib_div::_GP('returnUrl');
+			if (t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'))) {
+				$location = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
 				t3lib_utility_Http::redirect($location);
 			}
 		}
@@ -344,7 +344,6 @@ class recordList extends t3lib_recordList {
 					</tr>
 				</table>
 			'.$formElements[1];
-		$content .= t3lib_BEfunc::cshItem('xMOD_csh_corebe', 'list_searchbox', $GLOBALS['BACK_PATH'], '|<br />');
 		return $content;
 	}
 
@@ -386,7 +385,7 @@ class recordList extends t3lib_recordList {
 			while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($result))	{
 
 					// Create content:
-				$iconImg = t3lib_iconWorks::getIconImage('sys_note',$row,$this->backPath,'');
+				$iconImg = t3lib_iconWorks::getSpriteIconForRecord('sys_note', $row);
 				$subject = htmlspecialchars($row['subject']);
 				$fields = array();
 				$fields['Author:'] = htmlspecialchars($row['author'].($row['email'] && $row['author'] ? ', ':'').$row['email']);
@@ -701,18 +700,24 @@ class recordList extends t3lib_recordList {
 	 * @return	string		URL
 	 */
 	function listURL($altId='',$table=-1,$exclList='')	{
-		return $GLOBALS['BACK_PATH'] . $this->script.
-			'?id='.(strcmp($altId,'')?$altId:$this->id).
-			'&table='.rawurlencode($table==-1?$this->table:$table).
-			($this->thumbs?'&imagemode='.$this->thumbs:'').
-			($this->returnUrl?'&returnUrl='.rawurlencode($this->returnUrl):'').
-			($this->searchString?'&search_field='.rawurlencode($this->searchString):'').
-			($this->searchLevels?'&search_levels='.rawurlencode($this->searchLevels):'').
-			($this->showLimit?'&showLimit='.rawurlencode($this->showLimit):'').
-			($this->firstElementNumber?'&pointer='.rawurlencode($this->firstElementNumber):'').
-			((!$exclList || !t3lib_div::inList($exclList,'sortField')) && $this->sortField?'&sortField='.rawurlencode($this->sortField):'').
-			((!$exclList || !t3lib_div::inList($exclList,'sortRev')) && $this->sortRev?'&sortRev='.rawurlencode($this->sortRev):'')
-			;
+		$id = strcmp($altId, '') ? $altId : $this->id;
+		$additionalParams = '&table=' . rawurlencode($table == -1 ? $this->table : $table) .
+			($this->thumbs ? '&imagemode=' . $this->thumbs : '') .
+			($this->returnUrl ? '&returnUrl=' . rawurlencode($this->returnUrl) : '') .
+			($this->searchString ? '&search_field=' . rawurlencode($this->searchString) : '') .
+			($this->searchLevels ? '&search_levels=' . rawurlencode($this->searchLevels) : '') .
+			($this->showLimit ? '&showLimit=' . rawurlencode($this->showLimit) : '') .
+			($this->firstElementNumber ? '&pointer=' . rawurlencode($this->firstElementNumber) : '') .
+			((!$exclList || !t3lib_div::inList($exclList, 'sortField')) && $this->sortField ? '&sortField=' . rawurlencode($this->sortField) : '') .
+			((!$exclList || !t3lib_div::inList($exclList, 'sortRev')) && $this->sortRev ? '&sortRev=' . rawurlencode($this->sortRev) : '');
+
+		return t3lib_extMgm::createListViewLink(
+			$id,
+			$additionalParams,
+			'',
+			'',
+			TRUE
+		);
 	}
 
 	/**
@@ -822,8 +827,9 @@ class recordList extends t3lib_recordList {
 
 			if (is_array($localizedRecord))	{
 					// Create parameters and finally run the classic page module for creating a new page translation
+				$url = substr($this->listURL(), strlen($this->backPath));
 				$params = '&edit['.$table.']['.$localizedRecord['uid'].']=edit';
-				$returnUrl = '&returnUrl='.rawurlencode($this->listURL());
+				$returnUrl = '&returnUrl='.rawurlencode($url);
 				$location = $GLOBALS['BACK_PATH'].'alt_doc.php?'.$params.$returnUrl;
 
 				t3lib_utility_Http::redirect($location);

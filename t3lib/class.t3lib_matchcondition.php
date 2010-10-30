@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Contains class for Matching TypoScript conditions
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -72,7 +72,7 @@
  * Used with the TypoScript parser.
  * Matches browserinfo, IPnumbers for use with templates
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  * @see t3lib_TStemplate::matching(), t3lib_TStemplate::generateConfig()
@@ -88,7 +88,7 @@ class t3lib_matchCondition extends t3lib_matchCondition_frontend {
 	 * Constructor for this class
 	 *
 	 * @return	void
-	 * @deprecated	since TYPO3 4.3, will be removed in TYPO3 4.5 - The functionality was moved to t3lib_matchCondition_frontend
+	 * @deprecated	since TYPO3 4.3, will be removed in TYPO3 4.6 - The functionality was moved to t3lib_matchCondition_frontend
 	 */
 	function __construct()	{
 		t3lib_div::logDeprecatedFunction();
@@ -178,7 +178,7 @@ class t3lib_matchCondition extends t3lib_matchCondition_frontend {
 	 *
 	 * @param	string		A string with version number, eg. "/7.32 blablabla"
 	 * @return	double		Returns double value, eg. "7.32"
-	 * @deprecated	since TYPO3 4.3 - use t3lib_utility_Client::getVersion() instead
+	 * @deprecated	since TYPO3 4.3, will be removed in TYPO3 4.6 - use t3lib_utility_Client::getVersion() instead
 	 */
 	function browserInfo_version($tmp)	{
 		t3lib_div::logDeprecatedFunction();

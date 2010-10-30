@@ -36,6 +36,16 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 	protected $cacheTable;
 	protected $tagsTable;
 
+	/**
+	 * @var boolean Indicates wether data is compressed or not (requires php zlib)
+	 */
+	protected $compression = FALSE;
+
+	/**
+	 * @var integer -1 to 9, indicates zlib compression level: -1 = default level 6, 0 = no compression, 9 maximum compression
+	 */
+	protected $compressionLevel = -1;
+
 	protected $identifierField;
 	protected $creationField;
 	protected $lifetimeField;
@@ -116,6 +126,10 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 
 		$this->remove($entryIdentifier);
 
+		if ($this->compression) {
+			$data = gzcompress($data, $this->compressionLevel);
+		}
+
 		$GLOBALS['TYPO3_DB']->exec_INSERTquery(
 			$this->cacheTable,
 			array(
@@ -168,28 +182,31 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 			$cacheEntry = $cacheEntries[0]['content'];
 		}
 
+		if ($this->compression && strlen($cacheEntry)) {
+			$cacheEntry = gzuncompress($cacheEntry);
+		}
+
 		return $cacheEntry;
 	}
 
 	/**
 	 * Checks if a cache entry with the specified identifier exists.
 	 *
-	 * @param unknown_type
+	 * @param string Specifies the identifier to check for existence
 	 * @return boolean TRUE if such an entry exists, FALSE if not
 	 * @author Ingo Renner <ingo@typo3.org>
 	 */
 	public function has($entryIdentifier) {
-		$hasEntry = false;
+		$hasEntry = FALSE;
 
-		$cacheEntries = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-			'content',
+		$cacheEntries = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
+			'*',
 			$this->cacheTable,
-			'identifier = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($entryIdentifier, $this->cacheTable) . ' '
-				. 'AND crdate + lifetime >= ' . $GLOBALS['EXEC_TIME']
+			'identifier = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($entryIdentifier, $this->cacheTable) .
+				' AND (crdate + lifetime >= ' . $GLOBALS['EXEC_TIME'] . ' OR lifetime = 0)'
 		);
-
-		if (count($cacheEntries) == 1) {
-			$hasEntry = true;
+		if ($cacheEntries >= 1) {
+			$hasEntry = TRUE;
 		}
 
 		return $hasEntry;
@@ -342,20 +359,20 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 	 */
 	public function collectGarbage() {
 			// Get identifiers of expired cache entries
-		$tagsEntryIdentifierRowsRessource = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+		$tagsEntryIdentifierRowsResource = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'identifier',
 			$this->cacheTable,
 			'crdate + lifetime < ' . $GLOBALS['EXEC_TIME'] . ' AND lifetime > 0'
 		);
 
 		$tagsEntryIdentifiers = array();
-		while ($tagsEntryIdentifierRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($tagsEntryIdentifierRowsRessource)) {
+		while ($tagsEntryIdentifierRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($tagsEntryIdentifierRowsResource)) {
 			$tagsEntryIdentifiers[] = $GLOBALS['TYPO3_DB']->fullQuoteStr(
 				$tagsEntryIdentifierRow['identifier'],
 				$this->tagsTable
 			);
 		}
-		$GLOBALS['TYPO3_DB']->sql_free_result($cacheEntryIdentifierRowsRessource);
+		$GLOBALS['TYPO3_DB']->sql_free_result($tagsEntryIdentifierRowsResource);
 
 			// Delete tag rows connected to expired cache entries
 		if (count($tagsEntryIdentifiers)) {
@@ -445,6 +462,28 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 	 */
 	public function getTagsTable() {
 		return $this->tagsTable;
+	}
+
+	/**
+	 * Enable data compression
+	 *
+	 * @param boolean TRUE to enable compression
+	 */
+	public function setCompression($compression) {
+		$this->compression = $compression;
+	}
+
+	/**
+	 * Set data compression level.
+	 * If compression is enabled and this is not set,
+	 * gzcompress default level will be used
+	 *
+	 * @param integer -1 to 9: Compression level
+	 */
+	public function setCompressionLevel($compressionLevel) {
+		if ($compressionLevel >= -1 && $compressionLevel <= 9) {
+			$this->compressionLevel = $compressionLevel;
+		}
 	}
 
 	/**

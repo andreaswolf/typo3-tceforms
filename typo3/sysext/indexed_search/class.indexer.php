@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2001-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2001-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,7 +27,7 @@
 /**
  * This class is a search indexer for TYPO3
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * Originally Christian Jul Jensen <christian@jul.net> helped as well.
  */
 /**
@@ -129,7 +129,7 @@
 /**
  * Indexing class for TYPO3 frontend
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tx_indexedsearch
  */
@@ -1345,7 +1345,7 @@ class tx_indexedsearch_indexer {
 	 *
 	 * @param	array		Array of content to index, see splitHTMLContent() and splitRegularContent()
 	 * @return	array		Content input array modified so each key is not a unique array of words
-	 * @deprecated since TYPO3 4.0, this function will be removed in TYPO3 4.5.
+	 * @deprecated since TYPO3 4.0, this function will be removed in TYPO3 4.6.
 	 */
 	function procesWordsInArrays($contentArr)	{
 		t3lib_div::logDeprecatedFunction();
@@ -2143,7 +2143,7 @@ class tx_indexedsearch_indexer {
 	 *
 	 * @param	array		Array of GET parameters to encode
 	 * @return	void
-	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, use directly t3lib_div::calculateCHash()
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.6, use directly t3lib_div::calculateCHash()
 	 */
 	function makeCHash($paramArray)	{
 		t3lib_div::logDeprecatedFunction();
@@ -2223,7 +2223,7 @@ class tx_indexedsearch_indexer {
 	 * @param	array		Parameters from frontend
 	 * @param	object		TSFE object (reference under PHP5)
 	 * @return	void
-	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, the method was extracted to hooks/class.tx_indexedsearch_tslib_fe_hook.php
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.6, the method was extracted to hooks/class.tx_indexedsearch_tslib_fe_hook.php
 	 */
 	function fe_headerNoCache(&$params, $ref)	{
 		t3lib_div::logDeprecatedFunction();

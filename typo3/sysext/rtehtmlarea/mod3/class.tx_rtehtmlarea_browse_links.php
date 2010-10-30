@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  (c) 2005-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
@@ -34,7 +34,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @author	Stanislas Rolland <typo3(arobas)sjbr.ca>
  */
 
@@ -44,7 +44,7 @@ require_once (PATH_typo3.'class.browse_links.php');
 /**
  * Class which generates the page tree
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -105,7 +105,7 @@ class tx_rtehtmlarea_pageTree extends rtePageTree {
  * Base extension class which generates the folder tree.
  * Used directly by the RTE.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -119,6 +119,8 @@ class tx_rtehtmlarea_folderTree extends rteFolderTree {
 	 * @return	string		Wrapping title string.
 	 */
 	function wrapTitle($title,$v)	{
+		$title = htmlspecialchars($title);
+		
 		if ($this->ext_isLinkable($v))	{
 			$aOnClick = 'return jumpToUrl(\''.$this->thisScript.'?act='.$GLOBALS['SOBE']->browser->act.'&editorNo='.$GLOBALS['SOBE']->browser->editorNo.'&contentTypo3Language='.$GLOBALS['SOBE']->browser->contentTypo3Language.'&contentTypo3Charset='.$GLOBALS['SOBE']->browser->contentTypo3Charset.'&mode='.$GLOBALS['SOBE']->browser->mode.'&expandFolder='.rawurlencode($v['path']).'\');';
 			return '<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.$title.'</a>';
@@ -192,7 +194,7 @@ class tx_rtehtmlarea_folderTree extends rteFolderTree {
 /**
  * Script class for the Element Browser window.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -243,7 +245,8 @@ class tx_rtehtmlarea_browse_links extends browse_links {
 			// CurrentUrl - the current link url must be passed around if it exists
 		$this->curUrlArray = t3lib_div::_GP('curUrl');
 		if ($this->curUrlArray['all'])	{
-			$this->curUrlArray=t3lib_div::get_tag_attributes($this->curUrlArray['all']);
+			$this->curUrlArray = t3lib_div::get_tag_attributes($this->curUrlArray['all']);
+			$this->curUrlArray['href'] = htmlspecialchars_decode($this->curUrlArray['href']);
 		}
 			// Note: parseCurUrl will invoke the hooks
 		$this->curUrlInfo = $this->parseCurUrl($this->curUrlArray['href'],$this->siteURL);
@@ -835,7 +838,7 @@ class tx_rtehtmlarea_browse_links extends browse_links {
 					);
 					$dbmount = $flashMessage->render();
 				}
-				
+
 				$content .= '
 			<!--
 				Wrapper table for page tree / record list:

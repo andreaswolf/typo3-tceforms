@@ -140,7 +140,7 @@ CREATE TABLE cachingframework_cache_hash (
   id int(11) unsigned NOT NULL auto_increment,
   identifier varchar(128) DEFAULT '' NOT NULL,
   crdate int(11) unsigned DEFAULT '0' NOT NULL,
-  content mediumtext,
+  content mediumblob,
   lifetime int(11) unsigned DEFAULT '0' NOT NULL,
   PRIMARY KEY (id),
   KEY cache_id (identifier)
@@ -209,9 +209,43 @@ CREATE TABLE pages (
   is_siteroot tinyint(4) DEFAULT '0' NOT NULL,
   php_tree_stop tinyint(4) DEFAULT '0' NOT NULL,
   tx_impexp_origuid int(11) DEFAULT '0' NOT NULL,
+  url varchar(255) DEFAULT '' NOT NULL,
+  starttime int(11) unsigned DEFAULT '0' NOT NULL,
+  endtime int(11) unsigned DEFAULT '0' NOT NULL,
+  urltype tinyint(4) unsigned DEFAULT '0' NOT NULL,
+  shortcut int(10) unsigned DEFAULT '0' NOT NULL,
+  shortcut_mode int(10) unsigned DEFAULT '0' NOT NULL,
+  no_cache int(10) unsigned DEFAULT '0' NOT NULL,
+  fe_group varchar(100) DEFAULT '0' NOT NULL,
+  subtitle varchar(255) DEFAULT '' NOT NULL,
+  layout tinyint(3) unsigned DEFAULT '0' NOT NULL,
+  url_scheme tinyint(3) unsigned DEFAULT '0' NOT NULL,
+  target varchar(80) DEFAULT '' NOT NULL,
+  media text,
+  lastUpdated int(10) unsigned DEFAULT '0' NOT NULL,
+  keywords text,
+  cache_timeout int(10) unsigned DEFAULT '0' NOT NULL,
+  newUntil int(10) unsigned DEFAULT '0' NOT NULL,
+  description text,
+  no_search tinyint(3) unsigned DEFAULT '0' NOT NULL,
+  SYS_LASTCHANGED int(10) unsigned DEFAULT '0' NOT NULL,
+  abstract text,
+  module varchar(10) DEFAULT '' NOT NULL,
+  extendToSubpages tinyint(3) unsigned DEFAULT '0' NOT NULL,
+  author varchar(255) DEFAULT '' NOT NULL,
+  author_email varchar(80) DEFAULT '' NOT NULL,
+  nav_title varchar(255) DEFAULT '' NOT NULL,
+  nav_hide tinyint(4) DEFAULT '0' NOT NULL,
+  content_from_pid int(10) unsigned DEFAULT '0' NOT NULL,
+  mount_pid int(10) unsigned DEFAULT '0' NOT NULL,
+  mount_pid_ol tinyint(4) DEFAULT '0' NOT NULL,
+  alias varchar(32) DEFAULT '' NOT NULL,
+  l18n_cfg tinyint(4) DEFAULT '0' NOT NULL,
+  fe_login_mode tinyint(4) DEFAULT '0' NOT NULL,
   PRIMARY KEY (uid),
   KEY t3ver_oid (t3ver_oid,t3ver_wsid),
-  KEY parent (pid,sorting,deleted,hidden)
+  KEY parent (pid,sorting,deleted,hidden),
+  KEY alias (alias)
 );
 
 #
@@ -239,6 +273,27 @@ CREATE TABLE sys_be_shortcuts (
   sc_group tinyint(4) DEFAULT '0' NOT NULL,
   PRIMARY KEY (uid),
   KEY event (userid)
+);
+
+
+#
+# Table structure for table 'sys_news'
+#
+CREATE TABLE sys_news (
+  uid int(11) unsigned NOT NULL auto_increment,
+  pid int(11) unsigned DEFAULT '0' NOT NULL,
+  tstamp int(11) unsigned DEFAULT '0' NOT NULL,
+  crdate int(11) unsigned DEFAULT '0' NOT NULL,
+  cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
+  deleted tinyint(3) unsigned DEFAULT '0' NOT NULL,
+  hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
+  starttime int(11) unsigned DEFAULT '0' NOT NULL,
+  endtime int(11) unsigned DEFAULT '0' NOT NULL,
+  title varchar(255) DEFAULT '' NOT NULL,
+  content mediumtext,
+
+  PRIMARY KEY (uid),
+  KEY parent (pid)
 );
 
 
@@ -329,7 +384,7 @@ CREATE TABLE sys_lockedrecords (
   record_table varchar(255) DEFAULT '' NOT NULL,
   record_uid int(11) DEFAULT '0' NOT NULL,
   record_pid int(11) DEFAULT '0' NOT NULL,
-  username varchar(20) DEFAULT '' NOT NULL,
+  username varchar(50) DEFAULT '' NOT NULL,
   feuserid int(11) unsigned DEFAULT '0' NOT NULL,
   PRIMARY KEY (uid),
   KEY event (userid,tstamp)

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,10 +29,10 @@
  * Each line is a table row, each cell divided by a |
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -77,7 +77,7 @@ $LANG->includeLLFile('EXT:lang/locallang_wizards.xml');
 /**
  * Script Class for rendering the Table Wizard
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -209,7 +209,7 @@ class SC_wizard_table {
 			$buttons['csh_buttons'] = t3lib_BEfunc::cshItem('xMOD_csh_corebe', 'wizard_table_wiz_buttons', $GLOBALS['BACK_PATH'], '');
 
 			// Close
-			$buttons['close'] = '<a href="#" onclick="' . htmlspecialchars('jumpToUrl(unescape(\'' . rawurlencode($this->P['returnUrl']) . '\')); return false;') . '">' .
+			$buttons['close'] = '<a href="#" onclick="' . htmlspecialchars('jumpToUrl(unescape(\'' . rawurlencode(t3lib_div::sanitizeLocalUrl($this->P['returnUrl'])) . '\')); return false;') . '">' .
 				t3lib_iconWorks::getSpriteIcon('actions-document-close', array('title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.closeDoc', TRUE))) .
 		  '</a>';
 
@@ -235,9 +235,8 @@ class SC_wizard_table {
 
 			// First, check the references by selecting the record:
 		$row = t3lib_BEfunc::getRecord($this->P['table'],$this->P['uid']);
-		if (!is_array($row))	{
-			t3lib_BEfunc::typo3PrintError ('Wizard Error','No reference to record',0);
-			exit;
+		if (!is_array($row)) {
+			throw new RuntimeException('Wizard Error: No reference to record');
 		}
 
 			// This will get the content of the form configuration code field to us - possibly cleaned up, saved to database etc. if the form has been submitted in the meantime.
@@ -319,7 +318,7 @@ class SC_wizard_table {
 
 					// If the save/close button was pressed, then redirect the screen:
 				if ($_POST['saveandclosedok_x']) {
-					t3lib_utility_Http::redirect($this->P['returnUrl']);
+					t3lib_utility_Http::redirect(t3lib_div::sanitizeLocalUrl($this->P['returnUrl']));
 				}
 			}
 		} else {	// If nothing has been submitted, load the $bodyText variable from the selected database row:

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -33,10 +33,10 @@
  *
  * $Id$
  * Usage counts are based on search 22/2 2003 through whole backend source of typo3/
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -177,7 +177,7 @@
  * Standard functions available for the TYPO3 backend.
  * Don't instantiate - call functions with "t3lib_BEfunc::" prefixed the function name.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -340,7 +340,7 @@ final class t3lib_BEfunc {
 	 * @param	array		Array of fields
 	 * @param	string		Table in which we are searching (for DBAL detection of quoteStr() method)
 	 * @return	string		WHERE clause for search
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5, use $GLOBALS['TYPO3_DB']->searchQuery() directly!
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->searchQuery() directly!
 	 */
 	public static function searchQuery($searchWords, $fields, $table = '') {
 		t3lib_div::logDeprecatedFunction();
@@ -357,7 +357,7 @@ final class t3lib_BEfunc {
 	 * @param	string		Table field name
 	 * @param	string		Value to find in list
 	 * @return	string		WHERE clause for a query
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5, use $GLOBALS['TYPO3_DB']->listQuery() directly!
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->listQuery() directly!
 	 */
 	public static function listQuery($field, $value) {
 		t3lib_div::logDeprecatedFunction();
@@ -502,7 +502,7 @@ final class t3lib_BEfunc {
 	 * @param	string		Optional ORDER BY field(s), if none, supply blank string.
 	 * @param	string		Optional LIMIT value ([begin,]max), if none, supply blank string.
 	 * @return	string		Full SQL query
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5, use $GLOBALS['TYPO3_DB']->exec_SELECT_mm_query() instead since that will return the result pointer while this returns the query. Using this function may make your application less fitted for DBAL later.
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->exec_SELECT_mm_query() instead since that will return the result pointer while this returns the query. Using this function may make your application less fitted for DBAL later.
 	 * @see t3lib_DB::exec_SELECT_mm_query()
 	 */
 	public static function mm_query($select, $local_table, $mm_table, $foreign_table, $whereClause = '', $groupBy = '', $orderBy = '', $limit = '') {
@@ -527,7 +527,7 @@ final class t3lib_BEfunc {
 	 * @param	string		Table name
 	 * @param	array		Field values as key=>value pairs.
 	 * @return	string		Full SQL query for INSERT
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5, use $GLOBALS['TYPO3_DB']->exec_INSERTquery() directly!
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->exec_INSERTquery() directly!
 	 */
 	public static function DBcompileInsert($table, $fields_values) {
 		t3lib_div::logDeprecatedFunction();
@@ -543,7 +543,7 @@ final class t3lib_BEfunc {
 	 * @param	string		WHERE clause, eg. "uid=1"
 	 * @param	array		Field values as key=>value pairs.
 	 * @return	string		Full SQL query for UPDATE
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5, use $GLOBALS['TYPO3_DB']->exec_UPDATEquery() directly!
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->exec_UPDATEquery() directly!
 	 */
 	public static function DBcompileUpdate($table, $where, $fields_values) {
 		t3lib_div::logDeprecatedFunction();
@@ -868,7 +868,11 @@ final class t3lib_BEfunc {
 			// Traverse languages
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid,title,flag', 'sys_language', 'pid=0' . self::deleteClause('sys_language'));
 		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-			$sysLanguages[] = array($row['title'].' ['.$row['uid'].']', $row['uid'], ($row['flag'] ? 'flags/'.$row['flag'] : ''));
+			$sysLanguages[] = array(
+				htmlspecialchars($row['title']) . ' [' . $row['uid'] . ']',
+				$row['uid'],
+				($row['flag'] ? 'flags/' . $row['flag'] : '')
+			);
 		}
 		$GLOBALS['TYPO3_DB']->sql_free_result($res);
 
@@ -1701,7 +1705,7 @@ final class t3lib_BEfunc {
 	 * @param	string		String to set as title-attribute. If no $content is given only the attribute name is returned.
 	 * @param	boolean		If $hsc is set, then content of the attribute is htmlspecialchar()'ed (which is good for XHTML and other reasons...)
 	 * @return	string
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5 - The idea made sense with older browsers, but now all browsers should support the "title" attribute - so just hardcode the title attribute instead!
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6 - The idea made sense with older browsers, but now all browsers should support the "title" attribute - so just hardcode the title attribute instead!
 	 */
 	public static function titleAttrib($content = '', $hsc = 0) {
 		t3lib_div::logDeprecatedFunction();
@@ -1880,7 +1884,7 @@ final class t3lib_BEfunc {
 				$lRec = self::getRecordWSOL('pages', intval($row['shortcut']), 'title');
 				$label = $lRec['title'];
 			}
-			if ($row['shortcut_mode']>0) {
+			if ($row['shortcut_mode'] != t3lib_pageSelect::SHORTCUT_MODE_NONE) {
 				$label.=', '.$LANG->sL($TCA['pages']['columns']['shortcut_mode']['label']).' '.
 							$LANG->sL(self::getLabelFromItemlist('pages', 'shortcut_mode', $row['shortcut_mode']));
 			}
@@ -2049,8 +2053,9 @@ final class t3lib_BEfunc {
 				$params['table'] = $table;
 				$params['row'] = $row;
 				$params['title'] = '';
-
-				t3lib_div::callUserFunction($TCA[$table]['ctrl']['label_userFunc'], $params, $this);
+					//create NULL-reference
+				$null = NULL;
+				t3lib_div::callUserFunction($TCA[$table]['ctrl']['label_userFunc'], $params, $null);
 				$t = $params['title'];
 			} else {
 
@@ -2160,8 +2165,10 @@ final class t3lib_BEfunc {
 				 *HOOK: pre-processing the human readable output from a record
 				 ****************/
 			if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_befunc.php']['preProcessValue'])) {
-			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_befunc.php']['preProcessValue'] as $_funcRef) {
-					t3lib_div::callUserFunction($_funcRef,$theColConf,$this);
+					// create NULL-reference
+				$null = NULL;
+				foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_befunc.php']['preProcessValue'] as $_funcRef) {
+					t3lib_div::callUserFunction($_funcRef, $theColConf, $null);
 				}
 			}
 
@@ -2173,36 +2180,40 @@ final class t3lib_BEfunc {
 				break;
 				case 'select':
 					if ($theColConf['MM']) {
-						// Display the title of MM related records in lists
-						if ($noRecordLookup) {
-							$MMfield = $theColConf['foreign_table'].'.uid';
-						} else	{
-							$MMfields = array($theColConf['foreign_table'].'.'.$TCA[$theColConf['foreign_table']]['ctrl']['label']);
-							foreach (t3lib_div::trimExplode(',', $TCA[$theColConf['foreign_table']]['ctrl']['label_alt'], 1) as $f)	{
-								$MMfields[] = $theColConf['foreign_table'].'.'.$f;
+						if ($uid) {
+								// Display the title of MM related records in lists
+							if ($noRecordLookup) {
+								$MMfield = $theColConf['foreign_table'] . '.uid';
+							} else	{
+								$MMfields = array($theColConf['foreign_table'] . '.' . $TCA[$theColConf['foreign_table']]['ctrl']['label']);
+								foreach (t3lib_div::trimExplode(',', $TCA[$theColConf['foreign_table']]['ctrl']['label_alt'], 1) as $f)	{
+									$MMfields[] = $theColConf['foreign_table'] . '.' . $f;
+								}
+								$MMfield = join(',', $MMfields);
 							}
-							$MMfield = join(',',$MMfields);
-						}
 
-						$dbGroup = t3lib_div::makeInstance('t3lib_loadDBGroup');
-						$dbGroup->start($value, $theColConf['foreign_table'], $theColConf['MM'], $uid, $table, $theColConf);
-						$selectUids = $dbGroup->tableArray[$theColConf['foreign_table']];
+							$dbGroup = t3lib_div::makeInstance('t3lib_loadDBGroup');
+							$dbGroup->start($value, $theColConf['foreign_table'], $theColConf['MM'], $uid, $table, $theColConf);
+							$selectUids = $dbGroup->tableArray[$theColConf['foreign_table']];
 
-						if (is_array($selectUids) && count($selectUids)>0) {
-							$MMres = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-								'uid, '.$MMfield,
-								$theColConf['foreign_table'],
-								'uid IN ('.implode(',', $selectUids).')'
-							);
-							while($MMrow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($MMres)) {
-								$mmlA[] = ($noRecordLookup ? $MMrow['uid'] : self::getRecordTitle($theColConf['foreign_table'], $MMrow, FALSE, $forceResult));
-							}
-							$GLOBALS['TYPO3_DB']->sql_free_result($MMres);
+							if (is_array($selectUids) && count($selectUids)>0) {
+								$MMres = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+									'uid, ' . $MMfield,
+									$theColConf['foreign_table'],
+									'uid IN (' . implode(',', $selectUids) . ')'
+								);
+								while ($MMrow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($MMres)) {
+									$mmlA[] = ($noRecordLookup ? $MMrow['uid'] : self::getRecordTitle($theColConf['foreign_table'], $MMrow, FALSE, $forceResult));
+								}
+								$GLOBALS['TYPO3_DB']->sql_free_result($MMres);
 
-							if (is_array($mmlA)) {
-								$l = implode('; ', $mmlA);
+								if (is_array($mmlA)) {
+									$l = implode('; ', $mmlA);
+								} else {
+									$l = '';
+								}
 							} else {
-								$l = '';
+								$l = 'N/A';
 							}
 						} else {
 							$l = 'N/A';
@@ -2294,12 +2305,14 @@ final class t3lib_BEfunc {
 				 *HOOK: post-processing the human readable output from a record
 				 ****************/
 			if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_befunc.php']['postProcessValue'])) {
-			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_befunc.php']['postProcessValue'] as $_funcRef) {
+					// create NULL-reference
+				$null = NULL;
+				foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_befunc.php']['postProcessValue'] as $_funcRef) {
 					$params = array(
 						'value' => $l,
 						'colConf' => $theColConf
 					);
-					$l = t3lib_div::callUserFunction($_funcRef, $params, $this);
+					$l = t3lib_div::callUserFunction($_funcRef, $params, $null);
 				}
 			}
 
@@ -2326,7 +2339,7 @@ final class t3lib_BEfunc {
 	 */
 	public static function getProcessedValueExtra($table, $fN, $fV, $fixed_lgd_chars = 0, $uid = 0, $forceResult = TRUE) {
 		global $TCA;
-		$fVnew = self::getProcessedValue($table, $fN, $fV, $fixed_lgd_chars, 0, 0, $uid, $forceResult);
+		$fVnew = self::getProcessedValue($table, $fN, $fV, $fixed_lgd_chars, 1, 0, $uid, $forceResult);
 		if (!isset($fVnew)) {
 			if (is_array($TCA[$table])) {
 				if ($fN==$TCA[$table]['ctrl']['tstamp'] || $fN==$TCA[$table]['ctrl']['crdate']) {
@@ -2469,8 +2482,14 @@ final class t3lib_BEfunc {
 
 	/**
 	 * Returns help-text icon if configured for.
-	 * TCA_DESCR must be loaded prior to this function and $BE_USER must have 'edit_showFieldHelp' set to 'icon', otherwise nothing is returned
+	 * TCA_DESCR must be loaded prior to this function and $BE_USER must
+	 * have 'edit_showFieldHelp' set to 'icon', otherwise nothing is returned
 	 * Usage: 6
+	 *
+	 * Please note: since TYPO3 4.5 the UX team decided to not use CSH in its former way,
+	 * but to wrap the given text (where before the help icon was, and you could hover over it)
+	 * Please also note that since TYPO3 4.5 the option to enable help (none, icon only, full text)
+	 * was completely removed.
 	 *
 	 * @param	string		Table name
 	 * @param	string		Field name
@@ -2481,16 +2500,52 @@ final class t3lib_BEfunc {
 	public static function helpTextIcon($table, $field, $BACK_PATH, $force = 0) {
 		global $TCA_DESCR, $BE_USER;
 
-		$onClick = 'vHWin=window.open(\''.$BACK_PATH.'view_help.php?tfID='.($table.'.'.$field).'\',\'viewFieldHelp\',\'height=400,width=600,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;';
 		if (is_array($TCA_DESCR[$table]) && is_array($TCA_DESCR[$table]['columns'][$field]) && (isset($BE_USER->uc['edit_showFieldHelp']) || $force)) {
 			if ($BE_USER->uc['edit_showFieldHelp'] == 'icon') {
-				$text = self::helpText($table, $field, $BACK_PATH, '');
-				$text = '<div class="typo3-csh-inline">' . $GLOBALS['LANG']->hscAndCharConv($text, false) . '</div>';
+				$text = self::helpText($table, $field);
+				$text = '<span class="typo3-csh-inline">' . $GLOBALS['LANG']->hscAndCharConv($text, FALSE) . '</span>';
 			}
-			return '<a class="typo3-csh-link" href="#" onclick="'.htmlspecialchars($onClick).'">' . t3lib_iconWorks::getSpriteIcon('actions-system-help-open', array('class' => 'typo3-csh-icon')) . $text.'</a>';
+			return '<a class="typo3-csh-link" href="#" rel="' . $table . '.' . $field . '">' . t3lib_iconWorks::getSpriteIcon('actions-system-help-open', array('class' => 'typo3-csh-icon')) . $text.'</a>';
 		}
 	}
 
+	/**
+	 * Returns CSH help text (description), if configured for, as an array (title, description)
+	 * Will automatically call t3lib_BEfunc::helpTextIcon() to get the icon for the text.
+	 *
+	 * @param	string	Table name
+	 * @param	string	Field name
+	 * @return	array	With keys 'description' (raw, as available in locallang), 'title' (optional), 'moreInfo'
+	 */
+	public static function helpTextArray($table, $field) {
+		if (!isset($GLOBALS['TCA_DESCR'][$table]['columns'])) {
+			$GLOBALS['LANG']->loadSingleTableDescription($table);
+		}
+		$output = array(
+			'description' => NULL,
+			'title' => NULL,
+			'moreInfo' => FALSE,
+		);
+		if (is_array($GLOBALS['TCA_DESCR'][$table]) && is_array($GLOBALS['TCA_DESCR'][$table]['columns'][$field])) {
+			$data = $GLOBALS['TCA_DESCR'][$table]['columns'][$field];
+
+				// add alternative title, if defined
+			if ($data['alttitle']) {
+				$output['title'] = $data['alttitle'];
+			}
+
+				// if we have more information to show
+			if ($data['image_descr'] || $data['seeAlso'] || $data['details'] || $data['syntax']) {
+				$output['moreInfo'] = TRUE;
+			}
+
+				// add description
+			if ($data['description']) {
+				$output['description'] = $data['description'];
+			}
+		}
+		return $output;
+	}
 
 	/**
 	 * Returns CSH help text (description), if configured for.
@@ -2501,31 +2556,60 @@ final class t3lib_BEfunc {
 	 *
 	 * @param	string		Table name
 	 * @param	string		Field name
-	 * @param	string		Back path
+	 * @param	string		Back path, deprecated since TYPO3 4.5, will be removed in TYPO3 4.7, because not used at all
 	 * @param	string		DEPRECATED: Additional style-attribute content for wrapping table (now: only in function cshItem needed)
 	 * @return	string		HTML content for help text
 	 */
-	public static function helpText($table, $field, $BACK_PATH, $styleAttrib = '') {
-		global $TCA_DESCR, $BE_USER;
+	public static function helpText($table, $field, $BACK_PATH = '', $styleAttrib = '') {
+		$helpTextArray = self::helpTextArray($table, $field);
+
 		$output = '';
 
-		if (is_array($TCA_DESCR[$table]) && is_array($TCA_DESCR[$table]['columns'][$field])) {
-			$data = $TCA_DESCR[$table]['columns'][$field];
-				// add see also arrow
-			if ($data['image_descr'] || $data['seeAlso'] || $data['details'] || $data['syntax']) {
-				$arrow = t3lib_iconWorks::getSpriteIcon('actions-view-go-forward');
-			}
-				// add description text
-			if ($data['description'] || $arrow) {
-				$output = '<p class="t3-csh-short">' . nl2br(htmlspecialchars($data['description'])) . $arrow . '</p>';
-			}
-
-				// put header before the rest of the text
-			if ($data['alttitle']) {
-				$output = '<h2 class="t3-row-header">' . $data['alttitle'] . '</h2>' . $output;
-			}
+			// put header before the rest of the text
+		if ($helpTextArray['title'] !== NULL) {
+			$output .= '<h2 class="t3-row-header">' . $helpTextArray['title'] . '</h2>';
 		}
+			// add the content
+		if ($helpTextArray['description'] !== NULL) {
+			$output .= $helpTextArray['description'];
+		}
+			// add see also arrow if we have more info
+		if ($data['moreInfo']) {
+			$arrow = t3lib_iconWorks::getSpriteIcon('actions-view-go-forward');
+		}
+			// add description text
+		if ($data['description'] || $arrow) {
+			$output['description'] = '<p class="t3-help-short">' . nl2br(htmlspecialchars($data['description'])) . $arrow . '</p>';
+		}
+
 		return $output;
+	}
+
+	/**
+	 * API function that wraps the text / html in help text, so if a user hovers over it
+	 * the help text will show up
+	 * This is the new help API function since TYPO3 4.5, and uses the new behaviour
+	 * (hover over text, no icon, no fulltext option, no option to disable the help)
+	 *
+	 * @param	string	$table	The table name for which the help should be shown
+	 * @param	string	$field	The field name for which the help should be shown
+	 * @param	string	$text	the text which should be wrapped with the help text
+	 * @return	string	the HTML code ready to render
+	 * @api	public
+	 */
+	public static function wrapInHelp($table, $field, $text = '') {
+			// get the help text that should be shown on hover
+		$GLOBALS['LANG']->loadSingleTableDescription($table);
+		$helpText = self::helpText($table, $field);
+		if ($helpText) {
+				// if no text was given, just use the regular help icon
+			if ($text == '') {
+				$text = t3lib_iconWorks::getSpriteIcon('actions-system-help-open');
+			}
+			$text = '<abbr class="t3-help-teaser">' . $text . '</abbr>';
+			$text = '<a class="t3-help-link" href="#" data-table="' . $table . '" data-field="' . $field . '">' . $text . '</a>';
+		}
+		return $text;
 	}
 
 
@@ -2615,8 +2699,12 @@ final class t3lib_BEfunc {
 	 */
 	public static function viewOnClick($id, $backPath = '', $rootLine = '', $anchor = '', $altUrl = '', $addGetVars = '', $switchFocus = TRUE) {
 
-		$viewScriptPreviewEnabled  = '/' . TYPO3_mainDir . 'mod/user/ws/wsol_preview.php?id=';
-		$viewScriptPreviewDisabled = '/index.php?id=';
+		$viewScriptPreviewDisabled = t3lib_extMgm::isLoaded('version') ?
+			'/' . TYPO3_mainDir . t3lib_extMgm::extRelPath('version') . 'ws/wsol_preview.php?id='
+			:
+			'/index.php?id='
+		;
+		$viewScriptPreviewEnabled = '/index.php?id=';
 		if ($altUrl) {
 			$viewScriptPreviewEnabled = $viewScriptPreviewDisabled = $altUrl;
 		}
@@ -2662,7 +2750,7 @@ final class t3lib_BEfunc {
 		$urlPreviewEnabled  = $viewDomain . $viewScriptPreviewEnabled . $id . $addGetVars . $anchor;
 		$urlPreviewDisabled = $viewDomain . $viewScriptPreviewDisabled . $id . $addGetVars . $anchor;
 
-		return "var previewWin=window.open(top.TYPO3.configuration.inWorkspace !== 0 && top.TYPO3.configuration.workspaceFrontendPreviewEnabled ?'" .
+		return "var previewWin=window.open((top.TYPO3.configuration.inWorkspace === 0 || (top.TYPO3.configuration.inWorkspace !== 0 && top.TYPO3.configuration.workspaceFrontendPreviewEnabled)) ?'" .
 			$urlPreviewEnabled . "':'" . $urlPreviewDisabled .
 			"','newTYPO3frontendWindow');" . ( $switchFocus ? 'previewWin.focus();' : '');
 	}
@@ -2851,7 +2939,7 @@ final class t3lib_BEfunc {
 	 * @return	string		HTML code (<script> section)
 	 * @see	t3lib_BEfunc::getUpdateSignalCode()
 	 * @see	t3lib_BEfunc::setUpdateSignal()
-	 * @deprecated	since TYPO3 4.2, this function will be removed in TYPO3 4.5, use the setUpdateSignal function instead, as it allows you to add more parameters
+	 * @deprecated	since TYPO3 4.2, this function will be removed in TYPO3 4.6, use the setUpdateSignal function instead, as it allows you to add more parameters
 	 */
 	public static function getSetUpdateSignal($set = '') {
 		t3lib_div::logDeprecatedFunction();
@@ -2921,8 +3009,8 @@ final class t3lib_BEfunc {
 				$signals[] = $params['JScode'];
 			} else if ($set == 'updatePageTree' || $set == 'updateFolderTree') {
 				$signals[] = '
-					if (top && top.content && top.content.nav_frame && top.content.nav_frame.Tree) {
-						top.content.nav_frame.Tree.refresh();
+					if (top && top.TYPO3.Backend.NavigationContainer) {
+						top.TYPO3.Backend.NavigationContainer.refresh();
 					}';
 			}
 		}
@@ -3157,8 +3245,8 @@ final class t3lib_BEfunc {
 	public static function exec_foreign_table_where_query($fieldValue, $field = '', $TSconfig = array(), $prefix = '') {
 		global $TCA;
 
+		$foreign_table = $fieldValue['config'][$prefix . 'foreign_table'];
 		t3lib_div::loadTCA($foreign_table);
-		$foreign_table = $fieldValue['config'][$prefix.'foreign_table'];
 		$rootLevel = $TCA[$foreign_table]['ctrl']['rootLevel'];
 
 		$fTWHERE = $fieldValue['config'][$prefix.'foreign_table_where'];
@@ -3167,7 +3255,11 @@ final class t3lib_BEfunc {
 			foreach ($fTWHERE_parts as $kk => $vv) {
 				if ($kk) {
 					$fTWHERE_subpart = explode('###', $vv, 2);
-					$fTWHERE_parts[$kk] = $TSconfig['_THIS_ROW'][$fTWHERE_subpart[0]].$fTWHERE_subpart[1];
+					if (substr($fTWHERE_parts[0], -1) === '\'' && $fTWHERE_subpart[1]{0} === '\'') {
+						$fTWHERE_parts[$kk] = $GLOBALS['TYPO3_DB']->quoteStr($TSconfig['_THIS_ROW'][$fTWHERE_subpart[0]], $foreign_table) . $fTWHERE_subpart[1];
+					} else {
+						$fTWHERE_parts[$kk] = $GLOBALS['TYPO3_DB']->fullQuoteStr($TSconfig['_THIS_ROW'][$fTWHERE_subpart[0]], $foreign_table) . $fTWHERE_subpart[1];
+					}
 				}
 			}
 			$fTWHERE = implode('', $fTWHERE_parts);
@@ -3952,13 +4044,22 @@ final class t3lib_BEfunc {
 
 	/**
 	 * Will return where clause de-selecting new(/deleted)-versions from other workspaces.
+	 * If in live-workspace, don't show "MOVE-TO-PLACEHOLDERS" records if versioningWS is 2 (allows moving)
 	 *
 	 * @param	string		Table name
 	 * @return	string		Where clause if applicable.
 	 */
 	public static function versioningPlaceholderClause($table) {
-		if ($GLOBALS['BE_USER']->workspace!==0 && $GLOBALS['TCA'][$table] && $GLOBALS['TCA'][$table]['ctrl']['versioningWS']) {
-			return ' AND ('.$table.'.t3ver_state<=0 OR '.$table.'.t3ver_wsid='.intval($GLOBALS['BE_USER']->workspace).')';
+		if ($GLOBALS['TCA'][$table] && $GLOBALS['TCA'][$table]['ctrl']['versioningWS']) {
+			$currentWorkspace = intval($GLOBALS['BE_USER']->workspace);
+			if ($currentWorkspace !== 0) {
+					// show only the items of the current workspace
+					// if in any workspace other than live
+				return ' AND (' . $table . '.t3ver_state <= 0 OR ' . $table . '.t3ver_wsid = ' . $currentWorkspace . ')';
+			} elseif ($GLOBALS['TCA'][$table]['ctrl']['versioningWS'] == 2) {
+					// if in live workspace, don't show "MOVE-TO-PLACEHOLDERS"
+				return ' AND (' . $table . '.t3ver_state != 3)';
+			}
 		}
 	}
 
@@ -4063,6 +4164,7 @@ final class t3lib_BEfunc {
 	 * @param	boolean		Will return an alert() with the content of header and text.
 	 * @param	boolean		Print header.
 	 * @return	void
+	 * @deprecated since TYPO3 4.5, will be removed in TYPO3 4.7 - use RuntimeException from now on
 	 */
 	public static function typo3PrintError($header, $text, $js = '', $head = 1) {
 			// This prints out a TYPO3 error message.
@@ -4070,36 +4172,9 @@ final class t3lib_BEfunc {
 		if ($js) {
 			echo "alert('".t3lib_div::slashJS($header.'\n'.$text)."');";
 		} else {
-			echo $head?'<html>
-				<head>
-					<title>Error!</title>
-				</head>
-				<body bgcolor="white" topmargin="0" leftmargin="0" marginwidth="0" marginheight="0">':'';
-			echo '<div align="center">
-					<table border="0" cellspacing="0" cellpadding="0" width="333">
-						<tr>
-							<td align="center">'.
-								($GLOBALS['TBE_STYLES']['logo_login']?'<img src="'.$GLOBALS['BACK_PATH'].$GLOBALS['TBE_STYLES']['logo_login'].'" alt="" />':'<img src="'.$GLOBALS['BACK_PATH'].'gfx/typo3logo.gif" width="123" height="34" vspace="10" />').
-							'</td>
-						</tr>
-						<tr>
-							<td bgcolor="black">
-								<table width="100%" border="0" cellspacing="1" cellpadding="10">
-									<tr>
-										<td bgcolor="#F4F0E8">
-											<font face="verdana,arial,helvetica" size="2">';
-			echo '<strong><center><font size="+1">'.$header.'</font></center></strong><br />'.$text;
-			echo '							</font>
-										</td>
-									</tr>
-								</table>
-							</td>
-						</tr>
-					</table>
-				</div>';
-			echo $head?'
-				</body>
-			</html>':'';
+			t3lib_div::logDeprecatedFunction();
+			$messageObj = t3lib_div::makeInstance('t3lib_message_ErrorPageMessage', $text, $header);
+			$messageObj->output();
 		}
 	}
 
@@ -4126,7 +4201,7 @@ final class t3lib_BEfunc {
 			);
 		}
 		$cNotice = '<a href="http://typo3.com/" target="_blank">' .
-			'<img' . t3lib_iconWorks::skinImg($BACK_PATH, 'gfx/loginlogo_transp.gif', 'width="75" height="19" vspace="2" hspace="4"') . ' alt="' .
+			'<img' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/loginlogo_transp.gif', 'width="75" height="19" vspace="2" hspace="4"') . ' alt="' .
 			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:typo3.logo') . '" align="left" />' .
 			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:typo3.cms') . ' ' .
 			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:version.short') . ' ' .
@@ -4389,7 +4464,7 @@ final class t3lib_BEfunc {
 	 * @param	string		The URL/script to jump to (used in A tag)
 	 * @return	array		Two keys, rows and list
 	 * @internal
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5.
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6.
 	 * @obsolete
 	 */
 	public static function getListOfBackendModules($name, $perms_clause, $backPath = '', $script = 'index.php') {
@@ -4403,7 +4478,7 @@ final class t3lib_BEfunc {
 		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 			$theRows[] = $row;
 			$out.='<span class="nobr"><a href="'.htmlspecialchars($script.'?id='.$row['uid']).'">'.
-					t3lib_iconWorks::getIconImage('pages', $row, $backPath, 'title="' . htmlspecialchars(self::getRecordPath($row['uid'], $perms_clause, 20)) . '" align="top"') .
+					t3lib_iconWorks::getSpriteIconForRecord('pages', $row, array('title' => htmlspecialchars(self::getRecordPath($row['uid'], $perms_clause, 20)))) .
 					htmlspecialchars($row['title']).
 					'</a></span><br />';
 		}

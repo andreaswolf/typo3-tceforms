@@ -28,7 +28,7 @@ require_once('FakeDbConnection.php');
 
 /**
  * Testcase for class ux_t3lib_db. Testing MS SQL database handling.
- * 
+ *
  * $Id$
  *
  * @author Xavier Perseguers <typo3@perseguers.ch>
@@ -86,7 +86,7 @@ class dbMssqlTest extends BaseTestCase {
 
 	/**
 	 * Cleans a SQL query.
-	 *  
+	 *
 	 * @param mixed $sql
 	 * @return mixed (string or array)
 	 */
@@ -101,7 +101,7 @@ class dbMssqlTest extends BaseTestCase {
 	}
 
 	/**
-	 * @test 
+	 * @test
 	 */
 	public function configurationIsUsingAdodbAndDriverMssql() {
 		$configuration = $GLOBALS['TYPO3_DB']->conf['handlerCfg'];
@@ -110,7 +110,7 @@ class dbMssqlTest extends BaseTestCase {
 		$this->assertTrue($GLOBALS['TYPO3_DB']->runningADOdbDriver('mssql') !== FALSE, 'Not using mssql driver');
 	}
 
-	/** 
+	/**
 	 * @test
 	 */
 	public function tablesWithMappingAreDetected() {
@@ -125,6 +125,20 @@ class dbMssqlTest extends BaseTestCase {
 				self::assertFalse($tableDef, 'Table ' . $table . ' was not expected to need mapping');
 			}
 		}
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=14985
+	 */
+	public function findInSetIsProperlyRemapped() {
+		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery(
+			'*',
+			'fe_users',
+			'FIND_IN_SET(10, usergroup)'
+		));
+		$expected = 'SELECT * FROM "fe_users" WHERE \',\'+"usergroup"+\',\' LIKE \'%,10,%\'';
+		$this->assertEquals($expected, $query);
 	}
 
 	///////////////////////////////////////
@@ -143,8 +157,8 @@ class dbMssqlTest extends BaseTestCase {
 		$groupBy      = '';
 		$orderBy      = '';
 
-		$GLOBALS['TYPO3_DB']->_callRef('map_remapSELECTQueryParts', $selectFields, $fromTables, $whereClause, $groupBy, $orderBy);
-		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery($selectFields, $fromTables, $whereClause, $groupBy, $orderBy));
+		$remappedParameters = $GLOBALS['TYPO3_DB']->_call('map_remapSELECTQueryParts', $selectFields, $fromTables, $whereClause, $groupBy, $orderBy);
+		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->_call('SELECTqueryFromArray', $remappedParameters));
 
 		$expected = 'SELECT "MemberID", "FirstName", "LastName" FROM "Members" WHERE 0 = 0 AND 1 = 1';
 		$this->assertEquals($expected, $query);
@@ -162,7 +176,7 @@ class dbMssqlTest extends BaseTestCase {
 		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery(
 			'*, CASE WHEN' .
 				' LOCATE(' . $GLOBALS['TYPO3_DB']->fullQuoteStr('(fce)', 'tx_templavoila_tmplobj') . ', datastructure)>0 THEN 2' .
-				' ELSE 1' . 
+				' ELSE 1' .
 			' END AS scope',
 			'tx_templavoila_tmplobj',
 			'1=1'
@@ -179,7 +193,7 @@ class dbMssqlTest extends BaseTestCase {
 		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery(
 			'*, CASE WHEN' .
 				' LOCATE(' . $GLOBALS['TYPO3_DB']->fullQuoteStr('(fce)', 'tx_templavoila_tmplobj') . ', datastructure, 4)>0 THEN 2' .
-				' ELSE 1' . 
+				' ELSE 1' .
 			' END AS scope',
 			'tx_templavoila_tmplobj',
 			'1=1'
@@ -195,15 +209,15 @@ class dbMssqlTest extends BaseTestCase {
 	public function locateStatementIsProperlyRemapped() {
 		$selectFields = '*, CASE WHEN' .
 				' LOCATE(' . $GLOBALS['TYPO3_DB']->fullQuoteStr('(fce)', 'tx_templavoila_tmplobj') . ', datastructure, 4)>0 THEN 2' .
-				' ELSE 1' . 
+				' ELSE 1' .
 			' END AS scope';
 		$fromTables   = 'tx_templavoila_tmplobj';
 		$whereClause  = '1=1';
 		$groupBy      = '';
 		$orderBy      = '';
 
-		$GLOBALS['TYPO3_DB']->_callRef('map_remapSELECTQueryParts', $selectFields, $fromTables, $whereClause, $groupBy, $orderBy);
-		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery($selectFields, $fromTables, $whereClause, $groupBy, $orderBy));
+		$remappedParameters = $GLOBALS['TYPO3_DB']->_call('map_remapSELECTQueryParts', $selectFields, $fromTables, $whereClause, $groupBy, $orderBy);
+		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->_call('SELECTqueryFromArray', $remappedParameters));
 
 		$expected = 'SELECT *, CASE WHEN CHARINDEX(\'(fce)\', "ds", 4) > 0 THEN 2 ELSE 1 END AS "scope" FROM "tx_templavoila_tmplobj" WHERE 1 = 1';
 		$this->assertEquals($expected, $query);
@@ -216,15 +230,15 @@ class dbMssqlTest extends BaseTestCase {
 	public function locateStatementWithExternalTableIsProperlyRemapped() {
 		$selectFields = '*, CASE WHEN' .
 				' LOCATE(' . $GLOBALS['TYPO3_DB']->fullQuoteStr('(fce)', 'tx_templavoila_tmplobj') . ', tx_templavoila_tmplobj.datastructure, 4)>0 THEN 2' .
-				' ELSE 1' . 
+				' ELSE 1' .
 			' END AS scope';
 		$fromTables   = 'tx_templavoila_tmplobj';
 		$whereClause  = '1=1';
 		$groupBy      = '';
 		$orderBy      = '';
 
-		$GLOBALS['TYPO3_DB']->_callRef('map_remapSELECTQueryParts', $selectFields, $fromTables, $whereClause, $groupBy, $orderBy);
-		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->SELECTquery($selectFields, $fromTables, $whereClause, $groupBy, $orderBy));
+		$remappedParameters = $GLOBALS['TYPO3_DB']->_call('map_remapSELECTQueryParts', $selectFields, $fromTables, $whereClause, $groupBy, $orderBy);
+		$query = $this->cleanSql($GLOBALS['TYPO3_DB']->_call('SELECTqueryFromArray', $remappedParameters));
 
 		$expected = 'SELECT *, CASE WHEN CHARINDEX(\'(fce)\', "tx_templavoila_tmplobj"."ds", 4) > 0 THEN 2 ELSE 1 END AS "scope" FROM "tx_templavoila_tmplobj" WHERE 1 = 1';
 		$this->assertEquals($expected, $query);

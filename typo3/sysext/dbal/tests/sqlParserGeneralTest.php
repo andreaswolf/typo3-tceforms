@@ -27,7 +27,7 @@ require_once('BaseTestCase.php');
 
 /**
  * Testcase for class ux_t3lib_sqlparser
- * 
+ *
  * $Id$
  *
  * @author Xavier Perseguers <typo3@perseguers.ch>
@@ -59,7 +59,7 @@ class sqlParserGeneralTest extends BaseTestCase {
 
 	/**
 	 * Cleans a SQL query.
-	 *  
+	 *
 	 * @param mixed $sql
 	 * @return mixed (string or array)
 	 */
@@ -185,7 +185,7 @@ class sqlParserGeneralTest extends BaseTestCase {
 	public function canSelectAllFieldsFromPages() {
 		$sql = 'SELECT * FROM pages';
 		$expected = $sql;
-		$actual = $this->cleanSql($this->fixture->debug_testSQL($sql)); 
+		$actual = $this->cleanSql($this->fixture->debug_testSQL($sql));
 
 		$this->assertEquals($expected, $actual);
 	}
@@ -367,6 +367,20 @@ class sqlParserGeneralTest extends BaseTestCase {
 		$this->assertEquals($expected, $alterTable[0]);
 	}
 
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=14985
+	 */
+	public function canParseFindInSetStatement() {
+		$parseString = 'SELECT * FROM fe_users WHERE FIND_IN_SET(10, usergroup)';
+		$components = $this->fixture->_callRef('parseSELECT', $parseString);
+
+		$this->assertTrue(is_array($components), $components);
+		$selectTable = $this->cleanSql($this->fixture->_callRef('compileSELECT', $components));
+		$expected = 'SELECT * FROM fe_users WHERE FIND_IN_SET(10, usergroup)';
+		$this->assertEquals($expected, $selectTable);
+	}
+
 	///////////////////////////////////////
 	// Tests concerning JOINs
 	///////////////////////////////////////
@@ -434,7 +448,7 @@ class sqlParserGeneralTest extends BaseTestCase {
 	public function canUseInnerJoinInSelect() {
 		$sql = 'SELECT pages.uid, be_users.username FROM be_users INNER JOIN pages ON pages.cruser_id = be_users.uid';
 		$expected = 'SELECT pages.uid, be_users.username FROM be_users INNER JOIN pages ON pages.cruser_id=be_users.uid';
-		$actual = $this->cleanSql($this->fixture->debug_testSQL($sql)); 
+		$actual = $this->cleanSql($this->fixture->debug_testSQL($sql));
 
 		$this->assertEquals($expected, $actual);
 	}
@@ -445,7 +459,7 @@ class sqlParserGeneralTest extends BaseTestCase {
 	public function canUseMultipleInnerJoinsInSelect() {
 		$sql = 'SELECT * FROM tt_news_cat INNER JOIN tt_news_cat_mm ON tt_news_cat.uid = tt_news_cat_mm.uid_foreign INNER JOIN tt_news ON tt_news.uid = tt_news_cat_mm.uid_local';
 		$expected = 'SELECT * FROM tt_news_cat INNER JOIN tt_news_cat_mm ON tt_news_cat.uid=tt_news_cat_mm.uid_foreign INNER JOIN tt_news ON tt_news.uid=tt_news_cat_mm.uid_local';
-		$actual = $this->cleanSql($this->fixture->debug_testSQL($sql)); 
+		$actual = $this->cleanSql($this->fixture->debug_testSQL($sql));
 
 		$this->assertEquals($expected, $actual);
 	}
@@ -464,7 +478,7 @@ class sqlParserGeneralTest extends BaseTestCase {
 
 	/**
 	 * @test
-	 * @see http://bugs.typo3.org/view.php?id=14182 
+	 * @see http://bugs.typo3.org/view.php?id=14182
 	 */
 	public function canParseMultipleJoinConditionsWithLessThanOperator() {
 		$sql = 'SELECT * FROM T1 LEFT OUTER JOIN T2 ON T2.size < 4 OR T2.pid = T1.uid WHERE T1.cr_userid = 1';
@@ -478,7 +492,7 @@ class sqlParserGeneralTest extends BaseTestCase {
 	// Tests concerning DB management
 	///////////////////////////////////////
 
-	/** 
+	/**
 	 * @test
 	 * @see http://bugs.typo3.org/view.php?id=4466
 	 */
@@ -670,6 +684,99 @@ class sqlParserGeneralTest extends BaseTestCase {
 		$actual = $this->cleanSql($this->fixture->debug_testSQL($sql));
 
 		$this->assertEquals($expected, $actual);
+	}
+
+	///////////////////////////////////////
+	// Tests concerning prepared queries
+	///////////////////////////////////////
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=15457
+	 */
+	public function namedPlaceholderIsSupported() {
+		$sql = 'SELECT * FROM pages WHERE pid = :pid ORDER BY title';
+		$expected = 'SELECT * FROM pages WHERE pid = :pid ORDER BY title';
+		$actual = $this->cleanSql($this->fixture->debug_testSQL($sql));
+
+		$this->assertEquals($expected, $actual);
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=15457
+	 */
+	public function questionMarkPlaceholderIsSupported() {
+		$sql = 'SELECT * FROM pages WHERE pid = ? ORDER BY title';
+		$expected = 'SELECT * FROM pages WHERE pid = ? ORDER BY title';
+		$actual = $this->cleanSql($this->fixture->debug_testSQL($sql));
+
+		$this->assertEquals($expected, $actual);
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=15457
+	 */
+	public function parametersAreReferenced() {
+		$sql = 'SELECT * FROM pages WHERE pid = :pid1 OR pid = :pid2';
+		$components = $this->fixture->_callRef('parseSELECT', $sql);
+
+		$this->assertTrue(is_array($components['parameters']), 'References to parameters not found');
+		$this->assertEquals(2, count($components['parameters']));
+		$this->assertTrue(is_array($components['parameters']), 'References to parameters not found');
+		$this->assertTrue(isset($components['parameters'][':pid1']));
+		$this->assertTrue(isset($components['parameters'][':pid2']));
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=15457
+	 */
+	public function sameParameterIsReferencedInSubquery() {
+		$sql = 'SELECT * FROM pages WHERE uid = :pageId OR uid IN (SELECT uid FROM pages WHERE pid = :pageId)';
+		$pageId = 12;
+
+		$components = $this->fixture->_callRef('parseSELECT', $sql);
+		$components['parameters'][':pageId'][0] = $pageId;
+		$query = $this->cleanSql($this->fixture->_callRef('compileSELECT', $components));
+		$expected = 'SELECT * FROM pages WHERE uid = 12 OR uid IN (SELECT uid FROM pages WHERE pid = 12)';
+
+		$this->assertEquals($expected, $query);
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=15457
+	 */
+	public function namedParametersMayBeSafelyReplaced() {
+		$sql = 'SELECT * FROM pages WHERE pid = :pid AND title NOT LIKE \':pid\'';
+		$pid = 12;
+
+		$components = $this->fixture->_callRef('parseSELECT', $sql);
+		$components['parameters'][':pid'][0] = $pid;
+		$query = $this->cleanSql($this->fixture->_callRef('compileSELECT', $components));
+		$expected = 'SELECT * FROM pages WHERE pid = ' . $pid . ' AND title NOT LIKE \':pid\'';
+
+		$this->assertEquals($expected, $query);
+	}
+
+	/**
+	 * @test
+	 * @see http://bugs.typo3.org/view.php?id=15457
+	 */
+	public function questionMarkParametersMayBeSafelyReplaced() {
+		$sql = 'SELECT * FROM pages WHERE pid = ? AND timestamp < ? AND title != \'How to test?\'';
+		$parameterValues = array(12, 1281782690);
+
+		$components = $this->fixture->_callRef('parseSELECT', $sql);
+		for ($i = 0; $i < count($components['parameters']['?']); $i++) {
+			$components['parameters']['?'][$i][0] = $parameterValues[$i];
+		}
+		$query = $this->cleanSql($this->fixture->_callRef('compileSELECT', $components));
+		$expected = 'SELECT * FROM pages WHERE pid = 12 AND timestamp < 1281782690 AND title != \'How to test?\'';
+
+		$this->assertEquals($expected, $query);
 	}
 }
 ?>

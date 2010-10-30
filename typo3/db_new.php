@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,10 +31,10 @@
  * Includes a wizard mode for visually pointing out the position of new pages
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -73,7 +73,7 @@ $LANG->includeLLFile('EXT:lang/locallang_misc.xml');
 /**
  * Extension for the tree class that generates the tree of pages in the page-wizard mode
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -111,7 +111,7 @@ class localPageTree extends t3lib_pageTree {
 /**
  * Script class for 'db_new'
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -166,7 +166,7 @@ class SC_db_new {
 		}
 			// Setting GPvars:
 		$this->id = intval(t3lib_div::_GP('id'));	// The page id to operate from
-		$this->returnUrl = t3lib_div::_GP('returnUrl');
+		$this->returnUrl = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
 		$this->pagesOnly = t3lib_div::_GP('pagesOnly');
 
 			// Create instance of template class for output
@@ -327,12 +327,12 @@ class SC_db_new {
 				'</a>';
 
 				// Record list
-			if ($GLOBALS['BE_USER']->check('modules', 'web_list')) {
-				$href = $this->backPath . 'db_list.php?id=' . $this->pageinfo['uid'] . '&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'));
-				$buttons['record_list'] = '<a href="' . htmlspecialchars($href) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', 1) . '">' .
-						t3lib_iconWorks::getSpriteIcon('actions-system-list-open') .
-					'</a>';
-			}
+				// If access to Web>List for user, then link to that module.
+			$buttons['record_list'] = t3lib_extMgm::createListViewLink(
+				$this->pageinfo['uid'],
+				'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
+				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+			);
 		}
 
 
@@ -381,7 +381,7 @@ class SC_db_new {
 		$table = 'pages';
 		$v = $GLOBALS['TCA'][$table];
 		$pageIcon = t3lib_iconWorks::getSpriteIconForRecord($table,array());
-						
+
 		$newPageIcon = t3lib_iconWorks::getSpriteIcon('actions-page-new');
 		$rowContent = $firstLevel . $newPageIcon . '&nbsp;<strong>' . $GLOBALS['LANG']->getLL('createNewPage') . '</strong>';
 

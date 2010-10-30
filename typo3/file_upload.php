@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Web>File: Upload of files
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -60,7 +60,7 @@ $LANG->includeLLFile('EXT:lang/locallang_misc.xml');
 /**
  * Script Class for display up to 10 upload fields
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -112,8 +112,8 @@ class SC_file_upload {
 			// Initialize GPvars:
 		$this->number = t3lib_div::_GP('number');
 		$this->target = t3lib_div::_GP('target');
-		$this->returnUrl = t3lib_div::_GP('returnUrl');
-		$this->returnUrl = $this->returnUrl ? $this->returnUrl : t3lib_div::getIndpEnv('TYPO3_SITE_URL') . TYPO3_mainDir . 'file_list.php?id=' . rawurlencode($this->target);
+		$this->returnUrl = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
+		$this->returnUrl = $this->returnUrl ? $this->returnUrl : t3lib_div::getIndpEnv('TYPO3_SITE_URL') . TYPO3_mainDir . t3lib_extMgm::extRelPath('filelist') . 'mod1/file_list.php?id=' . rawurlencode($this->target);
 
 		// set the number of input fields
 		if (empty($this->number)) {
@@ -133,8 +133,9 @@ class SC_file_upload {
 		$this->target = $this->basicff->is_directory($this->target);
 		$key = $this->basicff->checkPathAgainstMounts($this->target . '/');
 		if (!$this->target || !$key) {
-			t3lib_BEfunc::typo3PrintError($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:paramError', true), $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:targetNoDir', true), '');
-			exit;
+			$title = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:paramError', TRUE);
+			$message = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:targetNoDir', TRUE);
+			throw new RuntimeException($title . ': ' . $message);
 		}
 
 			// Finding the icon

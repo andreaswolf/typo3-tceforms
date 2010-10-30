@@ -81,6 +81,7 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 	configDefaults: {
 		combo: {
 			editable: true,
+			selectOnFocus: true,
 			typeAhead: true,
 			triggerAction: 'all',
 			forceSelection: true,
@@ -361,22 +362,24 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 					]
 				}
 			],
-			bbar: new Ext.ux.StatusBar({
-				id: this.editor.editorId + '-spell-check-status',
-				defaultText: this.localize('statusBarReady'),
-				defaultIconCls: 'status-ready',
-				text: this.localize('Please wait. Calling spell checker.'),
-				iconCls: 'status-wait',
+			bbar: {
 				defaults: {
-					minWidth: 100,
 					disabled: true
 				},
 				items: [
+					{
+						xtype: 'tbtext',
+						itemId: 'spell-check-status',
+						text: this.localize('Please wait. Calling spell checker.'),
+						cls: 'status-wait',
+						disabled: false
+					},
+					'->',
 					this.buildButtonConfig('OK', this.onOK),
 					this.buildButtonConfig('Info', this.onInfoClick),
 					this.buildButtonConfig('Cancel', this.onCancel)
 				]
-			})
+			}
 		});
 		this.show();
 	},
@@ -396,6 +399,8 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 			'accept-charset': this.contentCharset.toUpperCase()
 		});
 		this.dialog.getComponent('spell-check-form').getForm().submit();
+		this.status = this.dialog.getBottomToolbar().getComponent('spell-check-status');
+		this.statusIconClass = 'status-wait';
 	},
 	/*
 	 * Handler invoked after the window is resized
@@ -440,15 +445,32 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 	 */
 	onCancel: function () {
 		if (this.modified) {
-			Ext.MessageBox.confirm('', this.localize('QUIT_CONFIRMATION'), function (button) {
-				if (button == 'yes') {
-					this.close();
-				}
-			}, this);
+			TYPO3.Dialog.QuestionDialog({
+				title: this.getButton('SpellCheck').tooltip.title,
+				msg: this.localize('QUIT_CONFIRMATION'),
+				fn: function (button) { 
+					if (button == 'yes') {
+						this.close();
+					}
+				},
+				scope: this
+			});
 			return false;
 		} else {
 			return this.base();
 		}
+	},
+	/*
+	 * Set icon in statusbar
+	 *
+	 * @param	string		iconCls: class to be assigned to the statusbar text
+	 *
+	 * @return	void
+	 */
+	setStatusIconClass: function (iconCls) {
+		this.status.removeClass(this.statusIconClass);
+		this.statusIconClass = iconCls;
+		this.status.addClass(this.statusIconClass);
 	},
 	/*
 	 * Clean away span elements from the text before leaving or re-submitting
@@ -476,7 +498,7 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 		Ext.each(iframeDocument.getElementsByTagName('a'), function (link) {
 			link.onclick = null;
 		}, this);
-		return HTMLArea.getHTML(iframeDocument.body, false, this.editor);
+		return this.editor.iframe.htmlRenderer.render(iframeDocument.body, false);
 	},
 	/*
 	 * Handler invoked when the response from the server has finished loading
@@ -493,11 +515,8 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 			// Suggested words
 		this.suggestedWords = contentWindow.suggestedWords;
 			// Set status
-		Ext.getCmp(this.editor.editorId + '-spell-check-status').setStatus({
-		    text: this.localize('statusBarReady'),
-		    iconCls: 'status-ready',
-		    clear: false
-		});
+		this.status.setText(this.localize('statusBarReady'));
+		this.setStatusIconClass('status-ready');
 			// Process all misspelled words
 		var id = 0;
 		var self = this;
@@ -526,7 +545,7 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 		Ext.each(this.dialog.findByType('button'), function (button) {
 			button.setDisabled(false);
 		});
-		Ext.each(Ext.getCmp(this.editor.editorId + '-spell-check-status').findByType('button'), function (button) {
+		Ext.each(this.dialog.getBottomToolbar().findByType('button'), function (button) {
 			button.setDisabled(false);
 		});
 		if (this.misspelledWords.length) {
@@ -551,10 +570,17 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 			}
 		} else {
 			if (!this.modified) {
-				Ext.MessageBox.alert('', this.localize('NO_ERRORS_CLOSING'));
-				this.onOK();
+				TYPO3.Dialog.InformationDialog({
+					title: this.getButton('SpellCheck').tooltip.title,
+					msg: this.localize('NO_ERRORS_CLOSING'),
+					fn: this.onOK,
+					scope: this
+				});
 			} else {
-				Ext.MessageBox.alert('', this.localize('NO_ERRORS'));
+				TYPO3.Dialog.InformationDialog({
+					title: this.getButton('SpellCheck').tooltip.title,
+					msg: this.localize('NO_ERRORS')
+				});
 			}
 			return false;
 		}
@@ -627,11 +653,8 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 			txt = occurrences.length + ' ' + this.localize('occurrences');
 			txt2 = this.localize('were found.');
 		}
-		Ext.getCmp(this.editor.editorId + '-spell-check-status').setStatus({
-			text: txt + ' ' + this.localize('of the word') + ' "<b>' + this.currentElement.htmlareaOriginalWord + '</b>" ' + txt2,
-			iconCls: 'status-info',
-			clear: false
-		});
+		this.status.setText(txt + ' ' + this.localize('of the word') + ' "<b>' + this.currentElement.htmlareaOriginalWord + '</b>" ' + txt2);
+		this.setStatusIconClass('status-info');
 			// Update suggestions
 		var suggestions = this.suggestedWords[this.currentElement.htmlareaOriginalWord];
 		if (suggestions) {
@@ -722,7 +745,10 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 		} while (index != start && this.misspelledWords[index].htmlareaFixed);
 		if (index == start) {
 			index = 0;
-			Ext.MessageBox.alert('', this.localize('Finished list of mispelled words'));
+			TYPO3.Dialog.InformationDialog({
+				title: this.getButton('SpellCheck').tooltip.title,
+				msg: this.localize('Finished list of mispelled words')
+			});
 		}
 		this.setCurrentWord(this.misspelledWords[index], true);
 		return false;
@@ -768,14 +794,11 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 		Ext.each(this.dialog.findByType('button'), function (button) {
 			button.setDisabled(true);
 		});
-		Ext.each(Ext.getCmp(this.editor.editorId + '-spell-check-status').findByType('button'), function (button) {
+		Ext.each(this.dialog.getBottomToolbar().findByType('button'), function (button) {
 			button.setDisabled(true);
 		});
-		Ext.getCmp(this.editor.editorId + '-spell-check-status').setStatus({
-			text: this.localize('Please wait: changing dictionary to') + ': "' + this.dialog.find('itemId', 'dictionary')[0].getValue() + '".',
-			iconCls: 'status-wait',
-			clear: false
-		});
+		this.status.setText(this.localize('Please wait: changing dictionary to') + ': "' + this.dialog.find('itemId', 'dictionary')[0].getValue() + '".');
+		this.setStatusIconClass('status-wait');
 		this.dialog.find('itemId', 'content')[0].setValue(this.cleanDocument(true));
 		this.dialog.getComponent('spell-check-form').getForm().submit();
 	},
@@ -785,14 +808,20 @@ HTMLArea.SpellChecker = HTMLArea.Plugin.extend({
 	onInfoClick: function () {
 		var info = this.dialog.getComponent('spell-check-iframe').getEl().dom.contentWindow.spellcheckInfo;
 		if (!info) {
-			Ext.MessageBox.alert('', this.localize('No information available'));
+			TYPO3.Dialog.InformationDialog({
+				title: this.getButton('SpellCheck').tooltip.title,
+				msg: this.localize('No information available')
+			});
 		} else {
-			var txt = this.localize('Document information') + '<br />';
+			var txt = '';
 			Ext.iterate(info, function (key, value) {
-				txt += '<br />' + this.localize(key) + ': ' + value;
+				txt += (txt ? '<br />' : '') + this.localize(key) + ': ' + value;
 			}, this);
 			txt += ' ' + this.localize('seconds');
-			Ext.MessageBox.alert('', txt);
+			TYPO3.Dialog.InformationDialog({
+				title: this.localize('Document information'),
+				msg: txt
+			});
 		}
 		return false;
 	}

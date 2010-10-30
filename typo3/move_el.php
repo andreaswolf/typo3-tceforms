@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,10 +29,10 @@
  * Moving pages or content elements (tt_content) around in the system via a page tree navigation.
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compatible.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -84,7 +84,7 @@ $LANG->includeLLFile('EXT:lang/locallang_misc.xml');
 /**
  * Local extension of the page tree class
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -115,7 +115,7 @@ class localPageTree extends t3lib_pageTree {
 /**
  * Extension of position map for pages
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -172,7 +172,7 @@ class ext_posMap_pages extends t3lib_positionMap {
 /**
  * Extension of position map for content elements
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -215,7 +215,7 @@ class ext_posMap_tt_content extends t3lib_positionMap {
 /**
  * Script Class for rendering the move-element wizard display
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -255,7 +255,7 @@ class SC_move_el {
 		$this->sys_language = intval(t3lib_div::_GP('sys_language'));
 		$this->page_id=intval(t3lib_div::_GP('uid'));
 		$this->table=t3lib_div::_GP('table');
-		$this->R_URI=t3lib_div::_GP('returnUrl');
+		$this->R_URI=t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
 		$this->input_moveUid = t3lib_div::_GP('moveUid');
 		$this->moveUid = $this->input_moveUid ? $this->input_moveUid : $this->page_id;
 		$this->makeCopy = t3lib_div::_GP('makeCopy');
@@ -289,7 +289,7 @@ class SC_move_el {
 			$elRow = t3lib_BEfunc::getRecordWSOL($this->table,$this->moveUid);
 
 				// Headerline: Icon, record title:
-			$hline = t3lib_iconWorks::getIconImage($this->table,$elRow,$BACK_PATH,' id="c-recIcon" title="'.htmlspecialchars(t3lib_BEfunc::getRecordIconAltText($elRow,$this->table)).'"');
+			$hline = t3lib_iconWorks::getSpriteIconForRecord($this->table, $elRow, array('id' => "c-recIcon", 'title' => htmlspecialchars(t3lib_BEfunc::getRecordIconAltText($elRow,$this->table))));
 			$hline.= t3lib_BEfunc::getRecordTitle($this->table,$elRow,TRUE);
 
 				// Make-copy checkbox (clicking this will reload the page with the GET var makeCopy set differently):
@@ -324,7 +324,7 @@ class SC_move_el {
 									t3lib_BEfunc::getRecordTitle('pages',$pidPageInfo,TRUE).
 									'</a><br />';
 							} else {
-								$code.= t3lib_iconWorks::getIconImage('pages',$pidPageInfo,$BACK_PATH,'').
+								$code.= t3lib_iconWorks::getSpriteIconForRecord('pages', $pidPageInfo) .
 									t3lib_BEfunc::getRecordTitle('pages',$pidPageInfo,TRUE).
 									'<br />';
 							}
@@ -355,7 +355,7 @@ class SC_move_el {
 					$posMap->cur_sys_language = $this->sys_language;
 
 						// Headerline for the parent page: Icon, record title:
-					$hline = t3lib_iconWorks::getIconImage('pages',$pageinfo,$BACK_PATH,' title="'.htmlspecialchars(t3lib_BEfunc::getRecordIconAltText($pageinfo,'pages')).'"');
+					$hline = t3lib_iconWorks::getSpriteIconForRecord('pages', $pageinfo, array('title' => htmlspecialchars(t3lib_BEfunc::getRecordIconAltText($pageinfo, 'pages'))));
 					$hline.= t3lib_BEfunc::getRecordTitle('pages',$pageinfo,TRUE);
 
 						// Load SHARED page-TSconfig settings and retrieve column list from there, if applicable:
@@ -379,7 +379,7 @@ class SC_move_el {
 									t3lib_BEfunc::getRecordTitle('pages',$pidPageInfo,TRUE).
 									'</a><br />';
 							} else {
-								$code.= t3lib_iconWorks::getIconImage('pages',$pidPageInfo,$BACK_PATH,'').
+								$code.= t3lib_iconWorks::getSpriteIconForRecord('pages', $pidPageInfo).
 									t3lib_BEfunc::getRecordTitle('pages',$pidPageInfo,TRUE).
 									'<br />';
 							}

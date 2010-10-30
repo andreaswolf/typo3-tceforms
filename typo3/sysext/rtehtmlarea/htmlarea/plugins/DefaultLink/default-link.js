@@ -47,7 +47,7 @@ HTMLArea.DefaultLink = HTMLArea.Plugin.extend({
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: '2.0',
+			version		: '2.1',
 			developer	: 'Stanislas Rolland',
 			developerUrl	: 'http://www.sjbr.ca/',
 			copyrightOwner	: 'Stanislas Rolland',
@@ -90,6 +90,7 @@ HTMLArea.DefaultLink = HTMLArea.Plugin.extend({
 	configDefaults: {
 		combo: {
 			editable: true,
+			selectOnFocus: true,
 			typeAhead: true,
 			triggerAction: 'all',
 			forceSelection: true,
@@ -98,6 +99,14 @@ HTMLArea.DefaultLink = HTMLArea.Plugin.extend({
 			displayField: 'text',
 			helpIcon: true,
 			tpl: '<tpl for="."><div ext:qtip="{value}" style="text-align:left;font-size:11px;" class="x-combo-list-item">{text}</div></tpl>'
+		}
+	},
+	/*
+	 * This function gets called when the editor is generated
+	 */
+	onGenerate: function () {
+		if (Ext.isIE) {
+			this.editor.iframe.htmlRenderer.stripBaseUrl = this.stripBaseUrl;
 		}
 	},
 	/*
@@ -130,7 +139,10 @@ HTMLArea.DefaultLink = HTMLArea.Plugin.extend({
 				if (!this.link) {
 					var selection = this.editor._getSelection();
 					if (this.editor._selectionEmpty(selection)) {
-						Ext.MessageBox.alert('', this.localize('Select some text'));
+						TYPO3.Dialog.InformationDialog({
+							title: this.getButton(buttonId).tooltip.title,
+							msg: this.localize('Select some text')
+						});
 						break;
 					}
 					this.parameters = {
@@ -148,7 +160,7 @@ HTMLArea.DefaultLink = HTMLArea.Plugin.extend({
 					// Open dialogue window
 				this.openDialogue(
 					buttonId,
-					'Insert/Modify Link',
+					this.getButton(buttonId).tooltip.title,
 					this.getWindowDimensions(
 						{
 							width: 470,
@@ -172,7 +184,7 @@ HTMLArea.DefaultLink = HTMLArea.Plugin.extend({
 	 */
 	openDialogue: function (buttonId, title, dimensions) {
 		this.dialog = new Ext.Window({
-			title: this.localize(title),
+			title: this.localize(title) || title,
 			cls: 'htmlarea-window',
 			border: false,
 			width: dimensions.width,
@@ -292,7 +304,7 @@ HTMLArea.DefaultLink = HTMLArea.Plugin.extend({
 	onOK: function () {
 		var hrefField = this.dialog.find('itemId', 'href')[0];
 		var href = hrefField.getValue().trim();
-		if (href) {
+		if (href && href != 'http://') {
 			var title = this.dialog.find('itemId', 'title')[0].getValue();
 			var target = this.dialog.find('itemId', 'target')[0].getValue();
 			if (target == '_other') {
@@ -301,7 +313,11 @@ HTMLArea.DefaultLink = HTMLArea.Plugin.extend({
 			this.createLink(href, title, target);
 			this.close();
 		} else {
-			Ext.MessageBox.alert('', this.localize('link_url_required'), function () { hrefField.focus(); });
+			TYPO3.Dialog.InformationDialog({
+				title: this.localize('URL'),
+				msg: this.localize('link_url_required'),
+				fn: function () { hrefField.focus(); }
+			});
 		}
 		return false;
 	},
@@ -380,8 +396,38 @@ HTMLArea.DefaultLink = HTMLArea.Plugin.extend({
 	 * This function gets called when the toolbar is updated
 	 */
 	onUpdateToolbar: function (button, mode, selectionEmpty, ancestors) {
-		if (mode === 'wysiwyg' && this.editor.isEditable() && button.itemId === 'CreateLink') {
-			button.setDisabled(selectionEmpty && !button.isInContext(mode, selectionEmpty, ancestors));
+		if (mode === 'wysiwyg' && this.editor.isEditable()) {
+			switch (button.itemId) {
+				case 'CreateLink':
+					button.setDisabled(selectionEmpty && !button.isInContext(mode, selectionEmpty, ancestors));
+					if (!button.disabled) {
+						var node = this.editor.getParentElement();
+						var el = HTMLArea.getElementObject(node, 'a');
+						if (el != null && /^a$/i.test(el.nodeName)) {
+							node = el;
+						}
+						if (node != null && /^a$/i.test(node.nodeName)) {
+							button.setTooltip({ title: this.localize('Modify link') });
+						} else {
+							button.setTooltip({ title: this.localize('Insert link') });
+						}
+					}
+					break;
+				case 'UnLink':
+					var link = false;
+						// Let's see if a link was double-clicked in Firefox
+					if (Ext.isGecko && !selectionEmpty) {
+						var range = this.editor._createRange(this.editor._getSelection());
+						if (range.startContainer.nodeType == 1 && range.startContainer == range.endContainer && (range.endOffset - range.startOffset == 1)) {
+							var node = range.startContainer.childNodes[range.startOffset];
+							if (node && /^a$/i.test(node.nodeName) && node.textContent == range.toString()) {
+								link = true;
+							}
+						}
+					}
+					button.setDisabled(!link && !button.isInContext(mode, selectionEmpty, ancestors));
+					break;
+			}
 		}
 	}
 });

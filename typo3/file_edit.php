@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,10 +28,10 @@
  * Web>File: Editing documents
  *
  * $Id$
- * Revised for TYPO3 3.6 2/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  * XHTML compliant (except textarea field)
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -56,7 +56,7 @@ require('template.php');
 /**
  * Script Class for rendering the file editing screen
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -97,7 +97,7 @@ class SC_file_edit {
 
 			// Setting target, which must be a file reference to a file within the mounts.
 		$this->target = $this->origTarget = t3lib_div::_GP('target');
-		$this->returnUrl = t3lib_div::_GP('returnUrl');
+		$this->returnUrl = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
 
 			// Creating file management object:
 		$this->basicff = t3lib_div::makeInstance('t3lib_basicFileFunctions');
@@ -110,9 +110,10 @@ class SC_file_edit {
 			$this->target='';
 		}
 		$key=$this->basicff->checkPathAgainstMounts($this->target.'/');
-		if (!$this->target || !$key)	{
-			t3lib_BEfunc::typo3PrintError($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:paramError', true), $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:targetNoDir', true), '');
-			exit;
+		if (!$this->target || !$key) {
+			$title = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:paramError', TRUE);
+			$message = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:targetNoDir', TRUE);
+			throw new RuntimeException($title . ': ' . $message);
 		}
 			// Finding the icon
 		switch($GLOBALS['FILEMOUNTS'][$key]['type'])	{
@@ -155,6 +156,20 @@ class SC_file_edit {
 
 		$this->content = $this->doc->startPage($LANG->sL('LLL:EXT:lang/locallang_core.php:file_edit.php.pagetitle'));
 
+			// hook	before compiling the output
+		if (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/file_edit.php']['preOutputProcessingHook'])) {
+			$preOutputProcessingHook =& $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/file_edit.php']['preOutputProcessingHook'];
+			if (is_array($preOutputProcessingHook)) {
+				$hookParameters = array(
+					'content' => &$this->content,
+					'target' => &$this->target,
+				);
+				foreach ($preOutputProcessingHook as $hookFunction)	{
+					t3lib_div::callUserFunction($hookFunction, $hookParameters, $this);
+				}
+			}
+		}
+
 		$pageContent = $this->doc->header($LANG->sL('LLL:EXT:lang/locallang_core.php:file_edit.php.pagetitle'));
 		$pageContent .= $this->doc->spacer(2);
 
@@ -191,6 +206,20 @@ class SC_file_edit {
 			// Ending of section and outputting editing form:
 		$pageContent.= $this->doc->sectionEnd();
 		$pageContent.=$code;
+
+				// hook	after compiling the output
+		if (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/file_edit.php']['postOutputProcessingHook'])) {
+			$postOutputProcessingHook =& $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/file_edit.php']['postOutputProcessingHook'];
+			if (is_array($postOutputProcessingHook)) {
+				$hookParameters = array(
+					'pageContent' => &$pageContent,
+					'target' => &$this->target,
+				);
+				foreach ($postOutputProcessingHook as $hookFunction)	{
+					t3lib_div::callUserFunction($hookFunction, $hookParameters, $this);
+				}
+			}
+		}
 
 			// Add the HTML as a section:
 		$markerArray = array(

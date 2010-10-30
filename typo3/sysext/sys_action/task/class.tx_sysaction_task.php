@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  (c) 2010 Georg Ringer <typo3@ringerge.org>
 *  All rights reserved
 *
@@ -27,7 +27,7 @@
 /**
  * This class provides a task for the taskcenter
  *
- * @author		Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author		Kasper Skårhøj <kasperYYYY@typo3.com>
  * @author		Georg Ringer <typo3@ringerge.org>
  * @package		TYPO3
  * @subpackage	tx_sysaction
@@ -447,7 +447,7 @@ class tx_sysaction_task implements tx_taskcenter_Task {
 
 			// render the user records
 		while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-			$icon = t3lib_iconworks::getIconImage('be_users', $row, $GLOBALS['BACK_PATH'], 'title="uid=' . $row['uid'] . '" hspace="2" align="top"');
+			$icon = t3lib_iconworks::getSpriteIconForRecord('be_users', $row, array('title' => 'uid=' . $row['uid']));
 			$line = $icon . $this->action_linkUserName($row['username'], $row['realName'], $action['uid'], $row['uid']);
 
 				// selected user
@@ -483,13 +483,13 @@ class tx_sysaction_task implements tx_taskcenter_Task {
 		}
 
 			// link to update the user record
-		$href = 'mod.php?M=user_task&SET[function]=sys_action.tasks&show=' . intval($sysActionUid) . '&be_users_uid=' . intval($userId);
-		$link = '<a href="' . $href . '">' . htmlspecialchars($username) . '</a>';
+		$href = 'mod.php?M=user_task&SET[function]=sys_action.tx_sysaction_task&show=' . intval($sysActionUid) . '&be_users_uid=' . intval($userId);
+		$link = '<a href="' . htmlspecialchars($href) . '">' . htmlspecialchars($username) . '</a>';
 
 			// link to delete the user record
 		$onClick = ' onClick="return confirm('.$GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->getLL("lDelete_warning")).');"';
 		$link .= '
-				<a href="' . $href . '&delete=1" ' . $onClick . '>
+				<a href="' . htmlspecialchars($href . '&delete=1') . '" ' . $onClick . '>
 					<img' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/delete_record.gif') . ' alt="" />
 				</a>';
 		return $link;
@@ -627,7 +627,7 @@ class tx_sysaction_task implements tx_taskcenter_Task {
 
 					// check rootline and access rights
 				if ($this->checkRootline($uid) && $GLOBALS['BE_USER']->calcPerms($page)) {
-					$cleanDbMountList[] = 'pages' . $uid;
+					$cleanDbMountList[] = 'pages_' . $uid;
 				}
 			}
 				// build the clean list
@@ -773,7 +773,7 @@ class tx_sysaction_task implements tx_taskcenter_Task {
 				'description'		=> t3lib_BEfunc::getRecordTitle($el['table'], $dbAnalysis->results[$el['table']][$el['id']]),
 				'descriptionHtml'	=> $description,
 				'link'				=> $GLOBALS['BACK_PATH'] . 'alt_doc.php?returnUrl=' . rawurlencode(t3lib_div::getIndpEnv("REQUEST_URI")) . '&edit[' . $el['table'] . '][' . $el['id'] . ']=edit',
-				'icon'				=> t3lib_iconworks::getIconImage($el['table'], $dbAnalysis->results[$el['table']][$el['id']], $GLOBALS['BACK_PATH'], 'hspace="2" align="top" title="' . htmlspecialchars($path) . '"')
+				'icon'				=> t3lib_iconworks::getSpriteIconForRecord($el['table'], $dbAnalysis->results[$el['table']][$el['id']], array('title' => htmlspecialchars($path)))
 			);
 		}
 
@@ -795,34 +795,52 @@ class tx_sysaction_task implements tx_taskcenter_Task {
 		if (t3lib_extMgm::isLoaded('lowlevel')) {
 			$sql_query = unserialize($record['t2_data']);
 
-			if (is_array($sql_query) && strtoupper(substr(trim($sql_query['qSelect']), 0, 6)) == 'SELECT') {
+			if (!is_array($sql_query) ||
+				(is_array($sql_query) && strtoupper(substr(trim($sql_query['qSelect']), 0, 6)) === 'SELECT')) {
+
 				$actionContent = '';
 
-				$fullsearch = t3lib_div::makeInstance("t3lib_fullsearch");
+				$fullsearch = t3lib_div::makeInstance('t3lib_fullsearch');
 				$fullsearch->formW = 40;
 				$fullsearch->noDownloadB = 1;
 
 				$type = $sql_query['qC']['search_query_makeQuery'];
-				$res = $GLOBALS['TYPO3_DB']->sql_query($sql_query['qSelect']);
+				$sqlQuery = $sql_query['qSelect'];
+				$queryIsEmpty = FALSE;
 
-				if (!$GLOBALS['TYPO3_DB']->sql_error()) {
-					$fullsearch->formW = 48;
-						// additional configuration
-					$GLOBALS['SOBE']->MOD_SETTINGS['search_result_labels'] = 1;
-					$cP = $fullsearch->getQueryResultCode($type, $res, $sql_query['qC']['queryTable']);
-					$actionContent = $cP['content'];
+				if ($sqlQuery) {
+					$res = $GLOBALS['TYPO3_DB']->sql_query($sqlQuery);
 
-						// if the result is rendered as csv or xml, show a download link
-					if ($type == 'csv' || $type == 'xml' ) {
-						$actionContent .= '<br /><br /><a href="' . t3lib_div::getIndpEnv('REQUEST_URI') . '&download_file=1"><strong>' . $GLOBALS['LANG']->getLL('action_download_file') . '</strong></a>';
+					if (!$GLOBALS['TYPO3_DB']->sql_error()) {
+						$fullsearch->formW = 48;
+							// additional configuration
+						$GLOBALS['SOBE']->MOD_SETTINGS['search_result_labels'] = 1;
+						$cP = $fullsearch->getQueryResultCode($type, $res, $sql_query['qC']['queryTable']);
+						$actionContent = $cP['content'];
+
+							// if the result is rendered as csv or xml, show a download link
+						if ($type === 'csv' || $type === 'xml') {
+							$actionContent .= '<br /><br /><a href="' . t3lib_div::getIndpEnv('REQUEST_URI') . '&download_file=1"><strong>' . $GLOBALS['LANG']->getLL('action_download_file') . '</strong></a>';
+						}
+					} else {
+						$actionContent .= $GLOBALS['TYPO3_DB']->sql_error();
 					}
 				} else {
-					$actionContent .= $GLOBALS['TYPO3_DB']->sql_error();
+						// query is empty (not built)
+					$queryIsEmpty = TRUE;
+					$flashMessage = t3lib_div::makeInstance (
+						't3lib_FlashMessage',
+						$GLOBALS['LANG']->getLL('action_emptyQuery', TRUE),
+						$GLOBALS['LANG']->getLL('action_error'),
+						t3lib_FlashMessage::ERROR
+					);
+					$content .= '<br />' . $flashMessage->render();
 				}
-
-				// Admin users are allowed to see and edit the query
+					// Admin users are allowed to see and edit the query
 				if ($GLOBALS['BE_USER']->isAdmin()) {
-					$actionContent .= '<hr /> ' . $fullsearch->tableWrap($sql_query['qSelect']);
+					if (!$queryIsEmpty) {
+						$actionContent .= '<hr /> ' . $fullsearch->tableWrap($sql_query['qSelect']);
+					}
 					$actionContent .= '<br /><a title="' . $GLOBALS['LANG']->getLL('action_editQuery') . '" href="' . $GLOBALS['BACK_PATH'] . t3lib_extMgm::extRelPath('lowlevel') . 'dbint/index.php?id=' .
 						'&SET[function]=search' .
 						'&SET[search]=query' .
@@ -830,7 +848,7 @@ class tx_sysaction_task implements tx_taskcenter_Task {
 						'&storeControl[LOAD]=1' .
 						'">
 						<img class="icon"' . t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], 'gfx/edit2.gif') . ' alt="" />' .
-						$GLOBALS['LANG']->getLL('action_editQuery') . '</a><br /><br />';
+						$GLOBALS['LANG']->getLL($queryIsEmpty ? 'action_createQuery' : 'action_editQuery') . '</a><br /><br />';
 				}
 
 				$content .= $this->taskObject->doc->section($GLOBALS['LANG']->getLL('action_t2_result'), $actionContent, 0, 1);
@@ -872,7 +890,7 @@ class tx_sysaction_task implements tx_taskcenter_Task {
 		if ($this->id == 0 || $this->table == '') {
 			$flashMessage = t3lib_div::makeInstance(
 				't3lib_FlashMessage',
-				$GLOBALS['LANG']->getLL('action_lowlevelMissing', TRUE),
+				$GLOBALS['LANG']->getLL('action_notReady', TRUE),
 				$GLOBALS['LANG']->getLL('action_error'),
 				t3lib_FlashMessage::ERROR
 			);

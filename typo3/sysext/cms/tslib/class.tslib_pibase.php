@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,10 +28,10 @@
  * This script contains the parent class, 'pibase', providing an API with the most basic methods for frontend plugins
  *
  * $Id$
- * Revised for TYPO3 3.6 June/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -114,7 +114,7 @@
  * This class contains functions which assists these plugins in creating lists, searching, displaying menus, page-browsing (next/previous/1/2/3) and handling links.
  * Functions are all prefixed "pi_" which is reserved for this class. Those functions can of course be overridden in the extension classes (that is the point...)
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tslib
  */
@@ -789,7 +789,7 @@ class tslib_pibase {
 	 * @param	string		$data: CSS data
 	 * @param	string		If $selector is set to any CSS selector, eg 'P' or 'H1' or 'TABLE' then the style $data will regard those HTML-elements only
 	 * @return	void
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5, I think this function should not be used (and probably isn't used anywhere). It was a part of a concept which was left behind quite quickly.
+	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, I think this function should not be used (and probably isn't used anywhere). It was a part of a concept which was left behind quite quickly.
 	 * @obsolete
 	 * @private
 	 */
@@ -1050,10 +1050,11 @@ class tslib_pibase {
 	 * @return	mixed		The query build.
 	 * @access private
 	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.5, use pi_exec_query() instead!
+	 * @todo	Deprecated but still used in the Core!
 	 */
 	function pi_list_query($table,$count=0,$addWhere='',$mm_cat='',$groupBy='',$orderBy='',$query='',$returnQueryArray=FALSE)	{
 
-			// Begin Query:
+		// Begin Query:
 		if (!$query)	{
 				// Fetches the list of PIDs to select from.
 				// TypoScript property .pidList is a comma list of pids. If blank, current page id is used.

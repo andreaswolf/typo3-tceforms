@@ -86,7 +86,6 @@ ul.tree ul li {
 ul.tree div.treeLinkItem {
 	display: block;
 	height: 16px;
-	overflow: hidden;
 	padding-left: 2px;
 }
 span.dragIcon {
@@ -125,13 +124,13 @@ ul.tree div.treeLinkItem span.dragIcon {
 #treeFilter {
 	margin: 6px 0 0 17px !important;
 	height: 16px;
-	width: 165px;
+	width: 160px;
 }
 
 #treeFilterReset {
-	left: 189px;
+	left: 192px;
 	position: absolute;
-	top: 4px;
+	top: 5px;
 	visibility: hidden;
 }
 

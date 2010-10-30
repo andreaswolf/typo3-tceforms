@@ -191,7 +191,7 @@ class gzip_encode {
 	 * @param	boolean		$debug: If true, no data will be outputted (default: false)
 	 * @param	boolean		$outputCompressedSizes: If true, the original and compressed size appended as HTML (default: false)
 	 * @return	void
-	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, we're using the "ob_gzhandler" for compression now.
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.6, we're using the "ob_gzhandler" for compression now.
 	 */
 	function gzip_encode($level=3, $debug=false, $outputCompressedSizes=false) {
 		t3lib_div::logDeprecatedFunction();
@@ -223,12 +223,12 @@ class gzip_encode {
 
 		$gzdata = "\x1f\x8b\x08\x00\x00\x00\x00\x00"; // gzip header
 
-			// By Kasper Skaarhoj, start
+			// By Kasper Skårhøj, start
 		if ($outputCompressedSizes)	{
 			$contents.=LF."<!-- Compressed, level ".$level.", original size was ".strlen($contents)." bytes. New size is ".strlen(gzcompress($contents, $level))." bytes -->";
 			$size = strlen($contents);	// Must set again!
 		}
-			// By Kasper Skaarhoj, end
+			// By Kasper Skårhøj, end
 
 		$size = strlen($contents);
 		$crc = crc32($contents);
@@ -267,7 +267,7 @@ class gzip_encode {
 	 *  somehow it got in my brain.
 	 *
 	 * @return	mixed		Returns 'gzip' if the client browser accepts gzip encoding, otherwise false
-	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, we're using the "ob_gzhandler" for compression now.
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.6, we're using the "ob_gzhandler" for compression now.
 	 */
 	function gzip_accepted() {
 		t3lib_div::logDeprecatedFunction();
@@ -319,7 +319,7 @@ class gzip_encode {
 	 * this work with your OS - Thanks
 	 *
 	 * @return	integer		Suggests a level of compression (0..9) for the current situation
-	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, we're using the "ob_gzhandler" for compression now.
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.6, we're using the "ob_gzhandler" for compression now.
 	 */
 	function get_complevel() {
 		t3lib_div::logDeprecatedFunction();
@@ -347,7 +347,7 @@ class gzip_encode {
 	 * The max() Load Average will be returned
 	 *
 	 * @return	float		Returns the current load average
-	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, we're using the "ob_gzhandler" for compression now.
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.6, we're using the "ob_gzhandler" for compression now.
 	 */
 	function linux_loadavg() {
 		t3lib_div::logDeprecatedFunction();
@@ -373,7 +373,7 @@ class gzip_encode {
 	 * test it?
 	 *
 	 * @return	float		Returns the current load average
-	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.5, we're using the "ob_gzhandler" for compression now.
+	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.6, we're using the "ob_gzhandler" for compression now.
 	 */
 	function freebsd_loadavg() {
 		t3lib_div::logDeprecatedFunction();

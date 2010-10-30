@@ -275,6 +275,7 @@ Would you like to save now in order to refresh the display?</label>
 			<label index="tabs.closeAll">Close All Tabs</label>
 			<label index="tabs.closeOther">Close Other Tabs</label>
 			<label index="tabs.close">Close Tab</label>
+			<label index="tabs.openInBrowserWindow">Open In Browser Window</label>
 			<label index="donateWindow.title">TYPO3 donation notice</label>
 			<label index="donateWindow.message">&lt;b&gt;You have now used TYPO3 for more than three months.&lt;/b&gt; It would be great if you could donate. TYPO3 is Open Source and relies heavily on donations from its users and supporters.&lt;br/&gt; &lt;b&gt;Thank you&lt;/b&gt; for making this great Content Management System even better with your help!</label>
 			<label index="donateWindow.button_donate">Donate now</label>
@@ -287,6 +288,10 @@ Check also the following points:\n
 - URL typo3/ajax.php: namespace parameter should be like: &quot;TYPO3.MyExtension&quot;\n
 - javascript: method\'s name should be like: &quot;TYPO3.MyExtension.Sample.myMethod&quot;\n</label>
 			<label index="ExtDirect.noNamespace">Ext Direct error in &quot;%s&quot;: no namespace has been found.</label>
+			<label index="extension.not.installed">Extension "%s" is not installed.</label>
+			<label index="link.to.dblist.correctly">Please, do not link to this page. Use t3lib_extMgm::createListViewLink() for link generation.</label>
+			<label index="link.to.filefile.correctly">Please, do not link to this page.</label>
+			<label index="loadingIndicator">Loading ...</label>
 		</languageKey>
 	</data>
 </T3locallang>

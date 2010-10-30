@@ -15,9 +15,6 @@
 
 /**
  *
- * @package
- * @subpackage
- * @version $Id: DebugViewHelper.php 1734 2009-11-25 21:53:57Z stucki $
  */
 class Tx_Fluid_ViewHelpers_DebugViewHelper extends Tx_Fluid_Core_ViewHelper_AbstractViewHelper {
 

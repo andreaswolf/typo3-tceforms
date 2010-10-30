@@ -3,7 +3,7 @@
 *  Copyright notice
 *
 *  (c) 2007-2010 Steffen Kamper <info@sk-typo3.de>
-*  Based on Newloginbox (c) 2002-2004 Kasper Skaarhoj <kasper@typo3.com>
+*  Based on Newloginbox (c) 2002-2004 Kasper Skårhøj <kasper@typo3.com>
 *
 *  All rights reserved
 *
@@ -85,7 +85,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 
 			// GPvars:
 		$this->logintype = t3lib_div::_GP('logintype');
-		$this->referer = t3lib_div::_GP('referer');
+		$this->referer = $this->validateRedirectUrl(t3lib_div::_GP('referer'));
 		$this->noRedirect = ($this->piVars['noredirect'] || $this->conf['redirectDisable']);
 
 			// if config.typolinkLinkAccessRestrictedPages is set, the var is return_url
@@ -95,6 +95,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 		} else {
 			$this->redirectUrl = t3lib_div::_GP('redirect_url');
 		}
+		$this->redirectUrl = $this->validateRedirectUrl($this->redirectUrl);
 
 			// Get Template
 		$templateFile = $this->conf['templateFile'] ? $this->conf['templateFile'] : 'EXT:felogin/template.html';
@@ -110,7 +111,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 				$this->redirectUrl = $this->conf['redirectFirstMethod'] ? array_shift($redirectUrl) : array_pop($redirectUrl);
 			} else {
 				$this->redirectUrl = '';
-		}
+			}
 		}
 
 			// What to display
@@ -126,7 +127,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 				$content .= $this->showLogin();
 			}
 		}
-		
+
 			// Process the redirect
 		if (($this->logintype === 'login' || $this->logintype === 'logout') && $this->redirectUrl && !$this->noRedirect) {
 			if (!$GLOBALS['TSFE']->fe_user->cookieId) {
@@ -335,7 +336,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 		$validEnd = time() + 3600 * $hours;
 		$validEndString = date($this->conf['dateFormat'], $validEnd);
 
-		$hash =  md5(rand());
+		$hash = md5(t3lib_div::generateRandomBytes(64));
 		$randHash = $validEnd . '|' . $hash;
 		$randHashDB = $validEnd . '|' . md5($hash);
 
@@ -442,7 +443,11 @@ class tx_felogin_pi1 extends tslib_pibase {
 						}
 					}
 				}
-
+					// show logout form directly
+				if ($this->conf['showLogoutFormAfterLogin']) {
+					$this->redirectUrl = '';
+					return $this->showLogout();
+				}
 			} else {
 					// login error
 				$markerArray['###STATUS_HEADER###'] = $this->getDisplayText('error_header',$this->conf['errorHeader_stdWrap.']);
@@ -519,8 +524,8 @@ class tx_felogin_pi1 extends tslib_pibase {
 		}
 
 
-			// Permanent Login is only possible if permalogin is not deactivated (-1) and lifetime is greater than 0
-		if ($this->conf['showPermaLogin'] && t3lib_div::inList('0,1,2', $GLOBALS['TYPO3_CONF_VARS']['FE']['permalogin']) && $GLOBALS['TYPO3_CONF_VARS']['FE']['lifetime'] > 0) {
+			// The permanent login checkbox should only be shown if permalogin is not deactivated (-1), not forced to be always active (2) and lifetime is greater than 0
+		if ($this->conf['showPermaLogin'] && t3lib_div::inList('0,1', $GLOBALS['TYPO3_CONF_VARS']['FE']['permalogin']) && $GLOBALS['TYPO3_CONF_VARS']['FE']['lifetime'] > 0) {
 			$markerArray['###PERMALOGIN###'] = $this->pi_getLL('permalogin', '', 1);
 			if($GLOBALS['TYPO3_CONF_VARS']['FE']['permalogin'] == 1) {
 				$markerArray['###PERMALOGIN_HIDDENFIELD_ATTRIBUTES###'] = 'disabled="disabled"';
@@ -593,7 +598,7 @@ class tx_felogin_pi1 extends tslib_pibase {
 								if (preg_match('/^http://([[:alnum:]._-]+)//', $url, $match)) {
 									$redirect_domain = $match[1];
 									$found = false;
-									foreach(split(',', $this->conf['domains']) as $d) {
+									foreach(t3lib_div::trimExplode(',', $this->conf['domains'], TRUE) as $d) {
 										if (preg_match('/(^|\.)/'.$d.'$', $redirect_domain)) {
 											$found = true;
 											break;
@@ -683,6 +688,10 @@ class tx_felogin_pi1 extends tslib_pibase {
 
 		if ($this->flexFormValue('showPermaLogin', 'sDEF')) {
 			$flex['showPermaLogin'] = $this->flexFormValue('showPermaLogin', 'sDEF');
+		}
+
+		if ($this->flexFormValue('showLogoutFormAfterLogin', 'sDEF')) {
+			$flex['showLogoutFormAfterLogin'] = $this->flexFormValue('showLogoutFormAfterLogin', 'sDEF');
 		}
 
 		if ($this->flexFormValue('pages', 'sDEF')) {
@@ -856,6 +865,100 @@ class tx_felogin_pi1 extends tslib_pibase {
 			$marker['###USER###'] = $marker['###FEUSER_USERNAME###'];
 		}
 		return $marker;
+	}
+
+	/**
+	 * Returns a valid and XSS cleaned url for redirect, checked against configuration "allowedRedirectHosts"
+	 *
+	 * @param string $url
+	 * @return string cleaned referer or empty string if not valid
+	 */
+	protected function validateRedirectUrl($url) {
+		$url = strval($url);
+		if ($url === '') {
+			return '';
+		}
+
+		$decodedUrl = rawurldecode($url);
+		$sanitizedUrl = t3lib_div::removeXSS($decodedUrl);
+
+		if ($decodedUrl !== $sanitizedUrl || preg_match('#["<>\\\]+#', $url)) {
+			t3lib_div::sysLog(sprintf($this->pi_getLL('xssAttackDetected'), $url), 'felogin', t3lib_div::SYSLOG_SEVERITY_WARNING);
+			return '';
+		}
+
+			// Validate the URL:
+		if ($this->isRelativeUrl($url) || $this->isInCurrentDomain($url) || $this->isInLocalDomain($url)) {
+			return $url;
+		}
+
+			// URL is not allowed
+		t3lib_div::sysLog(sprintf($this->pi_getLL('noValidRedirectUrl'), $url), 'felogin', t3lib_div::SYSLOG_SEVERITY_WARNING);
+		return '';
+	}
+
+	/**
+	 * Determines whether the URL is on the current host
+	 * and belongs to the current TYPO3 installation.
+	 *
+	 * @param string $url URL to be checked
+	 * @return boolean Whether the URL belongs to the current TYPO3 installation
+	 */
+	protected function isInCurrentDomain($url) {
+		return (t3lib_div::isOnCurrentHost($url) && t3lib_div::isFirstPartOfStr($url, t3lib_div::getIndpEnv('TYPO3_SITE_URL')));
+	}
+
+	/**
+	 * Determines whether the URL matches a domain
+	 * in the sys_domain databse table.
+	 *
+	 * @param string $url Absolute URL which needs to be checked
+	 * @return boolean Whether the URL is considered to be local
+	 */
+	protected function isInLocalDomain($url) {
+		$result = FALSE;
+
+		if (t3lib_div::isValidUrl($url)) {
+			$parsedUrl = parse_url($url);
+			if ($parsedUrl['scheme'] === 'http' || $parsedUrl['scheme'] === 'https' ) {
+				$host = $parsedUrl['host'];
+					// Removes the last path segment and slash sequences like /// (if given):
+				$path = preg_replace('#/+[^/]*$#', '', $parsedUrl['path']);
+
+				$localDomains = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+					'domainName',
+					'sys_domain',
+					'1=1' . $this->cObj->enableFields('sys_domain')
+				);
+				if (is_array($localDomains)) {
+					foreach ($localDomains as $localDomain) {
+							// strip trailing slashes (if given)
+						$domainName = rtrim($localDomain['domainName'], '/');
+						if (t3lib_div::isFirstPartOfStr($host. $path . '/', $domainName . '/')) {
+							$result = TRUE;
+							break;
+						}
+					}
+				}
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Determines wether the URL is relative to the
+	 * current TYPO3 installation.
+	 *
+	 * @param string $url URL which needs to be checked
+	 * @return boolean Whether the URL is considered to be relative
+	 */
+	protected function isRelativeUrl($url) {
+		$parsedUrl = @parse_url($url);
+		if ($parsedUrl !== FALSE && !isset($parsedUrl['scheme']) && !isset($parsedUrl['host'])) {
+				// If the relative URL starts with a slash, we need to check if it's within the current site path
+			return (!t3lib_div::isFirstPartOfStr($parsedUrl['path'], '/') || t3lib_div::isFirstPartOfStr($parsedUrl['path'], t3lib_div::getIndpEnv('TYPO3_SITE_PATH')));
+		}
+		return FALSE;
 	}
 }
 

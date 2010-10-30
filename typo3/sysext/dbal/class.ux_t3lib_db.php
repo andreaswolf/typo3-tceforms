@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
-*  (c) 2004-2010 Karsten Dambekalns <karsten@typo3.org>
+*  (c) 2004-2009 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 2004-2009 Karsten Dambekalns <karsten@typo3.org>
 *  (c) 2009-2010 Xavier Perseguers <typo3@perseguers.ch>
 *  All rights reserved
 *
@@ -29,9 +29,9 @@
 /**
  * Contains a database abstraction layer class for TYPO3
  *
- * $Id: class.ux_t3lib_db.php 29977 2010-02-13 13:18:32Z xperseguers $
+ * $Id: class.ux_t3lib_db.php 38418 2010-09-21 16:46:57Z xperseguers $
  *
- * @author	Kasper Skaarhoj <kasper@typo3.com>
+ * @author	Kasper Skårhøj <kasper@typo3.com>
  * @author	Karsten Dambekalns <k.dambekalns@fishfarm.de>
  * @author	Xavier Perseguers <typo3@perseguers.ch>
  */
@@ -40,75 +40,120 @@
  *
  *
  *
- *  123: class ux_t3lib_DB extends t3lib_DB
- *  169:     function ux_t3lib_DB()
- *  184:     function initInternalVariables()
+ *  161: class ux_t3lib_DB extends t3lib_DB
+ *  229:     public function __construct()
+ *  260:     protected function initInternalVariables()
+ *  283:     public function clearCachedFieldInfo()
+ *  294:     public function cacheFieldInfo()
+ *  342:     protected function analyzeFields($parsedExtSQL)
+ *  375:     protected function mapCachedFieldInfo($fieldInfo)
  *
  *              SECTION: Query Building (Overriding parent methods)
- *  217:     function exec_INSERTquery($table,$fields_values)
- *  275:     function exec_UPDATEquery($table,$where,$fields_values)
- *  334:     function exec_DELETEquery($table,$where)
- *  387:     function exec_SELECTquery($select_fields,$from_table,$where_clause,$groupBy = '',$orderBy = '',$limit = '')
+ *  438:     public function exec_INSERTquery($table, $fields_values, $no_quote_fields = '')
+ *  575:     public function exec_INSERTmultipleRows($table, array $fields, array $rows, $no_quote_fields = FALSE)
+ *  600:     public function exec_UPDATEquery($table,$where,$fields_values,$no_quote_fields = '')
+ *  692:     public function exec_DELETEquery($table, $where)
+ *  759:     public function exec_SELECTquery($select_fields, $from_table, $where_clause, $groupBy = '', $orderBy = '', $limit = '')
+ *  856:     public function exec_TRUNCATEquery($table)
+ *  914:     protected function exec_query(array $queryParts)
  *
- *              SECTION: Creates an INSERT SQL-statement for $table from the array with field/value pairs $fields_values.
- *  533:     function SELECTquery($select_fields,$from_table,$where_clause,$groupBy = '',$orderBy = '',$limit = '')
- *  556:     function quoteSelectFields(&$select_fields)
- *  573:     function quoteFromTables(&$from_table)
- *  595:     function quoteWhereClause(&$where_clause)
- *  620:     function quoteGroupBy(&$groupBy)
- *  637:     function quoteOrderBy(&$orderBy)
+ *              SECTION: Query building
+ *  978:     public function INSERTquery($table, $fields_values, $no_quote_fields = '')
+ * 1052:     public function INSERTmultipleRows($table, array $fields, array $rows, $no_quote_fields = FALSE)
+ * 1085:     public function UPDATEquery($table, $where, $fields_values, $no_quote_fields = '')
+ * 1170:     public function DELETEquery($table, $where)
+ * 1196:     public function SELECTquery($select_fields, $from_table, $where_clause, $groupBy = '', $orderBy = '', $limit = '')
+ * 1229:     protected function SELECTqueryFromArray(array $params)
+ * 1267:     protected function compileSelectParameters(array $params)
+ * 1283:     public function TRUNCATEquery($table)
+ *
+ *              SECTION: Prepared Query Support
+ * 1314:     public function prepare_SELECTquery($select_fields, $from_table, $where_clause, $groupBy = '', $orderBy = '', $limit = '', array $input_parameters = array())
+ * 1416:     protected function getQueryComponents($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit)
+ * 1465:     protected function precompileSELECTquery(array $components)
+ * 1523:     public function exec_PREPAREDquery($query, array $precompiledParts)
+ *
+ *              SECTION: Functions for quoting table/field names
+ * 1619:     protected function quoteSELECTsubquery(array $components)
+ * 1634:     public function quoteSelectFields($select_fields)
+ * 1644:     public function quoteFieldNames($select_fields)
+ * 1664:     protected function _quoteFieldNames(array $select_fields)
+ * 1701:     public function quoteFromTables($from_table)
+ * 1717:     protected function _quoteFromTables(array $from_table)
+ * 1746:     public function quoteWhereClause($where_clause)
+ * 1767:     protected function _quoteWhereClause(array $where_clause)
+ * 1843:     protected function quoteGroupBy($groupBy)
+ * 1860:     protected function _quoteGroupBy(array $groupBy)
+ * 1877:     protected function quoteOrderBy($orderBy)
+ * 1894:     protected function _quoteOrderBy(array $orderBy)
  *
  *              SECTION: Various helper functions
- *  663:     function quoteStr($str, $table)
+ * 1919:     public function fullQuoteStr($str, $table)
+ * 1932:     public function quoteStr($str, $table)
+ * 1965:     public function quoteName($name, $handlerKey = NULL, $useBackticks = FALSE)
+ * 1984:     public function MetaType($type, $table, $max_length = -1)
+ * 2015:     public function MySQLMetaType($t)
+ * 2062:     public function MySQLActualType($meta)
  *
  *              SECTION: SQL wrapper functions (Overriding parent methods)
- *  707:     function sql_error()
- *  734:     function sql_num_rows(&$res)
- *  760:     function sql_fetch_assoc(&$res)
- *  808:     function sql_fetch_row(&$res)
- *  842:     function sql_free_result(&$res)
- *  868:     function sql_insert_id()
- *  893:     function sql_affected_rows()
- *  919:     function sql_data_seek(&$res,$seek)
- *  946:     function sql_field_type(&$res,$pointer)
+ * 2105:     public function sql_error()
+ * 2125:     public function sql_errno()
+ * 2146:     public function sql_num_rows(&$res)
+ * 2170:     public function sql_fetch_assoc(&$res)
+ * 2233:     public function sql_fetch_row(&$res)
+ * 2279:     public function sql_free_result(&$res)
+ * 2308:     public function sql_insert_id()
+ * 2328:     public function sql_affected_rows()
+ * 2350:     public function sql_data_seek(&$res, $seek)
+ * 2375:     public function sql_field_metatype($table, $field)
+ * 2405:     public function sql_field_type(&$res,$pointer)
  *
  *              SECTION: Legacy functions, bound to _DEFAULT handler. (Overriding parent methods)
- *  987:     function sql($db,$query)
- *  999:     function sql_query($query)
- * 1035:     function sql_pconnect($TYPO3_db_host, $TYPO3_db_username, $TYPO3_db_password)
- * 1055:     function sql_select_db($TYPO3_db)
+ * 2459:     public function sql($db,$query)
+ * 2477:     public function sql_query($query)
+ * 2516:     public function sql_pconnect($TYPO3_db_host, $TYPO3_db_username, $TYPO3_db_password)
+ * 2534:     public function sql_select_db($TYPO3_db)
  *
  *              SECTION: SQL admin functions
- * 1086:     function admin_get_tables()
- * 1149:     function admin_get_fields($tableName)
- * 1210:     function admin_get_keys($tableName)
- * 1270:     function admin_query($query)
+ * 2566:     public function admin_get_dbs()
+ * 2607:     public function admin_get_tables()
+ * 2673:     public function admin_get_fields($tableName)
+ * 2742:     public function admin_get_keys($tableName)
+ * 2847:     public function admin_get_charsets()
+ * 2857:     public function admin_query($query)
  *
  *              SECTION: Handler management
- * 1333:     function handler_getFromTableList($tableList)
- * 1379:     function handler_init($handlerKey)
+ * 2941:     public function handler_getFromTableList($tableList)
+ * 2989:     public function handler_init($handlerKey)
+ * 3107:     public function isConnected()
+ * 3127:     public function runningNative()
+ * 3138:     public function runningADOdbDriver($driver)
  *
  *              SECTION: Table/Field mapping
- * 1488:     function map_needMapping($tableList,$fieldMappingOnly = FALSE)
- * 1524:     function map_assocArray($input,$tables,$rev = FALSE)
- * 1573:     function map_remapSELECTQueryParts(&$select_fields,&$from_table,&$where_clause,&$groupBy,&$orderBy)
- * 1615:     function map_sqlParts(&$sqlPartArray, $defaultTable)
- * 1650:     function map_genericQueryParsed(&$parsedQuery)
- * 1717:     function map_fieldNamesInArray($table,&$fieldArray)
+ * 3165:     protected function map_needMapping($tableList, $fieldMappingOnly = FALSE, array &$parsedTableList = array())
+ * 3215:     protected function map_assocArray($input, $tables, $rev = FALSE)
+ * 3263:     protected function map_remapSELECTQueryParts($select_fields, $from_table, $where_clause, $groupBy, $orderBy)
+ * 3357:     protected function getMappingKey($tableName)
+ * 3371:     protected function getFreeMappingKey($tableName)
+ * 3387:     protected function map_sqlParts(&$sqlPartArray, $defaultTable)
+ * 3549:     protected function map_subquery(&$parsedQuery)
+ * 3589:     protected function map_genericQueryParsed(&$parsedQuery)
+ * 3654:     protected function map_fieldNamesInArray($table,&$fieldArray)
  *
  *              SECTION: Debugging
- * 1758:     function debugHandler($function,$execTime,$inData)
- * 1823:     function debug_log($query,$ms,$data,$join,$errorFlag)
- * 1849:     function debug_explain($query)
+ * 3695:     public function debugHandler($function,$execTime,$inData)
+ * 3790:     public function debug_WHERE($table, $where, $script = '')
+ * 3813:     public function debug_log($query,$ms,$data,$join,$errorFlag, $script='')
+ * 3846:     public function debug_explain($query)
  *
- * TOTAL FUNCTIONS: 41
+ * TOTAL FUNCTIONS: 82
  * (This index is automatically created/updated by the extension "extdeveval")
  *
  */
 /**
  * TYPO3 database abstraction layer
  *
- * @author	Kasper Skaarhoj <kasper@typo3.com>
+ * @author	Kasper Skårhøj <kasper@typo3.com>
  * @author	Karsten Dambekalns <k.dambekalns@fishfarm.de>
  * @package TYPO3
  * @subpackage tx_dbal
@@ -167,6 +212,13 @@ class ux_t3lib_DB extends t3lib_DB {
 	 */
 	var $Installer;
 
+	/**
+	 * Cache for queries
+	 *
+	 * @var t3lib_cache_frontend_VariableFrontend
+	 */
+	protected $queryCache;
+
 
 	/**
 	 * Constructor.
@@ -176,6 +228,22 @@ class ux_t3lib_DB extends t3lib_DB {
 			// Set SQL parser object for internal use:
 		$this->SQLparser = t3lib_div::makeInstance('tx_dbal_sqlengine');
 		$this->Installer = t3lib_div::makeInstance('t3lib_install');
+
+		if (TYPO3_UseCachingFramework) {
+			tx_dbal_querycache::initializeCachingFramework();
+
+			try {
+				$this->queryCache = $GLOBALS['typo3CacheManager']->getCache(
+					'dbal'
+				);
+			} catch (t3lib_cache_exception_NoSuchCache $e) {
+				tx_dbal_querycache::initDbalCache();
+
+				$this->queryCache = $GLOBALS['typo3CacheManager']->getCache(
+					'dbal'
+				);
+			}
+		}
 
 			// Set internal variables with configuration:
 		$this->conf = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['dbal'];
@@ -207,18 +275,18 @@ class ux_t3lib_DB extends t3lib_DB {
 
 	/**
 	 * Clears the cached field information file.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function clearCachedFieldInfo() {
 		if (file_exists(PATH_typo3conf . 'temp_fieldInfo.php')) {
-			unlink(PATH_typo3conf . 'temp_fieldInfo.php');	
+			unlink(PATH_typo3conf . 'temp_fieldInfo.php');
 		}
 	}
 
 	/**
 	 * Caches the field information.
-	 * 
+	 *
 	 * @return void
 	 */
 	public function cacheFieldInfo() {
@@ -307,7 +375,7 @@ class ux_t3lib_DB extends t3lib_DB {
 					if (isset($mappedConf['mapFieldNames'][$fieldInfo['incFields'][$mappedTable]])) {
 						$fieldInfo['incFields'][$mappedTableAlias] = $mappedConf['mapFieldNames'][$fieldInfo['incFields'][$mappedTable]];
 					} else {
-						$fieldInfo['incFields'][$mappedTableAlias] = $fieldInfo['incFields'][$mappedTable];	
+						$fieldInfo['incFields'][$mappedTableAlias] = $fieldInfo['incFields'][$mappedTable];
 					}
 				}
 
@@ -324,7 +392,7 @@ class ux_t3lib_DB extends t3lib_DB {
 					if (isset($mappedConf['mapFieldNames'][$fieldInfo['primaryKeys'][$mappedTable]])) {
 						$fieldInfo['primaryKeys'][$mappedTableAlias] = $mappedConf['mapFieldNames'][$fieldInfo['primaryKeys'][$mappedTable]];
 					} else {
-						$fieldInfo['primaryKeys'][$mappedTableAlias] = $fieldInfo['primaryKeys'][$mappedTable];	
+						$fieldInfo['primaryKeys'][$mappedTableAlias] = $fieldInfo['primaryKeys'][$mappedTable];
 					}
 				}
 			}
@@ -690,8 +758,11 @@ class ux_t3lib_DB extends t3lib_DB {
 
 			// Map table / field names if needed:
 		$ORIG_tableName = $from_table;	// Saving table names in $ORIG_from_table since $from_table is transformed beneath:
-		if ($tableArray = $this->map_needMapping($ORIG_tableName)) {
-			$this->map_remapSELECTQueryParts($select_fields,$from_table,$where_clause,$groupBy,$orderBy);	// Variables passed by reference!
+		$parsedFromTable = array();
+		$remappedParameters = array();
+		if ($tableArray = $this->map_needMapping($ORIG_tableName, FALSE, $parsedFromTable)) {
+			$from = $parsedFromTable ? $parsedFromTable : $from_table;
+			$remappedParameters = $this->map_remapSELECTQueryParts($select_fields, $from, $where_clause, $groupBy, $orderBy);
 		}
 
 			// Get handler key and select API:
@@ -699,7 +770,10 @@ class ux_t3lib_DB extends t3lib_DB {
 		$hType = (string)$this->handlerCfg[$this->lastHandlerKey]['type'];
 		switch ($hType) {
 			case 'native':
-				$this->lastQuery = $this->SELECTquery($select_fields,$from_table,$where_clause,$groupBy,$orderBy,$limit);
+				if (count($remappedParameters) > 0) {
+					list($select_fields, $from_table, $where_clause, $groupBy, $orderBy) = $this->compileSelectParameters($remappedParameters);
+				}
+				$this->lastQuery = $this->SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
 				$sqlResult = mysql_query($this->lastQuery, $this->handlerInstance[$this->lastHandlerKey]['link']);
 				$this->resourceIdToTableNameMap[(string)$sqlResult] = $ORIG_tableName;
 				break;
@@ -714,10 +788,18 @@ class ux_t3lib_DB extends t3lib_DB {
 						$offset = 0;
 					}
 
-					$sqlResult = $this->handlerInstance[$this->lastHandlerKey]->SelectLimit($this->SELECTquery($select_fields,$from_table,$where_clause,$groupBy,$orderBy), $numrows, $offset);
+					if (count($remappedParameters) > 0) {
+						$sqlResult = $this->handlerInstance[$this->lastHandlerKey]->SelectLimit($this->SELECTqueryFromArray($remappedParameters), $numrows, $offset);
+					} else {
+						$sqlResult = $this->handlerInstance[$this->lastHandlerKey]->SelectLimit($this->SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy), $numrows, $offset);
+					}
 					$this->lastQuery = $sqlResult->sql;
 				} else {
-					$this->lastQuery = $this->SELECTquery($select_fields,$from_table,$where_clause,$groupBy,$orderBy);
+					if (count($remappedParameters) > 0) {
+						$this->lastQuery = $this->SELECTqueryFromArray($remappedParameters);
+					} else {
+						$this->lastQuery = $this->SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy);
+					}
 					$sqlResult = $this->handlerInstance[$this->lastHandlerKey]->_Execute($this->lastQuery);
 				}
 
@@ -725,7 +807,10 @@ class ux_t3lib_DB extends t3lib_DB {
 				$sqlResult->TYPO3_DBAL_tableList = $ORIG_tableName;
 				break;
 			case 'userdefined':
-				$sqlResult = $this->handlerInstance[$this->lastHandlerKey]->exec_SELECTquery($select_fields,$from_table,$where_clause,$groupBy,$orderBy,$limit);
+				if (count($remappedParameters) > 0) {
+					list($select_fields, $from_table, $where_clause, $groupBy, $orderBy) = $this->compileSelectParameters($remappedParameters);
+				}
+				$sqlResult = $this->handlerInstance[$this->lastHandlerKey]->exec_SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
 				if (is_object($sqlResult)) {
 					$sqlResult->TYPO3_DBAL_handlerType = 'userdefined';	// Setting handler type in result object (for later recognition!)
 					$sqlResult->TYPO3_DBAL_tableList = $ORIG_tableName;
@@ -738,14 +823,18 @@ class ux_t3lib_DB extends t3lib_DB {
 		}
 
 		if ($this->debug) {
+			$data = array(
+				'handlerType' => $hType,
+				'args' => array($from_table, $select_fields, $where_clause, $groupBy, $orderBy, $limit),
+				'ORIG_from_table' => $ORIG_tableName,
+			);
+			if ($this->conf['debugOptions']['numberRows']) {
+				$data['numberRows'] = $this->sql_num_rows($sqlResult);
+			}
 			$this->debugHandler(
 				'exec_SELECTquery',
 				t3lib_div::milliseconds()-$pt,
-				array(
-					'handlerType' => $hType,
-					'args' => array($from_table,$select_fields,$where_clause,$groupBy,$orderBy,$limit),
-					'ORIG_from_table' => $ORIG_tableName
-				)
+				$data
 			);
 		}
 
@@ -755,7 +844,7 @@ class ux_t3lib_DB extends t3lib_DB {
 
 	/**
 	 * Truncates a table.
-	 * 
+	 *
 	 * @param	string		Database tablename
 	 * @return	mixed		Result from handler
 	 */
@@ -812,7 +901,7 @@ class ux_t3lib_DB extends t3lib_DB {
 	/**
 	 * Executes a query.
 	 * EXPERIMENTAL since TYPO3 4.4.
-	 * 
+	 *
 	 * @param array $queryParts SQL parsed by method parseSQL() of t3lib_sqlparser
 	 * @return pointer Result pointer / DBAL object
 	 * @see ux_t3lib_db::sql_query()
@@ -852,7 +941,7 @@ class ux_t3lib_DB extends t3lib_DB {
 					}
 				}
 				return $this->exec_INSERTquery($table, $values);
-				
+
 			case 'DELETE':
 				$table = $queryParts['TABLE'];
 				$whereClause = isset($queryParts['WHERE']) ? $this->SQLparser->compileWhereClause($queryParts['WHERE']) : '1=1';
@@ -1111,7 +1200,7 @@ class ux_t3lib_DB extends t3lib_DB {
 				$limit = $numrows . ' OFFSET ' . $offset;
 			}
 		}
-		
+
 		$select_fields = $this->quoteFieldNames($select_fields);
 		$from_table = $this->quoteFromTables($from_table);
 		$where_clause = $this->quoteWhereClause($where_clause);
@@ -1127,8 +1216,62 @@ class ux_t3lib_DB extends t3lib_DB {
 	}
 
 	/**
+	 * Creates a SELECT SQL-statement to be used with an ADOdb backend.
+	 *
+	 * @param	array		parsed parameters: array($select_fields, $from_table, $where_clause, $groupBy, $orderBy)
+	 * @return	string		Full SQL query for SELECT
+	 */
+	protected function SELECTqueryFromArray(array $params) {
+			// $select_fields
+		$params[0] = $this->_quoteFieldNames($params[0]);
+			// $from_table
+		$params[1] = $this->_quoteFromTables($params[1]);
+			// $where_clause
+		if (count($params[2]) > 0) {
+			$params[2] = $this->_quoteWhereClause($params[2]);
+		}
+			// $group_by
+		if (count($params[3]) > 0) {
+			$params[3] = $this->_quoteGroupBy($params[3]);
+		}
+			// $order_by
+		if (count($params[4]) > 0) {
+			$params[4] = $this->_quoteOrderBy($params[4]);
+		}
+
+			// Compile the SELECT parameters
+		list($select_fields, $from_table, $where_clause, $groupBy, $orderBy) = $this->compileSelectParameters($params);
+
+			// Call parent method to build actual query
+		$query = parent::SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy);
+
+		if ($this->debugOutput || $this->store_lastBuiltQuery) {
+			$this->debug_lastBuiltQuery = $query;
+		}
+
+		return $query;
+	}
+
+	/**
+	 * Compiles and returns an array of SELECTquery parameters (without $limit) to
+	 * be used with SELECTquery() or exec_SELECTquery().
+	 *
+	 * @param array $params
+	 * @return array array($select_fields, $from_table, $where_clause, $groupBy, $orderBy)
+	 */
+	protected function compileSelectParameters(array $params) {
+		$select_fields = $this->SQLparser->compileFieldList($params[0]);
+		$from_table = $this->SQLparser->compileFromTables($params[1]);
+		$where_clause = (count($params[2]) > 0) ? $this->SQLparser->compileWhereClause($params[2]) : '';
+		$groupBy = (count($params[3]) > 0) ? $this->SQLparser->compileFieldList($params[3]) : '';
+		$orderBy = (count($params[4]) > 0) ? $this->SQLparser->compileFieldList($params[4]) : '';
+
+		return array($select_fields, $from_table, $where_clause, $groupBy, $orderBy);
+	}
+
+	/**
 	 * Creates a TRUNCATE TABLE SQL-statement
-	 * 
+	 *
 	 * @param	string		See exec_TRUNCATEquery()
 	 * @return	string		Full SQL query for TRUNCATE TABLE
 	 */
@@ -1145,6 +1288,322 @@ class ux_t3lib_DB extends t3lib_DB {
 		return $query;
 	}
 
+	/**************************************
+	 *
+	 * Prepared Query Support
+	 *
+	 **************************************/
+
+	/**
+	 * Creates a SELECT prepared SQL statement.
+	 *
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param string See exec_SELECTquery()
+	 * @param array $input_parameters An array of values with as many elements as there are bound parameters in the SQL statement being executed. All values are treated as t3lib_db_PreparedStatement::PARAM_AUTOTYPE.
+	 * @return t3lib_db_PreparedStatement Prepared statement
+	 */
+	public function prepare_SELECTquery($select_fields, $from_table, $where_clause, $groupBy = '', $orderBy = '', $limit = '', array $input_parameters = array()) {
+		if ($this->debug) {
+			$pt = t3lib_div::milliseconds();
+		}
+
+		$precompiledParts = array();
+
+		if ($this->queryCache) {
+			$cacheKey = 'prepare_SELECTquery-' . tx_dbal_querycache::getCacheKey(array(
+				'selectFields' => $select_fields,
+				'fromTable'    => $from_table,
+				'whereClause'  => $where_clause,
+				'groupBy'      => $groupBy,
+				'orderBy'      => $orderBy,
+				'limit'        => $limit,
+			));
+			if ($this->queryCache->has($cacheKey)) {
+				$precompiledParts = $this->queryCache->get($cacheKey);
+				if ($this->debug) {
+					$data = array(
+						'args' => array($from_table, $select_fields, $where_clause, $groupBy, $orderBy, $limit, $input_parameters),
+						'precompiledParts' => $precompiledParts,
+					);
+					$this->debugHandler(
+						'prepare_SELECTquery (cache hit)',
+						t3lib_div::milliseconds() - $pt,
+						$data
+					);
+				}
+			}
+		}
+
+		if (count($precompiledParts) == 0) {
+				// Map table / field names if needed:
+			$ORIG_tableName = $from_table;	// Saving table names in $ORIG_from_table since $from_table is transformed beneath:
+			$parsedFromTable = array();
+			$queryComponents = array();
+			if ($tableArray = $this->map_needMapping($ORIG_tableName, FALSE, $parsedFromTable)) {
+				$from = $parsedFromTable ? $parsedFromTable : $from_table;
+				$components = $this->map_remapSELECTQueryParts($select_fields, $from, $where_clause, $groupBy, $orderBy);
+				$queryComponents['SELECT']     = $components[0];
+				$queryComponents['FROM']       = $components[1];
+				$queryComponents['WHERE']      = $components[2];
+				$queryComponents['GROUPBY']    = $components[3];
+				$queryComponents['ORDERBY']    = $components[4];
+				$queryComponents['parameters'] = $components[5];
+			} else {
+				$queryComponents = $this->getQueryComponents($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
+			}
+
+			$queryComponents['ORIG_tableName'] = $ORIG_tableName;
+
+			if (!$this->runningNative()) {
+					// Quotes all fields
+				$queryComponents['SELECT']  = $this->_quoteFieldNames($queryComponents['SELECT']);
+				$queryComponents['FROM']    = $this->_quoteFromTables($queryComponents['FROM']);
+				$queryComponents['WHERE']   = $this->_quoteWhereClause($queryComponents['WHERE']);
+				$queryComponents['GROUPBY'] = $this->_quoteGroupBy($queryComponents['GROUPBY']);
+				$queryComponents['ORDERBY'] = $this->_quoteOrderBy($queryComponents['ORDERBY']);
+			}
+
+			$precompiledParts = $this->precompileSELECTquery($queryComponents);
+			if ($this->queryCache) {
+				try {
+				$this->queryCache->set($cacheKey, $precompiledParts);
+				} catch (t3lib_cache_Exception $e) {
+					if ($this->debug) {
+						t3lib_div::devLog($e->getMessage(), 'dbal', 1);
+					}
+				}
+			}
+		}
+
+		$preparedStatement = t3lib_div::makeInstance('t3lib_db_PreparedStatement', '', $from_table, $precompiledParts);
+		/* @var $preparedStatement t3lib_db_PreparedStatement */
+
+			// Bind values to parameters
+		foreach ($input_parameters as $key => $value) {
+			$preparedStatement->bindValue($key, $value, t3lib_db_PreparedStatement::PARAM_AUTOTYPE);
+		}
+
+		if ($this->debug) {
+			$data = array(
+				'args' => array($from_table, $select_fields, $where_clause, $groupBy, $orderBy, $limit, $input_parameters),
+				'ORIG_from_table' => $ORIG_tableName,
+			);
+			$this->debugHandler(
+				'prepare_SELECTquery',
+				t3lib_div::milliseconds() - $pt,
+				$data
+			);
+		}
+
+			// Return prepared statement
+		return $preparedStatement;
+	}
+
+	/**
+	 * Returns the parsed query components.
+	 *
+	 * @param string $select_fields
+	 * @param string $from_table
+	 * @param string $where_clause
+	 * @param string $groupBy
+	 * @param string $orderBy
+	 * @param string $limit
+	 * @return array
+	 */
+	protected function getQueryComponents($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit) {
+		$queryComponents = array(
+			'SELECT'     => '',
+			'FROM'       => '',
+			'WHERE'      => '',
+			'GROUPBY'    => '',
+			'ORDERBY'    => '',
+			'LIMIT'      => '',
+			'parameters' =>  array(),
+		);
+
+		$this->lastHandlerKey = $this->handler_getFromTableList($from_table);
+		$hType = (string)$this->handlerCfg[$this->lastHandlerKey]['type'];
+		if ($hType === 'adodb' && $this->runningADOdbDriver('postgres')) {
+				// Possibly rewrite the LIMIT to be PostgreSQL-compatible
+			$splitLimit = t3lib_div::intExplode(',', $limit);		// Splitting the limit values:
+			if ($splitLimit[1]) {	// If there are two parameters, do mapping differently than otherwise:
+				$numrows = $splitLimit[1];
+				$offset = $splitLimit[0];
+				$limit = $numrows . ' OFFSET ' . $offset;
+			}
+		}
+		$queryComponents['LIMIT'] = $limit;
+
+		$queryComponents['SELECT'] = $this->SQLparser->parseFieldList($select_fields);
+		if ($this->SQLparser->parse_error) {
+			die($this->SQLparser->parse_error . ' in ' . __FILE__ . ' : ' . __LINE__);
+		}
+
+		$queryComponents['FROM'] = $this->SQLparser->parseFromTables($from_table);
+
+		$queryComponents['WHERE'] = $this->SQLparser->parseWhereClause($where_clause, '', $queryComponents['parameters']);
+		if (!is_array($queryComponents['WHERE'])) {
+			die('Could not parse where clause in ' . __FILE__ . ' : ' . __LINE__);
+		}
+
+		$queryComponents['GROUPBY'] = $this->SQLparser->parseFieldList($groupBy);
+		$queryComponents['ORDERBY'] = $this->SQLparser->parseFieldList($orderBy);
+
+			// Return the query components
+		return $queryComponents;
+	}
+
+	/**
+	 * Precompiles a SELECT prepared SQL statement.
+	 *
+	 * @param array $components
+	 * @return array Precompiled SQL statement
+	 */
+	protected function precompileSELECTquery(array $components) {
+		$parameterWrap = '__' . dechex(time()) . '__';
+		foreach ($components['parameters'] as $key => $params) {
+			if ($key === '?') {
+				foreach ($params as $index => $param) {
+					$components['parameters'][$key][$index][0] = $parameterWrap . $param[0] . $parameterWrap;
+				}
+			} else {
+				$components['parameters'][$key][0] = $parameterWrap . $params[0] . $parameterWrap;
+			}
+		}
+
+		$select_fields = $this->SQLparser->compileFieldList($components['SELECT']);
+		$from_table    = $this->SQLparser->compileFromTables($components['FROM']);
+		$where_clause  = $this->SQLparser->compileWhereClause($components['WHERE']);
+		$groupBy       = $this->SQLparser->compileFieldList($components['GROUPBY']);
+		$orderBy       = $this->SQLparser->compileFieldList($components['ORDERBY']);
+		$limit         = $components['LIMIT'];
+		$precompiledParts = array();
+
+		$this->lastHandlerKey = $this->handler_getFromTableList($components['ORIG_tableName']);
+		$hType = (string)$this->handlerCfg[$this->lastHandlerKey]['type'];
+		$precompiledParts['handler'] = $hType;
+		$precompiledParts['ORIG_tableName'] = $components['ORIG_tableName'];
+
+		switch ($hType) {
+			case 'native':
+				$query = parent::SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit);
+				$precompiledParts['queryParts'] = explode($parameterWrap, $query);
+				break;
+			case 'adodb':
+				$query = parent::SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy);
+				$precompiledParts['queryParts'] = explode($parameterWrap, $query);
+				$precompiledParts['LIMIT'] = $limit;
+				break;
+			case 'userdefined':
+				$precompiledParts['queryParts'] = array(
+					'SELECT'  => $select_fields,
+					'FROM'    => $from_table,
+					'WHERE'   => $where_clause,
+					'GROUPBY' => $groupBy,
+					'ORDERBY' => $orderBy,
+					'LIMIT'   => $limit,
+				);
+				break;
+		}
+
+		return $precompiledParts;
+	}
+
+	/**
+	 * Executes a prepared query.
+	 *
+	 * @param string $query The query to execute
+	 * @param array $queryComponents The components of the query to execute
+	 * @return pointer MySQL result pointer / DBAL object
+	 * @access protected This method may only be called by t3lib_db_PreparedStatement
+	 */
+	public function exec_PREPAREDquery($query, array $precompiledParts) {
+		if ($this->debug) {
+			$pt = t3lib_div::milliseconds();
+		}
+
+			// Get handler key and select API:
+		switch ($precompiledParts['handler']) {
+			case 'native':
+				$this->lastQuery = $query;
+				$sqlResult = mysql_query($this->lastQuery, $this->handlerInstance[$this->lastHandlerKey]['link']);
+				$this->resourceIdToTableNameMap[(string)$sqlResult] = $precompiledParts['ORIG_tableName'];
+				break;
+			case 'adodb':
+				$limit = $precompiledParts['LIMIT'];
+				if ($this->runningADOdbDriver('postgres')) {
+						// Possibly rewrite the LIMIT to be PostgreSQL-compatible
+					$splitLimit = t3lib_div::intExplode(',', $limit);		// Splitting the limit values:
+					if ($splitLimit[1]) {	// If there are two parameters, do mapping differently than otherwise:
+						$numrows = $splitLimit[1];
+						$offset = $splitLimit[0];
+						$limit = $numrows . ' OFFSET ' . $offset;
+					}
+				}
+				if ($limit != '') {
+					$splitLimit = t3lib_div::intExplode(',', $limit);		// Splitting the limit values:
+					if ($splitLimit[1]) {	// If there are two parameters, do mapping differently than otherwise:
+						$numrows = $splitLimit[1];
+						$offset = $splitLimit[0];
+					} else {
+						$numrows = $splitLimit[0];
+						$offset = 0;
+					}
+
+					$sqlResult = $this->handlerInstance[$this->lastHandlerKey]->SelectLimit($query, $numrows, $offset);
+					$this->lastQuery = $sqlResult->sql;
+				} else {
+					$this->lastQuery = $query;
+					$sqlResult = $this->handlerInstance[$this->lastHandlerKey]->_Execute($this->lastQuery);
+				}
+
+				$sqlResult->TYPO3_DBAL_handlerType = 'adodb';	// Setting handler type in result object (for later recognition!)
+				$sqlResult->TYPO3_DBAL_tableList = $precompiledParts['ORIG_tableName'];
+				break;
+			case 'userdefined':
+				$queryParts = $precompiledParts['queryParts'];
+				$sqlResult = $this->handlerInstance[$this->lastHandlerKey]->exec_SELECTquery(
+					$queryParts['SELECT'],
+					$queryParts['FROM'],
+					$queryParts['WHERE'],
+					$queryParts['GROUPBY'],
+					$queryParts['ORDERBY'],
+					$queryParts['LIMIT']
+				);
+				if (is_object($sqlResult)) {
+					$sqlResult->TYPO3_DBAL_handlerType = 'userdefined';	// Setting handler type in result object (for later recognition!)
+					$sqlResult->TYPO3_DBAL_tableList = $precompiledParts['ORIG_tableName'];
+				}
+				break;
+		}
+
+		if ($this->printErrors && $this->sql_error()) {
+			debug(array($this->lastQuery, $this->sql_error()));
+		}
+
+		if ($this->debug) {
+			$data = array(
+				'handlerType' => $precompiledParts['handler'],
+				'args' => $precompiledParts,
+				'ORIG_from_table' => $precompiledParts['ORIG_tableName'],
+			);
+			if ($this->conf['debugOptions']['numberRows']) {
+				$data['numberRows'] = $this->sql_num_rows($sqlResult);
+			}
+			$this->debugHandler(
+				'exec_PREPAREDquery',
+				t3lib_div::milliseconds() - $pt,
+				$data
+			);
+		}
+
+			// Return result handler.
+		return $sqlResult;
+	}
 
 	/**************************************
 	*
@@ -1154,7 +1613,7 @@ class ux_t3lib_DB extends t3lib_DB {
 
 	/**
 	 * Quotes components of a SELECT subquery.
-	 * 
+	 *
 	 * @param array $components	Array of SQL query components
 	 * @return array
 	 */
@@ -1226,7 +1685,7 @@ class ux_t3lib_DB extends t3lib_DB {
 					}
 					foreach ($select_fields[$k]['flow-control']['when'] as $key => $when) {
 						$select_fields[$k]['flow-control']['when'][$key]['when_value'] = $this->_quoteWhereClause($when['when_value']);
-					} 
+					}
 				}
 			}
 		}
@@ -1282,7 +1741,7 @@ class ux_t3lib_DB extends t3lib_DB {
 	/**
 	 * Quotes the field (and table) names within a where clause with the quote character suitable for the DB being used
 	 *
-	 * @param	string		A where clause that can e parsed by parseWhereClause
+	 * @param	string		A where clause that can be parsed by parseWhereClause
 	 * @return	string		Usable where clause with quoted field/table names
 	 */
 	public function quoteWhereClause($where_clause) {
@@ -1316,6 +1775,15 @@ class ux_t3lib_DB extends t3lib_DB {
 					case 'EXISTS':
 						$where_clause[$k]['func']['subquery'] = $this->quoteSELECTsubquery($v['func']['subquery']);
 						break;
+					case 'FIND_IN_SET':
+							// quoteStr that will be used for Oracle
+						$pattern = str_replace($where_clause[$k]['func']['str'][1], '\\' . $where_clause[$k]['func']['str'][1], $where_clause[$k]['func']['str'][0]);
+							// table is not really needed and may in fact be empty in real statements
+							// but it's not overriden from t3lib_db at the moment...
+						$patternForLike = $this->escapeStrForLike($pattern, $where_clause[$k]['func']['table']);
+						$where_clause[$k]['func']['str_like'] = $patternForLike;
+
+						// BEWARE: no break here to have next statements too
 					case 'IFNULL':
 					case 'LOCATE':
 						if ($where_clause[$k]['func']['table'] != '') {
@@ -1324,7 +1792,7 @@ class ux_t3lib_DB extends t3lib_DB {
 						if ($where_clause[$k]['func']['field'] != '') {
 							$where_clause[$k]['func']['field'] = $this->quoteName($v['func']['field']);
 						}
-					break;
+						break;
 				}
 			} else {
 				if ($where_clause[$k]['table'] != '') {
@@ -1367,45 +1835,72 @@ class ux_t3lib_DB extends t3lib_DB {
 	}
 
 	/**
-	 * [Describe function...]
+	 * Quotes the field (and table) names within a group by clause with the quote
+	 * character suitable for the DB being used
 	 *
-	 * @param	[type]		$$groupBy: ...
-	 * @return	[type]		...
+	 * @param	string		A group by clause that can by parsed by parseFieldList
+	 * @return	string		Usable group by clause with quoted field/table names
 	 */
 	protected function quoteGroupBy($groupBy) {
 		if ($groupBy === '') return '';
 		if ($this->runningNative()) return $groupBy;
 
 		$groupBy = $this->SQLparser->parseFieldList($groupBy);
+		$groupBy = $this->_quoteGroupBy($groupBy);
+
+		return $this->SQLparser->compileFieldList($groupBy);
+	}
+
+	/**
+	 * Quotes field names in a SQL GROUP BY clause acccording to DB rules
+	 *
+	 * @param	array		$groupBy The parsed GROUP BY clause to quote
+	 * @return	array
+	 * @see quoteGroupBy()
+	 */
+	protected function _quoteGroupBy(array $groupBy) {
 		foreach ($groupBy as $k => $v) {
 			$groupBy[$k]['field'] = $this->quoteName($groupBy[$k]['field']);
 			if ($groupBy[$k]['table'] != '') {
 				$groupBy[$k]['table'] = $this->quoteName($groupBy[$k]['table']);
 			}
 		}
-		return $this->SQLparser->compileFieldList($groupBy);
+		return $groupBy;
 	}
 
 	/**
-	 * [Describe function...]
+	 * Quotes the field (and table) names within an order by clause with the quote
+	 * character suitable for the DB being used
 	 *
-	 * @param	[type]		$$orderBy: ...
-	 * @return	[type]		...
+	 * @param	string		An order by clause that can by parsed by parseFieldList
+	 * @return	string		Usable order by clause with quoted field/table names
 	 */
 	protected function quoteOrderBy($orderBy) {
 		if ($orderBy === '') return '';
 		if ($this->runningNative()) return $orderBy;
 
 		$orderBy = $this->SQLparser->parseFieldList($orderBy);
+		$orderBy = $this->_quoteOrderBy($orderBy);
+
+		return $this->SQLparser->compileFieldList($orderBy);
+	}
+
+	/**
+	 * Quotes field names in a SQL ORDER BY clause acccording to DB rules
+	 *
+	 * @param	array		$orderBy The parsed ORDER BY clause to quote
+	 * @return	array
+	 * @see quoteOrderBy()
+	 */
+	protected function _quoteOrderBy(array $orderBy) {
 		foreach ($orderBy as $k => $v) {
 			$orderBy[$k]['field'] = $this->quoteName($orderBy[$k]['field']);
 			if ($orderBy[$k]['table'] != '') {
 				$orderBy[$k]['table'] = $this->quoteName($orderBy[$k]['table']);
 			}
 		}
-		return $this->SQLparser->compileFieldList($orderBy);
+		return $orderBy;
 	}
-
 
 
 	/**************************************
@@ -1972,7 +2467,7 @@ class ux_t3lib_DB extends t3lib_DB {
 	 *
 	 * You should use exec_* function from this class instead!
 	 * If you don't, anything that does not use the _DEFAULT handler will probably break!
-	 * 
+	 *
 	 * This method was deprecated in TYPO3 4.1 but is considered experimental since TYPO3 4.4
 	 * as it tries to handle the query correctly anyway.
 	 *
@@ -2016,7 +2511,6 @@ class ux_t3lib_DB extends t3lib_DB {
 	 * @param	string		Username to connect with.
 	 * @param	string		Password to connect with.
 	 * @return	mixed		Returns handler connection value
-	 * @deprecated since TYPO3 4.1
 	 * @see handler_init()
 	 */
 	public function sql_pconnect($TYPO3_db_host, $TYPO3_db_username, $TYPO3_db_password) {
@@ -2036,7 +2530,6 @@ class ux_t3lib_DB extends t3lib_DB {
 	 *
 	 * @param	string		Database to connect to.
 	 * @return	boolean		Always returns TRUE; function is obsolete, database selection is made in handler_init() function!
-	 * @deprecated since TYPO3 4.1
 	 */
 	public function sql_select_db($TYPO3_db) {
 		return TRUE;
@@ -2275,7 +2768,7 @@ class ux_t3lib_DB extends t3lib_DB {
 						$theKey['Table'] = $tableName;
 						$theKey['Non_unique'] = (int) !$theKey['unique'];
 						$theKey['Key_name'] = str_replace($tableName.'_','',$k);
-	
+
 							// the following are probably not needed anyway...
 						$theKey['Collation'] = '';
 						$theKey['Cardinality'] = '';
@@ -2284,7 +2777,7 @@ class ux_t3lib_DB extends t3lib_DB {
 						$theKey['Null'] = '';
 						$theKey['Index_type'] = '';
 						$theKey['Comment'] = '';
-	
+
 							// now map multiple fields into multiple rows (we mimic MySQL, remember...)
 						$keycols = $theKey['columns'];
 						while (list($c, $theCol) = each($keycols)) {
@@ -2299,7 +2792,7 @@ class ux_t3lib_DB extends t3lib_DB {
 				$theKey['Table'] = $tableName;
 				$theKey['Non_unique'] = 0;
 				$theKey['Key_name'] = 'PRIMARY';
-	
+
 					// the following are probably not needed anyway...
 				$theKey['Collation'] = '';
 				$theKey['Cardinality'] = '';
@@ -2308,7 +2801,7 @@ class ux_t3lib_DB extends t3lib_DB {
 				$theKey['Null'] = '';
 				$theKey['Index_type'] = '';
 				$theKey['Comment'] = '';
-	
+
 					// now map multiple fields into multiple rows (we mimic MySQL, remember...)
 				if ($priKeyRow !== FALSE) {
 					while (list($c, $theCol) = each($priKeyRow)) {
@@ -2527,7 +3020,7 @@ class ux_t3lib_DB extends t3lib_DB {
 						if (mysql_select_db($cfgArray['config']['database'], $link)) {
 							$output = TRUE;
 						}
-						$setDBinit = t3lib_div::trimExplode(chr(10), $GLOBALS['TYPO3_CONF_VARS']['SYS']['setDBinit'], 1);
+						$setDBinit = t3lib_div::trimExplode(LF, str_replace("' . LF . '", LF, $GLOBALS['TYPO3_CONF_VARS']['SYS']['setDBinit']), TRUE);
 						foreach ($setDBinit as $v) {
 							if (mysql_query($v, $link) === FALSE) {
 								t3lib_div::sysLog('Could not initialize DB connection with query "'.$v.'".','Core',3);
@@ -2666,15 +3159,17 @@ class ux_t3lib_DB extends t3lib_DB {
 	 *
 	 * @param	string		List of tables in query
 	 * @param	boolean		If TRUE, it will check only if FIELDs are configured and ignore the mapped table name if any.
+	 * @param	array		Parsed list of tables, should be passed as reference to be reused and prevent double parsing
 	 * @return	mixed		Returns an array of table names (parsed version of input table) if mapping is needed, otherwise just FALSE.
 	 */
-	protected function map_needMapping($tableList, $fieldMappingOnly = FALSE) {
+	protected function map_needMapping($tableList, $fieldMappingOnly = FALSE, array &$parsedTableList = array()) {
 		$key = $tableList.'|'.$fieldMappingOnly;
 		if (!isset($this->cache_mappingFromTableList[$key])) {
 			$this->cache_mappingFromTableList[$key] = FALSE;	// Default:
 
 			$tables = $this->SQLparser->parseFromTables($tableList);
 			if (is_array($tables)) {
+				$parsedTableList = $tables;
 				foreach ($tables as $tableCfg) {
 					if ($fieldMappingOnly) {
 						if (is_array($this->mapping[$tableCfg['table']]['mapFieldNames'])) {
@@ -2756,9 +3251,8 @@ class ux_t3lib_DB extends t3lib_DB {
 
 	/**
 	 * Remaps table/field names in a SELECT query's parts
-	 * Notice: All arguments are passed by reference!
 	 *
-	 * @param	string		List of fields to select from the table. This is what comes right after "SELECT ...". Required value.
+	 * @param	mixed		Either parsed list of tables (SQLparser->parseFromTables()) or list of fields to select from the table. This is what comes right after "SELECT ...". Required value.
 	 * @param	string		Table(s) from which to select. This is what comes right after "FROM ...". Require value.
 	 * @param	string		Where clause. This is what comes right after "WHERE ...". Can be blank.
 	 * @param	string		Group by field(s)
@@ -2766,12 +3260,12 @@ class ux_t3lib_DB extends t3lib_DB {
 	 * @return	void
 	 * @see exec_SELECTquery()
 	 */
-	protected function map_remapSELECTQueryParts(&$select_fields, &$from_table, &$where_clause, &$groupBy, &$orderBy) {
+	protected function map_remapSELECTQueryParts($select_fields, $from_table, $where_clause, $groupBy, $orderBy) {
 			// Backup current mapping as it may be altered if aliases on mapped tables are found
 		$backupMapping = $this->mapping;
 
 			// Tables:
-		$tables = $this->SQLparser->parseFromTables($from_table);
+		$tables = is_array($from_table) ? $from_table : $this->SQLparser->parseFromTables($from_table);
 		$defaultTable = $tables[0]['table'];
 			// Prepare mapping for aliased tables. This will copy the definition of the original table name.
 			// The alias is prefixed with a database-incompatible character to prevent naming clash with real table name
@@ -2801,7 +3295,7 @@ class ux_t3lib_DB extends t3lib_DB {
 						// Mapping withTable of the JOIN
 					$withTableKey = $this->getMappingKey($join['withTable']);
 					if ($this->mapping[$withTableKey]['mapTableName']) {
-						$tables[$k]['JOIN'][$joinCnt]['withTable'] = $this->mapping[$withTableKey]['mapTableName'];					
+						$tables[$k]['JOIN'][$joinCnt]['withTable'] = $this->mapping[$withTableKey]['mapTableName'];
 					}
 					$onPartsArray = array();
 						// Mapping ON parts of the JOIN
@@ -2828,30 +3322,29 @@ class ux_t3lib_DB extends t3lib_DB {
 				}
 			}
 		}
-		$from_table = $this->SQLparser->compileFromTables($tables);
+		$fromParts = $tables;
 
 			// Where clause:
-		$whereParts = $this->SQLparser->parseWhereClause($where_clause);
-		$this->map_sqlParts($whereParts,$defaultTable);
-		$where_clause = $this->SQLparser->compileWhereClause($whereParts, FALSE);
+		$parameterReferences = array();
+		$whereParts = $this->SQLparser->parseWhereClause($where_clause, '', $parameterReferences);
+		$this->map_sqlParts($whereParts, $defaultTable);
 
 			// Select fields:
-		$expFields = $this->SQLparser->parseFieldList($select_fields);
-		$this->map_sqlParts($expFields,$defaultTable);
-		$select_fields = $this->SQLparser->compileFieldList($expFields, FALSE, FALSE);
+		$selectParts = $this->SQLparser->parseFieldList($select_fields);
+		$this->map_sqlParts($selectParts, $defaultTable);
 
 			// Group By fields
-		$expFields = $this->SQLparser->parseFieldList($groupBy);
-		$this->map_sqlParts($expFields,$defaultTable);
-		$groupBy = $this->SQLparser->compileFieldList($expFields);
+		$groupByParts = $this->SQLparser->parseFieldList($groupBy);
+		$this->map_sqlParts($groupByParts, $defaultTable);
 
 			// Order By fields
-		$expFields = $this->SQLparser->parseFieldList($orderBy);
-		$this->map_sqlParts($expFields,$defaultTable);
-		$orderBy = $this->SQLparser->compileFieldList($expFields);
+		$orderByParts = $this->SQLparser->parseFieldList($orderBy);
+		$this->map_sqlParts($orderByParts, $defaultTable);
 
 			// Restore the original mapping
 		$this->mapping = $backupMapping;
+
+		return array($selectParts, $fromParts, $whereParts, $groupByParts, $orderByParts, $parameterReferences);
 	}
 
 	/**
@@ -2940,6 +3433,7 @@ class ux_t3lib_DB extends t3lib_DB {
 						case 'EXISTS':
 							$this->map_subquery($sqlPartArray[$k]['func']['subquery']);
 							break;
+						case 'FIND_IN_SET':
 						case 'IFNULL':
 						case 'LOCATE':
 								// For the field, look for table mapping (generic):
@@ -2987,7 +3481,7 @@ class ux_t3lib_DB extends t3lib_DB {
 						}
 
 							// Mapping flow-control statements
-						if (isset($sqlPartArray[$k]['flow-control'])) {							
+						if (isset($sqlPartArray[$k]['flow-control'])) {
 							if (isset($sqlPartArray[$k]['flow-control']['type'])) {
 								$temp = array($sqlPartArray[$k]['flow-control']);
 								$this->map_sqlParts($temp, $t);	// Call recursively!
@@ -3004,7 +3498,7 @@ class ux_t3lib_DB extends t3lib_DB {
 								$sqlPartArray[$k]['value']['args'][$argK]['table'] = $this->mapping[$tableKey]['mapTableName'];
 							}
 							if (is_array($this->mapping[$tableKey]['mapFieldNames']) && isset($this->mapping[$tableKey]['mapFieldNames'][$fieldDef['field']])) {
-								$sqlPartArray[$k]['value']['args'][$argK]['field'] = $this->mapping[$tableKey]['mapFieldNames'][$fieldDef['field']];	
+								$sqlPartArray[$k]['value']['args'][$argK]['field'] = $this->mapping[$tableKey]['mapFieldNames'][$fieldDef['field']];
 							}
 						}
 					}
@@ -3213,10 +3707,24 @@ class ux_t3lib_DB extends t3lib_DB {
 			}
 
 				// if lastQuery is empty (for whatever reason) at least log inData.args
-			if (empty($this->lastQuery))
-				$query = implode(' ',$inData['args']);
-			else
+			if (empty($this->lastQuery)) {
+				$query = implode(' ', $inData['args']);
+			} else {
 				$query = $this->lastQuery;
+			}
+
+			if ($this->conf['debugOptions']['numberRows']) {
+				switch ($function) {
+					case 'exec_INSERTquery':
+					case 'exec_UPDATEquery':
+					case 'exec_DELETEquery':
+						$data['numberRows'] = $this->sql_affected_rows();
+						break;
+					case 'exec_SELECTquery':
+						$data['numberRows'] = $inData['numberRows'];
+						break;
+				}
+			}
 
 			if ($this->conf['debugOptions']['backtrace']) {
 				$backtrace = debug_backtrace();

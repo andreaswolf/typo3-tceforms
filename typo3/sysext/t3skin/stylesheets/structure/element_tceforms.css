@@ -51,6 +51,11 @@ table.typo3-TCEforms {
 	width: 93%;
 }
 
+table.typo3-TCEforms tr td.t3-form-col1,
+table.typo3-TCEforms tr td.t3-form-col1 div {
+	width: 21px;
+}
+
 table.typo3-TCEforms tr.typo3-TCEforms-recHeaderRow td {
 	padding-top: 5px;
 	padding-bottom: 20px;
@@ -224,6 +229,7 @@ div.typo3-TCEforms-suggest-indicator {
 div.typo3-TCEforms-suggest-choices {
 	position: absolute;
 	width: 250px;
+	z-index: 1;
 }
 
 div.typo3-TCEforms-suggest-choices ul {
@@ -298,6 +304,10 @@ TCEforms Inline-Relational-Record-Editing
 
 .t3-form-field-record-inline {
 	padding: 0 5px;
+}
+
+.sortableHandle {
+	cursor: move;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - -

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -24,13 +24,13 @@
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
-/**	
+/**
  * Contains the TYPO3 Backend Language class
  *
  * $Id$
  * Revised for TYPO3 3.6.0
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -65,7 +65,7 @@
  * This class is normally instantiated as the global variable $LANG in typo3/template.php
  * It's only available in the backend and under certain circumstances in the frontend
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  * @see typo3/template.php, template
@@ -73,8 +73,8 @@
 class language {
 		// This is set to the language that is currently running for the user
 	public $lang = 'default';
-		// Values like the labels in the tables.php-document are split by '|'. 
-		// This values defines which language is represented by which position 
+		// Values like the labels in the tables.php-document are split by '|'.
+		// This values defines which language is represented by which position
 		// in the resulting array after splitting a value. (NOTICE: Obsolete concept!)
 	public $langSplit = 'default';
 
@@ -164,10 +164,7 @@ class language {
 			$this->charSet = $GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'];
 
 			if ($this->charSet != 'utf-8' && !$this->csConvObj->initCharset($this->charSet)) {
-				t3lib_BEfunc::typo3PrintError('Forced charset not found',
-					'The forced character set "'. $this->charSet . '" was not found in t3lib/csconvtbl/'
-				);
-				exit;
+				throw new RuntimeException('Forced charset not found: The forced character set "'. $this->charSet . '" was not found in t3lib/csconvtbl/');
 			}
 		}
 	}
@@ -209,7 +206,7 @@ class language {
 	 * @access public
 	 */
 	public function hscAndCharConv($lStr, $hsc) {
-			// labels returned from a locallang file used to be in the language of the charset. 
+			// labels returned from a locallang file used to be in the language of the charset.
 			// Since TYPO3 4.1 they are always in the charset of the BE.
 		if ($hsc) {
 			return htmlspecialchars($lStr);
@@ -219,12 +216,12 @@ class language {
 	}
 
 	/**
-	 * Will convert the input strings special chars (all above 127) to entities. 
+	 * Will convert the input strings special chars (all above 127) to entities.
 	 * The string is expected to be encoded in the charset, $this->charSet
 	 * This function is used to create strings that can be used in the Click Menu
-	 * (Context Sensitive Menus). The reason is that the values that are dynamically 
+	 * (Context Sensitive Menus). The reason is that the values that are dynamically
 	 * written into the <div> layer is decoded as iso-8859-1 no matter what charset
-	 * is used in the document otherwise (only MSIE, Mozilla is OK). 
+	 * is used in the document otherwise (only MSIE, Mozilla is OK).
 	 * So by converting we by-pass this problem.
 	 *
 	 * @param	string		Input string
@@ -288,7 +285,7 @@ class language {
 	}
 
 	/**
-	 * Works like ->getLL() but takes the $LOCAL_LANG array 
+	 * Works like ->getLL() but takes the $LOCAL_LANG array
 	 * used as the second argument instead of using the global array.
 	 *
 	 * @param	string		Label key
@@ -301,7 +298,7 @@ class language {
 			// Get Local Language
 		if (strcmp($LOCAL_LANG[$this->lang][$index], '')) {
 				// Returns local label if not blank.
-			$output = $this->hscAndCharConv($LOCAL_LANG[$this->lang][$index], $hsc);	
+			$output = $this->hscAndCharConv($LOCAL_LANG[$this->lang][$index], $hsc);
 		} else {
 				// Returns default label
 			$output = $this->hscAndCharConv($LOCAL_LANG['default'][$index], $hsc);
@@ -330,13 +327,13 @@ class language {
 			$t = explode('|', $input);
 			$out = $t[$this->langSplitIndex] ? $t[$this->langSplitIndex] : $t[0];
 			return $this->hscAndCharConv($out, $hsc);
-			// LOCAL_LANG:	
-		} else {	
+			// LOCAL_LANG:
+		} else {
 				// If cached label
 			if (!isset($this->LL_labels_cache[$this->lang][$input])) {
 				$restStr = trim(substr($input, 4));
 				$extPrfx = '';
-				
+
 					// ll-file refered to is found in an extension.
 				if (!strcmp(substr($restStr, 0, 4), 'EXT:')) {
 					$restStr = trim(substr($restStr, 4));
@@ -344,14 +341,14 @@ class language {
 				}
 				$parts = explode(':', $restStr);
 				$parts[0] = $extPrfx . $parts[0];
-				
+
 					// Getting data if not cached
 				if (!isset($this->LL_files_cache[$parts[0]])) {
 					$this->LL_files_cache[$parts[0]] = $this->readLLfile($parts[0]);
 
 						// If the current language is found in another file, load that as well:
 					$lFileRef = $this->localizedFileRef($parts[0]);
-					if ($lFileRef && is_string($this->LL_files_cache[$parts[0]][$this->lang]) 
+					if ($lFileRef && is_string($this->LL_files_cache[$parts[0]][$this->lang])
 							&& $this->LL_files_cache[$parts[0]][$this->lang] == 'EXT') {
 						$tempLL = $this->readLLfile($lFileRef);
 						$this->LL_files_cache[$parts[0]][$this->lang] = $tempLL[$this->lang];
@@ -379,7 +376,7 @@ class language {
 	}
 
 	/**
-	 * Loading $TCA_DESCR[$table]['columns'] with content from locallang files 
+	 * Loading $TCA_DESCR[$table]['columns'] with content from locallang files
 	 * as defined in $TCA_DESCR[$table]['refs']
 	 * $TCA_DESCR is a global var
 	 *
@@ -390,7 +387,7 @@ class language {
 	public function loadSingleTableDescription($table) {
 		global $TCA_DESCR;
 
-			// First the 'table' cannot already be loaded in [columns] 
+			// First the 'table' cannot already be loaded in [columns]
 			// and secondly there must be a references to locallang files available in [refs]
 		if (is_array($TCA_DESCR[$table])
 				&& !isset($TCA_DESCR[$table]['columns'])

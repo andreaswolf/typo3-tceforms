@@ -30,7 +30,7 @@
  * $Id$
  *
  * @author	Christian Jul Jensen <christian@typo3.com>
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @coauthor	Jo Hasenau <info@cybercraft.de>
  */
 /**
@@ -91,7 +91,7 @@
  * Class for generating front end for building queries
  *
  * @author	Christian Jul Jensen <christian@typo3.com>
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -587,6 +587,7 @@ class t3lib_queryGenerator	{
 
 		$c=0;
 		$arrCount=0;
+		$loopcount = 0;
 		foreach ($queryConfig as $key => $conf) {
 			$subscript = $parent.'['.$key.']';
 			$lineHTML = '';
@@ -724,9 +725,8 @@ class t3lib_queryGenerator	{
 			}
 			$loopcount = 1;
 		}
-//		$codeArr[$arrCount] .='<input type="hidden" name="CMD" value="displayQuery">';
 		$this->queryConfig = $queryConfig;
-//modifyHTMLColor($color,$R,$G,$B)
+
 		return $codeArr;
 	}
 
@@ -752,7 +752,7 @@ class t3lib_queryGenerator	{
 					}
 				}
 			}
-			$d = dir(t3lib_div::getIndpEnv(TYPO3_DOCUMENT_ROOT).'/'.$fieldSetup['uploadfolder']);
+			$d = dir(PATH_site . $fieldSetup['uploadfolder']);
 			while (false !== ($entry=$d->read()))	{
 				if ($entry=='.' || $entry=='..')	{
 					continue;
@@ -846,6 +846,7 @@ class t3lib_queryGenerator	{
 				$from_table_Arr[0] = $fieldSetup['foreign_table'];
 			}
 			$counter = 0;
+			$webMountPageTree = '';
 			while (list(, $from_table) = each($from_table_Arr))	{
 				if (($useTablePrefix && !$dontPrefixFirstTable && $counter!=1) || $counter==1)	{
 					$tablePrefix = $from_table.'_';
@@ -1008,7 +1009,7 @@ class t3lib_queryGenerator	{
 		$out='<select name="'.$name.'" onChange="submit();">';
 		$out.='<option value=""></option>';
 		foreach ($this->fields as $key => $value) {
-			if (!$fieldValue['exclude'] || $GLOBALS['BE_USER']->check('non_exclude_fields', $this->table.':'.$key)) {
+			if (!$value['exclude'] || $GLOBALS['BE_USER']->check('non_exclude_fields', $this->table . ':' . $key)) {
 				$label = $this->fields[$key]['label'];
 				$label_alt = $this->fields[$key]['label_alt'];
 				$out .= '<option value="'.$prepend.$key.'"'.($key==$fieldName ? ' selected' : '').'>'.$label.'</option>';
@@ -1064,7 +1065,7 @@ class t3lib_queryGenerator	{
 		$out.='<a href="#" onClick="document.forms[0][\''.$name.'\'].value=\'\';return false;">' . t3lib_iconWorks::getSpriteIcon('actions-edit-delete', array('title' => 'Clear list')) . '</a>';
 		$out.='<BR><select name="_fieldListDummy" size="5" onChange="document.forms[0][\''.$name.'\'].value+=\',\'+this.value">';
 		foreach ($this->fields as $key => $value) {
-			if (!$fieldValue['exclude'] || $GLOBALS['BE_USER']->check('non_exclude_fields', $this->table.':'.$key))	{
+			if (!$value['exclude'] || $GLOBALS['BE_USER']->check('non_exclude_fields', $this->table . ':' . $key)) {
 				$label = $this->fields[$key]['label'];
 				$label_alt = $this->fields[$key]['label_alt'];
 				$out .= '<option value="'.$key.'"'.($key==$fieldName ? ' selected':'').'>'.$label.'</option>';
@@ -1458,6 +1459,7 @@ class t3lib_queryGenerator	{
 		if (!$GLOBALS['BE_USER']->isAdmin() && $GLOBALS['TYPO3_CONF_VARS']['BE']['lockBeUserToDBmounts']) {
 			$webMounts = $GLOBALS['BE_USER']->returnWebmounts();
 			$perms_clause = $GLOBALS['BE_USER']->getPagePermsClause(1);
+			$webMountPageTree = '';
 			foreach($webMounts as $key => $val) {
 				if ($webMountPageTree) {
 					$webMountPageTreePrefix = ',';

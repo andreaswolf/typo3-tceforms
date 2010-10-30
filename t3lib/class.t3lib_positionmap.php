@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,10 +28,10 @@
  * Contains class for creating a position map.
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compliant (should be)
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -78,7 +78,7 @@
  * Position map class - generating a page tree / content element list which links for inserting (copy/move) of records.
  * Used for pages / tt_content element wizards of various kinds.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -541,7 +541,7 @@ class t3lib_positionMap {
 	 * @return	string		HTML
 	 */
 	function getRecordHeader($row)	{
-		$line = t3lib_iconWorks::getIconImage('tt_content',$row,$this->backPath,' align="top" title="'.htmlspecialchars(t3lib_BEfunc::getRecordIconAltText($row,'tt_content')).'"');
+		$line = t3lib_iconWorks::getSpriteIconForRecord('tt_content', $row, array('title' => htmlspecialchars(t3lib_BEfunc::getRecordIconAltText($row,'tt_content'))));
 		$line.= t3lib_BEfunc::getRecordTitle('tt_content',$row,TRUE);
 		return $this->wrapRecordTitle($line,$row);
 	}

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,10 +30,10 @@
  * This module lets you view a page in a more Content Management like style than the ordinary record-list
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -95,7 +95,7 @@ t3lib_extMgm::isLoaded('cms',1);
 /**
  * Local extension of position map class
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -170,7 +170,7 @@ class ext_posMap extends t3lib_positionMap {
 /**
  * Script Class for Web > Layout module
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -250,7 +250,7 @@ class SC_db_layout {
 		$this->search_field = t3lib_div::_GP('search_field');
 		$this->search_levels = t3lib_div::_GP('search_levels');
 		$this->showLimit = t3lib_div::_GP('showLimit');
-		$this->returnUrl = t3lib_div::_GP('returnUrl');
+		$this->returnUrl = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
 		$this->externalTables = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['cms']['db_layout']['addTables'];
 
 			// Load page info array:
@@ -382,8 +382,8 @@ class SC_db_layout {
 			// Clean up settings
 		$this->MOD_SETTINGS = t3lib_BEfunc::getModuleData($this->MOD_MENU, t3lib_div::_GP('SET'), $this->MCONF['name']);
 
-			// For all elements to be shown in draft workspaces:
-		if ($GLOBALS['BE_USER']->workspace!=0)	{
+			// For all elements to be shown in draft workspaces & to also show hidden elements by default if user hasn't disabled the option
+		if (($GLOBALS['BE_USER']->workspace != 0) || ($this->MOD_SETTINGS['tt_content_showHidden'] !== '0')) {
 			$this->MOD_SETTINGS['tt_content_showHidden'] = 1;
 		}
 	}
@@ -548,7 +548,7 @@ class SC_db_layout {
 
 
 			if ($this->pageinfo['content_from_pid']) {
-				//$contentPage = t3lib_BEfunc::getRecord('pages', intval($this->pageinfo['content_from_pid']));
+				$contentPage = t3lib_BEfunc::getRecord('pages', intval($this->pageinfo['content_from_pid']));
 				$title = t3lib_BEfunc::getRecordTitle('pages', $contentPage);
 				$linkToPid = $this->local_linkThisScript(array('id' => $this->pageinfo['content_from_pid']));
 				$link = '<a href="' . $linkToPid . '">' . htmlspecialchars($title) . ' (PID ' . intval($this->pageinfo['content_from_pid']) . ')</a>';
@@ -1114,7 +1114,12 @@ class SC_db_layout {
 
 				// Making search form:
 			if (!$this->modTSconfig['properties']['disableSearchBox'] && count($tableOutput))	{
-				$content .= $this->doc->section($LANG->sL('LLL:EXT:lang/locallang_core.php:labels.search'), $dblist->getSearchBox(0), 0, 1);
+				$sectionTitle = t3lib_BEfunc::wrapInHelp('xMOD_csh_corebe', 'list_searchbox', $LANG->sL('LLL:EXT:lang/locallang_core.php:labels.search', TRUE));
+				$content .= $this->doc->section(
+					$sectionTitle,
+					$dblist->getSearchBox(0),
+					FALSE, TRUE, FALSE, TRUE
+				);
 			}
 
 				// Making display of Sys-notes (from extension "sys_note")
@@ -1197,12 +1202,11 @@ class SC_db_layout {
 		}
 
 			// If access to Web>List for user, then link to that module.
-		if ($BE_USER->check('modules','web_list'))	{
-			$href = $BACK_PATH . 'db_list.php?id=' . $this->pageinfo['uid'] . '&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'));
-			$buttons['record_list'] = '<a href="' . htmlspecialchars($href) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE) . '">' .
-					t3lib_iconWorks::getSpriteIcon('actions-system-list-open') .
-				'</a>';
-		}
+		$buttons['record_list'] = t3lib_extMgm::createListViewLink(
+			$this->pageinfo['uid'],
+			'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
+			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+		);
 
 		if (!$this->modTSconfig['properties']['disableIconToolbar'])	{
 

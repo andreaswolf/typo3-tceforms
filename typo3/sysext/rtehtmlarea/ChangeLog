@@ -1,3 +1,170 @@
+2010-10-27  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #16148: htmlArea RTE: Missing cancel browser default after inserting character or emoticon
+
+2010-10-25  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #16087: htmlArea RTE: Missing soft hyphen entity in CharacterMap
+	* Added feature #16127: htmlArea RTE: Add quick tips in character map
+
+2010-10-24  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #16118: htmlArea RTE: cleanup/rewrite DOM to html rendering
+	* Follow-up to feature #16118: htmlArea RTE: cleanup/rewrite DOM to html rendering
+
+2010-10-22  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #16114: htmlArea RTE: cleanup some js code generation code
+
+2010-10-20  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #16079: htmlArea RTE: Register RTE scripts with the autoloader
+	* Follow-up to feature #16079: htmlArea RTE: Register RTE scripts with the autoloader
+
+2010-10-19  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #16073: htmlArea RTE: Add paste as plain text feature
+	* Follow-up to bug #15339: htmlArea RTE: tkr_rteanchors breaks the link editing dialogue
+	* Follow-up to feature #16073: htmlArea RTE: Add paste as plain text feature
+
+2010-10-18  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #16047: htmlArea RTE: Add word count in the status bar
+	* Fixed bug #16050: htmlArea RTE: Backspacing in empty editing area may raise js error
+	* Updated htmlArea RTE version to 2.1.2
+
+2010-10-17  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #16037: htmlArea RTE: Bring custom events under HTMLArea namespace
+
+2010-10-06  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Follow-up to bug #15880: htmlArea RTE: Context menu not working in TYPO3 4.4.3 and 4.5-dev
+	* Fixed bug #15893: htmlArea RTE: Insufficient Check for BE / FE Context (Thanks to Ingo Renner)
+
+2010-10-05  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Follow-up to bug #15858: htlmArea RTE: Stylesheet access error in Google Chrome 7
+	* Fixed bug #15899: htmlArea RTE: Editing area collapsed in Chrome 7
+
+2010-10-03  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #15884: htmlArea RTE: Remove class Ext.ux.StatusBar
+	* Added feature #15885: htmlArea RTE: Add option to remove typographical punctuation (Thanks to Daniel Schwarzloh)
+
+2010-10-02  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #15879: htmlArea RTE: Use TYPO3 ExtJS API for RTE notification dialogues
+	* Fixed bug #15880: htmlArea RTE: Context menu not working in TYPO3 4.4.3 and 4.5-dev
+
+2010-09-29  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15858: htlmArea RTE: Stylesheet access error in Google Chrome 7
+	* Fixed bug #15863: htmlArea RTE: Initilization never completes in Google Chrome 7
+
+2010-09-27  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15820: htmlArea RTE: Failure to install AllowClipboard Helper extension raises js error
+	* Fixed bug #15339: htmlArea RTE: tkr_rteanchors breaks the link editing dialogue
+	* Fixed bug #15730: htmlArea RTE: Problem editing a new list entry in list of items with inline markup
+	* Fixed bug #15818: htmlArea RTE: Erratic behaviour of toolbar in some browsers
+
+2010-09-26  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Follow-up to bug #15797: htmlArea RTE: Problem in Firefox inserting non-breaking space with Insert Special Character dialogue
+
+2010-09-25  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15430: htmlArea RTE: Text not editable after pasting with server-based cleaning
+	* Follow-up to bug #15430: htmlArea RTE: Text not editable after pasting with server-based cleaning
+	* Fixed bug #15797: htmlArea RTE: Problem in Firefox inserting non-breaking space with Insert Special Character dialogue
+	* Fixed bug #15749: htmlArea RTE: Firefox shows &amp; in external links with query string
+	* Fixed bug #15512: htmlArea RTE: Initialization in flexforms broken with TYPO3 4.4
+	* Follow-up to bug #15622: t3lib_TCEforms_inline registers superfluous nested level when renderFieldsOnly is set
+
+2010-09-12  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Follow-up to bug #15326: htmlArea RTE: W3C Markup Validation issues (Thanks to Jigal van Hemert)
+
+2010-09-04  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15326: htmlArea RTE: W3C Markup Validation issues
+
+2010-08-31  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15068: htmlArea RTE: Not loading in Firefox 3.0.3
+
+2010-08-29  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15354: htmlArea RTE: Remove link option not enabled on double-click in Firefox
+	* Follow-up to bug #15354: htmlArea RTE: Remove link option not enabled on double-click in Firefox
+
+2010-08-28  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Updated htmlArea RTE version to 2.1.1
+
+2010-08-27  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15569: htmlArea RTE: RTE not loading when ExtJS 3.2.1 is used
+	* Fixed bug #15570: htmlArea RTE: Incorrect height when loaded in a hidden tab with ExtJS 3.2.1
+	* Fixed bug #15415: htmlArea RTE: RTEs hidden on load not usable with multiple RTEs in a record
+	* Fixed bug #15328: htmlArea RTE: Strange behaviours inserting links in IE
+	* Fixed bug #15584: htmlArea RTE: iframe baseURL may be incorrectly set
+	* Fixed bug #15516: htmlArea RTE: Safari does not support WISIWYG editing on iPad
+
+2010-08-26  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15477: htmlArea RTE: Unlink may unlink the wrong link in IE
+
+2010-08-25  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15547: htmlArea RTE may load extJS debug script in FE which makes page loading slow
+	* Updated htmlArea RTE manual.
+
+2010-08-24  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15439: htmlArea RTE: Deprecated call-time pass-by-reference
+
+2010-08-23  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #12583: htmlArea RTE: RTE fails to load due to security error
+
+2010-08-05  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15355: htmlArea RTE: Using the advanded frontend editing, the editor is not loaded in the text tab
+
+2010-07-27  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15244: htmlArea RTE: textearea Id may not be unique in FE
+	* Fixed bug #15250: htmlArea RTE: FE additionalJS_post javascript may be displayed as HTML text
+	* Fixed bug #15121: htmlArea RTE: Javascript Error in IE7 prevent Link dialogue from opening
+	* Fixed bug #14859: htmlArea RTE won't load in backend extension
+
+2010-07-26  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15243: htmlArea RTE: Extension stylesheets refer to incorrect selectors
+
+2010-07-25  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Updated htmlArea RTE version to 2.1.0
+
+2010-07-23  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #15203: htmlArea RTE: Modify link option missing in context menu
+
+2010-07-10  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #14896: ExtJS is not included when RTE is invoked by USER_INT frontend script
+
+2010-07-04  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #14929: htmlArea RTE: Font Family and Font Size Dropdown boxes don't open
+	* Fixed bug #14996: htmlArea RTE: Clicking in drop down boxes should mark text
+
+2010-06-29  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #14905: htmlArea RTE: Image dialogue shows tab "Current picture" when there is no current image 
+
 2010-06-28  Stanislas Rolland  <typo3@sjbr.ca>
 
 	* Fixed bug #14830: htmlArea RTE: Entering line breaks with Safari not possible

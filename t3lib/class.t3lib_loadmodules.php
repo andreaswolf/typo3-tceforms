@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,10 +28,10 @@
  * This document provides a class that loads the modules for the TYPO3 interface.
  *
  * $Id$
- * Modifications by Rene Fritz, 2001
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Modifications by René Fritz, 2001
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @internal
  */
 /**
@@ -72,7 +72,7 @@
  * 		$this->loadModules = t3lib_div::makeInstance('t3lib_loadModules');
  * 		$this->loadModules->load($TBE_MODULES);
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -133,44 +133,11 @@ class t3lib_loadModules {
 			//
 		$this->absPathArray = $modulesArray['_PATHS'];
 		unset($modulesArray['_PATHS']);
-			// unset the array for calling external backend module dispatchers in typo3/mod.php 
+			// unset the array for calling external backend module dispatchers in typo3/mod.php
 		unset($modulesArray['_dispatcher']);
-			// unset the array for calling backend modules based on external backend module dispatchers in typo3/mod.php 
+			// unset the array for calling backend modules based on external backend module dispatchers in typo3/mod.php
 		unset($modulesArray['_configuration']);
 
-			/*
-				With the above data for modules the result of this function call will be:
-
-				Array
-				(
-				    [web] => Array
-				        (
-				            [0] => list
-				            [1] => info
-				            [2] => perm
-				            [3] => func
-				        )
-
-				    [file] => Array
-				        (
-				            [0] => list
-				        )
-
-				    [user] => 1
-				    [tools] => Array
-				        (
-				            [0] => em
-				            [1] => install
-				            [2] => txphpmyadmin
-				        )
-
-				    [help] => Array
-				        (
-				            [0] => about
-				        )
-
-				)
-			*/
 		$theMods = $this->parseModulesArray($modulesArray);
 
 			/*
@@ -245,121 +212,6 @@ class t3lib_loadModules {
 				}
 			}
 		}
-	/*
-		At this point $this->modules should look like this:
-		Only modules which were accessible to the $BE_USER is listed in this array.
-
-		Array
-		(
-		    [web] => Array
-		        (
-		            [name] => web
-		            [script] => dummy.php
-		            [defaultMod] => list
-		            [sub] => Array
-		                (
-		                    [list] => Array
-		                        (
-		                            [name] => web_list
-		                            [script] => mod/web/list/../../../db_list.php
-		                        )
-
-		                    [info] => Array
-		                        (
-		                            [name] => web_info
-		                            [script] => mod/web/info/index.php
-		                        )
-
-		                    [perm] => Array
-		                        (
-		                            [name] => web_perm
-		                            [script] => mod/web/perm/index.php
-		                        )
-
-		                    [func] => Array
-		                        (
-		                            [name] => web_func
-		                            [script] => mod/web/func/index.php
-		                        )
-
-		                )
-
-		        )
-
-		    [file] => Array
-		        (
-		            [name] => file
-		            [script] => dummy.php
-		            [sub] => Array
-		                (
-		                    [list] => Array
-		                        (
-		                            [name] => file_list
-		                            [script] => mod/file/list/../../../file_list.php
-		                        )
-
-		                )
-
-		        )
-
-		    [user] => Array
-		        (
-		            [name] => user
-		            [script] => dummy.php
-		            [defaultMod] => task
-		        )
-
-		    [tools] => Array
-		        (
-		            [name] => tools
-		            [script] => dummy.php
-		            [sub] => Array
-		                (
-		                    [em] => Array
-		                        (
-		                            [name] => tools_em
-		                            [script] => mod/tools/em/index.php
-		                        )
-
-		                    [install] => Array
-		                        (
-		                            [name] => tools_install
-		                            [script] => ext/install/mod/../../../install/index.php
-		                        )
-
-		                    [txphpmyadmin] => Array
-		                        (
-		                            [name] => tools_txphpmyadmin
-		                            [script] => ext/phpmyadmin/modsub/index.php
-		                        )
-
-		                )
-
-		        )
-
-		    [help] => Array
-		        (
-		            [name] => help
-		            [script] => dummy.php
-		            [defaultMod] => welcome
-		            [sub] => Array
-		                (
-		                    [about] => Array
-		                        (
-		                            [name] => help_about
-		                            [script] => mod/help/about/index.php
-		                        )
-
-		                )
-
-		        )
-
-		)
-
-	*/
-
-#debug($this->modules);
-#debug($GLOBALS['LANG']->moduleLabels);
 	}
 
 	/**
@@ -576,7 +428,7 @@ class t3lib_loadModules {
 	 * @return	string		The relative path of destination compared to base.
 	 */
 	function getRelativePath($baseDir,$destDir){
-			// By Rene Fritz
+			// By René Fritz
 			// a special case , the dirs are equals
 		if ($baseDir == $destDir){
 			return './';
@@ -602,7 +454,7 @@ class t3lib_loadModules {
 		for($i=0;$i < $slashes;$i++)	{
 			$destDir = '../'.$destDir;
 		}
-		return $destDir;
+		return t3lib_div::resolveBackPath($destDir);
 	}
 }
 

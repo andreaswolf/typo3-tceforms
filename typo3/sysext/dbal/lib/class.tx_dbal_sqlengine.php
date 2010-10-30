@@ -3,7 +3,7 @@
 *  Copyright notice
 *
 *  (c) 2009-2010 Xavier Perseguers <typo3@perseguers.ch>
-*  (c) 2004-2010 Kasper Skaarhoj <kasperYYYY@typo3.com>
+*  (c) 2004-2009 Kasper Skårhøj <kasperYYYY@typo3.com>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,9 +30,9 @@
 /**
  * PHP SQL engine
  *
- * $Id: class.tx_dbal_sqlengine.php 28572 2010-01-08 17:13:29Z xperseguers $
+ * $Id: class.tx_dbal_sqlengine.php 38370 2010-09-20 20:12:59Z xperseguers $
  *
- * @author Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author Kasper Skårhøj <kasperYYYY@typo3.com>
  * @author Xavier Perseguers <typo3@perseguers.ch>
  */
 /**
@@ -40,47 +40,47 @@
  *
  *
  *
- *  104: class tx_dbal_sqlengine extends ux_t3lib_sqlparser
- *  126:     function init($config, &$pObj)
- *  134:     function resetStatusVars()
- *  150:     function processAccordingToConfig(&$value,$fInfo)
+ *  106: class tx_dbal_sqlengine extends ux_t3lib_sqlparser
+ *  128:     public function init($config, $pObj)
+ *  136:     public function resetStatusVars()
+ *  152:     private function processAccordingToConfig(&$value, $fInfo)
  *
  *              SECTION: SQL queries
- *  205:     function exec_INSERTquery($table,$fields_values)
- *  273:     function exec_UPDATEquery($table,$where,$fields_values)
- *  332:     function exec_DELETEquery($table,$where)
- *  383:     function exec_SELECTquery($select_fields,$from_table,$where_clause,$groupBy,$orderBy,$limit)
- *  426:     function sql_query($query)
- *  437:     function sql_error()
- *  446:     function sql_insert_id()
- *  455:     function sql_affected_rows()
- *  465:     function quoteStr($str)
+ *  207:     public function exec_INSERTquery($table, $fields_values)
+ *  275:     public function exec_UPDATEquery($table, $where, $fields_values)
+ *  334:     public function exec_DELETEquery($table, $where)
+ *  385:     public function exec_SELECTquery($select_fields, $from_table, $where_clause, $groupBy, $orderBy, $limit)
+ *  428:     public function sql_query($query)
+ *  439:     public function sql_error()
+ *  448:     public function sql_insert_id()
+ *  457:     public function sql_affected_rows()
+ *  467:     public function quoteStr($str)
  *
  *              SECTION: SQL admin functions
- *  490:     function admin_get_tables()
- *  501:     function admin_get_fields($tableName)
- *  512:     function admin_get_keys($tableName)
- *  523:     function admin_query($query)
+ *  493:     public function admin_get_tables()
+ *  504:     public function admin_get_fields($tableName)
+ *  515:     public function admin_get_keys($tableName)
+ *  526:     public function admin_query($query)
  *
  *              SECTION: Data Source I/O
- *  548:     function readDataSource($table)
- *  560:     function saveDataSource($table)
+ *  551:     public function readDataSource($table)
+ *  563:     public function saveDataSource($table)
  *
  *              SECTION: SQL engine functions (PHP simulation of SQL) - still experimental
- *  590:     function selectFromData($table,$where)
- *  628:     function select_evalSingle($table,$config,&$itemKeys)
- *  747:     function getResultSet($keys, $table, $fieldList)
+ *  593:     public function selectFromData($table, $where)
+ *  631:     public function select_evalSingle($table,$config,&$itemKeys)
+ *  750:     public function getResultSet($keys, $table, $fieldList)
  *
  *              SECTION: Debugging
- *  790:     function debug_printResultSet($array)
+ *  793:     public function debug_printResultSet($array)
  *
  *
- *  829: class tx_dbal_sqlengine_resultobj
- *  843:     function sql_num_rows()
- *  852:     function sql_fetch_assoc()
- *  863:     function sql_fetch_row()
- *  881:     function sql_data_seek($pointer)
- *  894:     function sql_field_type()
+ *  832: class tx_dbal_sqlengine_resultobj
+ *  846:     public function sql_num_rows()
+ *  855:     public function sql_fetch_assoc()
+ *  866:     public function sql_fetch_row()
+ *  884:     public function sql_data_seek($pointer)
+ *  897:     public function sql_field_type()
  *
  * TOTAL FUNCTIONS: 27
  * (This index is automatically created/updated by the extension "extdeveval")
@@ -99,7 +99,7 @@
  * Basically this is trying to emulation SQL record selection by PHP, thus allowing SQL queries into alternative data storages managed by PHP.
  * EXPERIMENTAL!
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -825,7 +825,7 @@ class tx_dbal_sqlengine extends ux_t3lib_sqlparser {
 /**
  * PHP SQL engine, result object
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage dbal
  */

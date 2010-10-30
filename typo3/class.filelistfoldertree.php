@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -53,7 +53,7 @@
 /**
  * Extension class for the t3lib_filetree class, needed for drag and drop and ajax functionality
  *
- * @author	Sebastian Kurfuerst <sebastian@garbage-group.de>
+ * @author	Sebastian Kurfürst <sebastian@garbage-group.de>
  * @author	Benjamin Mack   <bmack@xnos.org>
  * @package TYPO3
  * @subpackage core
@@ -339,8 +339,8 @@ class filelistFolderTree extends t3lib_folderTree {
 
 				// Add tree:
 			$treeArr = array_merge($treeArr, $this->tree);
-			
-				// if this is an AJAX call, don't run through all mounts, only 
+
+				// if this is an AJAX call, don't run through all mounts, only
 				// show the expansion of the current one, not the rest of the mounts
 			if (TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_AJAX) {
 				break;
@@ -416,7 +416,7 @@ class filelistFolderTree extends t3lib_folderTree {
 				} else {
 					$type = 'readonly';
 					$overlays= array('status-overlay-locked'=>array());
-					
+
 				}
 
 				if($webpath == 'web') {
@@ -430,7 +430,7 @@ class filelistFolderTree extends t3lib_folderTree {
 					$row['_title'] = '<strong>' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:temp', true) . '</strong>';
 				}
 				if ($val == '_recycler_')	{
-					$icon = 'apps-filetree-recycler';
+					$icon = 'apps-filetree-folder-recycler';
 					$row['title'] = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:recycler', true);
 					$row['_title'] = '<strong>' .$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_file_list.xml:recycler', true) . '</strong>';
 				}

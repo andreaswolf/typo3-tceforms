@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,10 +28,10 @@
  * Folder tree in the File main module.
  *
  * $Id$
- * Revised for TYPO3 3.6 2/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -63,7 +63,7 @@ require_once('class.filelistfoldertree.php');
 /**
  * Main script class for rendering of the folder tree
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -195,12 +195,7 @@ class SC_alt_file_navframe {
 				theUrl += "?id=" + id
 			}
 			top.fsMod.currentBank = bank;
-
-			if (top.TYPO3.configuration.condensedMode) {
-				top.content.location.href = theUrl;
-			} else {
-				parent.list_frame.location.href=theUrl;
-			}
+			top.TYPO3.Backend.ContentContainer.setUrl(theUrl);
 
 			'.($this->doHighlight ? 'Tree.highlightActiveItem("file", highlightID + "_" + bank);' : '').'
 			'.(!$CLIENT['FORMSTYLE'] ? '' : 'if (linkObj) linkObj.blur(); ').'
@@ -274,7 +269,7 @@ class SC_alt_file_navframe {
 
 			// Refresh
 		$buttons['refresh'] = '<a href="' . htmlspecialchars(t3lib_div::getIndpEnv('REQUEST_URI')) . '">' .
-				t3lib_iconWorks::getSpriteIcon('actions-system-refresh') . 
+				t3lib_iconWorks::getSpriteIcon('actions-system-refresh') .
 		'</a>';
 
 			// CSH

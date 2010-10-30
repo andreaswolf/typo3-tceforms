@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Sebastian Kurfuerst <sebastian@typo3.org>
+*  (c) 2010 Sebastian Kurfürst <sebastian@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,7 +28,7 @@
 /**
  * Ext Direct API Generator
  *
- * @author	Sebastian Kurfuerst <sebastian@typo3.org>
+ * @author	Sebastian Kurfürst <sebastian@typo3.org>
  * @author	Stefan Galinski <stefan.galinski@gmail.com>
  * @package	TYPO3
  */
@@ -73,7 +73,9 @@ class t3lib_extjs_ExtDirectApi {
 
 			// look up into the cache
 		$cacheIdentifier = 'ExtDirectApi';
-		$cacheHash = md5($cacheIdentifier . $filterNamespace . serialize($this->settings));
+		$cacheHash = md5($cacheIdentifier . $filterNamespace .
+			serialize($this->settings) . TYPO3_MODE);
+		
 			// with no_cache always generate the javascript content
 		$cacheContent = $noCache ? '' : t3lib_pageSelect::getHash($cacheHash);
 
@@ -168,7 +170,7 @@ class t3lib_extjs_ExtDirectApi {
 
 				if (!isset($javascriptNamespaces[$javascriptNamespace])) {
 					$javascriptNamespaces[$javascriptNamespace] = array(
-						'url' => t3lib_div::locationHeaderUrl('ajax.php?ajaxID=ExtDirect::route&namespace=') . rawurlencode($javascriptNamespace),
+						'url' => $this->getRoutingUrl($javascriptNamespace),
 						'type' => 'remoting',
 						'actions' => array(),
 						'namespace' => $javascriptNamespace
@@ -194,10 +196,28 @@ class t3lib_extjs_ExtDirectApi {
 
 		return $javascriptNamespaces;
 	}
+
+	/**
+	 * Returns the convenient path for the routing Urls based on the TYPO3 mode.
+	 *
+	 * @param string $namespace
+	 * @return string
+	 */
+	public function getRoutingUrl($namespace) {
+		$url = '';
+		if (TYPO3_MODE === 'FE') {
+			$url = t3lib_div::locationHeaderUrl('?eID=ExtDirect&action=route&namespace=');
+		} else {
+			$url = t3lib_div::locationHeaderUrl('ajax.php?ajaxID=ExtDirect::route&namespace=');
+		}
+		$url .= rawurlencode($namespace);
+
+		return $url;
+	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_extjs_extdirectapi.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_extjs_extdirectapi.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/extjs/class.t3lib_extjs_extdirectapi.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/extjs/class.t3lib_extjs_extdirectapi.php']);
 }
 
 ?>

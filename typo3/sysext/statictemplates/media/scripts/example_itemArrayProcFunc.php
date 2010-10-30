@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,10 +29,10 @@
  * Used in the "testsite" package
  *
  * $Id: example_itemArrayProcFunc.php 5165 2009-03-09 18:28:59Z ohader $
- * Revised for TYPO3 3.6 June/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 
 
@@ -113,8 +113,8 @@ function user_IProcFuncTest($I,$conf)	{
 	if ($conf['debug'])	{
 			// Outputting for debug example:
 		echo 'ITEM: <h2>'.htmlspecialchars($itemRow['uid'].': '.$itemRow['title']).'</h2>';
-		t3lib_div::debug($itemRow);
-		t3lib_div::debug($I);
+		t3lib_utility_Debug::debug($itemRow);
+		t3lib_utility_Debug::debug($I);
 		echo '<hr />';
 	}
 		// Returns:

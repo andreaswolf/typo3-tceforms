@@ -393,13 +393,14 @@ class t3lib_TCEforms_inline {
 		if (!$isVirtualRecord) {
 				// Get configuration:
 			$collapseAll = (isset($config['appearance']['collapseAll']) && $config['appearance']['collapseAll']);
+			$expandAll = (isset($config['appearance']['collapseAll']) && !$config['appearance']['collapseAll']);
 			$ajaxLoad = (isset($config['appearance']['ajaxLoad']) && !$config['appearance']['ajaxLoad']) ? false : true;
 
 			if ($isNewRecord) {
 					// show this record expanded or collapsed
-				$isExpanded = (!$collapseAll ? 1 : 0);
+				$isExpanded = ($expandAll || (!$collapseAll ? 1 : 0));
 			} else {
-				$isExpanded = ($config['renderFieldsOnly'] || (!$collapseAll && $this->getExpandedCollapsedState($foreign_table, $rec['uid'])));
+				$isExpanded = ($config['renderFieldsOnly'] || (!$collapseAll && $this->getExpandedCollapsedState($foreign_table, $rec['uid'])) || $expandAll);
 			}
 				// Render full content ONLY IF this is a AJAX-request, a new record, the record is not collapsed or AJAX-loading is explicitly turned off
 			if ($isNewRecord || $isExpanded || !$ajaxLoad) {
@@ -539,7 +540,7 @@ class t3lib_TCEforms_inline {
 		}
 
 		$altText = t3lib_BEfunc::getRecordIconAltText($rec, $foreign_table);
-		$iconImg = t3lib_iconWorks::getIconImage($foreign_table, $rec, $this->backPath, 'title="' . htmlspecialchars($altText) . '" class="absmiddle" id="' . $objectId . '_icon"');
+		$iconImg = t3lib_iconWorks::getSpriteIconForRecord($foreign_table, $rec, array('title' => htmlspecialchars($altText), 'id' => $objectId . '_icon'));
 		$label = '<span id="' . $objectId . '_label">' . $recTitle . '</span>';
 		if (!$isVirtualRecord) {
 			$iconImg = $this->wrapWithAnchor($iconImg, '#', array('onclick' => $onClick));
@@ -956,7 +957,7 @@ class t3lib_TCEforms_inline {
 	 * @param	string		$objectPrefix: The "path" to the child record to create (e.g. 'data-parentPageId-partenTable-parentUid-parentField-childTable')
 	 * @param	array		$conf: TCA configuration of the parent(!) field
 	 * @return	string		The HTML code for the new record link
-	 * @deprecated	since TYPO3 4.2.0-beta1, this function will be removed in TYPO3 4.5.
+	 * @deprecated	since TYPO3 4.2.0-beta1, this function will be removed in TYPO3 4.6.
 	 */
 	function getNewRecordLink($objectPrefix, $conf = array()) {
 		t3lib_div::logDeprecatedFunction();
@@ -1109,7 +1110,7 @@ class t3lib_TCEforms_inline {
 	 * @param	string		$method: Name of the method to be called
 	 * @param	array		$arguments: Arguments to be delivered to the method
 	 * @return	void
-	 * @deprecated	since TYPO3 4.2.0-alpha3, this function will be removed in TYPO3 4.5.
+	 * @deprecated	since TYPO3 4.2.0-alpha3, this function will be removed in TYPO3 4.6.
 	 */
 	function initForAJAX($method, &$arguments) {
 		t3lib_div::logDeprecatedFunction();
@@ -1200,9 +1201,6 @@ class t3lib_TCEforms_inline {
 		if($item === false) {
 			return $this->getErrorMessageForAJAX('Access denied');
 		}
-
-			// Encode TCEforms AJAX response with utf-8:
-		$item = $GLOBALS['LANG']->csConvObj->utf8_encode($item, $GLOBALS['LANG']->charSet);
 
 		if (!$current['uid']) {
 			$jsonArray = array(
@@ -1311,9 +1309,6 @@ class t3lib_TCEforms_inline {
 		if($item === false) {
 			return $this->getErrorMessageForAJAX('Access denied');
 		}
-
-			// Encode TCEforms AJAX response with utf-8:
-		$item = $GLOBALS['LANG']->csConvObj->utf8_encode($item, $GLOBALS['LANG']->charSet);
 
 		$jsonArray = array(
 			'data'	=> $item,
@@ -2397,7 +2392,7 @@ class t3lib_TCEforms_inline {
 	 *
 	 * @param	array		$jsonArray: The array (or part of) to be transformed to JSON
 	 * @return	string		If $level>0: part of JSON literal; if $level==0: whole JSON literal wrapped with <script> tags
-	 * @deprecated			Since TYPO3 4.2: Moved to t3lib_div::array2json, will be removed in TYPO3 4.4
+	 * @deprecated			Since TYPO3 4.2: Moved to t3lib_div::array2json, will be removed in TYPO3 4.6
 	 */
 	function getJSON($jsonArray) {
 		t3lib_div::logDeprecatedFunction();

@@ -22,9 +22,7 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-
-require_once(PATH_t3lib . 'cache/backend/class.t3lib_cache_backend_nullbackend.php');
-require_once('backend/class.t3lib_cache_backend_mockbackend.php');
+require_once 'backend/class.t3lib_cache_backend_mockbackend.php';
 
 /**
  * Testcase for the Cache Factory
@@ -45,7 +43,7 @@ class t3lib_cache_FactoryTest extends tx_phpunit_testcase {
 	 * @author Ingo Renner <ingo@typo3.org>
 	 */
 	public function setUp() {
-		$GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheBackends']['t3lib_cache_backend_MockBackend'] = 'typo3_src/tests/t3lib/cache/backend/class.t3lib_cache_backend_mockbackend.php:t3lib_cache_backend_MockBackend';
+		$GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheBackends']['t3lib_cache_backend_MockBackend'] = 't3lib_cache_backend_MockBackend';
 	}
 
 	/**

@@ -2,7 +2,7 @@
 /*************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2009 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,10 +29,10 @@
  * Used specifically for the Web>List module (db_list.php)
  *
  * $Id$
- * Revised for TYPO3 3.6 December/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 December/2003 by Kasper Skårhøj
  * XHTML compliant
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -83,7 +83,7 @@
 /**
  * Class for rendering of Web>List module
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -209,7 +209,7 @@ class localRecordList extends recordList {
 					// Edit
 				$params = '&edit[pages][' . $this->pageRow['uid'] . ']=edit';
 				$buttons['edit'] = '<a href="#" onclick="' . htmlspecialchars(t3lib_BEfunc::editOnClick($params, $this->backPath, -1)) . '" title="' . $LANG->getLL('editPage', TRUE) . '">' .
-									t3lib_iconWorks::getSpriteIcon('actions-document-open') .
+									t3lib_iconWorks::getSpriteIcon('actions-page-open') .
 								'</a>';
 					// Unhide
 				if ($this->pageRow['hidden'])	{
@@ -469,37 +469,23 @@ class localRecordList extends recordList {
 				// Header line is drawn
 			$theData = Array();
 			if ($this->disableSingleTableView)	{
-				$theData[$titleCol] = '<span class="c-table">'.$GLOBALS['LANG']->sL($TCA[$table]['ctrl']['title'],1).'</span> ('.$this->totalItems.')';
+				$theData[$titleCol] = '<span class="c-table">' . t3lib_BEfunc::wrapInHelp($table, '', $GLOBALS['LANG']->sL($TCA[$table]['ctrl']['title'], TRUE)) . '</span> ('.$this->totalItems.')';
 			} else {
 				$theData[$titleCol] = $this->linkWrapTable($table, '<span class="c-table">' . $GLOBALS['LANG']->sL($TCA[$table]['ctrl']['title'], TRUE) . '</span> (' . $this->totalItems . ') ' .
 						($this->table ? t3lib_iconWorks::getSpriteIcon('actions-view-table-collapse', array('title' => $GLOBALS['LANG']->getLL('contractView', TRUE))) : t3lib_iconWorks::getSpriteIcon('actions-view-table-expand', array('title' => $GLOBALS['LANG']->getLL('expandView', TRUE))))
 					);
 			}
 
-				// CSH:
-			$theData[$titleCol].= t3lib_BEfunc::cshItem($table,'',$this->backPath,'',FALSE,'margin-bottom:0px; white-space: normal;');
-
 			if ($listOnlyInSingleTableMode)	{
 				$out.='
 					<tr>
-						<td class="t3-row-header" style="width:95%;">' . $theData[$titleCol] . '</td>
+						<td class="t3-row-header" style="width:95%;">' . t3lib_BEfunc::wrapInHelp($table, '', $theData[$titleCol]) . '</td>
 					</tr>';
-
-				if ($GLOBALS['BE_USER']->uc["edit_showFieldHelp"])	{
-					$GLOBALS['LANG']->loadSingleTableDescription($table);
-					if (isset($GLOBALS['TCA_DESCR'][$table]['columns']['']))	{
-						$onClick = 'vHWin=window.open(\'view_help.php?tfID='.$table.'.\',\'viewFieldHelp\',\'height=400,width=600,status=0,menubar=0,scrollbars=1\');vHWin.focus();return false;';
-						$out.='
-					<tr>
-						<td class="c-tableDescription">'.t3lib_BEfunc::helpTextIcon($table,'',$this->backPath,TRUE).$GLOBALS['TCA_DESCR'][$table]['columns']['']['description'].'</td>
-					</tr>';
-					}
-				}
 			} else {
 				// Render collapse button if in multi table mode
 				$collapseIcon = '';
 				if (!$this->table) {
-					$collapseIcon = '<a href="' . htmlspecialchars($this->listURL()) . '&collapse[' . $table . ']=' . ($tableCollapsed ? '0' : '1') . '" title="' . ($tableCollapsed ? $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.expandTable', TRUE) : $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.collapseTable', TRUE)) . '">' .
+					$collapseIcon = '<a href="' . htmlspecialchars($this->listURL() . '&collapse[' . $table . ']=' . ($tableCollapsed ? '0' : '1')) . '" title="' . ($tableCollapsed ? $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.expandTable', TRUE) : $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.collapseTable', TRUE)) . '">' .
 							($tableCollapsed ? t3lib_iconWorks::getSpriteIcon('actions-view-list-expand', array('class' => 'collapseIcon')) : t3lib_iconWorks::getSpriteIcon('actions-view-list-collapse', array('class' => 'collapseIcon'))) .
 						'</a>';
 				}
@@ -593,8 +579,7 @@ class localRecordList extends recordList {
 
 					// Record navigation is added to the beginning and end of the table if in single table mode
 				if ($this->table) {
-					$pageNavigation = $this->renderListNavigation();
-					$iOut = $pageNavigation . $iOut . $pageNavigation;
+					$iOut = $this->renderListNavigation('top') . $iOut . $this->renderListNavigation('bottom');
 				} else {
 						// show that there are more records than shown
 					if ($this->totalItems > $this->itemsLimitPerTable) {
@@ -682,7 +667,6 @@ class localRecordList extends recordList {
 
 				// The icon with link
 			$alttext = t3lib_BEfunc::getRecordIconAltText($row,$table);
-			//$iconImg = t3lib_iconWorks::getIconImage($table,$row,$this->backPath,'title="'.htmlspecialchars($alttext).'"'.);
 			$iconImg = t3lib_iconWorks::getSpriteIconForRecord($table, $row, array('title' => htmlspecialchars($alttext), 'style' => ($indent ? ' margin-left: ' . $indent . 'px;' : '')));
 
 
@@ -733,7 +717,9 @@ class localRecordList extends recordList {
 				} else {
 					$tmpProc = t3lib_BEfunc::getProcessedValueExtra($table, $fCol, $row[$fCol], 100, $row['uid']);
 					$theData[$fCol] = $this->linkUrlMail(htmlspecialchars($tmpProc), $row[$fCol]);
-					$row[$fCol] = $tmpProc;
+					if ($this->csvOutput) {
+						$row[$fCol] = t3lib_BEfunc::getProcessedValueExtra($table, $fCol, $row[$fCol], 0, $row['uid']);
+					}
 				}
 			}
 
@@ -772,7 +758,7 @@ class localRecordList extends recordList {
 	 * @param	integer		Uid of current record
 	 * @return	void
 	 *
-	 * @deprecated since 4.4: Use getReferenceCount instead
+	 * @deprecated since 4.4, will be removed in TYPO3 4.6 - Use getReferenceCount instead
 	 */
 	function setReferences($table, $uid) {
 		t3lib_div::logDeprecatedFunction();
@@ -1001,10 +987,11 @@ class localRecordList extends recordList {
 	/**
 	 * Creates a page browser for tables with many records
 	 *
+	 * @param	string		Distinguish between 'top' and 'bottom' part of the navigation (above or below the records)
 	 * @return	string	Navigation HTML
 	 *
 	 */
-	protected function renderListNavigation() {
+	protected function renderListNavigation($renderPart = 'top') {
 		$totalPages = ceil($this->totalItems / $this->iLimit);
 
 		$content = '';
@@ -1060,18 +1047,17 @@ class localRecordList extends recordList {
 			}
 
 			$reload = '<a href="#" onclick="document.dblistForm.action=\''
-				. $listURL . '&pointer=\'+calculatePointer(); document.dblistForm.submit(); return true;" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:reload', TRUE) . '">' .
+				. $listURL . '&pointer=\'+calculatePointer(document.getElementById(\'jumpPage-' . $renderPart .'\').value); document.dblistForm.submit(); return true;" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:reload', TRUE) . '">' .
 					t3lib_iconWorks::getSpriteIcon('actions-system-refresh') .
 				'</a>';
 
-			// Add js to traverse a page select input to a pointer value
-			$content = '
+			if ($renderPart === 'top') {
+					// Add js to traverse a page select input to a pointer value
+				$content = '
 <script type="text/JavaScript">
 /*<![CDATA[*/
 
-	function calculatePointer(){
-		page = document.getElementById(\'jumpPage\').value;
-
+	function calculatePointer(page) {
 		if (page > ' . $totalPages . ') {
 			page = ' . $totalPages . ';
 		}
@@ -1088,10 +1074,10 @@ class localRecordList extends recordList {
 /*]]>*/
 </script>
 ';
-
+			}
 			$pageNumberInput = '<span>
 				<input type="text" value="' . $currentPage
-				. '" size="3" id="jumpPage" name="jumpPage" onkeyup="if (event.keyCode == Event.KEY_RETURN) { document.dblistForm.action=\'' . $listURL . '&pointer=\'+calculatePointer(); document.dblistForm.submit(); } return true;" />
+				. '" size="3" id="jumpPage-' . $renderPart . '" name="jumpPage-' . $renderPart . '" onkeyup="if (event.keyCode == Event.KEY_RETURN) { document.dblistForm.action=\'' . $listURL . '&pointer=\'+calculatePointer(this.value); document.dblistForm.submit(); } return true;" />
 				</span>';
 			$pageIndicator = '<span class="pageIndicator">'
 				. sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_mod_web_list.xml:pageIndicator'), $pageNumberInput, $totalPages)
@@ -1214,7 +1200,7 @@ class localRecordList extends recordList {
 							$versionIcon = count($vers) - 1;
 						}
 
-						$cells['version']='<a href="'.htmlspecialchars($this->backPath.t3lib_extMgm::extRelPath('version')).'cm1/index.php?table='.rawurlencode($table).'&uid='.rawurlencode($row['uid']).'" title="'.$LANG->getLL('displayVersions', TRUE) . '">' .
+						$cells['version'] = '<a href="' . htmlspecialchars($this->backPath . t3lib_extMgm::extRelPath('version') . 'cm1/index.php?table=' . rawurlencode($table) . '&uid=' . rawurlencode($row['uid'])) . '" title="' . $LANG->getLL('displayVersions', TRUE) . '">' .
 								t3lib_iconWorks::getSpriteIcon('status-version-' . $versionIcon) .
 								'</a>';
 					} elseif(!$this->table) {
@@ -1346,7 +1332,7 @@ class localRecordList extends recordList {
 		/**
 		 * @hook			recStatInfoHooks: Allows to insert HTML before record icons on various places
 		 * @date			2007-09-22
-		 * @request		Kasper Skaarhoj  <kasper2007@typo3.com>
+		 * @request		Kasper Skårhøj  <kasper2007@typo3.com>
 		 */
 		if (is_array($TYPO3_CONF_VARS['SC_OPTIONS']['GLOBAL']['recStatInfoHooks']))	{
 			$stat='';
@@ -1474,7 +1460,7 @@ class localRecordList extends recordList {
 	 * @param	integer		UID of record
 	 * @return	string		HTML-table
 	 *
-	 * @deprecated since 4.4: Use getReferenceHTML() instead
+	 * @deprecated since 4.4, will be removed in TYPO3 4.6 - Use getReferenceHTML() instead
 	 */
 	function makeRef($table,$uid)	{
 		t3lib_div::logDeprecatedFunction();
@@ -1569,9 +1555,10 @@ class localRecordList extends recordList {
 			$lNew = '';
 			foreach($this->pageOverlays as $lUid_OnPage => $lsysRec)	{
 				if (!isset($translations['translations'][$lUid_OnPage]) && $GLOBALS['BE_USER']->checkLanguageAccess($lUid_OnPage))	{
-					$href = $this->backPath . $GLOBALS['TBE_TEMPLATE']->issueCommand(
-						'&cmd['.$table.']['.$row['uid'].'][localize]='.$lUid_OnPage,
-						$this->listURL().'&justLocalized='.rawurlencode($table.':'.$row['uid'].':'.$lUid_OnPage)
+					$url = substr($this->listURL(), strlen($this->backPath));
+					$href = $GLOBALS['SOBE']->doc->issueCommand(
+						'&cmd[' . $table . '][' . $row['uid'] . '][localize]=' . $lUid_OnPage,
+						$url . '&justLocalized=' . rawurlencode($table . ':' . $row['uid'] . ':' . $lUid_OnPage)
 					);
 					$language = t3lib_BEfunc::getRecord('sys_language', $lUid_OnPage, 'title');
 					$lC = ($this->languageIconTitles[$lUid_OnPage]['flagIcon'] ? '<img src="'.$this->languageIconTitles[$lUid_OnPage]['flagIcon'].'" class="absmiddle" alt="" />' : $this->languageIconTitles[$lUid_OnPage]['title']);

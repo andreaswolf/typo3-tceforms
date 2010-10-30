@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasper@typo3.com)
-*  (c) 2005-2010 Stanislas Rolland <stanislas.rolland(arobas)fructifor.ca>
+*  (c) 1999-2010 Kasper Skårhøj (kasper@typo3.com)
+*  (c) 2005-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,8 +28,8 @@
 /**
  * User defined content for htmlArea RTE
  *
- * @author	Kasper Skaarhoj <kasper@typo3.com>
- * @author	Stanislas Rolland <stanislas.rolland(arobas)fructifor.ca>
+ * @author	Kasper Skårhøj <kasper@typo3.com>
+ * @author	Stanislas Rolland <typo3(arobas)sjbr.ca>
  *
  * $Id$  *
  */
@@ -39,7 +39,6 @@ unset($MCONF);
 require('conf.php');
 require($BACK_PATH.'init.php');
 require($BACK_PATH.'template.php');
-require_once('class.tx_rtehtmlarea_user.php');
 $LANG->includeLLFile('EXT:rtehtmlarea/mod5/locallang.xml');
 $LANG->includeLLFile('EXT:rtehtmlarea/htmlarea/locallang_dialogs.xml');
 

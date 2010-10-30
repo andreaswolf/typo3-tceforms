@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 2004-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,7 +30,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @deprecated since TYPO3 4.3, this class will be removed in TYPO3 4.5, it has been integrated to extension DBAL.
  */
 /**
@@ -97,7 +97,7 @@
  * Basically this is trying to emulation SQL record selection by PHP, thus allowing SQL queries into alternative data storages managed by PHP.
  * EXPERIMENTAL!
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -114,6 +114,12 @@ class t3lib_sqlengine extends t3lib_sqlparser {
 
 
 
+	/**
+	 * Constrcutor
+	 */
+	function __construct() {
+		t3lib_div::deprecationLog("Class t3lib_sqlengine is deprecated since TYPO3 4.3, will be removed in TYPO3 4.6, it has been integrated to extension DBAL.");
+	}
 
 
 	/**
@@ -823,7 +829,7 @@ class t3lib_sqlengine extends t3lib_sqlparser {
 /**
  * PHP SQL engine, result object
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -835,6 +841,12 @@ class t3lib_sqlengine_resultobj {
 	var $TYPO3_DBAL_handlerType = '';
 	var $TYPO3_DBAL_tableList = '';
 
+	/**
+	 * Constrcutor
+	 */
+	function __construct() {
+		t3lib_div::deprecationLog("Class t3lib_sqlengine_resultobj is deprecated since TYPO3 4.3, will be removed in TYPO3 4.6, it has been integrated to extension DBAL.");
+	}
 
 	/**
 	 * Counting number of rows

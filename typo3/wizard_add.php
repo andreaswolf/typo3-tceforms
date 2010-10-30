@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Wizard to add new records to a group/select TCEform formfield
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -67,7 +67,7 @@ $LANG->includeLLFile('EXT:lang/locallang_wizards.xml');
 /**
  * Script Class for adding new items to a group/select field. Performs proper redirection as needed.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -122,7 +122,7 @@ class SC_wizard_add {
 
 			// Return if new record as parent (not possibly/allowed)
 		if (!strcmp($this->pid,''))	{
-			t3lib_utility_Http::redirect($this->P['returnUrl']);
+			t3lib_utility_Http::redirect(t3lib_div::sanitizeLocalUrl($this->P['returnUrl']));
 		}
 
 			// Else proceed:
@@ -218,7 +218,7 @@ class SC_wizard_add {
 				}
 			}
 				// Return to the parent alt_doc.php record editing session:
-			t3lib_utility_Http::redirect($this->P['returnUrl']);
+			t3lib_utility_Http::redirect(t3lib_div::sanitizeLocalUrl($this->P['returnUrl']));
 		} else {
 				// Redirecting to alt_doc.php with instructions to create a new record
 				// AND when closing to return back with information about that records ID etc.

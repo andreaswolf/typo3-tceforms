@@ -208,7 +208,7 @@ class Tx_Extbase_Persistence_Repository implements Tx_Extbase_Persistence_Reposi
 		$result = $this->createQuery()->execute();
 		return $result;
 	}
-	
+
 	/**
 	 * Returns the total number objects of this repository.
 	 *
@@ -218,7 +218,7 @@ class Tx_Extbase_Persistence_Repository implements Tx_Extbase_Persistence_Reposi
 	public function countAll() {
 		return $this->createQuery()->count();
 	}
-	
+
 	/**
 	 * Removes all objects of this repository as if remove() was called for
 	 * all of them.
@@ -246,6 +246,7 @@ class Tx_Extbase_Persistence_Repository implements Tx_Extbase_Persistence_Reposi
 		} else {
 			$query = $this->createQuery();
 			$query->getQuerySettings()->setRespectSysLanguage(FALSE);
+			$query->getQuerySettings()->setRespectStoragePage(FALSE);
 			$result = $query->matching($query->equals('uid', $uid))->execute();
 			$object = NULL;
 			if (count($result) > 0) {

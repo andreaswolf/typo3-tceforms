@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Generate a page-tree, browsable.
  *
  * $Id$
- * Revised for TYPO3 3.6 November/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @coauthor	René Fritz <r.fritz@colorcube.de>
  */
 /**
@@ -64,8 +64,8 @@
 /**
  * Extension class for the t3lib_treeView class, specially made for browsing pages
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
- * @coauthor	Ren� Fritz <r.fritz@colorcube.de>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
+ * @coauthor	René Fritz <r.fritz@colorcube.de>
  * @see t3lib_treeView, t3lib_pageTree
  * @package TYPO3
  * @subpackage t3lib
@@ -160,9 +160,9 @@ class t3lib_browseTree extends t3lib_treeView {
 		$title = parent::getTitleStr($row,$titleLen);
 		if (isset($row['is_siteroot']) && $row['is_siteroot'] != 0 && $GLOBALS['BE_USER']->getTSConfigVal('options.pageTree.showDomainNameWithTitle')) {
 			$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('domainName,sorting', 'sys_domain',
-						'pid=' . $GLOBALS['TYPO3_DB']->quoteStr($row['uid'], 'sys_domain'), '', 'sorting', 1);
+						'pid=' . $GLOBALS['TYPO3_DB']->quoteStr($row['uid'] . t3lib_BEfunc::deleteClause('sys_domain') . t3lib_BEfunc::BEenableFields('sys_domain'), 'sys_domain'), '', 'sorting', 1);
 			if (is_array($rows) && count($rows) > 0) {
-				$title = sprintf('%s [%s]', $title, $rows[0]['domainName']);
+				$title = sprintf('%s [%s]', $title, htmlspecialchars($rows[0]['domainName']));
 			}
 		}
 		return $title;
@@ -183,7 +183,7 @@ class t3lib_browseTree extends t3lib_treeView {
 							</span>';
 		}
 		return $str;
-	}		
+	}
 }
 
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_browsetree.php'])	{

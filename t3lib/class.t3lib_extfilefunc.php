@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * extending class to class t3lib_basicFileFunctions
  *
  * $Id$
- * Revised for TYPO3 3.6 May/2004 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 May/2004 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -98,7 +98,7 @@
  * You should never mount a ftp_space 'below' the webspace so that it reaches into the webspace. This is because if somebody unzips a zip-file in the ftp-space so that it reaches out into the webspace this will be a violation of the safety
  * For example this is a bad idea: you have an ftp-space that is '/www/' and a web-space that is '/www/htdocs/'
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -275,6 +275,19 @@ class t3lib_extFileFunctions extends t3lib_basicFileFunctions	{
 							case 'unzip':
 								$result[$action][] = $this->func_unzip($cmdArr);
 							break;
+						}
+
+							// Hook for post-processing the action
+						if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_extfilefunc.php']['processData'])) {
+							foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_extfilefunc.php']['processData'] as $classRef) {
+								$hookObject = t3lib_div::getUserObj($classRef);
+				
+								if (!($hookObject instanceof t3lib_extFileFunctions_processDataHook)) {
+									throw new UnexpectedValueException('$hookObject must implement interface t3lib_extFileFunctions_processDataHook', 1279719168);
+								}
+				
+								$hookObject->processData_postProcessAction($action, $cmdArr, $result[$action], $this);
+							}
 						}
 					}
 				}
@@ -735,7 +748,7 @@ class t3lib_extFileFunctions extends t3lib_basicFileFunctions	{
 											$this->writelog(8,0,1,'File created: "%s"',Array($fI['file']));
 											return $theNewFile;
 										} else $this->writelog(8,1,100,'File "%s" was not created! Write-permission problem in "%s"?',Array($fI['file'], $theTarget));
-									} else $this->writelog(8,1,107,'Fileextension "%s" is not a textfile format! (%s)',Array($fI['fileext'], $extList));
+									} else $this->writelog(8,1,107,'File extension "%s" is not a textfile format! (%s)',Array($fI['fileext'], $extList));
 								} else $this->writelog(8,1,106,'Extension of file name "%s" was not allowed!',Array($fI['file']));
 							} else $this->writelog(8,1,101,'File "%s" existed already!',Array($theNewFile));
 						} else $this->writelog(8,1,102,'Destination path "%s" was not within your mountpoints!',Array($theTarget.'/'));
@@ -770,7 +783,7 @@ class t3lib_extFileFunctions extends t3lib_basicFileFunctions	{
 								$this->writelog(9,0,1,'File saved to "%s", bytes: %s, MD5: %s ',Array($fileInfo['file'],@filesize($theTarget),md5($content)));
 								return TRUE;
 							} else $this->writelog(9,1,100,'File "%s" was not saved! Write-permission problem in "%s"?',Array($theTarget,$fileInfo['path']));
-						} else $this->writelog(9,1,102,'Fileextension "%s" is not a textfile format! (%s)',Array($fI['fileext'], $extList));
+						} else $this->writelog(9,1,102,'File extension "%s" is not a textfile format! (%s)',Array($fI['fileext'], $extList));
 					} else $this->writelog(9,1,103,'Extension of file name "%s" was not allowed!',Array($fI['file']));
 				} else $this->writelog(9,1,104,'You are not allowed to edit files!','');
 			} else $this->writelog(9,1,121,'Destination path "%s" was not within your mountpoints!',Array($fileInfo['path']));
@@ -844,7 +857,7 @@ class t3lib_extFileFunctions extends t3lib_basicFileFunctions	{
 								return TRUE;
 							} else $this->writelog(7,1,100,'File "%s" or destination "%s" was not within your mountpoints!',Array($theFile,$theDest));
 						} else $this->writelog(7,1,101,'You don\'t have full access to the destination directory "%s"!',Array($theDest));
-					} else $this->writelog(7,1,102,'Fileextension is not "zip"','');
+					} else $this->writelog(7,1,102,'File extension is not "zip"','');
 				} else $this->writelog(7,1,103,'You are not allowed to unzip files','');
 			} else $this->writelog(7,2,104,'Destination "%s" was not a directory',Array($cmds['target']));
 		} else $this->writelog(7,2,105,'The file "%s" did not exist!',Array($theFile));

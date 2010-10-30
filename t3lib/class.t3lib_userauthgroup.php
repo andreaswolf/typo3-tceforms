@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Contains an extension class specifically for authentication/initialization of backend users in TYPO3
  *
  * $Id$
- * Revised for TYPO3 3.6 July/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -126,7 +126,7 @@
  * Actually this class is extended again by t3lib_beuserauth which is the actual backend user class that will be instantiated.
  * In fact the two classes t3lib_beuserauth and this class could just as well be one, single class since t3lib_userauthgroup is not - to my knowledge - used separately elsewhere. But for historical reasons they are two separate classes.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -267,9 +267,8 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 				}
 			}
 		}
-		if ($exitOnError)	{
-			t3lib_BEfunc::typo3PrintError ('Access Error','This page is not within your DB-mounts',0);
-			exit;
+		if ($exitOnError) {
+			throw new RuntimeException('Access Error: This page is not within your DB-mounts');
 		}
 	}
 
@@ -282,9 +281,8 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	 */
 	function modAccess($conf,$exitOnError)	{
 		if (!t3lib_BEfunc::isModuleSetInTBE_MODULES($conf['name']))	{
-			if ($exitOnError)	{
-				t3lib_BEfunc::typo3PrintError ('Fatal Error','This module "'.$conf['name'].'" is not enabled in TBE_MODULES',0);
-				exit;
+			if ($exitOnError) {
+				throw new RuntimeException('Fatal Error: This module "'.$conf['name'].'" is not enabled in TBE_MODULES');
 			}
 			return FALSE;
 		}
@@ -296,9 +294,8 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 				($this->workspace>0 && t3lib_div::inList($conf['workspaces'],'custom')))	{
 					// ok, go on...
 			} else {
-				if ($exitOnError)	{
-					t3lib_BEfunc::typo3PrintError ('Workspace Error','This module "'.$conf['name'].'" is not available under the current workspace',0);
-					exit;
+				if ($exitOnError) {
+					throw new RuntimeException('Workspace Error: This module "'.$conf['name'].'" is not available under the current workspace');
 				}
 				return FALSE;
 			}
@@ -312,9 +309,10 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			$acs = $this->check('modules',$conf['name']);
 		}
 		if (!$acs && $exitOnError)	{
-			t3lib_BEfunc::typo3PrintError ('Access Error','You don\'t have access to this module.',0);
-			exit;
-		} else return $acs;
+			throw new RuntimeException('Access Error: You don\'t have access to this module.');
+		} else {
+			return $acs;
+		}
 	}
 
 	/**
@@ -1568,7 +1566,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	 */
 	function checkWorkspace($wsRec,$fields='uid,title,adminusers,members,reviewers,publish_access,stagechg_notification')	{
 		$retVal = FALSE;
-		
+
 			// Show draft workspace only if it's enabled in version extension
 		if (t3lib_extMgm::isLoaded('version')) {
 			$versionExtConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['version']);
@@ -1576,15 +1574,15 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 				if (!is_array($wsRec)) {
 					if ((string) $wsRec === '-1') {
 						return FALSE;
-					} 
+					}
 				} else {
 					if ((string) $wsRec['uid'] === '-1') {
 						return FALSE;
-					} 
+					}
 				}
-			} 
-		} 
-		
+			}
+		}
+
 			// If not array, look up workspace record:
 		if (!is_array($wsRec))	{
 			switch((string)$wsRec)	{

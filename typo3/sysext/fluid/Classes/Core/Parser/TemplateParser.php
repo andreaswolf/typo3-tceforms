@@ -23,9 +23,6 @@
 /**
  * Template parser building up an object syntax tree
  *
- * @version $Id: TemplateParser.php 2046 2010-03-16 10:31:00Z sebastian $
- * @package Fluid
- * @subpackage Core\Parser
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
  */
 class Tx_Fluid_Core_Parser_TemplateParser {
@@ -45,7 +42,7 @@ class Tx_Fluid_Core_Parser_TemplateParser {
 					(?:                                   # Begin tag arguments
 						\s*[a-zA-Z0-9:]+                  # Argument Keys
 						=                                 # =
-						(?:                               # either...
+						(?>                               # either... If we have found an argument, we will not back-track (That does the Atomic Bracket)
 							"(?:\\\"|[^"])*"              # a double-quoted string
 							|\'(?:\\\\\'|[^\'])*\'        # or a single quoted string
 						)\s*                              #
@@ -63,7 +60,27 @@ class Tx_Fluid_Core_Parser_TemplateParser {
 	 *
 	 * @author Sebastian Kurfürst <sebastian@typo3.org>
 	 */
-	public static $SCAN_PATTERN_TEMPLATE_VIEWHELPERTAG = '/^<(?P<NamespaceIdentifier>NAMESPACE):(?P<MethodIdentifier>[a-zA-Z0-9\\.]+)(?P<Attributes>(?:\s*[a-zA-Z0-9:]+=(?:"(?:\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\')\s*)*)\s*(?P<Selfclosing>\/?)>$/';
+	public static $SCAN_PATTERN_TEMPLATE_VIEWHELPERTAG = '/
+		^<                                                # A Tag begins with <
+		(?P<NamespaceIdentifier>NAMESPACE):               # Then comes the Namespace prefix followed by a :
+		(?P<MethodIdentifier>                             # Now comes the Name of the ViewHelper
+			[a-zA-Z0-9\\.]+
+		)
+		(?P<Attributes>                                   # Begin Tag Attributes
+			(?:                                           # A tag might have multiple attributes
+				\s*
+				[a-zA-Z0-9:]+                             # The attribute name
+				=                                         # =
+				(?>                                       # either... # If we have found an argument, we will not back-track (That does the Atomic Bracket)
+					"(?:\\\"|[^"])*"                      # a double-quoted string
+					|\'(?:\\\\\'|[^\'])*\'                # or a single quoted string
+				)                                         #
+				\s*
+			)*                                            # A tag might have multiple attributes
+		)                                                 # End Tag Attributes
+		\s*
+		(?P<Selfclosing>\/?)                              # A tag might be selfclosing
+		>$/x';
 
 	/**
 	 * This regular expression scans if the input string is a closing ViewHelper
@@ -78,7 +95,21 @@ class Tx_Fluid_Core_Parser_TemplateParser {
 	 *
 	 * @author Sebastian Kurfürst <sebastian@typo3.org>
 	 */
-	public static $SPLIT_PATTERN_TAGARGUMENTS = '/(?:\s*(?P<Argument>[a-zA-Z0-9:]+)=(?:(?P<ValueQuoted>(?:"(?:\\\"|[^"])*")|(?:\'(?:\\\\\'|[^\'])*\')))\s*)/';
+	public static $SPLIT_PATTERN_TAGARGUMENTS = '/
+		(?:                                              #
+			\s*                                          #
+			(?P<Argument>                                # The attribute name
+				[a-zA-Z0-9:]+                            #
+			)                                            #
+			=                                            # =
+			(?>                                          # If we have found an argument, we will not back-track (That does the Atomic Bracket)
+				(?P<ValueQuoted>                         # either...
+					(?:"(?:\\\"|[^"])*")                 # a double-quoted string
+					|(?:\'(?:\\\\\'|[^\'])*\')           # or a single quoted string
+				)
+			)\s*
+		)
+		/xs';
 
 	/**
 	 * This pattern detects CDATA sections and outputs the text between opening
@@ -237,7 +268,7 @@ class Tx_Fluid_Core_Parser_TemplateParser {
 	);
 
 	/**
-	 * @var \Tx_Fluid_Compatibility_ObjectManager
+	 * @var Tx_Fluid_Compatibility_ObjectManager
 	 */
 	protected $objectManager;
 
@@ -269,7 +300,7 @@ class Tx_Fluid_Core_Parser_TemplateParser {
 
 	/**
 	 * Set the configuration for the parser.
-	 *h
+	 *
 	 * @param Tx_Fluid_Core_Parser_Configuration $configuration
 	 * @return void
 	 * @author Karsten Dambekalns <karsten@typo3.org>

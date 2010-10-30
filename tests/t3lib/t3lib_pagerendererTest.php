@@ -32,6 +32,22 @@
  * @author Steffen Kamper (info@sk-typo3.de)
  */
 class t3lib_PageRendererTest extends tx_phpunit_testcase {
+
+	/**
+	 * Enable backup of global and system variables
+	 *
+	 * @var boolean
+	 */
+	protected $backupGlobals = TRUE;
+
+	/**
+	 * Exclude TYPO3_DB from backup/ restore of $GLOBALS
+	 * because resource types cannot be handled during serializing
+	 *
+	 * @var array
+	 */
+	protected $backupGlobalsBlacklist = array('TYPO3_DB');
+
 	/**
 	 * @var t3lib_PageRenderer
 	 */
@@ -39,7 +55,7 @@ class t3lib_PageRendererTest extends tx_phpunit_testcase {
 
 	public function setUp() {
 		$this->fixture = new t3lib_PageRenderer();
-		$this->fixture->setCharSet('utf-8');
+		$this->fixture->setCharSet($GLOBALS['LANG']->charSet);
 	}
 
 	public function tearDown() {
@@ -433,7 +449,74 @@ class t3lib_PageRendererTest extends tx_phpunit_testcase {
 	 *
 	 * @test
 	 */
-	public function isScriptaculousLoadedCompressed() {
+	public function isScriptaculousLoadedCompressedIfConfiguredAndClientIsCapable() {
+		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip,deflate';
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['compressionLevel'] = '5';
+
+		$this->fixture->loadScriptaculous('slider,controls');
+		$this->fixture->enableCompressJavascript();
+		$out = $this->fixture->render();
+
+		$this->assertRegExp(
+			'#<script src="[^"]*/typo3temp/compressor/scriptaculous-[a-f0-9]+.js.gzip" type="text/javascript"></script>#',
+			$out
+		);
+		$this->assertRegExp(
+			'#<script src="[^"]*/typo3temp/compressor/effects-[a-f0-9]+.js.gzip" type="text/javascript"></script>#',
+			$out
+		);
+		$this->assertRegExp(
+			'#<script src="[^"]*/typo3temp/compressor/controls-[a-f0-9]+.js.gzip" type="text/javascript"></script>#',
+			$out
+		);
+		$this->assertRegExp(
+			'#<script src="[^"]*/typo3temp/compressor/slider-[a-f0-9]+.js.gzip" type="text/javascript"></script>#',
+			$out
+		);
+	}
+
+	/**
+	 * Tests whether scriptaculous is correctly loaded, but without compression
+	 * if the browser did not send the appropriate headers.
+	 *
+	 * @test
+	 */
+	public function isScriptaculousNotLoadedCompressedIfClientCannotHandleCompression() {
+		$_SERVER['HTTP_ACCEPT_ENCODING'] = '';
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['compressionLevel'] = '5';
+
+		$this->fixture->loadScriptaculous('slider,controls');
+		$this->fixture->enableCompressJavascript();
+		$out = $this->fixture->render();
+
+		$this->assertRegExp(
+			'#<script src="[^"]*/typo3temp/compressor/scriptaculous-[a-f0-9]+.js" type="text/javascript"></script>#',
+			$out
+		);
+		$this->assertRegExp(
+			'#<script src="[^"]*/typo3temp/compressor/effects-[a-f0-9]+.js" type="text/javascript"></script>#',
+			$out
+		);
+		$this->assertRegExp(
+			'#<script src="[^"]*/typo3temp/compressor/controls-[a-f0-9]+.js" type="text/javascript"></script>#',
+			$out
+		);
+		$this->assertRegExp(
+			'#<script src="[^"]*/typo3temp/compressor/slider-[a-f0-9]+.js" type="text/javascript"></script>#',
+			$out
+		);
+	}
+
+	/**
+	 * Tests whether scriptaculous is correctly loaded, but without compression
+	 * if no compression is configured.
+	 *
+	 * @test
+	 */
+	public function isScriptaculousNotLoadedCompressedIfCompressionIsNotConfigured() {
+		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip,deflate';
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['compressionLevel'] = '';
+
 		$this->fixture->loadScriptaculous('slider,controls');
 		$this->fixture->enableCompressJavascript();
 		$out = $this->fixture->render();
@@ -689,6 +772,88 @@ class t3lib_PageRendererTest extends tx_phpunit_testcase {
 		$out = $this->fixture->render();
 
 		$this->assertContains($testPrefix . '_\\u00d8', $out);
+	}
+
+	/**
+	 * Tests the addInlineLanguageLabelFile() method.
+	 *
+	 * @test
+	 * @expectedException RuntimeException
+	 */
+	public function areInlineLanguageLabelsNotProcessable() {
+		$this->fixture->setLanguage(NULL);
+		$this->fixture->addInlineLanguageLabelFile(
+			'EXT:lang/locallang_core.xml'
+		);
+		$out = $this->fixture->render();
+	}
+
+	/**
+	 * Tests the addInlineLanguageLabelFile() method.
+	 *
+	 * @test
+	 */
+	public function areInlineLanguageLabelsPassed() {
+		$this->fixture->setLanguage($GLOBALS['LANG']->lang);
+		$this->fixture->addInlineLanguageLabelFile(
+			'EXT:lang/locallang_core.xml'
+		);
+
+		$out = $this->fixture->render();
+
+		$this->assertContains('labels.beUser', $out);
+		$this->assertContains('labels.feUser', $out);
+	}
+
+	/**
+	 * Tests the addInlineLanguageLabelFile() method.
+	 *
+	 * @test
+	 */
+	public function areInlineLanguageLabelsEmptyOnNonExistingFile() {
+		$this->fixture->addInlineLanguageLabelFile(
+			''
+		);
+
+		$inlineLanguageLabelFiles = $this->fixture->getInlineLanguageLabelFiles();
+		$this->assertEquals(array(), $inlineLanguageLabelFiles);
+	}
+
+	/**
+	 * Tests the addInlineLanguageLabelFile() method.
+	 *
+	 * @test
+	 */
+	public function areInlineLanguageLabelsSelected() {
+		$this->fixture->setLanguage($GLOBALS['LANG']->lang);
+		$this->fixture->addInlineLanguageLabelFile(
+			'EXT:lang/locallang_core.xml',
+			'labels.'
+		);
+
+		$out = $this->fixture->render();
+		$this->assertContains('labels.beUser', $out);
+		$this->assertContains('labels.feUser', $out);
+	}
+
+	/**
+	 * Tests the addInlineLanguageLabelFile() method.
+	 *
+	 * @test
+	 */
+	public function areInlineLanguageLabelsSelectedAndStripped() {
+		$this->fixture->setLanguage($GLOBALS['LANG']->lang);
+		$this->fixture->addInlineLanguageLabelFile(
+			'EXT:lang/locallang_core.xml',
+			'labels.',
+			'lock'
+		);
+
+		$out = $this->fixture->render();
+
+		$this->assertContains('edRecord', $out);
+		$this->assertContains('edRecord_content', $out);
+		$this->assertContains('edRecordUser', $out);
 	}
 }
 ?>

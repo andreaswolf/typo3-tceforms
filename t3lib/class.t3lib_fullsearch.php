@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,7 +30,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @coauthor	Jo Hasenau <info@cybercraft.de>
  */
 /**
@@ -81,7 +81,7 @@
  * Class used in module tools/dbint (advanced search) and which may hold code specific for that module
  * However the class has a general principle in it which may be used in the web/export module.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -507,13 +507,12 @@ class t3lib_fullsearch {
 				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
 					if ($first)	{
 						$xmlObj->setRecFields($table,implode(',',array_keys($row)));
-		//				debug($xmlObj->XML_recFields);
 						$first=0;
 					}
 					$valueArray = $row;
 					if ($GLOBALS['SOBE']->MOD_SETTINGS['search_result_labels'])	{
 						foreach ($valueArray as $key => $val)	{
-							$valueArray[$key] = $this->getProcessedValueExtra($table, $key, $val, $conf, ',');
+							$valueArray[$key] = $this->getProcessedValueExtra($table, $key, $val, array(), ',');
 						}
 					}
 					$xmlObj->addRecord($table, $valueArray);
@@ -542,7 +541,7 @@ class t3lib_fullsearch {
 			case 'explain':
 			default:
 				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
-					$out.='<BR>'.t3lib_div::view_array($row);
+					$out .= '<br />' . t3lib_utility_Debug::viewArray($row);
 				}
 				$cPR['header']='Explain SQL query';
 				$cPR['content']=$out;
@@ -849,8 +848,9 @@ class t3lib_fullsearch {
 	 */
 	function makeValueList($fN, $fV, $conf, $table, $splitString) {
 		$fieldSetup = $conf;
+		$out = '';
 		if ($fieldSetup['type'] == 'files') {
-			$d = dir(t3lib_div::getIndpEnv(TYPO3_DOCUMENT_ROOT).'/'.$fieldSetup['uploadfolder']);
+			$d = dir(PATH_site . $fieldSetup['uploadfolder']);
 			while (false !== ($entry = $d->read())) {
 				if ($entry == '.' || $entry == '..') {
 					continue;
@@ -938,7 +938,7 @@ class t3lib_fullsearch {
 								}
 							}
 						}
-						$GLOBALS['TYPO3_DB']->sql_free_result($res);
+						$GLOBALS['TYPO3_DB']->sql_free_result($checkres);
 					}
 				}
 			} else {
@@ -987,6 +987,7 @@ class t3lib_fullsearch {
 					if (!$GLOBALS['BE_USER']->isAdmin() && $GLOBALS['TYPO3_CONF_VARS']['BE']['lockBeUserToDBmounts']) {
 						$webMounts = $GLOBALS['BE_USER']->returnWebmounts();
 						$perms_clause = $GLOBALS['BE_USER']->getPagePermsClause(1);
+						$webMountPageTree = '';
 						foreach($webMounts as $key => $val) {
 							if ($webMountPageTree) {
 								$webMountPageTreePrefix = ',';
@@ -1099,6 +1100,7 @@ class t3lib_fullsearch {
 	 * @return	[type]		...
 	 */
 	function csvRowTitles($row, $conf, $table)	{
+		$out = '';
 		$SET = $GLOBALS['SOBE']->MOD_SETTINGS;
 		foreach ($row as $fN => $fV)	{
 			if (t3lib_div::inList($SET['queryFields'], $fN) || (!$SET['queryFields'] && $fN!='pid'))	{

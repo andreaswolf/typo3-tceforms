@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj <kasperYYYY@typo3.com>
+*  (c) 1999-2010 Kasper Skårhøj <kasperYYYY@typo3.com>
 *  (c) 2008-2010 Benjamin Mack <benni . typo3 . o)rg>
 *  All rights reserved
 *
@@ -31,7 +31,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @author	Benjamin Mack <benni . typo3 . o)rg>
  */
 class tx_simulatestatic {
@@ -107,7 +107,8 @@ class tx_simulatestatic {
 					$message = 'PATH_INFO was not configured for this website, and the URL tries to find the page by PATH_INFO!';
 					header(t3lib_utility_Http::HTTP_STATUS_503);
 					t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-					$parentObject->printError($message.'<br /><br /><a href="' . htmlspecialchars($redirectUrl) . '">Click here to get to the right page.</a>','Error: PATH_INFO not configured');
+					$message = 'Error: PATH_INFO not configured: ' . $message . '<br /><br /><a href="' . htmlspecialchars($redirectUrl) . '">Click here to get to the right page.</a>';
+					throw new RuntimeException($message);
 				}
 			} else {
 				t3lib_utility_Http::redirect($redirectUrl);
@@ -273,9 +274,11 @@ class tx_simulatestatic {
 	 * @param	tslib_fe	Reference to the calling TSFE instance
 	 * @return	string		The body of the filename.
 	 * @see makeSimulatedFileName()
-	 * @deprecated since TYPO3 4.3, will be deleted in TYPO3 4.5
+	 * @deprecated since TYPO3 4.3, will be deleted in TYPO3 4.6
 	 */
 	public function makeSimulatedFileNameCompat(array &$parameters, tslib_fe &$parentObject) {
+		t3lib_div::logDeprecatedFunction();
+
 		return $this->makeSimulatedFileName(
 			$parameters['inTitle'],
 			$parameters['page'],

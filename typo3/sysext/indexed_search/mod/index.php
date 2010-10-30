@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,7 +27,7 @@
 /**
  * Module: Indexing Engine Overview
  *
- * @author	Kasper Sk�rh�j <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -76,7 +76,7 @@ require_once(t3lib_extMgm::extPath('indexed_search') . 'class.indexer.php');
 /**
  * Backend module providing boring statistics of the index-tables.
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tx_indexedsearch
  */
@@ -451,7 +451,7 @@ class SC_mod_tools_isearch_index {
 	function formatCHash($arr)	{
 		$list = array();
 		foreach ($arr as $k => $v) {
-			$list[] = $k . '=' . $v;
+			$list[] = htmlspecialchars($k) . '=' . htmlspecialchars($v);
 		}
 		return implode('<br />', $list);
 	}

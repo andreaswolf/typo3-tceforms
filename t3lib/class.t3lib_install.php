@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,7 +29,7 @@
  *
  * $Id$
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -75,7 +75,7 @@
 /**
  * Class to setup values in localconf.php and verify the TYPO3 DB tables/fields
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
  */
@@ -126,7 +126,7 @@ class t3lib_install {
 	 * @param	array		$line_array	the localconf.php file exploded into an array by linebreaks. (see writeToLocalconf_control())
 	 * @param	string		$variable	The variable name to find and substitute. This string must match the first part of a trimmed line in the line-array. Matching is done backwards so the last appearing line will be substituted.
 	 * @param	string		$value		Is the value to be insert for the variable
-	 * @param	boolean		$quoteValue	Whether the given value should be quoted before being written 
+	 * @param	boolean		$quoteValue	Whether the given value should be quoted before being written
 	 * @return	void
 	 * @see writeToLocalconf_control()
 	 */
@@ -1045,7 +1045,7 @@ class t3lib_install {
 	 *
 	 * @param	string		Should be a string read from an SQL-file made with 'mysqldump [database_name] -d'
 	 * @return	array		Array with information about table.
-	 * @deprecated	since TYPO3 4.2, this function will be removed in TYPO3 4.5, use ->getFieldDefinitions_fileContent() instead!
+	 * @deprecated	since TYPO3 4.2, this function will be removed in TYPO3 4.6, use ->getFieldDefinitions_fileContent() instead!
 	 */
 	function getFieldDefinitions_sqlContent($fileContent)	{
 		t3lib_div::logDeprecatedFunction();

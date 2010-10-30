@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2009 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2009 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,9 +28,9 @@
  * Include file extending t3lib_recordList
  *
  * $Id$
- * Revised for TYPO3 3.6 2/2003 by Kasper Skaarhoj
+ * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
@@ -68,7 +68,7 @@
 /**
  * Class for rendering of File>Filelist
  *
- * @author	Kasper Skaarhoj <kasperYYYY@typo3.com>
+ * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage core
  */
@@ -191,7 +191,7 @@ class fileList extends t3lib_recordList {
 		}
 
 		$buttons['refresh'] = '<a href="'.htmlspecialchars($this->listURL()).'" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.reload', 1) . '">'.
-				t3lib_iconWorks::getSpriteIcon('actions-system-refresh')  . 
+				t3lib_iconWorks::getSpriteIcon('actions-system-refresh')  .
 			'</a>';
 
 		return array($buttons, $otherMarkers);
@@ -472,10 +472,10 @@ class fileList extends t3lib_recordList {
 					$this->totalbytes+=$theFile['size'];
 					$ext = $items['files'][$key][fileext];
 					$icon = t3lib_BEfunc::getFileIcon($ext);
-					
+
 						// The icon with link
 					$theIcon = t3lib_iconWorks::getSpriteIconForFile($theFile['fileext'], array('title' => htmlspecialchars($theFile['file'])));
-					
+
 					if ($this->clickMenus) $theIcon = $GLOBALS['SOBE']->doc->wrapClickMenuOnIcon($theIcon,$theFile['path'].$theFile['file']);
 
 						// 	Preparing and getting the data-array
@@ -512,13 +512,13 @@ class fileList extends t3lib_recordList {
 									$thumbData = array();
 									$theFile_R = rawurlencode($theFile['path'].$theFile['file']);
 									$titleCol = $this->fieldArray[0];
-			
+
 									$theFile_abs = $theFile['path'].$theFile['file'];
 									$check = basename($theFile_abs).':'.filemtime($theFile_abs).':'.$GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'];
 									$params = '&file='.$theFile_R;
 									$params.= '&md5sum='.t3lib_div::shortMD5($check);
 									$href = $this->backPath.$this->thumbScript.'?&dummy='.$GLOBALS['EXEC_TIME'].$params;
-			
+
 									$theData[$field] .= '<br /><img src="'.htmlspecialchars($href).'" hspace="2" title="'.htmlspecialchars(trim($theFile['file'])).'" alt="'.htmlspecialchars(trim($theFile['file'])).'" />';
 								}
 							break;
@@ -565,7 +565,7 @@ class fileList extends t3lib_recordList {
 		} else {
 			$params='&SET[sort]='.$col.'&SET[reverse]=0';
 		}
-		$href = $this->script.'?id='.rawurlencode($path).$params;
+		$href = $GLOBALS['BACK_PATH'] . t3lib_extMgm::extRelPath('filelist') . 'mod1/' . $this->script . '?id=' . rawurlencode($path) . $params;
 		return '<a href="'.htmlspecialchars($href).'">'.$code.'</a>';
 	}
 
@@ -657,7 +657,7 @@ class fileList extends t3lib_recordList {
 		$elFromTable = $this->clipObj->elFromTable('_FILE');
 		if (@is_dir($fullIdent) && count($elFromTable))	{
 			$cells[]='<a href="'.htmlspecialchars($this->clipObj->pasteUrl('_FILE',$fullIdent)).'" onclick="return '.htmlspecialchars($this->clipObj->confirmMsg('_FILE',$fullIdent,'into',$elFromTable)).'" title="' . $GLOBALS['LANG']->getLL('clip_pasteInto', TRUE) . '">'.
-			  t3lib_iconWorks::getSpriteIcon('actions-document-paste-into') . 
+			  t3lib_iconWorks::getSpriteIcon('actions-document-paste-into') .
 			'</a>';
 		}
 
