@@ -54,6 +54,15 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 	 */
 	protected $name = '';
 
+	/**
+	 * The stack of element identifier parts used for creating element identifiers.
+	 *
+	 * This will usually be imploded with a separator to create an identifier.
+	 *
+	 * @var array<string>
+	 */
+	protected $elementIdentifierStack = array();
+
 
 	public function __construct($identString, $header, $name = '') {
 		$this->identString = $identString;
@@ -87,8 +96,25 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 		return $this;
 	}
 
+	/**
+	 * Sets all information that is required for proper element identifier generation.
+	 *
+	 * @param  array $elementIdentifierStack
+	 * @return t3lib_TCEforms_Container_Sheet
+	 */
+	public function setElementIdentifierStack(array $elementIdentifierStack) {
+		$this->elementIdentifierStack = $elementIdentifierStack;
+
+		if ($this->name != '') {
+			$this->elementIdentifierStack[] = $this->name;
+		}
+
+		return $this;
+	}
+
 	public function addChildObject(t3lib_TCEforms_Element $childObject) {
-		$childObject->setContainer($this);
+		$childObject->setElementIdentifierStack($this->elementIdentifierStack)
+		            ->setContainer($this);
 		$this->childObjects[] = $childObject;
 	}
 

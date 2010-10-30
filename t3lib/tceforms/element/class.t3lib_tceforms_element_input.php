@@ -87,10 +87,10 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 			switch ($func) {
 				case 'required':
 					//$this->container->registerRequiredProperty('field', $this->table.'_'.$this->record['uid'].'_'.$this->field, $this->itemFormElName);
-					$this->contextObject->registerRequiredField($this->table.'_'.$this->record['uid'].'_'.$this->field, $this->itemFormElName);
+					$this->contextObject->registerRequiredField($this->table.'_'.$this->record['uid'].'_'.$this->field, $this->formFieldName);
 						// Mark this field for date/time disposal:
 					if (array_intersect($evalList, array('date', 'datetime', 'time'))) {
-						 $this->TCEformsObject->requiredAdditional[$this->itemFormElName]['isPositiveNumber'] = true;
+						 $this->TCEformsObject->requiredAdditional[$this->formFieldName]['isPositiveNumber'] = true;
 					}
 					break;
 				default:
@@ -108,7 +108,7 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 			}
 		}
 
-		$this->paramsList = "'" . $this->itemFormElName . "','" . implode(',', $evalList) . "','" . trim($config['is_in']) . "',".(isset($config['checkbox']) ? 1 : 0) . ",'" . $config['checkbox'] . "'";
+		$this->paramsList = "'" . $this->formFieldName . "','" . implode(',', $evalList) . "','" . trim($config['is_in']) . "',".(isset($config['checkbox']) ? 1 : 0) . ",'" . $config['checkbox'] . "'";
 		if (isset($config['checkbox'])) {
 				// Setting default "click-checkbox" values for eval types "date" and "datetime":
 			$thisMidnight = gmmktime(0,0,0);
@@ -120,7 +120,7 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 				$checkSetValue = gmdate('Y');
 			}
 			$cOnClick = 'typo3form.fieldGet(' . $this->paramsList . ',1,\'' . $checkSetValue . '\');' . implode('', $this->fieldChangeFunc);
-			$item .= '<input type="checkbox" id="' . uniqid('tceforms-check-') . '" class="' . $this->formElStyleClassValue('check', TRUE) . '" name="' . $PA['itemFormElName'] . '_cb" onclick="' . htmlspecialchars($cOnClick) . '" />';
+			$item .= '<input type="checkbox" id="' . uniqid('tceforms-check-') . '" class="' . $this->formElStyleClassValue('check', TRUE) . '" name="' . $this->formFieldName . '_cb" onclick="' . htmlspecialchars($cOnClick) . '" />';
 		}
 		if ((in_array('date', $evalList) || in_array('datetime', $evalList)) && $this->itemFormElValue > 0) {
 				// Add server timezone offset to UTC to our stored date
@@ -132,10 +132,10 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 		$iOnChange = implode('', $fieldChangeFunc);
 
 			// This is the EDITABLE form field.
-		$item.='<input type="text" id="' . $inputId . '" class="' . implode(' ', $cssClasses) . '" name="' . $this->itemFormElName . '_hr" value="" style="' . $cssStyle . '" maxlength="' . $mLgd . '" onchange="' . htmlspecialchars($iOnChange) . '"' . $this->onFocus . ' />';
+		$item.='<input type="text" id="' . $inputId . '" class="' . implode(' ', $cssClasses) . '" name="' . $this->formFieldName . '_hr" value="" style="' . $cssStyle . '" maxlength="' . $mLgd . '" onchange="' . htmlspecialchars($iOnChange) . '"' . $this->onFocus . ' />';
 			// This is the ACTUAL form field - values from the EDITABLE field must be transferred to
 			// this field which is the one that is written to the database.
-		$item.='<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
+		$item.='<input type="hidden" name="'.$this->formFieldName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 		$item .= $fieldAppendix;
 
 		$this->contextObject->addToEvaluationJS('typo3form.fieldSet('.$this->paramsList.');');
@@ -152,11 +152,11 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 		}
 
 			// Creating an alternative item without the JavaScript handlers.
-		$altItem  = '<input type="hidden" name="'.$this->itemFormElName.'_hr" value="" />';
-		$altItem .= '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
+		$altItem  = '<input type="hidden" name="'.$this->formFieldName.'_hr" value="" />';
+		$altItem .= '<input type="hidden" name="'.$this->formFieldName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 
 			// Wrap a wizard around the item?
-		return $this->renderWizards(array($item,$altItem),$config['wizards'],$this->itemFormElName.'_hr',$specConf);
+		return $this->renderWizards(array($item,$altItem),$config['wizards'],$this->formFieldName.'_hr',$specConf);
 	}
 }
 

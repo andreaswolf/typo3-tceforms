@@ -60,6 +60,14 @@ interface t3lib_TCEforms_Context {
 	 * @return boolean
 	 */
 	public function isClickmenuEnabled();
+
+	/**
+	 * Sets the prefix for all element identifiers inside this TCEforms context.
+	 *
+	 * @param  string $elementIdentifierPrefix
+	 * @return t3lib_TCEforms_Context
+	 */
+	public function setElementIdentifierPrefix($elementIdentifierPrefix);
 }
 
 ?>

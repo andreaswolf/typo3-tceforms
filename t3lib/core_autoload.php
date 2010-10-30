@@ -152,6 +152,7 @@ $t3libClasses = array(
 	't3lib_tca_datastructure_sheet' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_sheet.php',
 	't3lib_tca_datastructure_tcaresolver' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_tcaresolver.php',
 	't3lib_tca_datastructure_type' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_type.php',
+	't3lib_tca_record' => PATH_t3lib . 'tca/class.t3lib_tca_record.php',
 	't3lib_tceforms_abstractform' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_abstractform.php',
 	't3lib_tceforms_flexform' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_flexform.php',
 	't3lib_tceforms_flexrecord' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_flexrecord.php',

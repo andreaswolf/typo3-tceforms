@@ -57,6 +57,48 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	}
 
 	/**
+	 * Creates an identifier for an element from a given element identifier stack.
+	 *
+	 * @param  object $object  The element the identifier should be generated for
+	 * @param  string $type  'name': all parts wrapped in []; 'id': elements separated by '-'
+	 * @return string
+	 */
+	public function createElementIdentifier($object, $type) {
+		$elementIdentifier = $this->elementIdentifierPrefix;
+
+		$elementIdentifierStack = $this->elementIdentifierStack;
+		if (is_a($object, 't3lib_TCEforms_Element_Abstract')) {
+			$sheetName = $object->getContainer()->getName();
+			if ($this->localizationMethod == 0) {
+				$languagePart = 'l' . $object->getRecordObject()->getLanguage();
+				$valuePart = 'vDEF';
+			} else {
+				$languagePart = 'lDEF';
+				$valuePart = 'v' . $object->getRecordObject()->getLanguage();
+			}
+			$elementIdentifierStack[] = $sheetName;
+			$elementIdentifierStack[] = $languagePart;
+			$elementIdentifierStack[] = $object->getFieldName();
+			$elementIdentifierStack[] = $valuePart;
+		}
+
+		switch($type) {
+			case 'name':
+				if (count($elementIdentifierStack) > 0) {
+					$elementIdentifier .= '[' . implode('][', $elementIdentifierStack) . ']';
+				}
+
+				break;
+			case 'id':
+				$elementIdentifier .= '-' . implode('-', $elementIdentifierStack);
+
+				break;
+		}
+
+		return $elementIdentifier;
+	}
+
+	/**
 	 * Creates the menu for selection of the sheets:
 	 *
 	 * @param	array		Sheet array for which to render the menu

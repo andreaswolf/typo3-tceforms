@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2008 Kasper Skaarhoj (kasperYYYY@typo3.com)
+*  (c) 1999-2010 Kasper Skaarhoj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -42,36 +42,7 @@ require_once(PATH_t3lib.'tca/class.t3lib_tca_datastructure.php');
  * @subpackage t3lib_TCEforms
  */
 // TODO: add getters for field values, implement ArrayAccess interface
-class t3lib_TCEforms_Record {
-
-	/**
-	 * The table
-	 *
-	 * @var string
-	 */
-	protected $table;
-
-	/**
-	 * The data of the record
-	 *
-	 * @var array
-	 */
-	protected $recordData;
-
-	/**
-	 * The TCA definition for the record
-	 *
-	 * @var array
-	 * @deprecated remove when dataStructure object is used everywhere
-	 */
-	protected $TCAdefinition;
-
-	/**
-	 * The data structure object for the record
-	 *
-	 * @var t3lib_TCA_DataStructure
-	 */
-	protected $dataStructure;
+class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 
 	/**
 	 * An array holding the names of all fields to be rendered
@@ -153,13 +124,6 @@ class t3lib_TCEforms_Record {
 	protected $formFieldIdPrefix;
 
 	/**
-	 *
-	 *
-	 * @var integer
-	 */
-	protected $typeNumber;
-
-	/**
 	 * Holds the numbers of all palettes that objects have been created for. Used to check that no
 	 * fields are double rendered.
 	 *
@@ -168,30 +132,37 @@ class t3lib_TCEforms_Record {
 	protected $createdPalettes = array();
 
 	/**
-	 *
-	 *
-	 * @var t3lib_TCA_DataStructure_Type
-	 */
-	protected $typeConfiguration;
-
-	/**
 	 * @var boolean
 	 */
 	protected $new = FALSE;
 
+	/**
+	 * The SQL clause for read permissions to a record
+	 *
+	 * @var string
+	 */
+	protected $readPermissionsClause;
 
-	public function __construct($table, array $recordData, array $TCAdefinition, t3lib_TCA_DataStructure $dataStructure) {
-		$this->table = $table;
-		$this->recordData = $recordData;
-		$this->TCAdefinition = $TCAdefinition;
-		$this->dataStructure = $dataStructure;
+	/**
+	 * The stack of element identifier parts used for creating element identifiers.
+	 *
+	 * This will usually be imploded with a separator to create an identifier.
+	 *
+	 * @var array<string>
+	 */
+	protected $elementIdentifierStack = array();
+
+
+	/**
+	 * The constructor for this class.
+	 *
+	 * @param string $table The table this record belongs to
+	 * @param array $recordData
+	 * @param t3lib_TCA_DataStructure $dataStructure
+	 */
+	public function __construct($table, array $recordData, t3lib_TCA_DataStructure $dataStructure) {
+		parent::__construct($table, $recordData, $dataStructure);
 		$this->contextRecordObject = $this;
-
-		if (!is_numeric($recordData['uid'])) {
-			$this->new = TRUE;
-		}
-
-		$this->setRecordTypeNumber();
 	}
 
 	public function setContextObject(t3lib_TCEforms_Context $contextObject) {
@@ -214,6 +185,30 @@ class t3lib_TCEforms_Record {
 		return FALSE;
 	}
 
+	/**
+	 * Sets all information that is required for proper element identifier generation.
+	 *
+	 * @param  array $elementIdentifierStack
+	 * @return t3lib_TCEforms_Record
+	 */
+	public function setElementIdentifierStack(array $elementIdentifierStack) {
+		$this->elementIdentifierStack = $elementIdentifierStack;
+
+		$this->elementIdentifierStack[] = $this->getTable();
+		$this->elementIdentifierStack[] = $this->recordData['uid'];
+
+		return $this;
+	}
+
+	/**
+	 * Returns the stack for building element identifiers
+	 *
+	 * @return array<string>
+	 */
+	public function getElementIdentifierStack() {
+		return $this->elementIdentifierStack;
+	}
+
 	public function init() {
 		$this->formBuilder = t3lib_TCEforms_Formbuilder::createInstanceForRecordObject($this);
 
@@ -223,9 +218,13 @@ class t3lib_TCEforms_Record {
 		$this->formBuilder->buildObjectStructure($this);
 	}
 
+	/**
+	 *
+	 * @return void
+	 */
 	protected function buildFormFieldPrefixes() {
-		$this->formFieldNamePrefix = $this->parentFormObject->getFormFieldNamePrefix().'[' . $this->getTable() . '][' . $this->recordData['uid'] . ']';
-		$this->formFieldIdPrefix = $this->parentFormObject->getFormFieldIdPrefix() . '_' . $this->getTable() . '_' . $this->recordData['uid'];
+		$this->formFieldNamePrefix = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'name');
+		$this->formFieldIdPrefix = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'id');
 	}
 
 
@@ -275,59 +274,9 @@ class t3lib_TCEforms_Record {
 	}
 
 
-	/**
-	 * Creates the list of fields to display
-	 *
-	 * This function is mainly copied from t3lib_TCEforms::getMainFields()
-	 *
-	 * @deprecated This is done by t3lib_TCA_DisplayConfiguration; fieldOrder should be moved there, if it is neccessary at all
-	 */
-	protected function createFieldsList() {
-		if (count($this->fieldList) > 0) {
-			return;
-		}
-
-		$itemList = $this->TCAdefinition['types'][$this->typeNumber]['showitem'];
-
-		$fields = t3lib_div::trimExplode(',', $itemList, 1);
-		/* TODO: reenable this
-		if ($this->fieldOrder)	{
-			$fields = $this->rearrange($fields);
-		}*/
-
-		$this->fieldList = $this->mergeFieldsWithAddedFields($fields, $this->getFieldsToAdd());
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function getDisplayConfiguration() {
-		/*
-		 * TODO change the way this method works. It should first check if a list of fields is set
-		 * for our table (by calling the context object or form object [which in turn would call the
-		 * context object]).
-		 * If not, it has to calculate the list of fields. For this, do the following:
-		 *  - get the list from the data structure object
-		 *  - check for a subtype, if there is one, take subtypes_addlist/subtypes_excludelist into account
-		 */
-		// Temporarily commented out because otherwise form rendering breaks
-		//if (count($this->fieldList) > 0) {
-			// FIXME this won't work right now. We have to deliver a DataStructure_Sheet object with the
-			// fields in it
-		//	return $this->fieldList;
-		//} else {
-			$subtypeValue = '';
-			if ($this->typeConfiguration->hasSubtypeValueField()) {
-				$subtypeField = $this->typeConfiguration->getSubtypeValueField();
-				$subtypeValue = $this->recordData[$subtypeField];
-			}
-			return $this->typeConfiguration->getSheets($subtypeValue);
-		//}
-	}
-
 	public function setFieldList($fieldList) {
 		if (!is_array($fieldList)) {
-			$fieldList = t3lib_div::trimExplode(',', $fieldList, 1);
+			$fieldList = t3lib_div::trimExplode(',', $fieldList, TRUE);
 		}
 
 		$this->fieldList = $fieldList;
@@ -363,7 +312,8 @@ class t3lib_TCEforms_Record {
 
 	protected function buildSheetIdentifiers() {
 		$this->sheetIdentifier = 'TCEforms:'.$this->getIdentifier();
-		$this->shortSheetIdentifier = $GLOBALS['TBE_TEMPLATE']->getDynTabMenuId($this->sheetIdentifier);
+		// @TODO generate identifiers another way
+		$this->shortSheetIdentifier = 'DTM-' . t3lib_div::shortMD5($this->sheetIdentifier);
 	}
 
 	/**
@@ -412,183 +362,8 @@ class t3lib_TCEforms_Record {
 		return $this;
 	}
 
-	/**
-	 * Calculate the current "types" pointer value for the record this form is instantiated for
-	 *
-	 * Sets $this->typeNumber to the types pointer value.
-	 *
-	 * @return void
-	 */
-	protected function setRecordTypeNumber() {
-			// If there is a "type" field configured...
-		if ($this->dataStructure->hasTypeField()) {
-			$typeFieldName = $this->dataStructure->getTypeField();
-				// Get value of the row from the record which contains the type value.
-			$typeFieldConfig = $this->dataStructure->getFieldConfiguration($typeFieldName);
-			$typeNum = $this->getLanguageOverlayRawValue($typeFieldName);
-				// If that value is an empty string, set it to "0" (zero)
-			if (!strcmp($this->typeNumber,'')) $this->typeNumber = 0;
-		} else {
-			$this->typeNumber = 0;	// If no "type" field, then set to "0" (zero)
-		}
-
-			// Force to string. Necessary for eg '-1' to be recognized as a type value.
-		$this->typeNumber = (string)$this->typeNumber;
-			// However, if the type "0" is not found in the "types" array, then default to "1" (for historical reasons)
-		if (!$this->dataStructure->typeExists($this->typeNumber)) {
-			$this->typeNumber = 1;
-		}
-
-		$this->typeConfiguration = $this->dataStructure->getTypeConfiguration($this->typeNumber);
-	}
-
-	/**
-	 * Returns if a given element is among the elements set via setExcludedElements(), i.e.
-	 * not displayed in the form
-	 *
-	 * @param  string  $elementName  The name of the element to check
-	 * @return boolean
-	 *
-	 * @deprecated
-	 */
-	public function isExcludedElement($elementName) {
-		return t3lib_div::inArray($this->excludedElements, $elementName);
-	}
-
-	/**
-	 * Returns the full array of elements which are excluded and thus not displayed on the form
-	 *
-	 * @return array
-	 * @deprecated
-	 */
-	public function getExcludedElements() {
-		return $this->excludedElements;
-	}
-
-	/**
-	 * Producing an array of field names NOT to display in the form, based on settings
-	 * from subtype_value_field, bitmask_excludelist_bits etc.
-	 *
-	 * NOTICE: This list is in NO way related to the "excludeField" flag
-	 *
-	 * Sets $this->excludedElements to an array with fieldnames as values. The fieldnames are
-	 * those which should NOT be displayed "anyways"
-	 *
-	 * @return void
-	 *
-	 * @deprecated This data is now delivered by t3lib_TCA_DisplayConfiguration
-	 */
-	protected function setExcludedElements() {
-			// Init:
-		$this->excludedElements = array();
-
-			// If a subtype field is defined for the type
-		if ($this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field']) {
-			$subtypeField = $this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field'];
-			if (trim($this->TCAdefinition['types'][$this->typeNumber]['subtypes_excludelist'][$this->recordData[$subtypeField]])) {
-				$this->excludedElements=t3lib_div::trimExplode(',',$this->TCAdefinition['types'][$this->typeNumber]['subtypes_excludelist'][$this->recordData[$subtypeField]],1);
-			}
-		}
-
-			// If a bitmask-value field has been configured, then find possible fields to exclude based on that:
-		if ($this->TCAdefinition['types'][$this->typeNumber]['bitmask_value_field']) {
-			$subtypeField = $this->TCAdefinition['types'][$this->typeNumber]['bitmask_value_field'];
-			$subtypeValue = t3lib_div::intInRange($this->recordData[$subtypeField],0);
-
-			if (is_array($this->TCAdefinition['types'][$this->typeNumber]['bitmask_excludelist_bits'])) {
-				reset($this->TCAdefinition['types'][$this->typeNumber]['bitmask_excludelist_bits']);
-				while(list($bitKey,$eList)=each($this->TCAdefinition['types'][$this->typeNumber]['bitmask_excludelist_bits'])) {
-					$bit=substr($bitKey,1);
-					if (t3lib_div::testInt($bit)) {
-						$bit = t3lib_div::intInRange($bit,0,30);
-						if (
-								(substr($bitKey,0,1)=='-' && !($subtypeValue&pow(2,$bit))) ||
-								(substr($bitKey,0,1)=='+' && ($subtypeValue&pow(2,$bit)))
-							) {
-							$this->excludedElements = array_merge($this->excludedElements,t3lib_div::trimExplode(',',$eList,1));
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Finds possible field to add to the form, based on subtype fields.
-	 *
-	 * @return	array		An array containing two values: 1. Another array containing fieldnames to add and 2. the subtype value field.
-	 * @see getMainFields()
-	 *
-	 * @deprecated
-	 */
-	protected function getFieldsToAdd()	{
-			// Init:
-		$addElements = array();
-
-			// If a subtype field is defined for the type
-		if ($this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field']) {
-			$subtypeValueField = $this->TCAdefinition['types'][$this->typeNumber]['subtype_value_field'];
-			if (trim($this->TCAdefinition['types'][$this->typeNumber]['subtypes_addlist'][$this->recordData[$subtypeValueField]])) {
-				$addElements = t3lib_div::trimExplode(',', $this->TCAdefinition['types'][$this->typeNumber]['subtypes_addlist'][$this->recordData[$subtypeValueField]],1);
-			}
-		}
-
-			// Return the return
-		return array($addElements, $subtypeValueField);
-	}
-
-	/**
-	 * Merges the current [types][showitem] array with the array of fields to add for the current subtype field of the "type" value.
-	 *
-	 * @param	array		A [types][showitem] list of fields, exploded by ","
-	 * @param	array		The output from getFieldsToAdd()
-	 * @return	array		Return the modified $fields array.
-	 * @see getMainFields(),getFieldsToAdd()
-	 *
-	 * @deprecated
-	 */
-	protected function mergeFieldsWithAddedFields($fields, $fieldsToAdd)	{
-		if (count($fieldsToAdd[0])) {
-			reset($fields);
-			$c=0;
-			while(list(,$fieldInfo)=each($fields)) {
-				$parts = explode(';',$fieldInfo);
-				if (!strcmp(trim($parts[0]),$fieldsToAdd[1])) {
-					array_splice(
-						$fields,
-						$c+1,
-						0,
-						$fieldsToAdd[0]
-					);
-					break;
-				}
-				$c++;
-			}
-		}
-		return $fields;
-	}
-
 	public function getTCAdefinitionForField($fieldName) {
 		return $this->dataStructure->getFieldConfiguration($fieldName);
-	}
-
-	/**
-	 * Returns the object representation of the data structure for this record.
-	 * The source for this data structure could have been PHP-based TCA or an XML-based Flexform
-	 * data structure
-	 *
-	 * @return t3lib_TCA_DataStructure
-	 */
-	public function getDataStructure() {
-		return $this->dataStructure;
-	}
-
-	public function getTable() {
-		return $this->table;
-	}
-
-	public function getRecordData() {
-		return $this->recordData;
 	}
 
 	// TODO: load data if neccessary before returning anything
@@ -608,34 +383,6 @@ class t3lib_TCEforms_Record {
 		return $this->defaultLanguageData_diff[$field];
 	}
 
-	public function getValue($field) {
-		return $this->recordData[$field];
-	}
-
-	/**
-	 * Creates language-overlay for a field value
-	 * This means the requested field value will be overridden with the data from the default language.
-	 * Can be used to render read only fields for example.
-	 *
-	 * @param   string  Field name represented by $item
-	 * @return  string  Unprocessed field value merged with default language data if needed
-	 *
-	 * @TODO check if this could replace the method in Element_Abstract. This method has been copied here
-	 *       because we need an overlay for determining the record type value (@see setRecordTypeNumber())
-	 */
-	protected function getLanguageOverlayRawValue($fieldName) {
-		$fieldConf = $this->getTCAdefinitionForField($fieldName);
-
-		if ($fieldConf['l10n_mode'] == 'exclude'
-		  || ($fieldConf['l10n_mode'] == 'mergeIfNotBlank'
-		  && strcmp(trim($this->defaultLanguageData[$fieldName]), ''))) {
-
-			$value = $this->defaultLanguageData[$fieldName];
-		}
-
-		return $value;
-	}
-
 	public function setContextRecordObject(t3lib_TCEforms_Record $contextRecordObject) {
 		$this->contextRecordObject = $contextRecordObject;
 
@@ -644,6 +391,39 @@ class t3lib_TCEforms_Record {
 
 	public function getContextRecordObject() {
 		return $this->contextRecordObject;
+	}
+
+	/**
+	 * Return record path (visually formatted, using t3lib_BEfunc::getRecordPath() )
+	 *
+	 * @return	string		The record path.
+	 * @see t3lib_BEfunc::getRecordPath()
+	 *
+	 * @TODO Check if using fixVersioningPid (which modifies recordData) could do any harm.
+	 *       If not, it may be moved into the constructor.
+	 */
+	function getPath()	{
+		t3lib_BEfunc::fixVersioningPid($this->table, $this->recordData);
+		list($tscPID, $thePidValue) = $this->getTSCpid($this->table, $this->recordData['uid'], $this->recordData['pid']);
+		if ($thePidValue >= 0) {
+			return t3lib_BEfunc::getRecordPath($tscPID, $this->getReadPermissionsClause(), 15);
+		}
+	}
+
+
+	/**
+	 * Returns the select-page read-access SQL clause.
+	 * Returns cached string, so you can call this function as much as you like without performance loss.
+	 *
+	 * @return	string
+	 *
+	 * @TODO check if this should be moved to the context object
+	 */
+	function getReadPermissionsClause() {
+		if (!isset($this->readPermissionsClause)) {
+			$this->readPermissionsClause = $GLOBALS['BE_USER']->getPagePermsClause(1);
+		}
+		return $this->readPermissionsClause;
 	}
 
 
@@ -656,7 +436,9 @@ class t3lib_TCEforms_Record {
 	public function addSheetObject(t3lib_TCEforms_Container_Sheet $sheetObject) {
 		$sheetObject->setContextObject($this->contextObject)
 		            ->setFormObject($this->parentFormObject)
-		            ->setRecordObject($this);
+		            ->setElementIdentifierStack($this->elementIdentifierStack)
+		            ->setRecordObject($this)
+		            ->init();
 		$this->sheetObjects[] = $sheetObject;
 
 		t3lib_div::devLog('Added sheet no. ' . count($this->sheetObjects) . ' to record ' . $this->getIdentifier() . '.', 't3lib_TCEforms_Record', t3lib_div::SYSLOG_SEVERITY_INFO);
@@ -669,17 +451,6 @@ class t3lib_TCEforms_Record {
 	 * Localization functions
 	 *
 	 ********************************************/
-
-	/**
-	 * Fetches language label for key
-	 *
-	 * @param   string  Language label reference, eg. 'LLL:EXT:lang/locallang_core.php:labels.blablabla'
-	 * @return  string  The value of the label, fetched for the current backend language.
-	 */
-	// TODO: refactor the method name
-	protected function sL($str) {
-		return $GLOBALS['LANG']->sL($str);
-	}
 
 	/**
 	 * Returns language label from locallang_core.php
@@ -711,71 +482,6 @@ class t3lib_TCEforms_Record {
 	 *
 	 ************************************************************/
 
-	/**
-	 * Will register data from original language records if the current record is a translation of another.
-	 * The original data is shown with the edited record in the form. The information also includes possibly diff-views of what changed in the original record.
-	 * Function called from outside (see alt_doc.php + quick edit) before rendering a form for a record
-	 *
-	 * @return	void
-	 */
-	protected function registerDefaultLanguageData()	{
-			// Add default language:
-		if ($this->TCAdefinition['ctrl']['languageField']
-				&& $this->recordData[$this->TCAdefinition['ctrl']['languageField']] > 0
-				&& $this->TCAdefinition['ctrl']['transOrigPointerField']
-				&& intval($this->recordData[$this->TCAdefinition['ctrl']['transOrigPointerField']]) > 0) {
-
-			$lookUpTable = $this->TCAdefinition['ctrl']['transOrigPointerTable'] ? $this->TCAdefinition['ctrl']['transOrigPointerTable'] : $this->table;
-
-				// Get data formatted:
-			$this->defaultLanguageData = t3lib_BEfunc::getRecordWSOL($lookUpTable, intval($this->recordData[$this->TCAdefinition['ctrl']['transOrigPointerField']]));
-
-				// Get data for diff:
-			if ($this->TCAdefinition['ctrl']['transOrigDiffSourceField']) {
-				$this->defaultLanguageData_diff = unserialize($this->recordData[$this->TCAdefinition['ctrl']['transOrigDiffSourceField']]);
-			}
-
-				// If there are additional preview languages, load information for them also:
-			$prLang = $this->getAdditionalPreviewLanguages();
-			foreach($prLang as $prL) {
-				$t8Tools = t3lib_div::makeInstance('t3lib_transl8tools');
-				$tInfo = $t8Tools->translationInfo($lookUpTable,intval($this->recordData[$this->TCAdefinition['ctrl']['transOrigPointerField']]),$prL['uid']);
-				if (is_array($tInfo['translations'][$prL['uid']]))	{
-					$this->additionalPreviewLanguageData[$prL['uid']] = t3lib_BEfunc::getRecordWSOL($this->table, intval($tInfo['translations'][$prL['uid']]['uid']));
-				}
-			}
-		}
-	}
-
-	/**
-	 * Generates and return information about which languages the current user should see in preview, configured by options.additionalPreviewLanguages
-	 *
-	 * return array	Array of additional languages to preview
-	 */
-	public function getAdditionalPreviewLanguages()	{
-		if (!isset($this->cachedAdditionalPreviewLanguages)) 	{
-			if ($GLOBALS['BE_USER']->getTSConfigVal('options.additionalPreviewLanguages'))	{
-				$uids = t3lib_div::intExplode(',',$GLOBALS['BE_USER']->getTSConfigVal('options.additionalPreviewLanguages'));
-				foreach($uids as $uid)	{
-					if ($sys_language_rec = t3lib_BEfunc::getRecord('sys_language',$uid))	{
-						$this->cachedAdditionalPreviewLanguages[$uid] = array('uid' => $uid);
-
-						if ($sys_language_rec['static_lang_isocode'] && t3lib_extMgm::isLoaded('static_info_tables'))	{
-							$staticLangRow = t3lib_BEfunc::getRecord('static_languages',$sys_language_rec['static_lang_isocode'],'lg_iso_2');
-							if ($staticLangRow['lg_iso_2']) {
-								$this->cachedAdditionalPreviewLanguages[$uid]['uid'] = $uid;
-								$this->cachedAdditionalPreviewLanguages[$uid]['ISOcode'] = $staticLangRow['lg_iso_2'];
-							}
-						}
-					}
-				}
-			} else {
-					// None:
-				$this->cachedAdditionalPreviewLanguages = array();
-			}
-		}
-		return $this->cachedAdditionalPreviewLanguages;
-	}
 
 	/**
 	 * Initializes language icons etc.
@@ -783,7 +489,7 @@ class t3lib_TCEforms_Record {
 	 * param	string	Sys language uid OR ISO language code prefixed with "v", eg. "vDA"
 	 * @return	void
 	 */
-	public function getLanguageIcon($sys_language_uid)	{
+	public function getLanguageIcon($sys_language_uid) {
 		global $TCA, $LANG;
 
 		$mainKey = $this->table.':'.$this->recordData['uid'];

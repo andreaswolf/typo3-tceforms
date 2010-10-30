@@ -13,10 +13,10 @@ class t3lib_TCEforms_Element_User extends t3lib_TCEforms_Element_Abstract {
 		$PA['pal'] = $this->pal;
 		$PA['fieldConf'] = $this->fieldConfig;
 		$PA['fieldTSConfig'] = $this->fieldTSConfig; // not filled?
-		$PA['itemFormElName']      = $this->itemFormElName;
-		$PA['itemFormElName_file'] = $this->itemFormElName_file;
+		$PA['itemFormElName']      = $this->formFieldName;
+		$PA['itemFormElName_file'] = $this->fileFormFieldName;
 		$PA['itemFormElValue']     = $this->itemFormElValue;
-		$PA['itemFormElID']        = $this->itemFormElID;
+		$PA['itemFormElID']        = $this->formFieldId;
 		$PA['onFocus']             = $this->onFocus;
 		$PA['label']               = $this->label;
 		$PA['itemFormElValue']     = $this->itemFormElValue;

@@ -150,6 +150,36 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	protected $language;
 
+	/**
+	 * The stack of element identifier parts used for creating element identifiers.
+	 *
+	 * This will usually be imploded with a separator to create an identifier.
+	 *
+	 * @var array<string>
+	 */
+	protected $elementIdentifierStack = array();
+
+	/**
+	 * The (HTML) field name for this element
+	 *
+	 * @var string
+	 */
+	protected $formFieldName;
+
+	/**
+	 * The (HTML) field name for file elements
+	 *
+	 * @var string
+	 */
+	protected $fileFormFieldName;
+
+	/**
+	 * The (HTML) id for this element
+	 *
+	 * @var string
+	 */
+	protected $formFieldId;
+
 
 
 
@@ -187,32 +217,9 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
-		// TODO: rename this to formFieldNamePrefix/formFieldFileNamePrefix
-		if (isset($this->container)) {
-			$this->prependFormFieldNames = $this->container->getFormFieldNamePrefix();
-			$this->prependFormFieldNames_file = $this->container->getFormFieldNamePrefix();
-			$this->formFieldIdPrefix = $this->container->getFormFieldIdPrefix();
-		} else {
-			$this->prependFormFieldNames = $this->recordObject->getFormFieldNamePrefix();
-			$this->prependFormFieldNames_file = $this->recordObject->getFormFieldNamePrefix();
-			$this->formFieldIdPrefix = $this->recordObject->getFormFieldIdPrefix();
-		}
-
-		/**
-		 * TODO reenable this block as soon as the FormBuilder is localization-aware and able to set
-		 * the correct language for fields
-		if ($this->language != '') {
-			$this->prependFormFieldNames .= '[l' . $this->recordObject->getLanguage() . ']';
-			$this->prependFormFieldNames_file .= '[l' . $this->recordObject->getLanguage() . ']';
-			$this->formFieldIdPrefix .= '_l' . $this->recordObject->getLanguage();
-		}
-		 */
-
-			// Init variables:
-		$this->itemFormElName = $this->prependFormFieldNames.'['.$this->field.']'; // Form field name
-		$this->itemFormElName_file = $this->prependFormFieldNames_file.'['.$this->field.']'; // Form field name, in case of file uploads
+		$this->formFieldName = $this->fileFormFieldName = $this->parentFormObject->createElementIdentifier($this->elementIdentifierStack, 'name');
+		$this->formFieldId = $this->parentFormObject->createElementIdentifier($this->elementIdentifierStack, 'id');
 		$this->itemFormElValue = $this->record[$this->field]; // The value to show in the form field.
-		$this->itemFormElID = $this->formFieldIdPrefix . '_' . $this->field;
 
 			// Hook: getSingleField_preProcess
 		foreach (self::$hookObjects['getSingleFields'] as $hookObj)	{
@@ -247,7 +254,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 			// If the field is disabled by TSconfig do not render it
 		if (!$this->doNotRender && $this->fieldTSConfig['disabled']) {
-			$this->commentMessages[] = $this->itemFormElName . ': Disabled by TSconfig';
+			$this->commentMessages[] = $this->formFieldName . ': Disabled by TSconfig';
 			$this->doNotRender = TRUE;
 		}
 
@@ -267,7 +274,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		}
 
 		if ($this->contextObject->isFieldHidden($this->table, $this->field)) {
-			$this->contextObject->addHtmlForHiddenField($this->itemFormElName, '<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />');
+			$this->contextObject->addHtmlForHiddenField($this->formFieldName, '<input type="hidden" name="'.$this->formFieldName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />');
 			$this->doNotRender = TRUE;
 		}
 	}
@@ -343,19 +350,28 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$this->hasPalette = TRUE;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function setItemFormElementName($itemFormElementName) {
-		$this->itemFormElName = $itemFormElementName;
-		$this->itemFormElName_file = $itemFormElementName;
+		$this->formFieldName = $itemFormElementName;
+		$this->fileFormFieldName = $itemFormElementName;
 
 		return $this;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function setItemFormElementID($itemFormElementID) {
-		$this->itemFormElID = $itemFormElementID;
+		$this->formFieldId = $itemFormElementID;
 
 		return $this;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public function setItemFormElementValue($formElementValue) {
 		$this->itemFormElValue = $formElementValue;
 
@@ -364,6 +380,20 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 	public function setIsInPalette($inPalette) {
 		$this->isInPalette = $inPalette;
+
+		return $this;
+	}
+
+	/**
+	 * Sets all information that is required for proper element identifier generation.
+	 *
+	 * @param  array $elementIdentifierStack
+	 * @return t3lib_TCEforms_Element_Abstract
+	 */
+	public function setElementIdentifierStack(array $elementIdentifierStack) {
+		$this->elementIdentifierStack = $elementIdentifierStack;
+
+		$this->elementIdentifierStack[] = $this->field;
 
 		return $this;
 	}
@@ -464,13 +494,13 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 			// JavaScript code for event handlers:
 		$this->fieldChangeFunc=array();
-		$this->fieldChangeFunc['TBE_EDITOR_fieldChanged'] = "TBE_EDITOR.fieldChanged('".$this->table."','".$this->record['uid']."','".$this->field."','".$this->itemFormElName."');";
+		$this->fieldChangeFunc['TBE_EDITOR_fieldChanged'] = "TBE_EDITOR.fieldChanged('".$this->table."','".$this->record['uid']."','".$this->field."','".$this->formFieldName."');";
 		$this->fieldChangeFunc['alert'] = $alertMsgOnChange;
 			// if this is the child of an inline type and it is the field creating the label
 		// disabled while IRRE is not supported -- andreaswolf, 23.07.2008
 		// TODO: move this to IRRE
 		/*if ($this->inline->isInlineChildAndLabelField($this->table, $this->field)) {
-			$this->fieldChangeFunc['inline'] = "inline.handleChangedField('".$this->itemFormElName."','".$this->inline->inlineNames['object']."[$this->table][".$this->record['uid']."]');";
+			$this->fieldChangeFunc['inline'] = "inline.handleChangedField('".$this->formFieldName."','".$this->inline->inlineNames['object']."[$this->table][".$this->record['uid']."]');";
 		}*/
 
 		$item = $this->renderField();
@@ -620,7 +650,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	}
 
 	public function getFormFieldName() {
-		return $this->itemFormElName;
+		return $this->formFieldName;
 	}
 
 	/**
@@ -1383,7 +1413,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			// Create selector box of the options
 		$sSize = $params['autoSizeMax'] ? t3lib_div::intInRange($itemArrayC+1,t3lib_div::intInRange($params['size'],1),$params['autoSizeMax']) : $params['size'];
 		if (!$selector)	{
-			$selector = '<select id="' . uniqid('tceforms-multiselect-') . '" ' . ($params['noList'] ? 'style="display: none"' : 'size="' . $sSize . '"' . $this->insertDefaultElementStyle('group', 'tceforms-multiselect')) . ' multiple="multiple" name="' . $this->itemFormElName.'_list" ' . $onFocus . $params['style'] . $disabled . '>' . implode('', $opt) . '</select>';
+			$selector = '<select id="' . uniqid('tceforms-multiselect-') . '" ' . ($params['noList'] ? 'style="display: none"' : 'size="' . $sSize . '"' . $this->insertDefaultElementStyle('group', 'tceforms-multiselect')) . ' multiple="multiple" name="' . $this->formFieldName.'_list" ' . $onFocus . $params['style'] . $disabled . '>' . implode('', $opt) . '</select>';
 		}
 
 
@@ -1403,25 +1433,25 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 						$rOnClickInline = 'inline.revertUnique(\''.$objectPrefix.'\',null,\''.$uid.'\');';
 					}
 				}*/
-				$aOnClick='setFormValueOpenBrowser(\''.$mode.'\',\''.($this->itemFormElName.'|||'.$allowed.'|'.$aOnClickInline).'\'); return false;';
+				$aOnClick='setFormValueOpenBrowser(\''.$mode.'\',\''.($this->formFieldName.'|||'.$allowed.'|'.$aOnClickInline).'\'); return false;';
 				$icons['R'][]='<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
 						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars($this->getLL('l_browse_' . ($mode == 'db' ? 'db' : 'file'))))) .
 						'</a>';
 			}
 			if (!$params['dontShowMoveIcons'])	{
 				if ($sSize>=5)	{
-					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->itemFormElName.'\',\'Top\'); return false;">'.
+					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Top\'); return false;">'.
 							t3lib_iconWorks::getSpriteIcon('actions-move-to-top', array('title' => htmlspecialchars($this->getLL('l_move_to_top')))) .
 							'</a>';
 				}
-				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->itemFormElName.'\',\'Up\'); return false;">'.
+				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Up\'); return false;">'.
 						t3lib_iconWorks::getSpriteIcon('actions-move-up', array('title' => htmlspecialchars($this->getLL('l_move_up')))) .
 						'</a>';
-				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->itemFormElName.'\',\'Down\'); return false;">'.
+				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Down\'); return false;">'.
 						t3lib_iconWorks::getSpriteIcon('actions-move-down', array('title' => htmlspecialchars($this->getLL('l_move_down')))) .
 						'</a>';
 				if ($sSize>=5)	{
-					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->itemFormElName.'\',\'Bottom\'); return false;">'.
+					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Bottom\'); return false;">'.
 							t3lib_iconWorks::getSpriteIcon('actions-move-to-bottom', array('title' => htmlspecialchars($this->getLL('l_move_to_bottom')))) .
 							'</a>';
 				}
@@ -1439,14 +1469,14 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 					} else {	// 'file', 'file_reference' and 'folder' mode
 						$itemTitle = 'unescape(\'' . rawurlencode(basename($elValue)) . '\')';
 					}
-					$aOnClick.= 'setFormValueFromBrowseWin(\''.$this->itemFormElName.'\',unescape(\''.rawurlencode(str_replace('%20',' ',$elValue)).'\'),'.$itemTitle.');';
+					$aOnClick.= 'setFormValueFromBrowseWin(\''.$this->formFieldName.'\',unescape(\''.rawurlencode(str_replace('%20',' ',$elValue)).'\'),'.$itemTitle.');';
 				}
 				$aOnClick.= 'return false;';
 				$icons['R'][]='<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
 						t3lib_iconWorks::getSpriteIcon('actions-document-paste-into', array('title' => htmlspecialchars(sprintf($this->getLL('l_clipInsert_' . ($mode == 'db' ? 'db' : 'file')), count($clipElements))))) .
 						'</a>';
 			}
-			$rOnClick = $rOnClickInline.'setFormValueManipulate(\''.$this->itemFormElName.'\',\'Remove\'); return false';
+			$rOnClick = $rOnClickInline.'setFormValueManipulate(\''.$this->formFieldName.'\',\'Remove\'); return false';
 			$icons['L'][]='<a href="#" onclick="'.htmlspecialchars($rOnClick).'">'.
 					t3lib_iconWorks::getSpriteIcon('actions-selection-delete', array('title' => htmlspecialchars($this->getLL('l_remove_selected')))) .
 					'</a>';
@@ -1477,7 +1507,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		</table>';
 
 			// Creating the hidden field which contains the actual value as a comma list.
-		$str.='<input type="hidden" name="'.$this->itemFormElName.'" value="'.htmlspecialchars(implode(',',$uidList)).'" />';
+		$str.='<input type="hidden" name="'.$this->formFieldName.'" value="'.htmlspecialchars(implode(',',$uidList)).'" />';
 
 		return $str;
 	}
