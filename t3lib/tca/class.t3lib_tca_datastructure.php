@@ -119,15 +119,28 @@ class t3lib_TCA_DataStructure {
 		}
 
 		$fieldExcludeList = array_merge($subtypeExcludeList, $bitmaskExcludeList);
+
 		$displayConfiguration = t3lib_TCA_DisplayConfiguration::createFromConfiguration($this, $typeConfiguration, $fieldAddList, $fieldExcludeList);
 
 		$this->displayConfigurations[$displayConfigurationHash] = $displayConfiguration;
+		//print_r($displayConfiguration);
 		return $displayConfiguration;
 	}
 
 	/**
+	 * Returns TRUE if a key inside the control section ($TCA[$table]['ctrl']) exists.
 	 *
-	 * @param string $key
+	 * @param string $key The key to check
+	 * @return bool
+	 */
+	public function hasControlValue($key) {
+		return array_key_exists($key, $this->control);
+	}
+
+	/**
+	 * Returns the value from an entry in the control section ($TCA[$table]['ctrl']).
+	 *
+	 * @param string $key The key to get
 	 * @return mixed/string
 	 *
 	 * TODO define access to [ctrl][enablecolumns]
