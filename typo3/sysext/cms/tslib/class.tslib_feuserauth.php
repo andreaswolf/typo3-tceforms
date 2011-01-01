@@ -486,6 +486,31 @@ class tslib_feUserAuth extends t3lib_userAuth {
 	}
 
 	/**
+	 * Returns the session data stored for $key.
+	 * The data will last only for this login session since it is stored in the session table.
+	 *
+	 * @param  string  $key
+	 * @return mixed
+	 */
+	public function getSessionData($key) {
+		return $this->getKey('ses', $key);
+	}
+
+	/**
+	 * Saves the tokens so that they can be used by a later incarnation of this class.
+	 *
+	 * @param  string  $key
+	 * @param  mixed   $data
+	 * @return void
+	 */
+	public function setAndSaveSessionData($key, $data) {
+		$this->setKey('ses', $key, $data);
+		$this->storeSessionData();
+	}
+
+
+
+	/**
 	 * Registration of records/"shopping basket" in session data
 	 * This will take the input array, $recs, and merge into the current "recs" array found in the session data.
 	 * If a change in the recs storage happens (which it probably does) the function setKey() is called in order to store the array again.
@@ -574,8 +599,8 @@ class tslib_feUserAuth extends t3lib_userAuth {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/class.tslib_feuserauth.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/class.tslib_feuserauth.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/class.tslib_feuserauth.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/class.tslib_feuserauth.php']);
 }
 
 ?>

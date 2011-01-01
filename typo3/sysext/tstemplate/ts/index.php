@@ -218,10 +218,12 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 		}
 
 			// Build the <body> for the module
-		$this->content = $this->doc->startPage('Template Tools');
-		$this->content .= $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
-		$this->content .= $this->doc->endPage();
-		$this->content = $this->doc->insertStylesAndJS($this->content);
+		$this->content = $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
+			// Renders the module page
+		$this->content = $this->doc->render(
+			'Template Tools',
+			$this->content
+		);
 	}
 
 	function printContent() {
@@ -253,10 +255,12 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 					'</a>';
 
 				// If access to Web>List for user, then link to that module.
-			$buttons['record_list'] = t3lib_extMgm::createListViewLink(
-				$this->pageinfo['uid'],
-				'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
-				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+			$buttons['record_list'] = t3lib_BEfunc::getListViewLink(
+				array(
+					'id' => $this->pageinfo['uid'],
+					'returnUrl' => t3lib_div::getIndpEnv('REQUEST_URI'),
+				),
+				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList')
 			);
 
 			if ($this->extClassConf['name'] == 'tx_tstemplateinfo') {
@@ -554,8 +558,8 @@ page.10.value = HELLO WORLD!
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/tstemplate/ts/index.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/tstemplate/ts/index.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/tstemplate/ts/index.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/tstemplate/ts/index.php']);
 }
 
 

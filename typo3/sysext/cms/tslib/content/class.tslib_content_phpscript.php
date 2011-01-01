@@ -42,7 +42,12 @@ class tslib_content_PhpScript extends tslib_content_Abstract {
 	 * @return	string		Output
 	 */
 	public function render($conf = array()) {
-		$incFile = $GLOBALS['TSFE']->tmpl->getFileName($conf['file']);
+
+		$file = isset($conf['file.'])
+			? $this->cObj->stdWrap($conf['file'], $conf['file.'])
+			: $conf['file'];
+
+		$incFile = $GLOBALS['TSFE']->tmpl->getFileName($file);
 		$content = '';
 		if ($incFile && $GLOBALS['TSFE']->checkFileInclude($incFile)) {
 				// Added 31-12-00: Make backup...
@@ -55,14 +60,19 @@ class tslib_content_PhpScript extends tslib_content_Abstract {
 				$this->cObj->data = $this->cObj->oldData;
 			}
 		}
+
+		if (isset($conf['stdWrap.'])) {
+			$content = $this->cObj->stdWrap($content, $conf['stdWrap.']);
+		}
+
 		return $content;
 	}
 
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_phpscript.php']) {
-	include_once ($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_phpscript.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_phpscript.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_phpscript.php']);
 }
 
 ?>

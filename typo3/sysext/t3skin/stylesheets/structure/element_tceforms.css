@@ -48,7 +48,7 @@ img.t3-TCEforms-contentchangedPaletteImg {
 }
 
 table.typo3-TCEforms {
-	width: 93%;
+	width: 100%;
 }
 
 table.typo3-TCEforms tr td.t3-form-col1,
@@ -59,6 +59,10 @@ table.typo3-TCEforms tr td.t3-form-col1 div {
 table.typo3-TCEforms tr.typo3-TCEforms-recHeaderRow td {
 	padding-top: 5px;
 	padding-bottom: 20px;
+}
+
+table.wrapperTable tr.class-main2 td.palette-header {
+	padding-left: 10px;
 }
 
 table.typo3-TCEforms .bgColor2,
@@ -157,13 +161,18 @@ table.typo3-TCEforms .class-main53 {
 	padding: 2px 0px 2px 0px;
 }
 
+table.typo3-TCEforms td.formField-header,
+table.typo3-TCEforms td.formField-field {
+	padding-left: 10px;
+}
+
 table.typo3-TCEforms .formField,
 table.typo3-TCEforms .formField1,
 table.typo3-TCEforms .formField2,
 table.typo3-TCEforms .formField3,
 table.typo3-TCEforms .formField4,
 table.typo3-TCEforms .formField5 {
-	margin: 4px 2px;
+	margin: 4px 2px 4px 1px;
 	padding: 1px;
 	vertical-align: middle;
 }
@@ -185,19 +194,70 @@ table.typo3-TCEforms td.thumbnails {
 	padding-top: 6px;
 }
 
+table.typo3-TCEforms div.imagethumbs {
+	padding-top: 6px;
+	white-space: normal;
+	width: 253px;
+}
+
+table.typo3-TCEforms div.imagethumbs br {
+	display: none;
+}
+
+table.typo3-TCEforms div.imagethumbs .nobr {
+	display: inline-block;
+	width: 60px;
+	height: 60px;
+	overflow: hidden;
+	margin-right: 3px;
+	margin-bottom: 1px;
+	text-align: center;
+}
+
+table.typo3-TCEforms div.imagethumbs .nobr a {
+	display: block;
+	width: 60px;
+	height: 60px;
+	line-height: 58px;
+	text-align: center;
+}
+
+table.typo3-TCEforms div.imagethumbs .nobr a img {
+	display: inline;
+	margin-right: auto;
+	vertical-align: middle;
+	margin-left: auto;
+}
+
+table.typo3-TCEforms div.imagethumbs .nobr span {
+	display: none;
+}
+
+table.typo3-TCEforms span.filetypes {
+	display: block;
+	margin-top: 6px;
+	white-space: normal;
+	width: 250px;
+}
+
+.typo3-TCEforms select.tceforms-multiselect {
+	min-height: 85px;
+}
+
 .typo3-TCEforms-palette .typo3-csh-link img {
 	padding-top: 3px;
 	vertical-align: top;
 }
 
-.typo3-TCEforms-palette selct.select {
+.typo3-TCEforms-palette select.select,
+.t3-form-palette-field-container select.select {
 	margin-top: 2px;
 }
 
 .t3-form-palette-field-container {
-	display:inline-block;
-	margin-left:20px;
-	vertical-align:top;
+	display: inline-block;
+	margin-left: 10px;
+	vertical-align: top;
 }
 
 .t3-form-palette-field-container .t3-form-palette-field-label, .t3-form-palette-field-container .t3-form-palette-field {

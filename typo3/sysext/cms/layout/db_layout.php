@@ -322,7 +322,7 @@ class SC_db_layout {
 				0 => $LANG->getLL('m_function_0'),
 				1 => $LANG->getLL('m_function_1'),
 				2 => $LANG->getLL('m_function_2'),
-				3 => $LANG->getLL('pageInformation')
+				3 => $LANG->getLL('pageInformation'),
 			),
 			'language' => array(
 				0 => $LANG->getLL('m_default')
@@ -341,7 +341,7 @@ class SC_db_layout {
 				if (is_array($this->MOD_MENU[$table])) {
 					unset ($this->MOD_MENU[$table]);
 				}
-				if (is_array($tableSettings)) {
+				if (is_array($tableSettings) && count($tableSettings) > 1) {
 					foreach ($tableSettings as $key => $settings) {
 						$this->MOD_MENU[$table][$key] = $LANG->sL($settings['MENU']);
 					}
@@ -535,15 +535,49 @@ class SC_db_layout {
 				// Find columns
 			$modTSconfig_SHARED = t3lib_BEfunc::getModTSconfig($this->id,'mod.SHARED');		// SHARED page-TSconfig settings.
 			$this->colPosList = strcmp(trim($this->modTSconfig['properties']['tt_content.']['colPos_list']),'') ? trim($this->modTSconfig['properties']['tt_content.']['colPos_list']) : $modTSconfig_SHARED['properties']['colPos_list'];
-			$this->colPosList = strcmp($this->colPosList,'')?$this->colPosList:'1,0,2,3';
-			$this->colPosList = implode(',',array_unique(t3lib_div::intExplode(',',$this->colPosList)));		// Removing duplicates, if any
+			if (!strcmp($this->colPosList,'')) {
+				$backendLayout = t3lib_div::callUserFunction( 'EXT:cms/classes/class.tx_cms_backendlayout.php:tx_cms_BackendLayout->getSelectedBackendLayout' , $this->id, $this );
 
+				if(count($backendLayout['__colPosList'])) {
+					$this->colPosList = implode(',', $backendLayout['__colPosList']);
+				}
+			}
+			if( !strcmp($this->colPosList, '') ){
+				$this->colPosList = '1,0,2,3';
+			}
+			$this->colPosList = implode(',', array_unique(t3lib_div::intExplode(',',$this->colPosList)));		// Removing duplicates, if any
 
 				// Render the primary module content:
 			if ($this->MOD_SETTINGS['function']==0)	{
 				$body = $this->renderQuickEdit();	// QuickEdit
 			} else {
 				$body = $this->renderListContent();	// All other listings
+			}
+
+			// If page is a sysfolder
+			if ($this->pageinfo['doktype'] == 254) {
+
+					// access to list module
+				$moduleLoader = t3lib_div::makeInstance('t3lib_loadModules');
+				$moduleLoader->load($GLOBALS['TBE_MODULES']);
+				$modules = $moduleLoader->modules;
+
+				if (is_array($modules['web']['sub']['list'])) {
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						'<p>' . $GLOBALS['LANG']->getLL('goToListModuleMessage') . '</p>
+						 <br />
+						 <p>' .
+							t3lib_iconWorks::getSpriteIcon('actions-system-list-open') .
+							'<a href="javascript:top.goToModule( \'web_list\',1);">' .
+								$GLOBALS['LANG']->getLL('goToListModule') . '
+							</a>
+						 </p>',
+						'',
+						t3lib_FlashMessage::INFO
+					);
+					$body = $flashMessage->render() . $body;
+				}
 			}
 
 
@@ -571,10 +605,12 @@ class SC_db_layout {
 			);
 
 				// Build the <body> for the module
-			$this->content = $this->doc->startPage($LANG->getLL('title'));
 			$this->content.= $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
-			$this->content.= $this->doc->endPage();
-			$this->content = $this->doc->insertStylesAndJS($this->content);
+				// Renders the module page
+			$this->content = $this->doc->render(
+				$LANG->getLL('title'),
+				$this->content
+			);
 
 		} else {
 
@@ -623,10 +659,12 @@ class SC_db_layout {
 				'CONTENT' => $body
 			);
 
-			$this->content=$this->doc->startPage($LANG->getLL('title'));
 			$this->content.= $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
-			$this->content.=$this->doc->endPage();
-			$this->content = $this->doc->insertStylesAndJS($this->content);
+				// Renders the module page
+			$this->content = $this->doc->render(
+				$LANG->getLL('title'),
+				$this->content
+			);
 		}
 	}
 
@@ -1022,10 +1060,16 @@ class SC_db_layout {
 						$dblist->tt_contentConfig['showInfo'] = 1;		// Boolean: Display info-marks or not
 						$dblist->tt_contentConfig['single'] = 0; 		// Boolean: If set, the content of column(s) $this->tt_contentConfig['showSingleCol'] is shown in the total width of the page
 
+						if ($this->MOD_SETTINGS['function'] == 4) {
+								// grid view
+							$dblist->tt_contentConfig['showAsGrid'] = 1;
+						}
+
 							// Setting up the tt_content columns to show:
 						if (is_array($TCA['tt_content']['columns']['colPos']['config']['items']))	{
 							$colList = array();
-							foreach($TCA['tt_content']['columns']['colPos']['config']['items'] as $temp)	{
+							$tcaItems = t3lib_div::callUserFunction( 'EXT:cms/classes/class.tx_cms_backendlayout.php:tx_cms_BackendLayout->getColPosListItemsParsed' , $this->id, $this );
+							foreach($tcaItems as $temp)	{
 								$colList[] = $temp[1];
 							}
 						} else {	// ... should be impossible that colPos has no array. But this is the fallback should it make any sense:
@@ -1036,7 +1080,7 @@ class SC_db_layout {
 						}
 
 							// If only one column found, display the single-column view.
-						if (count($colList)==1)	{
+						if (count($colList) === 1 && !$this->MOD_SETTINGS['function'] === 4) {
 							$dblist->tt_contentConfig['single'] = 1;	// Boolean: If set, the content of column(s) $this->tt_contentConfig['showSingleCol'] is shown in the total width of the page
 							$dblist->tt_contentConfig['showSingleCol'] = current($colList);	// The column(s) to show if single mode (under each other)
 						}
@@ -1202,10 +1246,12 @@ class SC_db_layout {
 		}
 
 			// If access to Web>List for user, then link to that module.
-		$buttons['record_list'] = t3lib_extMgm::createListViewLink(
-			$this->pageinfo['uid'],
-			'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
-			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+		$buttons['record_list'] = t3lib_BEfunc::getListViewLink(
+			array(
+				'id' => $this->pageinfo['uid'],
+				'returnUrl' => t3lib_div::getIndpEnv('REQUEST_URI'),
+			),
+			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList')
 		);
 
 		if (!$this->modTSconfig['properties']['disableIconToolbar'])	{
@@ -1352,8 +1398,8 @@ class SC_db_layout {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/cms/layout/db_layout.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/cms/layout/db_layout.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/cms/layout/db_layout.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/cms/layout/db_layout.php']);
 }
 
 

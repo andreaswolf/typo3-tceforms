@@ -110,7 +110,7 @@ class tx_rtehtmlarea_typo3link extends tx_rtehtmlarea_api {
 					$JSClassesAnchorArray .= (($index++)?',':'') . 'type : "' . $conf['type'] . '"' . $linebreak;
 				}
 				if (trim(str_replace('\'', '', str_replace('"', '', $conf['image'])))) {
-					$JSClassesAnchorArray .= (($index++)?',':'') . 'image : "' . $this->htmlAreaRTE->getFullFileName(trim(str_replace('\'', '', str_replace('"', '', $conf['image'])))) . '"' . $linebreak;
+					$JSClassesAnchorArray .= (($index++)?',':'') . 'image : "' . $this->htmlAreaRTE->siteURL . t3lib_div::resolveBackPath(TYPO3_mainDir . $this->htmlAreaRTE->getFullFileName(trim(str_replace('\'', '', str_replace('"', '', $conf['image']))))) . '"' . $linebreak;
 				}
 				$JSClassesAnchorArray .= (($index++)?',':'') . 'addIconAfterLink : ' . ($conf['addIconAfterLink']?'true':'false') . $linebreak;
 				if (trim($conf['altText'])) {
@@ -147,7 +147,7 @@ class tx_rtehtmlarea_typo3link extends tx_rtehtmlarea_api {
 		}
 	}
 }
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/extensions/TYPO3Link/class.tx_rtehtmlarea_typo3link.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/extensions/TYPO3Link/class.tx_rtehtmlarea_typo3link.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/extensions/TYPO3Link/class.tx_rtehtmlarea_typo3link.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/extensions/TYPO3Link/class.tx_rtehtmlarea_typo3link.php']);
 }
 ?>

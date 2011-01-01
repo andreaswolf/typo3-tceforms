@@ -30,21 +30,10 @@
  *
  * @package Extbase
  * @subpackage Object
- * @version $Id: Manager.php 1729 2009-11-25 21:37:20Z stucki $
+ * @deprecated since Extbase 1.3.0; will be removed in Extbase 1.5.0
+ * @see Tx_Extbase_Object_ObjectManagerInterface, Tx_Extbase_Object_ObjectManager
  */
-class Tx_Extbase_Object_Manager implements Tx_Extbase_Object_ManagerInterface, t3lib_Singleton {
-
-	/**
-	 * @var Tx_Extbase_Object_RegistryInterface
-	 */
-	protected $singletonObjectsRegistry;
-
-	/**
-	 * Constructs a new Object Manager
-	 */
-	public function __construct() {
-		$this->singletonObjectsRegistry = t3lib_div::makeInstance('Tx_Extbase_Object_TransientRegistry'); // singleton
-	}
+class Tx_Extbase_Object_Manager extends Tx_Extbase_Object_ObjectManager {
 
 	/**
 	 * Returns a fresh or existing instance of the object specified by $objectName.
@@ -57,48 +46,18 @@ class Tx_Extbase_Object_Manager implements Tx_Extbase_Object_ManagerInterface, t
 	 *
 	 * @param string $objectName The name of the object to return an instance of
 	 * @return object The object instance
-	 * // TODO This is not part of the official API! Explain why.
+	 * @deprecated since Extbase 1.3.0; will be removed in Extbase 1.5.0. Please use Tx_Extbase_Object_ObjectManager instead
 	 */
 	public function getObject($objectName) {
+		t3lib_div::logDeprecatedFunction();
+		$arguments = array_slice(func_get_args(), 1);
 		if (in_array('t3lib_Singleton', class_implements($objectName))) {
-			if ($this->singletonObjectsRegistry->objectExists($objectName)) {
-				$object = $this->singletonObjectsRegistry->getObject($objectName);
-			} else {
-				$arguments = array_slice(func_get_args(), 1);
-				$object = $this->makeInstance($objectName, $arguments);
-				$this->singletonObjectsRegistry->putObject($objectName, $object);
-			}
+			$object = $this->get($objectName, $arguments);
 		} else {
-			$arguments = array_slice(func_get_args(), 1);
-			$object = $this->makeInstance($objectName, $arguments);
+			$object = $this->create($objectName, $arguments);
 		}
 		return $object;
 	}
-
-	/**
-	 * Speed optimized alternative to ReflectionClass::newInstanceArgs().
-	 * Delegates the instanciation to the makeInstance method of t3lib_div.
-	 *
-	 * @param string $objectName Name of the object to instantiate
-	 * @param array $arguments Arguments to pass to t3lib_div::makeInstance
-	 * @return object The object
-	 */
-	protected function makeInstance($objectName, array $arguments) {
-		switch (count($arguments)) {
-			case 0: return t3lib_div::makeInstance($objectName);
-			case 1: return t3lib_div::makeInstance($objectName, $arguments[0]);
-			case 2: return t3lib_div::makeInstance($objectName, $arguments[0], $arguments[1]);
-			case 3: return t3lib_div::makeInstance($objectName, $arguments[0], $arguments[1], $arguments[2]);
-			case 4: return t3lib_div::makeInstance($objectName, $arguments[0], $arguments[1], $arguments[2], $arguments[3]);
-			case 5: return t3lib_div::makeInstance($objectName, $arguments[0], $arguments[1], $arguments[2], $arguments[3], $arguments[4]);
-			case 6: return t3lib_div::makeInstance($objectName, $arguments[0], $arguments[1], $arguments[2], $arguments[3], $arguments[4], $arguments[5]);
-			case 7: return t3lib_div::makeInstance($objectName, $arguments[0], $arguments[1], $arguments[2], $arguments[3], $arguments[4], $arguments[5], $arguments[6]);
-			case 8: return t3lib_div::makeInstance($objectName, $arguments[0], $arguments[1], $arguments[2], $arguments[3], $arguments[4], $arguments[5], $arguments[6], $arguments[7]);
-			case 9: return t3lib_div::makeInstance($objectName, $arguments[0], $arguments[1], $arguments[2], $arguments[3], $arguments[4], $arguments[5], $arguments[6], $arguments[7], $arguments[8]);
-		}
-		throw new Tx_Extbase_Object_Exception_CannotBuildObject('Object "' . $objectName . '" has too many arguments.', 1166550023);
-	}
-
 
 }
 

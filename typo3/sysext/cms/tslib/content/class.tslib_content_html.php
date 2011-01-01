@@ -42,14 +42,26 @@ class tslib_content_Html extends tslib_content_Abstract {
 	 * @return	string		Output
 	 */
 	public function render($conf = array()) {
-		return $this->cObj->stdWrap($conf['value'], $conf['value.']);
+
+		$theValue = $conf['value'];
+
+		if (isset($conf['value.'])) {
+			$theValue = $this->cObj->stdWrap($theValue, $conf['value.']);
+		}
+
+		if (isset($conf['stdWrap.'])) {
+			$theValue = $this->cObj->stdWrap($theValue, $conf['stdWrap.']);
+		}
+
+		return $theValue;
+
 	}
 
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_html.php']) {
-	include_once ($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_html.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_html.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_html.php']);
 }
 
 ?>

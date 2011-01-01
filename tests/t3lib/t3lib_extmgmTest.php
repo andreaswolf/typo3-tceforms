@@ -87,6 +87,16 @@ class t3lib_extmgmTest extends tx_phpunit_testcase {
 		return $tca;
 	}
 
+	/**
+	 * Returns the fixtures path for this testcase relative to PATH_site.
+	 *
+	 * @return string the fixtures path for this testcase, will not be empty
+	 */
+	private function determineFixturesPath() {
+		return t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder')
+			->getRelativeCoreTestsPath() . 't3lib/fixtures/';
+	}
+
 
 	/////////////////////////////////////////////
 	// Tests concerning getExtensionKeyByPrefix
@@ -455,7 +465,7 @@ class t3lib_extmgmTest extends tx_phpunit_testcase {
 		$extensionKey = 'unloadedextension' . $uniqueSuffix;
 
 		$GLOBALS['TYPO3_LOADED_EXT'][$extensionKey] = array(
-			'siteRelPath' => 'tests/t3lib/fixtures/',
+			'siteRelPath' => $this->determineFixturesPath(),
 		);
 		$this->assertEquals(
 			'1.2.3',

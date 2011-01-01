@@ -106,6 +106,8 @@ HTMLArea.InlineElements = HTMLArea.Plugin.extend({
 			var buttonConfiguration = {
 				id		: buttonId,
 				tooltip		: this.localize(buttonId + "-Tooltip"),
+				contextMenuTitle: this.localize(buttonId + '-contextMenuTitle'),
+				helpText	: this.localize(buttonId + '-helpText'),
 				action		: "onButtonPress",
 				context		: button[1],
 				hide		: false,
@@ -357,7 +359,7 @@ HTMLArea.InlineElements = HTMLArea.Plugin.extend({
 				classNames = newElement.className.trim().split(" ");
 				for (var i = 0; i < classNames.length; ++i) {
 					if (!allowedClasses.test(classNames[i])) {
-						HTMLArea._removeClass(newElement, classNames[i]);
+						HTMLArea.DOM.removeClass(newElement, classNames[i]);
 					}
 				}
 			}

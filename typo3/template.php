@@ -216,6 +216,14 @@ class template {
 		'visual' => 'stylesheets/visual/',
 	);
 
+	/**
+	 * JavaScript files loaded for every page in the Backend
+	 * @var array
+	 */
+	protected $jsFiles = array(
+		'modernizr' => 'contrib/modernizr/modernizr.min.js',
+	);
+
 		// DEV:
 	var $parseTimeFlag = 0;			// Will output the parsetime of the scripts in milliseconds (for admin-users). Set this to false when releasing TYPO3. Only for dev.
 
@@ -235,6 +243,8 @@ class template {
 	 */
 	protected $pageRenderer;
 	protected $pageHeaderFooterTemplateFile = '';	// alternative template file
+
+	protected $extDirectStateProvider = FALSE;
 
 	/**
 	 * Whether flashmessages should be rendered or not
@@ -315,6 +325,11 @@ class template {
 			$this->pageRenderer->enableConcatenateFiles();
 			$this->pageRenderer->enableCompressCss();
 			$this->pageRenderer->enableCompressJavascript();
+
+				// add all JavaScript files defined in $this->jsFiles to the PageRenderer
+			foreach ($this->jsFiles as $file) {
+				$this->pageRenderer->addJsFile($GLOBALS['BACK_PATH'] . $file);
+			}
 		}
 		if (intval($GLOBALS['TYPO3_CONF_VARS']['BE']['debug']) === 1) {
 			$this->pageRenderer->enableDebugMode();
@@ -324,7 +339,14 @@ class template {
 
 
 
-
+   /**
+	 * Sets inclusion of StateProvider
+	 *
+	 * @return void
+	 */
+	public function setExtDirectStateProvider() {
+		$this->extDirectStateProvider = TRUE;
+	}
 
 
 
@@ -374,12 +396,13 @@ class template {
 	 */
 	function viewPageIcon($id,$backPath,$addParams='hspace="3"')	{
 		global $BE_USER;
-		$str = '';
 			// If access to Web>List for user, then link to that module.
-		$str .= t3lib_extMgm::createListViewLink(
-			$id,
-			'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
-			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+		$str = t3lib_BEfunc::getListViewLink(
+			array(
+				'id' => $id,
+				'returnUrl' => t3lib_div::getIndpEnv('REQUEST_URI'),
+			),
+			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList')
 		);
 
 			// Make link to view page
@@ -512,13 +535,13 @@ class template {
 		} else $mMN='';
 
 		$onClick = 'top.ShortcutManager.createShortcut('
-			.$GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.makeShortcut')).', '
+			.$GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.makeBookmark')).', '
 			.'\''.$backPath.'\', '
 			.'\''.rawurlencode($modName).'\', '
 			.'\''.rawurlencode($pathInfo['path']."?".$storeUrl).$mMN.'\''
 		.');return false;';
 
-		$sIcon = '<a href="#" onclick="' . htmlspecialchars($onClick).'" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.makeShortcut', TRUE) . '">'
+		$sIcon = '<a href="#" onclick="' . htmlspecialchars($onClick).'" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.makeBookmark', TRUE) . '">'
 			. t3lib_iconworks::getSpriteIcon('actions-system-shortcut-new') . '</a>';
 		return $sIcon;
 	}
@@ -794,6 +817,14 @@ class template {
 		// add docstyles
 		$this->docStyle();
 
+	   if ($this->extDirectStateProvider) {
+			$this->pageRenderer->addJsFile(
+				$this->backPath . 'ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.ExtDirectStateProvider',
+				NULL,
+				FALSE
+			);
+			$this->pageRenderer->addJsFile($this->backPath . '../t3lib/js/extjs/ExtDirect.StateProvider.js');
+		}
 
 			// add jsCode for overriding the console with a debug panel connection
 		$this->pageRenderer->addJsInlineCode(
@@ -900,6 +931,22 @@ $str.=$this->docBodyTagBegin().
 		if (TYPO3_DLOG)	t3lib_div::devLog('END of BACKEND session', 'template', 0, array('_FLUSH' => true));
 
 		return $str;
+	}
+
+	/**
+	 * Shortcut for render the complete page of a module
+	 *
+	 * @param  $title  page title
+	 * @param  $content  page content
+	 * @param bool $includeCsh  flag for including csh code
+	 * @return string complete page
+	 */
+	public function render($title, $content, $includeCsh = TRUE)  {
+		$pageContent = $this->startPage($title, $includeCsh);
+		$pageContent .= $content;
+		$pageContent .= $this->endPage();
+
+		return $this->insertStylesAndJS($pageContent);
 	}
 
 	/**
@@ -2101,11 +2148,73 @@ $str.=$this->docBodyTagBegin().
 		return $pageInfo;
 	}
 
+	/**
+	 * Makes a collapseable section. See reports module for an example
+	 *
+	 * @param  string  $title
+	 * @param  string  $html
+	 * @param  string  $id
+	 * @param  string $saveStatePointer
+	 * @return string
+	 */
+	public function collapseableSection($title, $html, $id, $saveStatePointer = '') {
+		$hasSave = $saveStatePointer ? TRUE : FALSE;
+		$collapsedStyle =  $collapsedClass = '';
 
-
-
-
+		if ($hasSave) {
+			/** @var $settings extDirect_DataProvider_BackendUserSettings */
+			$settings = t3lib_div::makeInstance('extDirect_DataProvider_BackendUserSettings');
+			$value = $settings->get($saveStatePointer . '.' . $id);
+			if ($value) {
+				$collapsedStyle = ' style="display: none"';
+				$collapsedClass = ' collapsed';
+			} else {
+				$collapsedStyle = '';
+				$collapsedClass = ' expanded';
+			}
 		}
+
+		$this->pageRenderer->loadExtJS();
+		$this->pageRenderer->addExtOnReadyCode('
+			Ext.select("h2.section-header").each(function(element){
+				element.on("click", function(event, tag) {
+					var state = 0,
+						el = Ext.fly(tag),
+						div = el.next("div"),
+						saveKey = el.getAttribute("rel");
+					if (el.hasClass("collapsed")) {
+						el.removeClass("collapsed").addClass("expanded");
+						div.slideIn("t", {
+							easing: "easeIn",
+							duration: .5
+						});
+					} else {
+						el.removeClass("expanded").addClass("collapsed");
+						div.slideOut("t", {
+							easing: "easeOut",
+							duration: .5,
+							remove: false,
+							useDisplay: true
+						});
+						state = 1;
+					}
+					if (saveKey) {
+						try {
+							top.TYPO3.BackendUserSettings.ExtDirect.set(saveKey + "." + tag.id, state, function(response) {});
+						} catch(e) {}
+					}
+				});
+			});
+		');
+		return '
+		  <h2 id="' . $id . '" class="section-header' . $collapsedClass . '" rel="' . $saveStatePointer . '"> ' . $title . '</h2>
+		  <div' . $collapsedStyle  . '>' . $html . '</div>
+		';
+
+	}
+
+
+}
 
 
 // ******************************
@@ -2194,8 +2303,8 @@ class frontendDoc extends template {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/template.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/template.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/template.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/template.php']);
 }
 
 

@@ -1,29 +1,29 @@
 <?php
 /***************************************************************
-*  Copyright notice
-*
-*  (c) 2010 TYPO3 Tree Team <http://forge.typo3.org/projects/typo3v4-extjstrees>
-*  All rights reserved
-*
-*  This script is part of the TYPO3 project. The TYPO3 project is
-*  free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  The GNU General Public License can be found at
-*  http://www.gnu.org/copyleft/gpl.html.
-*  A copy is found in the textfile GPL.txt and important notices to the license
-*  from the author is found in LICENSE.txt distributed with these scripts.
-*
-*
-*  This script is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  This copyright notice MUST APPEAR in all copies of the script!
-***************************************************************/
+ *  Copyright notice
+ *
+ *  (c) 2010 TYPO3 Tree Team <http://forge.typo3.org/projects/typo3v4-extjstrees>
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
 
 /**
  * Tree Node
@@ -76,7 +76,7 @@ class t3lib_tree_Node implements t3lib_tree_ComparableNode, Serializable {
 	 * @param t3lib_tree_NodeCollection $childNodes
 	 * @return void
 	 */
-	public function setChildNodes (t3lib_tree_NodeCollection $childNodes) {
+	public function setChildNodes(t3lib_tree_NodeCollection $childNodes) {
 		$this->childNodes = $childNodes;
 	}
 
@@ -114,7 +114,6 @@ class t3lib_tree_Node implements t3lib_tree_ComparableNode, Serializable {
 		return FALSE;
 	}
 
-
 	/**
 	 * Sets the identifier
 	 *
@@ -140,7 +139,7 @@ class t3lib_tree_Node implements t3lib_tree_ComparableNode, Serializable {
 	 * @param t3lib_tree_Node $parentNode
 	 * @return void
 	 */
-	public function setParentNode (t3lib_tree_Node $parentNode = NULL) {
+	public function setParentNode(t3lib_tree_Node $parentNode = NULL) {
 		$this->parentNode = $parentNode;
 	}
 
@@ -149,7 +148,7 @@ class t3lib_tree_Node implements t3lib_tree_ComparableNode, Serializable {
 	 *
 	 * @return t3lib_tree_Node
 	 */
-	public function getParentNode () {
+	public function getParentNode() {
 		return $this->parentNode;
 	}
 
@@ -257,3 +256,5 @@ class t3lib_tree_Node implements t3lib_tree_ComparableNode, Serializable {
 		$this->dataFromArray($arrayRepresentation);
 	}
 }
+
+?>

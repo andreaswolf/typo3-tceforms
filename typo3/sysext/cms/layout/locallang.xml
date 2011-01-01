@@ -46,6 +46,7 @@
 			<label index="newPage2">New page</label>
 			<label index="noAccess">No edit access</label>
 			<label index="noAccess_msg">You do not have access to edit the requested record.</label>
+			<label index="notAssigned">Not assigned</label>
 			<label index="undoLastChange">Undo/Redo last change (%s ago)</label>
 			<label index="recordHistory">View record change history</label>
 			<label index="viewContent">Viewing content of</label>
@@ -57,6 +58,7 @@
 			<label index="m_function_0">QuickEdit</label>
 			<label index="m_function_1">Columns</label>
 			<label index="m_function_2">Languages</label>
+			<label index="gridView">Grid-View</label>
 			<label index="m_tt_board_0">List topics only</label>
 			<label index="m_tt_board_expand">Expand Threads</label>
 			<label index="m_tt_address_0">Short List</label>
@@ -82,6 +84,8 @@
 			<label index="pI_hits24hours">Last 24 hours</label>
 			<label index="pI_hits10days">Last 10 days</label>
 			<label index="content_from_pid_title">Page uses content from this page: %s</label>
+			<label index="goToListModule">Go to list module</label>
+			<label index="goToListModuleMessage">The current page is of the type "Sysfolder". Sysfolders usually don't contain content elements but are used for collecting other types of records in a single folder.</label>
 		</languageKey>
 	</data>
 </T3locallang>

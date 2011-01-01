@@ -4,6 +4,37 @@ Tree
 $Id$
 - - - - - - - - - - - - - - - - - - - - - */
 
+body#typo3-pagetree,
+body#typo3-alt-file-navframe-php {
+	background: #ebebeb;
+}
+
+/**
+ * Shadow on the right side of the tree frame.
+ */
+#typo3-pagetree #typo3-docbody,
+#typo3-alt-file-navframe-php #typo3-docbody {
+	-moz-box-shadow: inset -2px 0 1px #c4c4c4;
+	-ms-box-shadow: inset -2px 0 1px #c4c4c4;
+	-webkit-box-shadow: inset -2px 0 1px #c4c4c4;
+	box-shadow: inset -2px 0 1px #c4c4c4;
+}
+
+/**
+ * Shadow on the right side of the tree frame,
+ * fallback for missing box-shadow support.
+ *
+ * @see modernizr.js
+ */
+.no-boxshadow #typo3-pagetree #typo3-docbody,
+.no-boxshadow #typo3-alt-file-navframe-php #typo3-docbody {
+	background-image: url("data:image/png;base64,R0lGODlhAgABAIAAAMjIyLOzsyH5BAAAAAAALAAAAAACAAEAAAICRAoAOw==");
+	/* star-hack targets IE6+7 */
+	*background-image: url("../../images/backgrounds/module-menu-right.png");
+	background-position: right;
+	background-repeat: repeat-y;
+}
+
 table#typo3-tree a {
 	text-decoration: none;
 }
@@ -69,16 +100,27 @@ ul.tree ul li {
 }
 
 ul.tree ul li.expanded ul {
-	background: transparent url('../../icons/gfx/ol/line.gif') 2px top repeat-y;
+	background: transparent url('../../icons/gfx/ol/line.gif') left top repeat-y;
 }
 
 ul.tree ul li.last > ul {
 	background: none;
 }
 
-ul.tree li.active > div.treeLinkItem,
-ul.tree ul li.active > div.treeLinkItem {
-	background-color: #d8d8d8;
+/* active tree items */
+ul.tree li.active div.treeLinkItem {
+	background-color: #f8f8f8;
+	border-color: #d7d7d7;
+	border-width: 1px 0 1px 1px;
+	border-style: solid;
+
+}
+
+/* subitems of active tree items - reset styling */
+ul.tree li.active li div.treeLinkItem {
+	background-color: transparent;
+	border-width: 0;
+
 }
 
 ul.tree li.active span a,
@@ -102,7 +144,6 @@ ul.tree ul li.active ul span a {
 	background-image: url('../../icons/gfx/filter_bg.gif');
 	background-repeat: no-repeat;
 	background-position: 0 -2px;
-	background-color: #f2f2f2;
 	border-bottom: 1px solid #dadada;
 }
 

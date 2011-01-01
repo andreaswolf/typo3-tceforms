@@ -31,16 +31,8 @@
  * @author Sebastian Kurfürst <sebastian@garbage-group.de
  * @version $Id$
  */
-class tx_coreupdates_compatversion {
-	var $versionNumber;	// version number coming from t3lib_div::int_from_ver()
-
-	/**
-	 * parent object
-	 *
-	 * @var tx_install
-	 */
-	var $pObj;
-	var $userInput;	// user input
+class tx_coreupdates_compatversion extends Tx_Install_Updates_Base {
+	protected $title = 'Version Compatibility';
 
 	/**
 	 * Function which checks if update is needed. Called in the beginning of an update process.
@@ -98,7 +90,7 @@ class tx_coreupdates_compatversion {
 				<p>
 					Your current TYPO3 installation is configured to
 					<strong>behave like version
-					' . $TYPO3_CONF_VARS['SYS']['compat_version'] . '
+					' . htmlspecialchars($TYPO3_CONF_VARS['SYS']['compat_version']) . '
 					</strong> of TYPO3. If you just upgraded from this version,
 					you most likely want to <strong>use new features</strong> as
 					well.
@@ -137,7 +129,8 @@ class tx_coreupdates_compatversion {
 				'3.8' => '<= 3.8',
 				'4.1' => '<= 4.1',
 				'4.2' => '<= 4.2',
-				'4.3' => '<= 4.3'
+				'4.3' => '<= 4.3',
+				'4.4' => '<= 4.4'
 			);
 			foreach ($versions as $singleVersion => $caption)	{
 				$content .= '
@@ -153,7 +146,7 @@ class tx_coreupdates_compatversion {
 		} else {
 			$content = '
 				<p>
-					TYPO3 output is currently compatible to version ' . $TYPO3_CONF_VARS['SYS']['compat_version'] . '.
+					TYPO3 output is currently compatible to version ' . htmlspecialchars($TYPO3_CONF_VARS['SYS']['compat_version']) . '.
 					To use all the new features in the current TYPO3 version,
 					make sure you follow the guidelines below to upgrade without
 					problems.

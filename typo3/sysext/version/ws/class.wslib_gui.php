@@ -647,7 +647,7 @@ class wslib_gui {
 					$this->formatWorkspace_cache[$wsid] = '';	// Does not output anything for ONLINE because it might confuse people to think that the elemnet IS online which is not the case - only that it exists as an offline version in the online workspace...
 					break;
 				default:
-					list($titleRec) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('title','sys_workspace','uid='.intval($wsid).t3lib_BEfunc::deleteClause('sys_workspace'));
+					$titleRec = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('title', 'sys_workspace', 'uid=' . intval($wsid) . t3lib_BEfunc::deleteClause('sys_workspace'));
 					$this->formatWorkspace_cache[$wsid] = '['.$wsid.'] '.$titleRec['title'];
 					break;
 			}
@@ -1302,8 +1302,8 @@ class wslib_gui {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/mod/user/ws/class.wslib_gui.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/mod/user/ws/class.wslib_gui.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/mod/user/ws/class.wslib_gui.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/mod/user/ws/class.wslib_gui.php']);
 }
 
 ?>

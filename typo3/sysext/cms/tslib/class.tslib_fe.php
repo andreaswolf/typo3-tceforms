@@ -1055,7 +1055,7 @@
 		}
 
 			// Spacer is not accessible in frontend
-		if ($this->page['doktype'] == 199)	{
+		if ($this->page['doktype'] == t3lib_pageSelect::DOKTYPE_SPACER) {
 			if ($this->TYPO3_CONF_VARS['FE']['pageNotFound_handling'])	{
 				$this->pageNotFoundAndExit('The requested page does not exist!');
 			} else {
@@ -1067,7 +1067,7 @@
 		}
 
 			// Is the ID a link to another page??
-		if ($this->page['doktype']==4)	{
+		if ($this->page['doktype'] == t3lib_pageSelect::DOKTYPE_SHORTCUT) {
 			$this->MP = '';		// We need to clear MP if the page is a shortcut. Reason is if the short cut goes to another page, then we LEAVE the rootline which the MP expects.
 
 				// saving the page so that we can check later - when we know
@@ -1141,11 +1141,11 @@
 
 			// Find $page record depending on shortcut mode:
 		switch($mode)	{
-			case 1:
-			case 2:
-				$pageArray = $this->sys_page->getMenu($idArray[0]?$idArray[0]:$thisUid,'*','sorting','AND pages.doktype<199 AND pages.doktype!=6');
+			case t3lib_pageSelect::SHORTCUT_MODE_FIRST_SUBPAGE:
+			case t3lib_pageSelect::SHORTCUT_MODE_RANDOM_SUBPAGE:
+				$pageArray = $this->sys_page->getMenu(($idArray[0] ? $idArray[0] : $thisUid), '*', 'sorting', 'AND pages.doktype<199 AND pages.doktype!=' . t3lib_pageSelect::DOKTYPE_BE_USER_SECTION);
 				$pO = 0;
-				if ($mode==2 && count($pageArray))	{	// random
+				if ($mode == t3lib_pageSelect::SHORTCUT_MODE_RANDOM_SUBPAGE && count($pageArray)) {
 					$randval = intval(rand(0,count($pageArray)-1));
 					$pO = $randval;
 				}
@@ -1158,7 +1158,7 @@
 					$c++;
 				}
 			break;
-			case 3:
+			case t3lib_pageSelect::SHORTCUT_MODE_PARENT_PAGE:
 				$parent = $this->sys_page->getPage($thisUid);
 				$page = $this->sys_page->getPage($parent['pid']);
 			break;
@@ -1168,7 +1168,7 @@
 		}
 
 			// Check if short cut page was a shortcut itself, if so look up recursively:
-		if ($page['doktype']==4)	{
+		if ($page['doktype'] == t3lib_pageSelect::DOKTYPE_SHORTCUT) {
 			if (!in_array($page['uid'],$pageLog) && $itera>0)	{
 				$pageLog[] = $page['uid'];
 				$page = $this->getPageShortcut($page['shortcut'],$page['shortcut_mode'],$page['uid'],$itera-1,$pageLog);
@@ -1200,7 +1200,7 @@
 				$this->pageAccessFailureHistory['sub_section'][] = $this->rootLine[$a];
 				$removeTheRestFlag=1;
 			}
-			if ($this->rootLine[$a]['doktype']==6)	{
+			if ($this->rootLine[$a]['doktype'] == t3lib_pageSelect::DOKTYPE_BE_USER_SECTION) {
 				if ($this->beUserLogin)	{	// If there is a backend user logged in, check if he has read access to the page:
 					$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid', 'pages', 'uid='.intval($this->id).' AND '.$GLOBALS['BE_USER']->getPagePermsClause(1));	// versionOL()?
 					list($isPage) = $GLOBALS['TYPO3_DB']->sql_fetch_row($res);
@@ -1709,7 +1709,7 @@
 			}
 
 				// Look for keyword configuration record:
-			list($previewData) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+			$previewData = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
 				'*',
 				'sys_preview',
 				'keyword='.$GLOBALS['TYPO3_DB']->fullQuoteStr($inputCode, 'sys_preview').
@@ -3864,7 +3864,7 @@ if (version == "n3") {
 	 * @return	void
 	 */
 	function previewInfo()	{
-		if ($this->fePreview) {
+		if ($this->fePreview && (!isset($this->config['config']['disablePreviewNotification']) || intval($this->config['config']['disablePreviewNotification']) !== 1)) {
 				if ($this->fePreview === 2) {
 					$onclickForStoppingPreview = 'document.location="'.t3lib_div::getIndpEnv('TYPO3_SITE_URL').'index.php?ADMCMD_prev=LOGOUT&returnUrl='.rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')).'";return false;';
 					$text = 'Preview of workspace "'.$this->whichWorkspace(TRUE).'" ('.$this->whichWorkspace().')';
@@ -4862,8 +4862,8 @@ if (version == "n3") {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/class.tslib_fe.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/class.tslib_fe.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/class.tslib_fe.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/class.tslib_fe.php']);
 }
 
 ?>

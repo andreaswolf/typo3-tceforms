@@ -1,6 +1,9 @@
 <?php
 if (!defined ('TYPO3_MODE')) 	die ('Access denied.');
 
+	// TYPO3 4.5 - Check the database to be utf-8 compliant
+$TYPO3_CONF_VARS['SC_OPTIONS']['ext/install']['update']['charsetDefaults'] = 'tx_coreupdates_charsetdefaults';
+
 $TYPO3_CONF_VARS['SC_OPTIONS']['ext/install']['update']['changeCompatibilityVersion'] = 'tx_coreupdates_compatversion';
 
 	// manage split includes of css_styled_contents since TYPO3 4.3
@@ -38,5 +41,11 @@ $TYPO3_CONF_VARS['SC_OPTIONS']['ext/install']['update']['checkForT3SkinInstalled
 
 	// Version 4.4: warn for set CompressionLevel and warn user to update his .htaccess
 $TYPO3_CONF_VARS['SC_OPTIONS']['ext/install']['update']['checkForCompressionLevel'] = 'tx_coreupdates_compressionlevel';
+
+	// Version 4.5: migrate workspaces to use custom stages and install the required extensions
+$TYPO3_CONF_VARS['SC_OPTIONS']['ext/install']['update']['migrateWorkspaces'] = 'tx_coreupdates_migrateworkspaces';
+
+	// Version 4.5: Removes the ".gif" suffix from entries in sys_language
+$TYPO3_CONF_VARS['SC_OPTIONS']['ext/install']['update']['flagsFromSprites'] = 'tx_coreupdates_flagsfromsprite';
 
 ?>

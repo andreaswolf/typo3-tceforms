@@ -221,7 +221,7 @@ class tx_indexedsearch_crawler {
 		if ($params['indexConfigUid'])	{
 
 				// Load the indexing configuration record:
-			list($cfgRec) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+			$cfgRec = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
 				'*',
 				'index_config',
 				'uid='.intval($params['indexConfigUid'])
@@ -996,8 +996,8 @@ class tx_indexedsearch_files {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/indexed_search/class.crawler.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/indexed_search/class.crawler.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/indexed_search/class.crawler.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/indexed_search/class.crawler.php']);
 }
 
 ?>

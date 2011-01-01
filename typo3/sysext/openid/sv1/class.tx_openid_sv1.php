@@ -305,7 +305,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 	protected function getUserRecord($openIDIdentifier) {
 		$record = null;
 		if ($openIDIdentifier) {
-			list($record) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*',
+			$record = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('*',
 				$this->authenticationInformation['db_user']['table'],
 				'tx_openid_openid=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($openIDIdentifier, $this->authenticationInformation['db_user']['table']) .
 					$this->authenticationInformation['db_user']['check_pid_clause'] .
@@ -573,8 +573,8 @@ class tx_openid_sv1 extends t3lib_svbase {
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/openid/sv1/class.tx_openid_sv1.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/openid/sv1/class.tx_openid_sv1.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/openid/sv1/class.tx_openid_sv1.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/openid/sv1/class.tx_openid_sv1.php']);
 }
 
 ?>

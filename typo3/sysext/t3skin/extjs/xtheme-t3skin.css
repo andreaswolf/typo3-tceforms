@@ -27,7 +27,6 @@
 
 .x-panel-tbar {
 	border-bottom: 1px solid #cdcdcd;
-	margin-bottom: 10px;
 	padding-bottom: 10px;
 }
 
@@ -199,6 +198,10 @@ ul.x-tab-strip-bottom{
 ul.x-tab-strip li {
 	margin-left: 0;
 	margin-right: 2px;
+}
+
+ul.x-tab-strip.x-tab-strip-top li.last {
+	margin-right: 0px
 }
 
 .x-tab-strip span.x-tab-strip-text {
@@ -489,9 +492,14 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 /* the mask for dialogs */
 .ext-el-mask {
 	background-color: #000000;
-	-moz-opacity: 0.9;
-	opacity: 0.9;
-	filter:alpha(opacity=90);
+	-moz-opacity: 0.75;
+	opacity: 0.75;
+	filter:alpha(opacity=75);
+}
+
+.ext-el-mask-msg div {
+	background-image: url(images/grid/loading.gif);
+	background-color: #fff;
 }
 
 /* mask while loading */
@@ -794,6 +802,7 @@ ul.x-tab-strip-bottom{
 	background: transparent;
 }
 
+.x-btn-pressed,
 .x-btn-over,
 .x-btn-icon.x-btn-over {
 	background-color: #bdbcbc;
@@ -1017,10 +1026,6 @@ ul.x-tab-strip-bottom{
 	font-size: 11px;
 }
 
-.x-grid-panel .x-panel-mc .x-panel-body {
-	border-color:#A2AAB8;
-}
-
 .x-grid3-hd-row td {
 	border-left-color: transparent;
 	border-right-color: transparent;
@@ -1032,15 +1037,21 @@ ul.x-tab-strip-bottom{
 }
 
 .x-grid3-row {
-	border-color: transparent;
+	border: none;
+	background-color: #f7f7f7;
 }
 
 .x-grid3-row-alt{
-	background-color: #f1f1f1;
+	background-color: transparent;
 }
 
 .x-grid3-row-over {
-	background-color: #e1e1e1;
+	background-color: #dedede;
+	border: none;
+}
+
+.x-grid3-row-expanded {
+	background-color: #dedede;
 }
 
 .x-grid3-resize-proxy {
@@ -1069,7 +1080,7 @@ ul.x-tab-strip-bottom{
 	background-image:url(images/grid/hd-pop.gif);
 }
 
-td.sort-desc, td.sort-asc,  {
+td.sort-desc, td.sort-asc  {
 	border-left-color: transparent;
 	border-right-color: transparent;
 }
@@ -1117,23 +1128,17 @@ td.x-grid3-hd-over, td.x-grid3-hd-menu-open {
 	background-image:url(images/grid/col-move-bottom.gif);
 }
 
-.x-grid3-row-selected {
-	background-color: #ed9e21;
-	border-style: solid;
-	color: #ffffff;
-}
-
 .x-grid3-cell-selected{
-	background-color: #cdcdcd !important;
-	color:#000;
+	background-color: #dedede !important;
+	color: #606060;
 }
 
 .x-grid3-cell-selected span{
-	color:#000 !important;
+	color:#606060 !important;
 }
 
 .x-grid3-cell-selected .x-grid3-cell-text{
-	color:#000;
+	color: #606060;
 }
 
 .x-grid3-locked td.x-grid3-row-marker, .x-grid3-locked .x-grid3-row-selected td.x-grid3-row-marker{
@@ -1224,19 +1229,20 @@ td.x-grid3-hd-over, td.x-grid3-hd-menu-open {
 }
 
 .x-grid-group-hd {
-	border-bottom-color:#A2AAB8;
+	border: none;
 }
 
 .x-grid-group-hd div.x-grid-group-title {
-	background-image:url(images/grid/group-expand-sprite.gif);
-	background-position: 3px -46px;
-	color:#3764a0;
-	font:bold 10px verdana, arial, tahoma, helvetica, sans-serif;
+	background-image:url("images/grid/row-expand-sprite.png");
+	background-position: 4px -38px;
+	color:#606060;
+	font:bold 11px verdana, arial, tahoma, helvetica, sans-serif;
+	padding: 5px 4px 4px 27px;
 }
 
 .x-grid-group-collapsed .x-grid-group-hd div.x-grid-group-title {
-	background-image:url(images/grid/group-expand-sprite.gif);
-	background-position: 3px 4px;
+	background-image: url("images/grid/row-expand-sprite.png");
+	background-position: 4px -18px;
 }
 
 .x-group-by-icon {
@@ -1836,7 +1842,6 @@ a.x-menu-item {
 
 .x-panel-body {
 	border-color: #A2AAB8;
-	background-color: #f1f1f1;
 }
 
 .x-panel-body-noheader, .x-panel-mc .x-panel-body {
@@ -2021,6 +2026,14 @@ body.x-body-masked .x-window-plain .x-window-mc {
 	background-color:#e6e6e6;
 }
 
+.x-layout-mini {
+	opacity: 0.6;
+}
+
+.x-layout-mini:hover {
+	opacity: 0.8;
+}
+
 .x-layout-split-west .x-layout-mini {
 	background-image:url(images/layout/mini-left.gif);
 }
@@ -2164,9 +2177,89 @@ body.x-body-masked .x-window-plain .x-window-mc {
 	color: #606060;
 }
 
-/* Pagetree */
-.x-layout-split {
-	background-color: #dadada;
+/* Tree frame split bar */
+#typo3-module-menu-xsplit,
+#typo3-navigationContainer-xsplit {
+	width: 0;
+}
+
+/* Collapse icon */
+#typo3-module-menu-xsplit .x-layout-mini-west,
+#typo3-module-menu-xcollapsed .x-layout-mini-west,
+#typo3-navigationContainer-xsplit .x-layout-mini-west,
+#typo3-navigationContainer-xcollapsed .x-layout-mini-west {
+	background-position: center;
+	background-repeat: no-repeat;
+	display: none;
+	left: 0px;
+	padding: 5px 0;
+	position: absolute;
+}
+
+/* Only show collapse icon, when user hovers the split bar */
+#typo3-module-menu-xsplit:hover .x-layout-mini-west,
+#typo3-module-menu-xcollapsed:hover .x-layout-mini-west,
+#typo3-navigationContainer-xsplit:hover .x-layout-mini-west,
+#typo3-navigationContainer-xcollapsed:hover .x-layout-mini-west {
+	display: block;
+}
+
+#typo3-module-menu-xcollapsed:hover .x-layout-mini-west {
+	left: 5px;
+}
+
+/* Collapsed tree frame is not invisible, but 5px wide.
+   If no tree frame is in use, an empty container is shown instead */
+#typo3-navigationContainer-xcollapsed,
+#typo3-navigationDummy {
+	background-color: #ebebeb;
+	-moz-box-shadow: inset -2px 0 1px rgba(0, 0, 0, 0.15),
+		inset 0 22px #585858;
+	-ms-box-shadow: inset -2px 0 1px rgba(0, 0, 0, 0.15),
+		inset 0 22px #585858;
+	-webkit-box-shadow: inset -2px 0 1px rgba(0, 0, 0, 0.15),
+		inset 0 22px #585858;
+	box-shadow: inset -2px 0 1px rgba(0, 0, 0, 0.15),
+		inset 0 22px #585858;
+	overflow: visible;
+}
+
+/**
+ * Shadow on the right side of the tree frame,
+ * fallback for missing box-shadow support.
+ *
+ * @see modernizr.js
+ */
+.no-boxshadow #typo3-navigationContainer-xcollapsed,
+.no-boxshadow #typo3-navigationDummy  {
+	background-image: url("data:image/png;base64,R0lGODlhAgABAIAAAMjIyLOzsyH5BAAAAAAALAAAAAACAAEAAAICRAoAOw==");
+	/* star-hack targets IE6+7 */
+	*background-image: url("../images/backgrounds/module-menu-right.png");
+	background-position: right;
+	background-repeat: repeat-y;
+}
+
+#typo3-navigationContainer-xcollapsed {
+	width: 10px !important;
+}
+
+#typo3-navigationContainer-xcollapsed:hover .x-layout-mini-west {
+	left: 10px;
+}
+
+/**
+ * this is our invisible wrapper around the collapse button,
+ * which enables us to have kind of invisible splitbar
+ */
+.x-layout-mini-wrapper {
+	height: 100%;
+	left: 0;
+	position: absolute;
+	width: 1px;
+}
+
+.x-splitbar-proxy.x-splitbar-proxy-h {
+	width: 2px !important;
 }
 
 #widget-navigation-tree .x-panel-noborder .x-panel-body-noborder {
@@ -2233,3 +2326,23 @@ body.x-body-masked .x-window-plain .x-window-mc {
 	padding-left: 100px;
 	background: url(../images/general/donate_teaser.png) no-repeat 25px 10px !important;
 }
+
+.icon-collapse-all {
+	background-image: url("images/tree/collapse-all.gif") !important;
+}
+.icon-expand-all {
+	background-image: url("images/tree/expand-all.gif") !important;
+}
+
+.x-grid3-col {
+	color: #606060
+}
+
+div.x-grid3-row img.t3-icon-extensions-workspaces {
+	display: inline-block !important;
+	width: 1px;
+}
+div.x-grid3-row:hover img.t3-icon-extensions-workspaces {
+	width: 17px
+}
+

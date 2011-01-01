@@ -92,6 +92,8 @@ TYPO3.ModuleMenu.Template = new Ext.XTemplate(
 
 TYPO3.ModuleMenu.App = {
 	loadedModule: null,
+	loadedNavigationComponentId: '',
+	availableNavigationComponents: {},
 
 	init: function() {
 		TYPO3.ModuleMenu.Store.load({
@@ -99,7 +101,9 @@ TYPO3.ModuleMenu.App = {
 			callback: function(records, options) {
 				this.renderMenu(records);
 				if (top.startInModule) {
-					this.showModule(top.startInModule[0],top.startInModule[1]);
+					this.showModule(top.startInModule[0], top.startInModule[1]);
+				} else {
+					this.loadFirstAvailableModule();
 				}
 			}
 		});
@@ -194,41 +198,104 @@ TYPO3.ModuleMenu.App = {
 	showModule: function(mod, params) {
 		params = params || '';
 		this.selecteModule = mod;
+
+		params = this.includeId(mod, params);
 		var record = this.getRecordFromName(mod);
 
 		if (record) {
+			this.loadModuleComponents(record, params);
+		} else {
+				//defined startup module is not present, use the first available instead
+			this.loadFirstAvailableModule(params);
+		}
+	},
 
-			//get id
-			var section = mod.split('_')[0];
-			if (top.fsMod.recentIds[section]) {
-				params = 'id=' + top.fsMod.recentIds[section] + params;
-			}
+	loadFirstAvailableModule: function(params) {
+		params = params || '';
+		if (TYPO3.ModuleMenu.Store.getCount() === 0) {
+				// Store is empty, something went wrong
+			TYPO3.Flashmessage.display(TYPO3.Severity.error, 'Module loader', 'No module found. If this is a temporary error, please reload the Backend!', 50000);
+		} else {
+			mod = TYPO3.ModuleMenu.Store.getAt(0).data.sub[0];
+			this.loadModuleComponents(mod, params);
+		}
+	},
 
-			if (record.navframe) {
+	loadModuleComponents: function(record, params) {
+		var mod = record.name;
+		if (record.navigationComponentId) {
+				this.loadNavigationComponent(record.navigationComponentId);
+				TYPO3.Backend.NavigationDummy.hide();
+				TYPO3.Backend.NavigationIframe.getEl().parent().setStyle('overflow', 'auto');
+			} else if (record.navframe) {
+				TYPO3.Backend.NavigationDummy.hide();
+				TYPO3.Backend.NavigationContainer.show();
+				this.loadNavigationComponent('typo3-navigationIframe');
 				this.openInNavFrame(record.navframe);
+				TYPO3.Backend.NavigationIframe.getEl().parent().setStyle('overflow', 'hidden');
 			} else {
 				TYPO3.Backend.NavigationContainer.hide();
+				TYPO3.Backend.NavigationDummy.show();
 			}
 			this.openInContentFrame(record.originalLink, params);
 			this.loadedModule = mod;
 			this.highlightModuleMenuItem(mod);
 
-			// compatibility
+				// compatibility
 			top.currentSubScript = record.originalLink;
 			top.currentModuleLoaded = mod;
 
 			TYPO3.Backend.doLayout();
-		} else {
-			console.log(mod + ' was not found in modules');
+	},
+
+	includeId: function(mod, params) {
+			//get id
+		var section = mod.split('_')[0];
+		if (top.fsMod.recentIds[section]) {
+			params = 'id=' + top.fsMod.recentIds[section] + '&' + params;
 		}
+
+		return params;
+	},
+
+	loadNavigationComponent: function(navigationComponentId) {
+		if (navigationComponentId === this.loadedNavigationComponentId) {
+			if (TYPO3.Backend.NavigationContainer.hidden) {
+				TYPO3.Backend.NavigationContainer.show();
+			}
+
+			return;
+		}
+
+		if (this.loadedNavigationComponentId !== '') {
+			Ext.getCmp(this.loadedNavigationComponentId).hide();
+		}
+
+		var component = Ext.getCmp(navigationComponentId);
+		if (typeof component !== 'object') {
+			if (typeof this.availableNavigationComponents[navigationComponentId] !== 'function') {
+				throw 'The navigation component "' + navigationComponentId + '" is not available ' +
+					'or has no valid callback function';
+			}
+
+			component = this.availableNavigationComponents[navigationComponentId]();
+			TYPO3.Backend.NavigationContainer.add(component);
+		}
+
+		component.show()
+		TYPO3.Backend.NavigationContainer.show();
+		this.loadedNavigationComponentId = navigationComponentId;
+	},
+
+	registerNavigationComponent: function(componentId, initCallback) {
+		this.availableNavigationComponents[componentId] = initCallback;
 	},
 
 	openInNavFrame: function(url, params) {
 		var navUrl = url + (params ? (url.indexOf('?') !== -1 ? '&' : '?') + params : '');
-		var currentUrl = this.relativeUrl(TYPO3.Backend.NavigationContainer.getUrl());
-		TYPO3.Backend.NavigationContainer.show();
+		var currentUrl = this.relativeUrl(TYPO3.Backend.NavigationIframe.getUrl());
 		if (currentUrl !== navUrl) {
-			TYPO3.Backend.NavigationContainer.setUrl(navUrl);
+			TYPO3.Backend.NavigationIframe.setUrl(navUrl);
 		}
 	},
 
@@ -262,7 +329,7 @@ TYPO3.ModuleMenu.App = {
 	},
 
 	reloadFrames: function() {
-		TYPO3.Backend.NavigationContainer.refresh();
+		TYPO3.Backend.NavigationIframe.refresh();
 		TYPO3.Backend.ContentContainer.refresh();
 	}
 
@@ -275,13 +342,13 @@ Ext.onReady(function() {
 
 		// keep backward compatibility
 	top.list = TYPO3.Backend.ContentContainer;
-	top.nav = TYPO3.Backend.NavigationContainer;
+	top.nav = TYPO3.Backend.NavigationContainer.PageTree;
 	top.list_frame = top.list.getIframe();
-	top.nav_frame = top.nav.getIframe();
+	top.nav_frame = TYPO3.Backend.NavigationContainer.PageTree;
 
 	top.TYPO3ModuleMenu = TYPO3.ModuleMenu.App;
 	top.content = {
-		nav_frame: TYPO3.Backend.NavigationContainer.getIframe(),
+		nav_frame: TYPO3.Backend.NavigationContainer.PageTree,
 		list_frame: TYPO3.Backend.ContentContainer.getIframe(),
 		location: TYPO3.Backend.ContentContainer.getIframe().location,
 		document: TYPO3.Backend.ContentContainer.getIframe()

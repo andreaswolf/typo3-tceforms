@@ -392,7 +392,7 @@ class user_wapversion {
 	function cleanMenuArray($menu)	{
 		$newMenu=array();
 		foreach ($menu as $data) {
-			if ($data['doktype']!=5 && !$data['nav_hide'])	{
+			if ($data['doktype'] != t3lib_pageSelect::DOKTYPE_HIDE_IN_MENU && !$data['nav_hide']) {
 				$newMenu[]=$data;
 			}
 		}
@@ -445,8 +445,8 @@ switch($id)	{
 
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['media/scripts/wapversionLib.inc'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['media/scripts/wapversionLib.inc']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['media/scripts/wapversionLib.inc'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['media/scripts/wapversionLib.inc']);
 }
 
 

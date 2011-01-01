@@ -44,7 +44,7 @@ class tslib_content_Image extends tslib_content_Abstract {
 	public function render($conf = array()) {
 		if ($this->cObj->checkIf($conf['if.'])) {
 			$theValue = $this->cObj->cImage($conf['file'], $conf);
-			if ($conf['stdWrap.']) {
+			if (isset($conf['stdWrap.'])) {
 				$theValue = $this->cObj->stdWrap($theValue, $conf['stdWrap.']);
 			}
 			return $theValue;
@@ -54,8 +54,8 @@ class tslib_content_Image extends tslib_content_Abstract {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_image.php']) {
-	include_once ($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_image.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_image.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_image.php']);
 }
 
 ?>

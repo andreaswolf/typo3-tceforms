@@ -42,18 +42,40 @@ class tslib_content_File extends tslib_content_Abstract {
 	 * @return	string		Output
 	 */
 	public function render($conf = array()) {
-		$theValue = $this->cObj->fileResource($this->cObj->stdWrap($conf['file'], $conf['file.']), trim($this->cObj->getAltParam($conf, false)));
-		if ($conf['linkWrap']) {
-			$theValue = $this->cObj->linkWrap($theValue, $conf['linkWrap']);
+
+		$file = isset($conf['file.'])
+			? $this->cObj->stdWrap($conf['file'], $conf['file.'])
+			: $conf['file'];
+
+		$theValue = $this->cObj->fileResource($file, trim($this->cObj->getAltParam($conf, false)));
+
+		$linkWrap =  isset($conf['linkWrap.'])
+			? $this->cObj->stdWrap($conf['linkWrap'], $conf['linkWrap.'])
+			: $conf['linkWrap'];
+		if ($linkWrap) {
+			$theValue = $this->cObj->linkWrap($theValue, $linkWrap);
 		}
-		return $this->cObj->wrap($theValue, $conf['wrap']);
+
+		$wrap =  isset($conf['wrap.'])
+			? $this->cObj->stdWrap($conf['wrap'], $conf['wrap.'])
+			: $conf['wrap'];
+		if ($wrap) {
+			$theValue = $this->cObj->wrap($theValue, $wrap);
+		}
+
+		if (isset($conf['stdWrap.'])) {
+			$theValue = $this->cObj->stdWrap($theValue, $conf['stdWrap.']);
+		}
+
+		return $theValue;
+
 	}
 
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_file.php']) {
-	include_once ($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_file.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_file.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_file.php']);
 }
 
 ?>

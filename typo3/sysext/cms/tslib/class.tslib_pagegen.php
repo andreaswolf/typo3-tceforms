@@ -230,6 +230,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 					$GLOBALS['TSFE']->xhtmlVersion = 105;
 				break;
 				case 'xhtml_11':
+				case 'xhtml+rdfa_10':
 					$GLOBALS['TSFE']->xhtmlVersion = 110;
 				break;
 				case 'xhtml_2':
@@ -388,8 +389,9 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 				$docTypeParts[] = $GLOBALS['TSFE']->config['config']['xmlprologue'];
 		}
 		// Part 2: DTD
-		if ($GLOBALS['TSFE']->config['config']['doctype']) {
-			switch ((string) $GLOBALS['TSFE']->config['config']['doctype']) {
+		$doctype = $GLOBALS['TSFE']->config['config']['doctype'];
+		if ($doctype) {
+			switch ($doctype) {
 				case 'xhtml_trans' :
 					$docTypeParts[] = '<!DOCTYPE html
      PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -420,13 +422,18 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 	PUBLIC "-//W3C//DTD XHTML 2.0//EN"
 	"http://www.w3.org/TR/xhtml2/DTD/xhtml2.dtd">';
 					break;
+				case 'xhtml+rdfa_10' :
+					$docTypeParts[] = '<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
+	"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">';
+					break;
 				case 'html_5' :
 					$docTypeParts[] = '<!DOCTYPE html>';
 					break;
 				case 'none' :
 					break;
 				default :
-					$docTypeParts[] = $GLOBALS['TSFE']->config['config']['doctype'];
+					$docTypeParts[] = $doctype;
 			}
 		} else {
 			$docTypeParts[] = '<!DOCTYPE html
@@ -434,12 +441,17 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 		}
 
 		if ($GLOBALS['TSFE']->xhtmlVersion) {
-
-			// Setting <html> tag attributes:
-			$htmlTagAttributes['xmlns'] = 'http://www.w3.org/1999/xhtml';
 			$htmlTagAttributes['xml:lang'] = $htmlLang;
-			if ($GLOBALS['TSFE']->xhtmlVersion < 110) {
-				$htmlTagAttributes['lang'] = $htmlLang;
+		}
+		if ($GLOBALS['TSFE']->xhtmlVersion < 110 || $doctype === 'html_5') {
+			$htmlTagAttributes['lang'] = $htmlLang;
+		}
+		if ($GLOBALS['TSFE']->xhtmlVersion || $doctype === 'html_5') {
+			$htmlTagAttributes['xmlns'] = 'http://www.w3.org/1999/xhtml'; // We add this to HTML5 to achieve a slightly better backwards compatibility
+			if (is_array($GLOBALS['TSFE']->config['config']['namespaces.'])) {
+				foreach ($GLOBALS['TSFE']->config['config']['namespaces.'] as $prefix => $uri) {
+					$htmlTagAttributes['xmlns:' . htmlspecialchars($prefix)] = $uri; // $uri gets htmlspecialchared later
+				}
 			}
 		}
 
@@ -541,7 +553,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 							);
 						} else {
 							$pageRenderer->addCssFile(
-								htmlspecialchars($ss),
+								$ss,
 								$GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['alternate'] ? 'alternate stylesheet' : 'stylesheet',
 								$GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['media'] ? $GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['media'] : 'all',
 								$GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['title'] ? $GLOBALS['TSFE']->pSetup['includeCSS.'][$key . '.']['title'] : '',
@@ -687,9 +699,9 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 							$type = 'text/javascript';
 						}
 						$pageRenderer->addJsLibrary(
-							htmlspecialchars($key),
-							htmlspecialchars($ss),
-							htmlspecialchars($type),
+							$key,
+							$ss,
+							$type,
 							$GLOBALS['TSFE']->pSetup['includeJSlibs.'][$key . '.']['compress'] ? TRUE : FALSE,
 							$GLOBALS['TSFE']->pSetup['includeJSlibs.'][$key . '.']['forceOnTop'] ? TRUE : FALSE,
 							$GLOBALS['TSFE']->pSetup['includeJSlibs.'][$key . '.']['allWrap']
@@ -709,9 +721,9 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 							$type = 'text/javascript';
 						}
 						$pageRenderer->addJsFooterLibrary(
-							htmlspecialchars($key),
-							htmlspecialchars($ss),
-							htmlspecialchars($type),
+							$key,
+							$ss,
+							$type,
 							$GLOBALS['TSFE']->pSetup['includeJSFooterlibs.'][$key . '.']['compress'] ? TRUE : FALSE,
 							$GLOBALS['TSFE']->pSetup['includeJSFooterlibs.'][$key . '.']['forceOnTop'] ? TRUE : FALSE,
 							$GLOBALS['TSFE']->pSetup['includeJSFooterlibs.'][$key . '.']['allWrap']
@@ -732,8 +744,8 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 							$type = 'text/javascript';
 						}
 						$pageRenderer->addJsFile(
-							htmlspecialchars($ss),
-							htmlspecialchars($type),
+							$ss,
+							$type,
 							$GLOBALS['TSFE']->pSetup['includeJS.'][$key . '.']['compress'] ? TRUE : FALSE,
 							$GLOBALS['TSFE']->pSetup['includeJS.'][$key . '.']['forceOnTop'] ? TRUE : FALSE,
 							$GLOBALS['TSFE']->pSetup['includeJS.'][$key . '.']['allWrap']
@@ -753,8 +765,8 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 							$type = 'text/javascript';
 						}
 						$pageRenderer->addJsFooterFile(
-							htmlspecialchars($ss),
-							htmlspecialchars($type),
+							$ss,
+							$type,
 							$GLOBALS['TSFE']->pSetup['includeJSFooter.'][$key . '.']['compress'] ? TRUE : FALSE,
 							$GLOBALS['TSFE']->pSetup['includeJSFooter.'][$key . '.']['forceOnTop'] ? TRUE : FALSE,
 							$GLOBALS['TSFE']->pSetup['includeJSFooter.'][$key . '.']['allWrap']
@@ -1169,8 +1181,8 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/class.tslib_pagegen.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/class.tslib_pagegen.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/class.tslib_pagegen.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/class.tslib_pagegen.php']);
 }
 
 

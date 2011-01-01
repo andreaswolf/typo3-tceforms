@@ -42,18 +42,34 @@ class tslib_content_OffsetTable extends tslib_content_Abstract {
 	 * @return	string		Output
 	 */
 	public function render($conf = array()) {
+		/** @var $controlTable tslib_tableOffset */
 		$controlTable = t3lib_div::makeInstance('tslib_tableOffset');
-		if ($conf['tableParams']) {
-			$controlTable->tableParams = $conf['tableParams'];
+
+		$tableParams = isset($conf['tableParams.'])
+			? $this->cObj->stdWrap($conf['tableParams'], $conf['tableParams.'])
+			: $conf['tableParams'];
+		if ($tableParams) {
+			$controlTable->tableParams = $tableParams;
 		}
-		return $controlTable->start($this->cObj->cObjGet($conf), $conf['offset']);
+
+		$offset = isset($conf['offset.'])
+			? $this->cObj->tsdWrap($conf['offset'], $conf['offset.'])
+			: $conf['offset'];
+
+		$content = $controlTable->start($this->cObj->cObjGet($conf), $offset);
+
+		if (isset($conf['stdWrap.'])) {
+			$content = $this->cObj->stdWrap($content, $conf['stdWrap.']);
+		}
+
+		return $content;
 	}
 
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_offsettable.php']) {
-	include_once ($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_offsettable.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_offsettable.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_offsettable.php']);
 }
 
 ?>

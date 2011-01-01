@@ -453,7 +453,7 @@ class language {
 			// Get default file
 		$llang = $this->readLLfile($fileRef);
 
-		if (count($llang)) {
+		if (is_array($llang) && count($llang)) {
 
 			$LOCAL_LANG = t3lib_div::array_merge_recursive_overrule((array)$LOCAL_LANG, $llang);
 
@@ -514,8 +514,8 @@ class language {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/lang/lang.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/lang/lang.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/lang/lang.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/lang/lang.php']);
 }
 
 ?>

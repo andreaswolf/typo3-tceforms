@@ -29,7 +29,7 @@
  * @subpackage Configuration
  * @version $ID:$
  */
-class Tx_Extbase_Configuration_BackendConfigurationManager extends Tx_Extbase_Configuration_AbstractConfigurationManager implements t3lib_Singleton {
+class Tx_Extbase_Configuration_BackendConfigurationManager extends Tx_Extbase_Configuration_AbstractConfigurationManager {
 
 	/**
 	 * @var array
@@ -39,9 +39,9 @@ class Tx_Extbase_Configuration_BackendConfigurationManager extends Tx_Extbase_Co
 	/**
 	 * Returns TypoScript Setup array from current Environment.
 	 *
-	 * @return array the TypoScript setup
+	 * @return array the raw TypoScript setup
 	 */
-	public function loadTypoScriptSetup() {
+	public function getTypoScriptSetup() {
 		if ($this->typoScriptSetupCache === NULL) {
 			$template = t3lib_div::makeInstance('t3lib_TStemplate');
 				// do not log time-performance information
@@ -60,6 +60,46 @@ class Tx_Extbase_Configuration_BackendConfigurationManager extends Tx_Extbase_Co
 	}
 
 	/**
+	 * Returns the TypoScript configuration found in module.tx_yourextension_yourmodule
+	 * merged with the global configuration of your extension from module.tx_yourextension
+	 *
+	 * @param string $extensionName
+	 * @param string $pluginName in BE mode this is actually the module signature. But we're using it just like the plugin name in FE
+	 * @return array
+	 */
+	protected function getPluginConfiguration($extensionName, $pluginName) {
+		$setup = $this->getTypoScriptSetup();
+		$pluginConfiguration = array();
+		if (is_array($setup['module.']['tx_' . strtolower($extensionName) . '.'])) {
+			$pluginConfiguration = Tx_Extbase_Utility_TypoScript::convertTypoScriptArrayToPlainArray($setup['module.']['tx_' . strtolower($extensionName) . '.']);
+		}
+		$pluginSignature = strtolower($extensionName . '_' . $pluginName);
+		if (is_array($setup['module.']['tx_' . $pluginSignature . '.'])) {
+			$pluginConfiguration = t3lib_div::array_merge_recursive_overrule($pluginConfiguration, Tx_Extbase_Utility_TypoScript::convertTypoScriptArrayToPlainArray($setup['module.']['tx_' . $pluginSignature . '.']));
+		}
+		return $pluginConfiguration;
+	}
+
+	/**
+	 * Returns the configured controller/action pairs of the specified module in the format
+	 * array(
+	 *  'Controller1' => array('action1', 'action2'),
+	 *  'Controller2' => array('action3', 'action4')
+	 * )
+	 *
+	 * @param string $extensionName
+	 * @param string $pluginName in BE mode this is actually the module signature. But we're using it just like the plugin name in FE
+	 * @return array
+	 */
+	protected function getSwitchableControllerActions($extensionName, $pluginName) {
+		$switchableControllerActions = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['extbase']['extensions'][$extensionName]['modules'][$pluginName]['controllers'];
+		if (!is_array($switchableControllerActions)) {
+			$switchableControllerActions = array();
+		}
+		return $switchableControllerActions;
+	}
+
+	/**
 	 * Returns the page uid of the current page.
 	 * If no page is selected, we'll return the uid of the first root page.
 	 *
@@ -71,16 +111,16 @@ class Tx_Extbase_Configuration_BackendConfigurationManager extends Tx_Extbase_Co
 			return $pageId;
 		}
 
-			// get root template
-		$rootTemplates = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('pid', 'sys_template', 'deleted=0 AND hidden=0 AND root=1', '', '', '1');
-		if (count($rootTemplates) > 0) {
-			return $rootTemplates[0]['pid'];
-		}
-
 			// get current site root
 		$rootPages = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('uid', 'pages', 'deleted=0 AND hidden=0 AND is_siteroot=1', '', '', '1');
 		if (count($rootPages) > 0) {
 			return $rootPages[0]['uid'];
+		}
+
+			// get root template
+		$rootTemplates = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('pid', 'sys_template', 'deleted=0 AND hidden=0 AND root=1', '', '', '1');
+		if (count($rootTemplates) > 0) {
+			return $rootTemplates[0]['pid'];
 		}
 
 			// fallback
@@ -88,10 +128,19 @@ class Tx_Extbase_Configuration_BackendConfigurationManager extends Tx_Extbase_Co
 	}
 
 	/**
-	 * We do not want to override anything in the backend.
+	 * We need to set some default request handler if the framework configuration
+	 * could not be loaded; to make sure Extbase also works in Backend modules
+	 * in all contexts.
+	 *
 	 * @return array
 	 */
-	protected function getContextSpecificFrameworkConfiguration($frameworkConfiguration) {
+	protected function getContextSpecificFrameworkConfiguration(array $frameworkConfiguration) {
+		if (!isset($frameworkConfiguration['mvc']['requestHandlers'])) {
+			$frameworkConfiguration['mvc']['requestHandlers'] = array(
+				'Tx_Extbase_MVC_Web_FrontendRequestHandler' => 'Tx_Extbase_MVC_Web_FrontendRequestHandler',
+				'Tx_Extbase_MVC_Web_BackendRequestHandler' => 'Tx_Extbase_MVC_Web_BackendRequestHandler'
+			);
+		}
 		return $frameworkConfiguration;
 	}
 }

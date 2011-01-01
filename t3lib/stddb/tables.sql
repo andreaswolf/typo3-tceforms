@@ -93,33 +93,6 @@ CREATE TABLE be_users (
 );
 
 #
-# Table structure for table 'cache_extensions'
-#
-CREATE TABLE cache_extensions (
-  extkey varchar(60) NOT NULL default '',
-  version varchar(10) NOT NULL default '',
-  alldownloadcounter int(11) unsigned NOT NULL default '0',
-  downloadcounter int(11) unsigned NOT NULL default '0',
-  title varchar(150) NOT NULL default '',
-  description mediumtext,
-  state int(4) NOT NULL default '0',
-  reviewstate int(4) NOT NULL default '0',
-  category int(4) NOT NULL default '0',
-  lastuploaddate int(11) unsigned NOT NULL default '0',
-  dependencies mediumtext,
-  authorname varchar(100) NOT NULL default '',
-  authoremail varchar(100) NOT NULL default '',
-  ownerusername varchar(50) NOT NULL default '',
-  t3xfilemd5 varchar(35) NOT NULL default '',
-  uploadcomment mediumtext,
-  authorcompany varchar(100) NOT NULL default '',
-  intversion int(11) NOT NULL default '0',
-  lastversion int(3) NOT NULL default '0',
-  lastreviewedversion int(3) NOT NULL default '0',
-  PRIMARY KEY (extkey,version)
-);
-
-#
 # Table structure for table 'cache_hash'
 #
 CREATE TABLE cache_hash (
@@ -184,7 +157,7 @@ CREATE TABLE pages (
   t3ver_wsid int(11) DEFAULT '0' NOT NULL,
   t3ver_label varchar(255) DEFAULT '' NOT NULL,
   t3ver_state tinyint(4) DEFAULT '0' NOT NULL,
-  t3ver_stage tinyint(4) DEFAULT '0' NOT NULL,
+  t3ver_stage int(11) DEFAULT '0' NOT NULL,
   t3ver_count int(11) DEFAULT '0' NOT NULL,
   t3ver_tstamp int(11) DEFAULT '0' NOT NULL,
   t3ver_swapmode tinyint(4) DEFAULT '0' NOT NULL,
@@ -242,6 +215,8 @@ CREATE TABLE pages (
   alias varchar(32) DEFAULT '' NOT NULL,
   l18n_cfg tinyint(4) DEFAULT '0' NOT NULL,
   fe_login_mode tinyint(4) DEFAULT '0' NOT NULL,
+  be_layout int(10) DEFAULT '0' NOT NULL,
+  be_layout_next_level int(10) DEFAULT '0' NOT NULL,
   PRIMARY KEY (uid),
   KEY t3ver_oid (t3ver_oid,t3ver_wsid),
   KEY parent (pid,sorting,deleted,hidden),
@@ -336,7 +311,7 @@ CREATE TABLE sys_workspace (
   deleted tinyint(1) DEFAULT '0' NOT NULL,
   title varchar(30) DEFAULT '' NOT NULL,
   description varchar(255) DEFAULT '' NOT NULL,
-  adminusers varchar(255) DEFAULT '' NOT NULL,
+  adminusers text,
   members text,
   reviewers text,
   db_mountpoints varchar(255) DEFAULT '' NOT NULL,

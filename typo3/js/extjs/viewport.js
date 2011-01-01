@@ -70,6 +70,20 @@ TYPO3.Viewport = Ext.extend(Ext.Viewport, {
 	NavigationContainer: null,
 
 	/**
+	 * Dummy panel, shown when no NavigationContainer is in use
+	 *
+	 * @var Ext.Panel
+	 */
+	NavigationDummy: null,
+
+	/**
+	 * The iframe navigation component
+	 *
+	 * @var TYPO3.iframePanel
+	 */
+	NavigationIframe: null,
+
+	/**
 	 * The module menu area
 	 *
 	 * @var Ext.Panel
@@ -78,7 +92,7 @@ TYPO3.Viewport = Ext.extend(Ext.Viewport, {
 
 	/**
 	 * The debug console
-	 * 
+	 *
 	 * @var Ext.TabPanel
 	 */
 	DebugConsole: null,
@@ -91,91 +105,41 @@ TYPO3.Viewport = Ext.extend(Ext.Viewport, {
 	initComponent: function() {
 		// adjust the module menu and the height of the topbar
 		this.initialConfig.items[0].height = TYPO3.configuration.topBarHeight;
-		
+
 		var moduleMenu = this.initialConfig.items[1];
 		moduleMenu.width = TYPO3.configuration.moduleMenuWidth;
-		if (!TYPO3.configuration.moduleMenuSplit) {
-			moduleMenu.split = false;
-			moduleMenu.collapsible = false;
-			moduleMenu.collapseMode = null
-		}
 
 		// call parent constructor
 		TYPO3.Viewport.superclass.initComponent.apply(this, arguments);
 
 		this.ContentContainer = Ext.getCmp('typo3-contentContainer');
 		this.NavigationContainer = Ext.getCmp('typo3-navigationContainer');
+		this.NavigationDummy = Ext.getCmp('typo3-navigationDummy');
+		this.NavigationIframe = Ext.getCmp('typo3-navigationIframe');
 		this.Topbar = Ext.getCmp('typo3-topbar');
 		this.ModuleMenuContainer = Ext.getCmp('typo3-module-menu');
 		this.DebugConsole = Ext.getCmp('typo3-debug-console');
-	},
 
-	/**
-	 * Loads a module into the content container
-	 *
-	 * @param mainModuleName string name of the main module (e.g. web)
-	 * @param subModuleName string name of the sub module (e.g. page)
-	 * @param contentScript string the content provider (path to a php script)
-	 * @return void
-	 */
-	loadModule: function(mainModuleName, subModuleName, contentScript) {
-		var navigationWidgetActive = false;
-		var widgetMainModule = '';
-		var widgetSubModule = '';
-		var widget = null;
-		for (var widgetId in this.navigationWidgetMetaData) {
-			widgetMainModule = this.navigationWidgetMetaData[widgetId].mainModule;
-			widgetSubModule = this.navigationWidgetMetaData[widgetId].subModule;
-			widget = this.navigationWidgetMetaData[widgetId].widget;
-
-			if ((widgetMainModule === mainModuleName || widgetMainModule === '*') &&
-				(widgetSubModule === subModuleName || widgetSubModule === '*')
-			) {
-				widget.show();
-				navigationWidgetActive = true;
-			} else {
-				widget.hide();
+		// place a wrapper-div inside the split bar,
+		// this enables us to set width of the split bar to 0 to make it invisible
+		Ext.getCmp('typo3-viewport').on(
+			'afterRender',
+			function(el) {
+				Ext.each([
+					'typo3-navigationContainer-xsplit',
+					'typo3-module-menu-xsplit'
+					], function(value) {
+					var splitbar = Ext.get(value);
+					var button = splitbar.first();
+					var wrapper = splitbar.createChild({
+						cls: 'x-layout-mini-wrapper'
+					});
+					if (button !== null) {
+						wrapper.appendChild(button);
+					}
+				});
 			}
-		}
-
-		if (navigationWidgetActive) {
-			this.NavigationContainer.show();
-		} else {
-			this.NavigationContainer.hide();
-		}
-
-		// append the typo3 path if it wasn't already applied
-		// this is important for backwards compatibility (e.g. shortcuts)
-		if (contentScript.indexOf(top.TS.PATH_typo3) !== 0) {
-			contentScript = top.TS.PATH_typo3 + contentScript;
-		}
-		this.ContentContainer.setUrl(contentScript);
-		
-		this.NavigationContainer.ownerCt.doLayout();
-	},
-
-	/**
-	 * Adds the given widget to the navigation container. The key will be the id attribute
-	 * of the given widget.
-	 *
-	 * @param mainModule string main module or wildcard (*) for all
-	 * @param subModule string sub module or wildcard (*) for all
-	 * @param widget object ExtJS widget (e.g. an Ext.Panel); must contain an id attribute!
-	 * @return void
-	 */
-	registerNavigationWidget: function(mainModule, subModule, widget) {
-			// only one instance of specific widget may be exists!
-		if (this.navigationWidgetMetaData[widget.id] === undefined) {
-			this.navigationWidgetMetaData[widget.id] = {
-				mainModule: mainModule,
-				subModule: subModule,
-				widget: widget
-			};
-
-				// always take the full width and height
-			widget.anchor = '100% 100%';
-			this.NavigationContainer.add(widget);
-		}
+		);
 	}
 });
 

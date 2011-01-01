@@ -92,7 +92,7 @@ class recordList extends t3lib_recordList {
 	var $itemsLimitPerTable = 20;			// default Max items shown per table in "multi-table mode", may be overridden by tables.php
 	var $itemsLimitSingleTable = 100;		// default Max items shown per table in "single-table mode", may be overridden by tables.php
 	var $widthGif = '<img src="clear.gif" width="1" height="4" hspace="160" alt="" />';
-	var $script = 'db_list.php';			// Current script name
+	var $script = 'index.php';			// Current script name
 	var $allFields=0;				// Indicates if all available fields for a user should be selected or not.
 	var $localizationView=FALSE;			// Whether to show localization view or not.
 
@@ -199,7 +199,7 @@ class recordList extends t3lib_recordList {
 		}
 
 		// Get configuration of collapsed tables from user uc and merge with sanitized GP vars
-		$this->tablesCollapsed = is_array($GLOBALS['BE_USER']->uc['moduleData']['db_list.php']) ? $GLOBALS['BE_USER']->uc['moduleData']['db_list.php'] : array();
+		$this->tablesCollapsed = is_array($GLOBALS['BE_USER']->uc['moduleData']['list']) ? $GLOBALS['BE_USER']->uc['moduleData']['list'] : array();
 		$collapseOverride = t3lib_div::_GP('collapse');
 		if (is_array($collapseOverride)) {
 			foreach($collapseOverride as $collapseTable => $collapseValue) {
@@ -208,7 +208,7 @@ class recordList extends t3lib_recordList {
 				}
 			}
 			// Save modified user uc
-			$GLOBALS['BE_USER']->uc['moduleData']['db_list.php'] = $this->tablesCollapsed;
+			$GLOBALS['BE_USER']->uc['moduleData']['list'] = $this->tablesCollapsed;
 			$GLOBALS['BE_USER']->writeUC($GLOBALS['BE_USER']->uc);
 			if (t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'))) {
 				$location = t3lib_div::sanitizeLocalUrl(t3lib_div::_GP('returnUrl'));
@@ -217,8 +217,9 @@ class recordList extends t3lib_recordList {
 		}
 
 		if ($sL>0)	{
-			$tree = $this->getTreeObject($id,$sL,$this->perms_clause);
-			$this->pidSelect = 'pid IN ('.implode(',',$tree->ids).')';
+			$tree = $this->getTreeObject($this->id, $sL, $this->perms_clause);
+			$pidList = implode(',', $GLOBALS['TYPO3_DB']->cleanIntArray($tree->ids));
+			$this->pidSelect = 'pid IN (' . $pidList . ')';
 		} else {
 			$this->pidSelect = 'pid='.intval($id);
 		}
@@ -333,7 +334,7 @@ class recordList extends t3lib_recordList {
 				<!--
 					Search box:
 				-->
-				<table border="0" cellpadding="0" cellspacing="0" class="bgColor4" id="typo3-dblist-search">
+				<table border="0" cellpadding="0" cellspacing="0" id="typo3-dblist-search">
 					<tr>
 						<td><label for="search_field">' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.enterSearchString', 1) . '</label><input type="text" name="search_field" id="search_field" value="' . htmlspecialchars($this->searchString) . '"' . $GLOBALS['TBE_TEMPLATE']->formWidth(10) . ' /></td>
 						<td>' . $lMenu . '</td>
@@ -397,7 +398,7 @@ class recordList extends t3lib_recordList {
 
 
 				<!--
-					Sys-notes for the db_list.php:
+					Sys-notes for list module:
 				-->
 					<table border="0" cellpadding="1" cellspacing="1" id="typo3-dblist-sysnotes">
 						<tr><td colspan="2" class="bgColor2">'.$iconImg.'<strong>'.$subject.'</strong></td></tr>
@@ -433,14 +434,14 @@ class recordList extends t3lib_recordList {
 	function setDispFields()	{
 
 			// Getting from session:
-		$dispFields = $GLOBALS['BE_USER']->getModuleData('db_list.php/displayFields');
+		$dispFields = $GLOBALS['BE_USER']->getModuleData('list/displayFields');
 
 			// If fields has been inputted, then set those as the value and push it to session variable:
 		if (is_array($this->displayFields))	{
 			reset($this->displayFields);
 			$tKey = key($this->displayFields);
 			$dispFields[$tKey]=$this->displayFields[$tKey];
-			$GLOBALS['BE_USER']->pushModuleData('db_list.php/displayFields',$dispFields);
+			$GLOBALS['BE_USER']->pushModuleData('list/displayFields',$dispFields);
 		}
 
 			// Setting result:
@@ -700,24 +701,43 @@ class recordList extends t3lib_recordList {
 	 * @return	string		URL
 	 */
 	function listURL($altId='',$table=-1,$exclList='')	{
-		$id = strcmp($altId, '') ? $altId : $this->id;
-		$additionalParams = '&table=' . rawurlencode($table == -1 ? $this->table : $table) .
-			($this->thumbs ? '&imagemode=' . $this->thumbs : '') .
-			($this->returnUrl ? '&returnUrl=' . rawurlencode($this->returnUrl) : '') .
-			($this->searchString ? '&search_field=' . rawurlencode($this->searchString) : '') .
-			($this->searchLevels ? '&search_levels=' . rawurlencode($this->searchLevels) : '') .
-			($this->showLimit ? '&showLimit=' . rawurlencode($this->showLimit) : '') .
-			($this->firstElementNumber ? '&pointer=' . rawurlencode($this->firstElementNumber) : '') .
-			((!$exclList || !t3lib_div::inList($exclList, 'sortField')) && $this->sortField ? '&sortField=' . rawurlencode($this->sortField) : '') .
-			((!$exclList || !t3lib_div::inList($exclList, 'sortRev')) && $this->sortRev ? '&sortRev=' . rawurlencode($this->sortRev) : '');
+		$urlParameters = array();
+		if (strcmp($altId, '')) {
+			$urlParameters['id'] = $altId;
+		} else {
+			$urlParameters['id'] = $this->id;
+		}
+		if ($table === -1) {
+			$urlParameters['table'] = $this->table;
+		} else {
+			$urlParameters['table'] = $table;
+		}
+		if ($this->thumbs) {
+			$urlParameters['imagemode'] = $this->thumbs;
+		}
+		if ($this->returnUrl) {
+			$urlParameters['returnUrl'] = $this->returnUrl;
+		}
+		if ($this->searchString) {
+			$urlParameters['search_field'] = $this->searchString;
+		}
+		if ($this->searchLevels) {
+			$urlParameters['search_levels'] = $this->searchLevels;
+		}
+		if ($this->showLimit) {
+			$urlParameters['showLimit'] = $this->showLimit;
+		}
+		if ($this->firstElementNumber) {
+			$urlParameters['pointer'] = $this->firstElementNumber;
+		}
+		if ((!$exclList || !t3lib_div::inList($exclList, 'sortField')) && $this->sortField) {
+			$urlParameters['sortField'] = $this->sortField;
+		}
+		if ((!$exclList || !t3lib_div::inList($exclList, 'sortRev')) && $this->sortRev) {
+			$urlParameters['sortRev'] = $this->sortRev;
+		}
 
-		return t3lib_extMgm::createListViewLink(
-			$id,
-			$additionalParams,
-			'',
-			'',
-			TRUE
-		);
+		return t3lib_BEfunc::getModuleUrl('web_list', $urlParameters);
 	}
 
 	/**
@@ -816,7 +836,7 @@ class recordList extends t3lib_recordList {
 		list($table,$orig_uid,$language) = explode(':',$justLocalized);
 
 		if ($TCA[$table] && $TCA[$table]['ctrl']['languageField'] && $TCA[$table]['ctrl']['transOrigPointerField'])	{
-			list($localizedRecord) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+			$localizedRecord = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
 					'uid',
 					$table,
 					$TCA[$table]['ctrl']['languageField'].'='.intval($language).' AND '.
@@ -839,8 +859,8 @@ class recordList extends t3lib_recordList {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/class.db_list.inc'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/class.db_list.inc']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/class.db_list.inc'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/class.db_list.inc']);
 }
 
 ?>

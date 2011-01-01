@@ -6,7 +6,7 @@ if (!defined('TYPO3_MODE')) {
 $TCA['pages'] = array(
 	'ctrl' => $TCA['pages']['ctrl'],
 	'interface' => array(
-		'showRecordFieldList' => 'doktype,title,alias,hidden,starttime,endtime,fe_group,url,target,no_cache,shortcut,keywords,description,abstract,newUntil,lastUpdated,cache_timeout',
+		'showRecordFieldList' => 'doktype,title,alias,hidden,starttime,endtime,fe_group,url,target,no_cache,shortcut,keywords,description,abstract,newUntil,lastUpdated,cache_timeout,be_layout,be_layout_next_level',
 		'maxDBListItems' => 30,
 		'maxSingleDBListItems' => 50,
 	),
@@ -23,12 +23,12 @@ $TCA['pages'] = array(
 					),
 					array(
 						'LLL:EXT:lang/locallang_tca.php:doktype.I.0',
-						'1',
+						(string) t3lib_pageSelect::DOKTYPE_DEFAULT,
 						'i/pages.gif',
 					),
 					array(
 						'LLL:EXT:cms/locallang_tca.xml:pages.doktype.I.4',
-						'6',
+						(string) t3lib_pageSelect::DOKTYPE_BE_USER_SECTION,
 						'i/be_users_section.gif',
 					),
 					array(
@@ -37,17 +37,17 @@ $TCA['pages'] = array(
 					),
 					array(
 						'LLL:EXT:cms/locallang_tca.xml:pages.doktype.I.2',
-						'4',
+						(string) t3lib_pageSelect::DOKTYPE_SHORTCUT,
 						'i/pages_shortcut.gif',
 					),
 					array(
 						'LLL:EXT:cms/locallang_tca.xml:pages.doktype.I.5',
-						'7',
+						(string) t3lib_pageSelect::DOKTYPE_MOUNTPOINT,
 						'i/pages_mountpoint.gif',
 					),
 					array(
 						'LLL:EXT:cms/locallang_tca.xml:pages.doktype.I.8',
-						'3',
+						(string) t3lib_pageSelect::DOKTYPE_LINK,
 						'i/pages_link.gif',
 					),
 					array(
@@ -55,22 +55,22 @@ $TCA['pages'] = array(
 						'--div--',
 					),
 					array(
-						'LLL:EXT:lang/locallang_tca.php:doktype.I.1',
-						'254',
+						'LLL:EXT:lang/locallang_tca.xml:doktype.I.1',
+						(string) t3lib_pageSelect::DOKTYPE_SYSFOLDER,
 						'i/sysf.gif',
 					),
 					array(
-						'LLL:EXT:lang/locallang_tca.php:doktype.I.2',
-						'255',
+						'LLL:EXT:lang/locallang_tca.xml:doktype.I.2',
+						(string) t3lib_pageSelect::DOKTYPE_RECYCLER,
 						'i/recycler.gif',
 					),
 					array(
 						'LLL:EXT:cms/locallang_tca.xml:pages.doktype.I.7',
-						'199',
+						(string) t3lib_pageSelect::DOKTYPE_SPACER,
 						'i/spacer_icon.gif',
 					),
 				),
-				'default' => '1',
+				'default' => (string) t3lib_pageSelect::DOKTYPE_DEFAULT,
 				'iconsInOptionTags' => 1,
 				'noIconsBelowSelect' => 1,
 			),
@@ -95,7 +95,7 @@ $TCA['pages'] = array(
 				'wizards' => array(
 					'_PADDING' => 4,
 					'0' => array(
-						'type' => t3lib_extMgm::isLoaded('tsconfig_help')?'popup':'',
+						'type' => t3lib_extMgm::isLoaded('tsconfig_help') ? 'popup' : '',
 						'title' => 'TSconfig QuickReference',
 						'script' => 'wizard_tsconfig.php?mode=page',
 						'icon' => 'wizard_tsconfig.gif',
@@ -131,7 +131,7 @@ $TCA['pages'] = array(
 				),
 			),
 		),
-		'tx_impexp_origuid' => array('config'=>array('type'=>'passthrough')),
+		'tx_impexp_origuid' => array('config' => array('type' => 'passthrough')),
 		't3ver_label' => array(
 			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.versionLabel',
 			'config' => array(
@@ -147,7 +147,7 @@ $TCA['pages'] = array(
 				'type' => 'check',
 				'items' => array(
 					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_tca.xml:pages.editlock_checkbox_1_formlabel',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
@@ -157,10 +157,11 @@ $TCA['pages'] = array(
 			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.hidden',
 			'config' => array(
 				'type' => 'check',
+				'renderInverted' => TRUE,
 				'default' => '1',
 				'items' => array(
 					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_tca.xml:pages.hidden_checkbox_1_formlabel',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.show',
 					),
 				),
 			),
@@ -188,7 +189,7 @@ $TCA['pages'] = array(
 				'checkbox' => '0',
 				'default' => '0',
 				'range' => array(
-					'upper' => mktime(0,0,0,12,31,2020),
+					'upper' => mktime(0, 0, 0, 12, 31, 2020),
 				),
 			),
 		),
@@ -199,7 +200,7 @@ $TCA['pages'] = array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.xml:LGL.normal',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'0',
 					),
 					array(
@@ -225,7 +226,7 @@ $TCA['pages'] = array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						0,
 					),
 					array(
@@ -273,7 +274,7 @@ $TCA['pages'] = array(
 				'type' => 'check',
 				'items' => array(
 					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_tca.xml:pages.extendToSubpages_checkbox_1_formlabel',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
@@ -294,9 +295,10 @@ $TCA['pages'] = array(
 			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.nav_hide',
 			'config' => array(
 				'type' => 'check',
+				'renderInverted' => TRUE,
 				'items' => array(
 					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_tca.xml:pages.nav_hide_checkbox_1_formlabel',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
@@ -352,7 +354,7 @@ $TCA['pages'] = array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'',
+						'LLL:EXT:lang/locallang_core.xml:labels.automatic',
 						'0',
 					),
 					array(
@@ -458,9 +460,10 @@ $TCA['pages'] = array(
 			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.no_cache',
 			'config' => array(
 				'type' => 'check',
+				'renderInverted' => TRUE,
 				'items' => array(
 					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_tca.xml:pages.no_cache_checkbox_1_formlabel',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
@@ -470,9 +473,10 @@ $TCA['pages'] = array(
 			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.no_search',
 			'config' => array(
 				'type' => 'check',
+				'renderInverted' => TRUE,
 				'items' => array(
 					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_tca.xml:pages.no_search_checkbox_1_formlabel',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
@@ -483,7 +487,7 @@ $TCA['pages'] = array(
 				'type' => 'group',
 				'internal_type' => 'db',
 				'allowed' => 'pages',
-				'size' => '3',
+				'size' => '1',
 				'maxitems' => '1',
 				'minitems' => '0',
 				'show_thumbs' => '1',
@@ -502,19 +506,19 @@ $TCA['pages'] = array(
 				'items' => array(
 					array(
 						'LLL:EXT:cms/locallang_tca.xml:pages.shortcut_mode.I.0',
-						0,
+						t3lib_pageSelect::SHORTCUT_MODE_NONE,
 					),
 					array(
 						'LLL:EXT:cms/locallang_tca.xml:pages.shortcut_mode.I.1',
-						1,
+						t3lib_pageSelect::SHORTCUT_MODE_FIRST_SUBPAGE,
 					),
 					array(
 						'LLL:EXT:cms/locallang_tca.xml:pages.shortcut_mode.I.2',
-						2,
+						t3lib_pageSelect::SHORTCUT_MODE_RANDOM_SUBPAGE,
 					),
 					array(
 						'LLL:EXT:cms/locallang_tca.xml:pages.shortcut_mode.I.3',
-						3,
+						t3lib_pageSelect::SHORTCUT_MODE_PARENT_PAGE,
 					),
 				),
 				'default' => '0',
@@ -610,7 +614,7 @@ $TCA['pages'] = array(
 			'config' => array(
 				'type' => 'group',
 				'internal_type' => 'file',
-				'allowed' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'].',html,htm,ttf,txt,css',
+				'allowed' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'] . ',html,htm,ttf,txt,css',
 				'max_size' => $GLOBALS['TYPO3_CONF_VARS']['BE']['maxFileSize'],
 				'uploadfolder' => 'uploads/media',
 				'show_thumbs' => '1',
@@ -626,7 +630,7 @@ $TCA['pages'] = array(
 				'type' => 'check',
 				'items' => array(
 					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_tca.xml:pages.is_siteroot_checkbox_1_formlabel'
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled'
 					),
 				),
 			),
@@ -637,11 +641,11 @@ $TCA['pages'] = array(
 			'config' => array(
 				'type' => 'radio',
 				'items' => array(
-					'0' => array(
-						'0' => 'LLL:EXT:cms/locallang_tca.xml:pages.mount_pid_ol.I.0',
+					array(
+						'LLL:EXT:cms/locallang_tca.xml:pages.mount_pid_ol.I.0',0
 					),
-					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_tca.xml:pages.mount_pid_ol.I.1',
+					array(
+						'LLL:EXT:cms/locallang_tca.xml:pages.mount_pid_ol.I.1',1
 					),
 				),
 			),
@@ -695,7 +699,7 @@ $TCA['pages'] = array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'',
+						'LLL:EXT:cms/locallang_tca.xml:pages.fe_login_mode.enable',
 						0,
 					),
 					array(
@@ -725,19 +729,53 @@ $TCA['pages'] = array(
 					),
 					array(
 						$GLOBALS['TYPO3_CONF_VARS']['FE']['hidePagesIfNotTranslatedByDefault'] ?
-							'LLL:EXT:cms/locallang_tca.xml:pages.l18n_cfg.I.2a' :
-							'LLL:EXT:cms/locallang_tca.xml:pages.l18n_cfg.I.2',
+								'LLL:EXT:cms/locallang_tca.xml:pages.l18n_cfg.I.2a' :
+								'LLL:EXT:cms/locallang_tca.xml:pages.l18n_cfg.I.2',
 						'',
 					),
 				),
 			),
 		),
+		'be_layout' => array(
+			'exclude' => 1,
+			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.be_layout',
+			'config' => array(
+				'type' => 'select',
+				'foreign_table' => 'be_layouts',
+				'foreign_table_where' => 'AND ( ( ###PAGE_TSCONFIG_ID### = 0 AND ###STORAGE_PID### = 0 ) OR ( be_layouts.pid = ###PAGE_TSCONFIG_ID### OR be_layouts.pid = ###STORAGE_PID### ) ) AND be_layouts.hidden = 0',
+				'items' => array(
+					array('', 0),
+					array('none', -1)
+				),
+				'selicon_cols' => 5,
+				'size' => 1,
+				'maxitems' => 1,
+				'default' => ''
+			)
+		),
+		'be_layout_next_level' => array(
+			'exclude' => 1,
+			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.be_layout_next_level',
+			'config' => array(
+				'type' => 'select',
+				'foreign_table' => 'be_layouts',
+				'foreign_table_where' => 'AND ( ( ###PAGE_TSCONFIG_ID### = 0 AND ###STORAGE_PID### = 0 ) OR ( be_layouts.pid = ###PAGE_TSCONFIG_ID### OR be_layouts.pid = ###STORAGE_PID### ) ) AND be_layouts.hidden = 0',
+				'items' => array(
+					array('', 0),
+					array('none', -1)
+				),
+				'selicon_cols' => 5,
+				'size' => 1,
+				'maxitems' => 1,
+				'default' => ''
+			)
+		)
 	),
 	'types' => array(
-			// normal
-		'1'	=>	array(
+		// normal
+		(string) t3lib_pageSelect::DOKTYPE_DEFAULT => array(
 			'showitem' =>
-					'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
+			'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.title;title,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.visibility;visibility,
@@ -761,10 +799,10 @@ $TCA['pages'] = array(
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.config;config,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 		'),
-			// external URL
-		'3' => array(
+		// external URL
+		(string) t3lib_pageSelect::DOKTYPE_LINK => array(
 			'showitem' =>
-					'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.external;external,
+			'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.external;external,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.title;title,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.visibility;visibility,
@@ -784,10 +822,10 @@ $TCA['pages'] = array(
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.config;config,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 		'),
-			// shortcut
-		'4' => array(
+		// shortcut
+		(string) t3lib_pageSelect::DOKTYPE_SHORTCUT => array(
 			'showitem' =>
-					'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.shortcut;shortcut,
+			'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.shortcut;shortcut,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.shortcutpage;shortcutpage,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.title;title,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
@@ -808,10 +846,10 @@ $TCA['pages'] = array(
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.config;config,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 				'),
-			// not in menu
-		'5' => array(
+		// not in menu
+		(string) t3lib_pageSelect::DOKTYPE_HIDE_IN_MENU => array(
 			'showitem' =>
-					'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
+			'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.title;title,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.visibility;hiddenonly,
@@ -835,10 +873,10 @@ $TCA['pages'] = array(
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.config;config,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 		'),
-			// mount page
-		'7' => array(
+		// mount page
+		(string) t3lib_pageSelect::DOKTYPE_MOUNTPOINT => array(
 			'showitem' =>
-					'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.mountpoint;mountpoint,
+			'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.mountpoint;mountpoint,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.mountpage;mountpage,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.title;title,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
@@ -858,10 +896,10 @@ $TCA['pages'] = array(
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.config;config,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 		'),
-			// spacer
-		'199' => array(
+		// spacer
+		(string) t3lib_pageSelect::DOKTYPE_SPACER => array(
 			'showitem' =>
-					'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
+			'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.title;titleonly,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.visibility;visibility,
@@ -870,13 +908,15 @@ $TCA['pages'] = array(
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.miscellaneous;adminsonly,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 			'),
-			// sysfolder
-		'254' => array(
+		// sysfolder
+		(string) t3lib_pageSelect::DOKTYPE_SYSFOLDER => array(
 			'showitem' =>
-					'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
+			'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.title;titleonly,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.visibility;hiddenonly,
+				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.appearance,
+					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.module;module,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.behaviour,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.miscellaneous;adminsonly,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.resources,
@@ -884,10 +924,10 @@ $TCA['pages'] = array(
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.config;config,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 		'),
-			// trash
-		'255' => array(
+		// trash
+		(string) t3lib_pageSelect::DOKTYPE_RECYCLER => array(
 			'showitem' =>
-					'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
+			'--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.standard;standard,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.title;titleonly,
 				--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 					--palette--;LLL:EXT:cms/locallang_tca.xml:pages.palettes.visibility;hiddenonly,
@@ -915,6 +955,9 @@ $TCA['pages'] = array(
 		'7' => array(
 			'showitem' => 'is_siteroot',
 		),
+		'8' => array(
+			'showitem' => 'be_layout_next_level'
+		),
 		'standard' => array(
 			'showitem' => 'doktype;LLL:EXT:cms/locallang_tca.xml:pages.doktype_formlabel',
 			'canNotCollapse' => 1,
@@ -924,7 +967,7 @@ $TCA['pages'] = array(
 			'canNotCollapse' => 1,
 		),
 		'shortcutpage' => array(
-			'showitem' => 'shortcut;Selected shortcut target||Ausgew�hltes Verweisziel',
+			'showitem' => 'shortcut;LLL:EXT:cms/locallang_tca.xml:pages.shortcut_formlabel',
 			'canNotCollapse' => 1,
 		),
 		'mountpoint' => array(
@@ -972,7 +1015,7 @@ $TCA['pages'] = array(
 			'canNotCollapse' => 1,
 		),
 		'layout' => array(
-			'showitem' => 'layout;LLL:EXT:cms/locallang_tca.xml:pages.layout_formlabel, newUntil;LLL:EXT:cms/locallang_tca.xml:pages.newUntil_formlabel',
+			'showitem' => 'layout;LLL:EXT:cms/locallang_tca.xml:pages.layout_formlabel, newUntil;LLL:EXT:cms/locallang_tca.xml:pages.newUntil_formlabel, --linebreak--, be_layout;LLL:EXT:cms/locallang_tca.xml:pages.be_layout_formlabel, be_layout_next_level;LLL:EXT:cms/locallang_tca.xml:pages.be_layout_next_level_formlabel',
 			'canNotCollapse' => 1,
 		),
 		'module' => array(
@@ -1014,13 +1057,13 @@ $TCA['pages'] = array(
 		'config' => array(
 			'showitem' => 'TSconfig;LLL:EXT:cms/locallang_tca.xml:pages.TSconfig_formlabel',
 			'canNotCollapse' => 1,
-		),
-	),
+		)
+	)
 );
 
 
-// if the compat version is less than 4.2, pagetype 2 ("Advanced")
-// and pagetype 5 ("Not in menu") are added to TCA.
+	// if the compat version is less than 4.2, pagetype 2 ("Advanced")
+	// and pagetype 5 ("Not in menu") are added to TCA.
 if (!t3lib_div::compat_version('4.2')) {
 		// Merging in CMS doktypes
 	array_splice(
@@ -1028,33 +1071,33 @@ if (!t3lib_div::compat_version('4.2')) {
 		2,
 		0,
 		array(
-			array(
-				'LLL:EXT:cms/locallang_tca.xml:pages.doktype.I.0',
-				'2',
-				'i/pages.gif',
-			),
-			array(
-				'LLL:EXT:cms/locallang_tca.xml:pages.doktype.I.3',
-				'5',
-				'i/pages_notinmenu.gif',
-			),
+			 array(
+				 'LLL:EXT:cms/locallang_tca.xml:pages.doktype.I.0',
+				 '2',
+				 'i/pages.gif',
+			 ),
+			 array(
+				 'LLL:EXT:cms/locallang_tca.xml:pages.doktype.I.3',
+				 '5',
+				 'i/pages_notinmenu.gif',
+			 ),
 		)
 	);
 		// setting the doktype 1 ("Standard") to show less fields
 	$TCA['pages']['types'][1] = array(
-			// standard
+		// standard
 		'showitem' =>
-				'doktype;;2;;1-1-1, hidden, nav_hide, title;;3;;2-2-2, subtitle,
+		'doktype;;2;;1-1-1, hidden, nav_hide, title;;3;;2-2-2, subtitle,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 				starttime, endtime, fe_group, extendToSubpages,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.options,
-				TSconfig;;6;nowrap;4-4-4, storage_pid;;7, l18n_cfg,
+				TSconfig;;6;nowrap;4-4-4, storage_pid;;7, l18n_cfg, be_layout;;8,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 	');
 		// adding doktype 2 ("Advanced")
 	$TCA['pages']['types'][2] = array(
 		'showitem' =>
-				'doktype;;2;;1-1-1, hidden, nav_hide, title;;3;;2-2-2, subtitle, nav_title,
+		'doktype;;2;;1-1-1, hidden, nav_hide, title;;3;;2-2-2, subtitle, nav_title,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.metadata,
 				abstract;;5;;3-3-3, keywords, description,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.files,
@@ -1062,7 +1105,7 @@ if (!t3lib_div::compat_version('4.2')) {
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 				starttime, endtime, fe_login_mode, fe_group, extendToSubpages,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.options,
-				TSconfig;;6;nowrap;6-6-6, storage_pid;;7, l18n_cfg, module, content_from_pid,
+				TSconfig;;6;nowrap;6-6-6, storage_pid;;7, l18n_cfg, module, content_from_pid, be_layout;;8,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 	');
 }

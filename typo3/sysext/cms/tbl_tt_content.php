@@ -43,7 +43,7 @@ $TCA['tt_content'] = array(
 	),
 	'columns' => array(
 		'CType' => array(
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.type',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.type',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
@@ -168,19 +168,20 @@ $TCA['tt_content'] = array(
 		),
 		'hidden' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.hidden',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.hidden',
 			'config' => array(
 				'type' => 'check',
+				'renderInverted' => TRUE,
 				'items' => array (
 					'1'	=> array(
-						'0' => 'LLL:EXT:cms/locallang_ttc.php:hidden.I.0',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.show',
 					),
 				),
 			),
 		),
 		'starttime' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.starttime',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.starttime',
 			'config' => array(
 				'type' => 'input',
 				'size' => '13',
@@ -192,7 +193,7 @@ $TCA['tt_content'] = array(
 		),
 		'endtime' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.endtime',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.endtime',
 			'config' => array(
 				'type' => 'input',
 				'size' => '13',
@@ -207,22 +208,22 @@ $TCA['tt_content'] = array(
 		),
 		'fe_group' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.fe_group',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.fe_group',
 			'config' => array(
 				'type' => 'select',
 				'size' => 5,
 				'maxitems' => 20,
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.hide_at_login',
+						'LLL:EXT:lang/locallang_general.xml:LGL.hide_at_login',
 						-1,
 					),
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.any_login',
+						'LLL:EXT:lang/locallang_general.xml:LGL.any_login',
 						-2,
 					),
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.usergroups',
+						'LLL:EXT:lang/locallang_general.xml:LGL.usergroups',
 						'--div--',
 					),
 				),
@@ -233,18 +234,18 @@ $TCA['tt_content'] = array(
 		),
 		'sys_language_uid' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.language',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.language',
 			'config' => array(
 				'type' => 'select',
 				'foreign_table' => 'sys_language',
 				'foreign_table_where' => 'ORDER BY sys_language.title',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.allLanguages',
+						'LLL:EXT:lang/locallang_general.xml:LGL.allLanguages',
 						-1,
 					),
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.default_value',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						0,
 					),
 				),
@@ -253,7 +254,7 @@ $TCA['tt_content'] = array(
 		'l18n_parent' => array(
 			'displayCond' => 'FIELD:sys_language_uid:>:0',
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.l18n_parent',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.l18n_parent',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
@@ -268,24 +269,24 @@ $TCA['tt_content'] = array(
 		),
 		'layout' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.layout',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.layout',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.normal',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:layout.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:layout.I.1',
 						'1',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:layout.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:layout.I.2',
 						'2',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:layout.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:layout.I.3',
 						'3',
 					),
 				),
@@ -294,24 +295,25 @@ $TCA['tt_content'] = array(
 		),
 		'colPos' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:colPos',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:colPos',
 			'config' => array(
 				'type' => 'select',
+				'itemsProcFunc' => 'EXT:cms/classes/class.tx_cms_backendlayout.php:tx_cms_BackendLayout->colPosListItemProcFunc',
 				'items' => array(
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:colPos.I.0',
+						'LLL:EXT:cms/locallang_ttc.xml:colPos.I.0',
 						'1',
 					),
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.normal',
+						'LLL:EXT:lang/locallang_general.xml:LGL.normal',
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:colPos.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:colPos.I.2',
 						'2',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:colPos.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:colPos.I.3',
 						'3',
 					),
 				),
@@ -320,7 +322,7 @@ $TCA['tt_content'] = array(
 		),
 		'date' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:date',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:date',
 			'config' => array(
 				'type' => 'input',
 				'size' => '13',
@@ -333,7 +335,7 @@ $TCA['tt_content'] = array(
 		'header' => array(
 			'l10n_mode' => 'prefixLangTitle',
 			'l10n_cat' => 'text',
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:header',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:header',
 			'config' => array(
 				'type' => 'input',
 				'size' => '50',
@@ -342,25 +344,25 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'header_position' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:header_position',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:header_position',
 			'exclude' => 1,
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:header_position.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:header_position.I.1',
 						'center',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:header_position.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:header_position.I.2',
 						'right',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:header_position.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:header_position.I.3',
 						'left',
 					),
 				),
@@ -368,7 +370,7 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'header_link' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:header_link',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:header_link',
 			'exclude' => 1,
 			'config' => array(
 				'type' => 'input',
@@ -380,7 +382,7 @@ $TCA['tt_content'] = array(
 					'_PADDING' => 2,
 					'link' => array(
 						'type' => 'popup',
-						'title' => 'Link',
+						'title' => 'LLL:EXT:cms/locallang_ttc.xml:header_link_formlabel',
 						'icon' => 'link_popup.gif',
 						'script' => 'browse_links.php?mode=wizard',
 						'JSopenParams' => 'height=300,width=500,status=0,menubar=0,scrollbars=1',
@@ -391,36 +393,36 @@ $TCA['tt_content'] = array(
 		),
 		'header_layout' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.type',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.type',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.normal',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:header_layout.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:header_layout.I.1',
 						'1',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:header_layout.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:header_layout.I.2',
 						'2',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:header_layout.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:header_layout.I.3',
 						'3',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:header_layout.I.4',
+						'LLL:EXT:cms/locallang_ttc.xml:header_layout.I.4',
 						'4',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:header_layout.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:header_layout.I.5',
 						'5',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:header_layout.I.6',
+						'LLL:EXT:cms/locallang_ttc.xml:header_layout.I.6',
 						'100',
 					),
 				),
@@ -429,7 +431,7 @@ $TCA['tt_content'] = array(
 		),
 		'subheader' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.subheader',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.subheader',
 			'config' => array(
 				'type' => 'input',
 				'size' => '50',
@@ -441,7 +443,7 @@ $TCA['tt_content'] = array(
 		'bodytext' => array(
 			'l10n_mode' => 'prefixLangTitle',
 			'l10n_cat' => 'text',
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.text',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.text',
 			'config' => array(
 				'type' => 'text',
 				'cols' => '48',
@@ -453,7 +455,7 @@ $TCA['tt_content'] = array(
 						'notNewRecords' => 1,
 						'RTEonly' => 1,
 						'type' => 'script',
-						'title' => 'LLL:EXT:cms/locallang_ttc.php:bodytext.W.RTE',
+						'title' => 'LLL:EXT:cms/locallang_ttc.xml:bodytext.W.RTE',
 						'icon' => 'wizard_rte2.gif',
 						'script' => 'wizard_rte.php',
 					),
@@ -461,7 +463,7 @@ $TCA['tt_content'] = array(
 						'notNewRecords' => 1,
 						'enableByTypeConfig' => 1,
 						'type' => 'script',
-						'title' => 'Table wizard',
+						'title' => 'LLL:EXT:cms/locallang_ttc.xml:bodytext.W.table',
 						'icon' => 'wizard_table.gif',
 						'script' => 'wizard_table.php',
 						'params' => array(
@@ -473,7 +475,7 @@ $TCA['tt_content'] = array(
 						'enableByTypeConfig' => 1,
 						'type' => 'script',
 #						'hideParent' => array('rows' => 4),
-						'title' => 'Forms wizard',
+						'title' => 'LLL:EXT:cms/locallang_ttc.xml:bodytext.W.forms',
 						'icon' => 'wizard_forms.gif',
 						'script' => 'wizard_forms.php?special=formtype_mail',
 						'params' => array(
@@ -486,7 +488,7 @@ $TCA['tt_content'] = array(
 		),
 		'text_align' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:text_align',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:text_align',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
@@ -495,15 +497,15 @@ $TCA['tt_content'] = array(
 						'',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_align.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:text_align.I.1',
 						'center',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_align.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:text_align.I.2',
 						'right',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_align.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:text_align.I.3',
 						'left',
 					),
 				),
@@ -512,12 +514,12 @@ $TCA['tt_content'] = array(
 		),
 		'text_face' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:text_face',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:text_face',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.default_value',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'0',
 					),
 					array(
@@ -538,40 +540,40 @@ $TCA['tt_content'] = array(
 		),
 		'text_size' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:text_size',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:text_size',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.default_value',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_size.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:text_size.I.1',
 						'1',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_size.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:text_size.I.2',
 						'2',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_size.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:text_size.I.3',
 						'3',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_size.I.4',
+						'LLL:EXT:cms/locallang_ttc.xml:text_size.I.4',
 						'4',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_size.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:text_size.I.5',
 						'5',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_size.I.6',
+						'LLL:EXT:cms/locallang_ttc.xml:text_size.I.6',
 						'10',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_size.I.7',
+						'LLL:EXT:cms/locallang_ttc.xml:text_size.I.7',
 						'11',
 					),
 				),
@@ -580,24 +582,24 @@ $TCA['tt_content'] = array(
 		),
 		'text_color' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:text_color',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:text_color',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.default_value',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.1',
 						'1',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.2',
 						'2',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.3',
 						'200',
 					),
 					array(
@@ -605,47 +607,47 @@ $TCA['tt_content'] = array(
 						'--div--',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.5',
 						'240',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.6',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.6',
 						'241',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.7',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.7',
 						'242',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.8',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.8',
 						'243',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.9',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.9',
 						'244',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.10',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.10',
 						'245',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.11',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.11',
 						'246',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.12',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.12',
 						'247',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.13',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.13',
 						'248',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.14',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.14',
 						'249',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_color.I.15',
+						'LLL:EXT:cms/locallang_ttc.xml:text_color.I.15',
 						'250',
 					),
 				),
@@ -654,24 +656,24 @@ $TCA['tt_content'] = array(
 		),
 		'text_properties' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:text_properties',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:text_properties',
 			'config' => array(
 				'type' => 'check',
 				'items' => array(
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_properties.I.0',
+						'LLL:EXT:cms/locallang_ttc.xml:text_properties.I.0',
 						'',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_properties.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:text_properties.I.1',
 						'',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_properties.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:text_properties.I.2',
 						'',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:text_properties.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:text_properties.I.3',
 						'',
 					),
 				),
@@ -679,7 +681,7 @@ $TCA['tt_content'] = array(
 		),
 		'image' => array(
 #			'l10n_mode' => 'mergeIfNotBlank',
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.images',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.images',
 			'config' => array(
 				'type' => 'group',
 				'internal_type' => 'file',
@@ -695,7 +697,7 @@ $TCA['tt_content'] = array(
 		),
 		'imagewidth' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:imagewidth',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:imagewidth',
 			'config' => array(
 				'type' => 'input',
 				'size' => '4',
@@ -711,7 +713,7 @@ $TCA['tt_content'] = array(
 		),
 		'imageheight' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:imageheight',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:imageheight',
 			'config' => array(
 				'type' => 'input',
 				'size' => '4',
@@ -726,61 +728,61 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'imageorient' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:imageorient',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:imageorient',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.0',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.0',
 						0,
 						'selicons/above_center.gif',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.1',
 						1,
 						'selicons/above_right.gif',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.2',
 						2,
 						'selicons/above_left.gif',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.3',
 						8,
 						'selicons/below_center.gif',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.4',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.4',
 						9,
 						'selicons/below_right.gif',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.5',
 						10,
 						'selicons/below_left.gif',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.6',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.6',
 						17,
 						'selicons/intext_right.gif',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.7',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.7',
 						18,
 						'selicons/intext_left.gif',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.8',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.8',
 						'--div--',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.9',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.9',
 						25,
 						'selicons/intext_right_nowrap.gif',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imageorient.I.10',
+						'LLL:EXT:cms/locallang_ttc.xml:imageorient.I.10',
 						26,
 						'selicons/intext_left_nowrap.gif',
 					),
@@ -792,31 +794,32 @@ $TCA['tt_content'] = array(
 		),
 		'imageborder' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:imageborder',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:imageborder',
 			'config' => array(
 				'type' => 'check',
 				'items' => array (
 					'1'	=> array(
-						'0' => 'LLL:EXT:cms/locallang_ttc.php:imageborder.I.0',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
 		),
 		'image_noRows' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:image_noRows',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_noRows',
 			'config' => array(
 				'type' => 'check',
+				'renderInverted' => TRUE,
 				'items' => array (
 					'1'	=> array(
-						'0' => 'LLL:EXT:cms/locallang_ttc.php:image_noRows.I.0',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
 		),
 		'image_link' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:image_link',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_link',
 			'config' => array(
 				'type' => 'input',
 				'size' => '50',
@@ -827,7 +830,7 @@ $TCA['tt_content'] = array(
 					'_PADDING' => 2,
 					'link' => array(
 						'type' => 'popup',
-						'title' => 'Link',
+						'title' => 'LLL:EXT:cms/locallang_ttc.xml:image_link_formlabel',
 						'icon' => 'link_popup.gif',
 						'script' => 'browse_links.php?mode=wizard',
 						'JSopenParams' => 'height=300,width=500,status=0,menubar=0,scrollbars=1',
@@ -838,60 +841,60 @@ $TCA['tt_content'] = array(
 		),
 		'image_zoom' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:image_zoom',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_zoom',
 			'config' => array(
 				'type' => 'check',
 				'items' => array (
 					'1'	=> array(
-						'0' => 'LLL:EXT:cms/locallang_ttc.php:image_zoom.I.0',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
 		),
 		'image_effects' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:image_effects',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_effects',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.0',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.0',
 						0,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.1',
 						1,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.2',
 						2,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.3',
 						3,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.4',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.4',
 						10,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.5',
 						11,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.6',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.6',
 						20,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.7',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.7',
 						23,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.8',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.8',
 						25,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_effects.I.9',
+						'LLL:EXT:cms/locallang_ttc.xml:image_effects.I.9',
 						26,
 					),
 				),
@@ -899,44 +902,44 @@ $TCA['tt_content'] = array(
 		),
 		'image_frames' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:image_frames',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_frames',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_frames.I.0',
+						'LLL:EXT:cms/locallang_ttc.xml:image_frames.I.0',
 						0,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_frames.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:image_frames.I.1',
 						1,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_frames.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:image_frames.I.2',
 						2,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_frames.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:image_frames.I.3',
 						3,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_frames.I.4',
+						'LLL:EXT:cms/locallang_ttc.xml:image_frames.I.4',
 						4,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_frames.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:image_frames.I.5',
 						5,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_frames.I.6',
+						'LLL:EXT:cms/locallang_ttc.xml:image_frames.I.6',
 						6,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_frames.I.7',
+						'LLL:EXT:cms/locallang_ttc.xml:image_frames.I.7',
 						7,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_frames.I.8',
+						'LLL:EXT:cms/locallang_ttc.xml:image_frames.I.8',
 						8,
 					),
 				),
@@ -944,16 +947,16 @@ $TCA['tt_content'] = array(
 		),
 		'image_compression' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:image_compression',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_compression',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.default_value',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						0,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_compression.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:image_compression.I.1',
 						1,
 					),
 					array(
@@ -1009,30 +1012,30 @@ $TCA['tt_content'] = array(
 						35,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_compression.I.15',
+						'LLL:EXT:cms/locallang_ttc.xml:image_compression.I.15',
 						21,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_compression.I.16',
+						'LLL:EXT:cms/locallang_ttc.xml:image_compression.I.16',
 						22,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_compression.I.17',
+						'LLL:EXT:cms/locallang_ttc.xml:image_compression.I.17',
 						24,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_compression.I.18',
+						'LLL:EXT:cms/locallang_ttc.xml:image_compression.I.18',
 						26,
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:image_compression.I.19',
+						'LLL:EXT:cms/locallang_ttc.xml:image_compression.I.19',
 						28,
 					),
 				),
 			),
 		),
 		'imagecols' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:imagecols',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:imagecols',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
@@ -1073,7 +1076,7 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'imagecaption' => array(
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.caption',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.caption',
 			'config' => array(
 				'type' => 'text',
 				'cols' => '30',
@@ -1083,24 +1086,24 @@ $TCA['tt_content'] = array(
 		),
 		'imagecaption_position' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:imagecaption_position',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:imagecaption_position',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imagecaption_position.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:imagecaption_position.I.1',
 						'center',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imagecaption_position.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:imagecaption_position.I.2',
 						'right',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:imagecaption_position.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:imagecaption_position.I.3',
 						'left',
 					),
 				),
@@ -1109,7 +1112,7 @@ $TCA['tt_content'] = array(
 		),
 		'altText' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:image_altText',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_altText',
 			'config' => array(
 				'type' => 'text',
 				'cols' => '30',
@@ -1118,7 +1121,7 @@ $TCA['tt_content'] = array(
 		),
 		'titleText' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:image_titleText',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_titleText',
 			'config' => array(
 				'type' => 'text',
 				'cols' => '30',
@@ -1127,7 +1130,7 @@ $TCA['tt_content'] = array(
 		),
 		'longdescURL' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:image_longdescURL',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_longdescURL',
 			'config' => array(
 				'type' => 'text',
 				'cols' => '30',
@@ -1135,12 +1138,12 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'cols' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:cols',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:cols',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:cols.I.0',
+						'LLL:EXT:cms/locallang_ttc.xml:cols.I.0',
 						'0',
 					),
 					array(
@@ -1174,7 +1177,7 @@ $TCA['tt_content'] = array(
 					array(
 						'8',
 						'8',
-					),					
+					),
 					array(
 						'9',
 						'9',
@@ -1184,7 +1187,7 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'pages' => array(
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.startingpoint',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.startingpoint',
 			'config' => array(
 				'type' => 'group',
 				'internal_type' => 'db',
@@ -1202,32 +1205,32 @@ $TCA['tt_content'] = array(
 		),
 		'recursive' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.recursive',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.recursive',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'',
+						'LLL:EXT:cms/locallang_ttc.xml:recursive.I.0',
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:recursive.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:recursive.I.1',
 						'1',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:recursive.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:recursive.I.2',
 						'2',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:recursive.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:recursive.I.3',
 						'3',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:recursive.I.4',
+						'LLL:EXT:cms/locallang_ttc.xml:recursive.I.4',
 						'4',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:recursive.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:recursive.I.5',
 						'250',
 					),
 				),
@@ -1235,40 +1238,40 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'menu_type' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:menu_type',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:menu_type',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:menu_type.I.0',
+						'LLL:EXT:cms/locallang_ttc.xml:menu_type.I.0',
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:menu_type.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:menu_type.I.1',
 						'1',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:menu_type.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:menu_type.I.2',
 						'4',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:menu_type.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:menu_type.I.3',
 						'7',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:menu_type.I.4',
+						'LLL:EXT:cms/locallang_ttc.xml:menu_type.I.4',
 						'2',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:menu_type.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:menu_type.I.5',
 						'3',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:menu_type.I.6',
+						'LLL:EXT:cms/locallang_ttc.xml:menu_type.I.6',
 						'5',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:menu_type.I.7',
+						'LLL:EXT:cms/locallang_ttc.xml:menu_type.I.7',
 						'6',
 					),
 				),
@@ -1276,7 +1279,7 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'list_type' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:list_type',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:list_type',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
@@ -1294,7 +1297,7 @@ $TCA['tt_content'] = array(
 		),
 		'select_key' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.code',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.code',
 			'config' => array(
 				'type' => 'input',
 				'size' => '50',
@@ -1304,24 +1307,24 @@ $TCA['tt_content'] = array(
 		),
 		'table_bgColor' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:table_bgColor',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:table_bgColor',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.default_value',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:table_bgColor.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:table_bgColor.I.1',
 						'1',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:table_bgColor.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:table_bgColor.I.2',
 						'2',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:table_bgColor.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:table_bgColor.I.3',
 						'200',
 					),
 					array(
@@ -1329,23 +1332,23 @@ $TCA['tt_content'] = array(
 						'--div--',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:table_bgColor.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:table_bgColor.I.5',
 						'240',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:table_bgColor.I.6',
+						'LLL:EXT:cms/locallang_ttc.xml:table_bgColor.I.6',
 						'241',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:table_bgColor.I.7',
+						'LLL:EXT:cms/locallang_ttc.xml:table_bgColor.I.7',
 						'242',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:table_bgColor.I.8',
+						'LLL:EXT:cms/locallang_ttc.xml:table_bgColor.I.8',
 						'243',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:table_bgColor.I.9',
+						'LLL:EXT:cms/locallang_ttc.xml:table_bgColor.I.9',
 						'244',
 					),
 				),
@@ -1354,7 +1357,7 @@ $TCA['tt_content'] = array(
 		),
 		'table_border' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:table_border',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:table_border',
 			'config' => array(
 				'type' => 'input',
 				'size' => '3',
@@ -1370,7 +1373,7 @@ $TCA['tt_content'] = array(
 		),
 		'table_cellspacing' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:table_cellspacing',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:table_cellspacing',
 			'config' => array(
 				'type' => 'input',
 				'size' => '3',
@@ -1386,7 +1389,7 @@ $TCA['tt_content'] = array(
 		),
 		'table_cellpadding' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:table_cellpadding',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:table_cellpadding',
 			'config' => array(
 				'type' => 'input',
 				'size' => '3',
@@ -1401,7 +1404,7 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'media' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:media',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:media',
 			'config' => array(
 				'type' => 'group',
 				'internal_type' => 'file',
@@ -1416,7 +1419,7 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'multimedia' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:multimedia',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:multimedia',
 			'config' => array(
 				'type' => 'group',
 				'internal_type' => 'file',
@@ -1429,18 +1432,18 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'filelink_size' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:filelink_size',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:filelink_size',
 			'config' => array(
 				'type' => 'check',
 				'items' => array (
 					'1'	=> array(
-						'0' => 'LLL:EXT:cms/locallang_ttc.php:filelink_size.I.0',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
 		),
 		'records' => array(
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:records',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:records',
 			'config' => array(
 				'type' => 'group',
 				'internal_type' => 'db',
@@ -1458,11 +1461,11 @@ $TCA['tt_content'] = array(
 		),
 		'spaceBefore' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:spaceBefore',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:spaceBefore',
 			'config' => array(
 				'type' => 'input',
-				'size' => '3',
-				'max' => '3',
+				'size' => '5',
+				'max' => '5',
 				'eval' => 'int',
 				'checkbox' => '0',
 				'range' => array(
@@ -1473,11 +1476,11 @@ $TCA['tt_content'] = array(
 		),
 		'spaceAfter' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:spaceAfter',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:spaceAfter',
 			'config' => array(
 				'type' => 'input',
-				'size' => '3',
-				'max' => '3',
+				'size' => '5',
+				'max' => '5',
 				'eval' => 'int',
 				'checkbox' => '0',
 				'range' => array(
@@ -1488,7 +1491,7 @@ $TCA['tt_content'] = array(
 		),
 		'section_frame' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:section_frame',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:section_frame',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
@@ -1497,35 +1500,35 @@ $TCA['tt_content'] = array(
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:section_frame.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:section_frame.I.1',
 						'1',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:section_frame.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:section_frame.I.2',
 						'5',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:section_frame.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:section_frame.I.3',
 						'6',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:section_frame.I.4',
+						'LLL:EXT:cms/locallang_ttc.xml:section_frame.I.4',
 						'10',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:section_frame.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:section_frame.I.5',
 						'11',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:section_frame.I.6',
+						'LLL:EXT:cms/locallang_ttc.xml:section_frame.I.6',
 						'12',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:section_frame.I.7',
+						'LLL:EXT:cms/locallang_ttc.xml:section_frame.I.7',
 						'20',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:section_frame.I.8',
+						'LLL:EXT:cms/locallang_ttc.xml:section_frame.I.8',
 						'21',
 					),
 				),
@@ -1534,32 +1537,32 @@ $TCA['tt_content'] = array(
 		),
 		'splash_layout' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:splash_layout',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:splash_layout',
 			'config' => array(
 				'type' => 'select',
 				'items' => array(
 					array(
-						'LLL:EXT:lang/locallang_general.php:LGL.default_value',
+						'LLL:EXT:lang/locallang_general.xml:LGL.default_value',
 						'0',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:splash_layout.I.1',
+						'LLL:EXT:cms/locallang_ttc.xml:splash_layout.I.1',
 						'1',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:splash_layout.I.2',
+						'LLL:EXT:cms/locallang_ttc.xml:splash_layout.I.2',
 						'2',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:splash_layout.I.3',
+						'LLL:EXT:cms/locallang_ttc.xml:splash_layout.I.3',
 						'3',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:splash_layout.I.4',
+						'LLL:EXT:cms/locallang_ttc.xml:splash_layout.I.4',
 						'--div--',
 					),
 					array(
-						'LLL:EXT:cms/locallang_ttc.php:splash_layout.I.5',
+						'LLL:EXT:cms/locallang_ttc.xml:splash_layout.I.5',
 						'20',
 					),
 				),
@@ -1568,45 +1571,46 @@ $TCA['tt_content'] = array(
 		),
 		'sectionIndex' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:sectionIndex',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:sectionIndex',
 			'config' => array(
 				'type' => 'check',
 				'default' => 1,
 				'items' => array (
 					'1'	=> array(
-						'0' => 'LLL:EXT:cms/locallang_ttc.php:sectionIndex.I.0',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
 		),
 		'linkToTop' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:linkToTop',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:linkToTop',
 			'config' => array(
 				'type' => 'check',
 				'items' => array(
 					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_ttc.php:linkToTop.I.0',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 		),
 		),
 		'rte_enabled' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:rte_enabled',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:rte_enabled',
 			'config' => array(
 				'type' => 'check',
+				'renderInverted' => TRUE,
 				'showIfRTE' => 1,
 				'items' => array(
 					'1' => array(
-						'0' => 'LLL:EXT:cms/locallang_ttc.php:rte_enabled.I.0',
+						'0' => 'LLL:EXT:lang/locallang_core.xml:labels.enabled',
 					),
 				),
 			),
 		),
 		'pi_flexform' => array(
 			'l10n_display' => 'hideDiff',
-			'label' => 'LLL:EXT:cms/locallang_ttc.php:pi_flexform',
+			'label' => 'LLL:EXT:cms/locallang_ttc.xml:pi_flexform',
 			'config' => array(
 				'type' => 'flex',
 				'ds_pointerField' => 'list_type,CType',
@@ -1645,7 +1649,7 @@ $TCA['tt_content'] = array(
 			),
 		),
 		't3ver_label' => array(
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.versionLabel',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.versionLabel',
 			'config' => array(
 				'type' => 'input',
 				'size' => '30',
@@ -1658,10 +1662,10 @@ $TCA['tt_content'] = array(
 			'showitem' => 'CType',
 		),
 		'header' => 	array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
-					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.headers;headers, 
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.headers;headers,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1669,12 +1673,12 @@ $TCA['tt_content'] = array(
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'text' => 		array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
 					bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext_formlabel;;richtext:rte_transform[flag=rte_enabled|mode=ts_css],
 					rte_enabled;LLL:EXT:cms/locallang_ttc.xml:rte_enabled_formlabel,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1683,22 +1687,22 @@ $TCA['tt_content'] = array(
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'textpic' => 	array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
 					bodytext;Text;;richtext:rte_transform[flag=rte_enabled|mode=ts_css],
-					rte_enabled;RTE for this text,
+					rte_enabled;LLL:EXT:cms/locallang_ttc.xml:rte_enabled_formlabel,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.images,
-					--palette--;Image files and captions;imagefiles, 
-					--palette--;Click response for images;imagelinks, 
-					--palette--;Accessibility texts;image_accessibility, 
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.imagefiles;imagefiles,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.imagelinks;imagelinks,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.image_accessibility;image_accessibility,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.frames;frames,
-					--palette--;Image settings;image_settings,					
-					--palette--;Image block settings;imageblock,					
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.image_settings;image_settings,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.imageblock;imageblock,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.textlayout;textlayout,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
@@ -1706,24 +1710,24 @@ $TCA['tt_content'] = array(
 			'showitem' => '--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.images,
-					--palette--;Image files and captions;imagefiles, 
-					--palette--;Click response for images;imagelinks, 
-					--palette--;Accessibility texts;image_accessibility, 
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.imagefiles;imagefiles,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.imagelinks;imagelinks,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.image_accessibility;image_accessibility,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.frames;frames,
-					--palette--;Image settings;image_settings,					
-					--palette--;Image block settings;imageblock,					
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.image_settings;image_settings,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.imageblock;imageblock,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'bullets' => 	array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
-					bodytext;Bullet list;;nowrap,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.bulletlist_formlabel;;nowrap,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1731,26 +1735,26 @@ $TCA['tt_content'] = array(
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.textlayout;textlayout,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
-		'table' => 		array(
-			'showitem' => 
+		'table' => array(
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
-					bodytext;Table;;nowrap:wizards[table],
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.table_formlabel;;nowrap:wizards[table],
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.frames;frames,
-					--palette--;Table layout;tablelayout,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.table_layout;tablelayout,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.textlayout;textlayout,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'splash' => 	array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
-					--palette--;Render text into images;textbox,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.textbox;textbox,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1758,24 +1762,24 @@ $TCA['tt_content'] = array(
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'uploads' => 	array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
-					--palette--;Files;uploads,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:media;uploads,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.frames;frames,
-					--palette--;Filelinks layout;uploadslayout,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.uploads_layout;uploadslayout,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'multimedia' =>	array(
 			'showitem' => '--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.media,
-					--palette--;Media files and parameters;multimediafiles, 
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.multimediafiles;multimediafiles,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1785,26 +1789,27 @@ $TCA['tt_content'] = array(
 		'media' =>	array(
 			'showitem' => '--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
-					bodytext;Alternative content;;richtext:rte_transform[flag=rte_enabled|mode=ts_css],
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.media,
 					pi_flexform; ;,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.frames;frames,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.behaviour,
+					bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.media_formlabel;;richtext:rte_transform[flag=rte_enabled|mode=ts_css],
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'script' =>		array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
-					header;Name (invisible),
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.script, 
-					select_key,
-					pages,
-					bodytext;Parameters;;nowrap,
-					imagecaption;Comments,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					header;LLL:EXT:cms/locallang_ttc.xml:header.ALT.script_formlabel,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.script,
+					select_key;LLL:EXT:cms/locallang_ttc.xml:select_key.ALT.script_formlabel,
+					pages;LLL:EXT:cms/locallang_ttc.xml:pages.ALT.script_formlabel,
+					bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.script_formlabel;;nowrap,
+					imagecaption;LLL:EXT:cms/locallang_ttc.xml:imagecaption.ALT.script_formlabel,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1812,11 +1817,11 @@ $TCA['tt_content'] = array(
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'menu' => 		array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
-					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header, 
-					--palette--;Menus and sitemaps;menu, 
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.menu;menu,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1824,51 +1829,51 @@ $TCA['tt_content'] = array(
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'mailform' => 	array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
-					bodytext;Form;;nowrap:wizards[forms],
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.mailform_formlabel;;nowrap:wizards[forms],
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.frames;frames,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.behaviour,
-					--palette--;Target and recipient;mailform,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',		
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.mailform;mailform,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'search' => 	array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.frames;frames,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.behaviour,
-					--palette--;Search results;searchform,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',		
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.searchform;searchform,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'login' => 		array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.frames;frames,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.behaviour,
-					--palette--;Redirect after login;loginform,
+					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.loginform;loginform,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'shortcut' => 	array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
-					header;Name (invisible),
-					records;Records,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					header;LLL:EXT:cms/locallang_ttc.xml:header.ALT.shortcut_formlabel,
+					records;LLL:EXT:cms/locallang_ttc.xml:records_formlabel,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1876,19 +1881,20 @@ $TCA['tt_content'] = array(
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'list' => 		array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.header;header,
-				--div--;Plugin,
-					list_type, 
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.plugin,
+					list_type;LLL:EXT:cms/locallang_ttc.xml:list_type_formlabel,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.frames;frames,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.behaviour,
-					select_key,
-					pages,		
+					select_key;LLL:EXT:cms/locallang_ttc.xml:select_key_formlabel,
+					pages;LLL:EXT:cms/locallang_ttc.xml:pages.ALT.list_formlabel,
+					recursive,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 			'subtype_value_field' => 'list_type',
 			'subtypes_excludelist' => array(
@@ -1909,10 +1915,10 @@ $TCA['tt_content'] = array(
 			),
 		),
 		'div' => 		array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
-					header;Name (invisible),
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					header;LLL:EXT:cms/locallang_ttc.xml:header.ALT.div_formlabel,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1920,11 +1926,11 @@ $TCA['tt_content'] = array(
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.extended',
 		),
 		'html' => 		array(
-			'showitem' => 
+			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
-					header;Name (invisible),
-					bodytext;HTML Code;;nowrap,
-				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access, 
+					header;LLL:EXT:cms/locallang_ttc.xml:header.ALT.html_formlabel,
+					bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.html_formlabel;;nowrap,
+				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.appearance,
@@ -1989,53 +1995,53 @@ $TCA['tt_content'] = array(
 			'canNotCollapse' => 1,
 		),
 		'imagefiles' => array(
-			'showitem' => 'image;Image files;;;5-5-5, imagecaption;Captions (separate with breaks)',
+			'showitem' => 'image;LLL:EXT:cms/locallang_ttc.xml:image_formlabel, imagecaption;LLL:EXT:cms/locallang_ttc.xml:imagecaption_formlabel',
 			'canNotCollapse' => 1,
 		),
 		'multimediafiles' => array(
-			'showitem' => 'multimedia;Media files, bodytext;Parameters (separate with breaks);;nowrap',
+			'showitem' => 'multimedia;LLL:EXT:cms/locallang_ttc.xml:multimedia_formlabel, bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.multimedia_formlabel;;nowrap',
 			'canNotCollapse' => 1,
 		),
 		'textbox' => array(
-			'showitem' => 'splash_layout;Type, image;Images, --linebreak--, bodytext;Text',
+			'showitem' => 'splash_layout;LLL:EXT:cms/locallang_ttc.xml:splash_layout_formlabel, image;LLL:EXT:cms/locallang_ttc.xml:image.ALT.textbox_formlabel, --linebreak--, bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.textbox_formlabel',
 			'canNotCollapse' => 1,
 		),
 		'imagelinks' => array(
-			'showitem' => 'image_zoom;On click, image_link;Links (separate with commas)',
+			'showitem' => 'image_zoom;LLL:EXT:cms/locallang_ttc.xml:image_zoom_formlabel, image_link;LLL:EXT:cms/locallang_ttc.xml:image_link_formlabel',
 			'canNotCollapse' => 1,
 		),
 		'image_accessibility' => array(
-			'showitem' => 'altText;Alternative text (separate with breaks), titleText;Title (separate with breaks), --linebreak--, longdescURL;URL for a longer description (separate with breaks)',
+			'showitem' => 'altText;LLL:EXT:cms/locallang_ttc.xml:altText_formlabel, titleText;LLL:EXT:cms/locallang_ttc.xml:titleText_formlabel, --linebreak--, longdescURL;LLL:EXT:cms/locallang_ttc.xml:longdescURL_formlabel',
 			'canNotCollapse' => 1,
 		),
 		'image_settings' => array(
-			'showitem' => 'imagewidth;Width (px), imageheight;Height (px), imageborder;Border, --linebreak--, image_compression;Quality and type, image_effects;Effects, image_frames;Graphical frames',
+			'showitem' => 'imagewidth;LLL:EXT:cms/locallang_ttc.xml:imagewidth_formlabel, imageheight;LLL:EXT:cms/locallang_ttc.xml:imageheight_formlabel, imageborder;LLL:EXT:cms/locallang_ttc.xml:imageborder_formlabel, --linebreak--, image_compression;LLL:EXT:cms/locallang_ttc.xml:image_compression_formlabel, image_effects;LLL:EXT:cms/locallang_ttc.xml:image_effects_formlabel, image_frames;LLL:EXT:cms/locallang_ttc.xml:image_frames_formlabel',
 			'canNotCollapse' => 1,
-		),	
+		),
 		'imageblock' => array(
-			'showitem' => 'imageorient, imagecols;Number of Columns, --linebreak--, image_noRows;Horizontal rows, imagecaption_position;Caption alignment',
+			'showitem' => 'imageorient;LLL:EXT:cms/locallang_ttc.xml:imageorient_formlabel, imagecols;LLL:EXT:cms/locallang_ttc.xml:imagecols_formlabel, --linebreak--, image_noRows;LLL:EXT:cms/locallang_ttc.xml:image_noRows_formlabel, imagecaption_position;LLL:EXT:cms/locallang_ttc.xml:imagecaption_position_formlabel',
 			'canNotCollapse' => 1,
-		),		 			
+		),
 		'uploads' => array(
-			'showitem' => 'select_key;Read from this path, --linebreak--, media;Or select files manually, imagecaption;File descriptions;;nowrap',
+			'showitem' => 'select_key;LLL:EXT:cms/locallang_ttc.xml:select_key.ALT.uploads_formlabel, --linebreak--, media;LLL:EXT:cms/locallang_ttc.xml:media.ALT.uploads_formlabel, imagecaption;LLL:EXT:cms/locallang_ttc.xml:imagecaption.ALT.uploads_formlabel;;nowrap',
 			'canNotCollapse' => 1,
 		),
 		'mailform' => array(
-			'showitem' => 'pages;Target page, --linebreak--, subheader;Recipient email',
+			'showitem' => 'pages;LLL:EXT:cms/locallang_ttc.xml:pages.ALT.mailform, --linebreak--, subheader;LLL:EXT:cms/locallang_ttc.xml:subheader.ALT.mailform_formlabel',
 			'canNotCollapse' => 1,
-		),		
+		),
 		'searchform' => array(
-			'showitem' => 'pages;Target page',
+			'showitem' => 'pages;LLL:EXT:cms/locallang_ttc.xml:pages.ALT.searchform',
 			'canNotCollapse' => 1,
-		),		
+		),
 		'loginform' => array(
-			'showitem' => 'pages;Target page',
+			'showitem' => 'pages;LLL:EXT:cms/locallang_ttc.xml:pages.ALT.loginform',
 			'canNotCollapse' => 1,
-		),				
+		),
 		'menu' => array(
-			'showitem' => 'menu_type;Menu type, --linebreak--, pages;Selected pages',
+			'showitem' => 'menu_type;LLL:EXT:cms/locallang_ttc.xml:menu_type_formlabel, --linebreak--, pages;LLL:EXT:cms/locallang_ttc.xml:pages.ALT.menu_formlabel',
 			'canNotCollapse' => 1,
-		),				
+		),
 		'visibility' => array(
 			'showitem' => 'hidden;LLL:EXT:cms/locallang_ttc.xml:hidden_formlabel, sectionIndex;LLL:EXT:cms/locallang_ttc.xml:sectionIndex_formlabel, linkToTop;LLL:EXT:cms/locallang_ttc.xml:linkToTop_formlabel',
 			'canNotCollapse' => 1,
@@ -2053,11 +2059,11 @@ $TCA['tt_content'] = array(
 			'canNotCollapse' => 1,
 		),
 		'tablelayout' => array (
-			'showitem' => 'table_bgColor, table_border, table_cellspacing, table_cellpadding',
+			'showitem' => 'table_bgColor;LLL:EXT:cms/locallang_ttc.xml:table_bgColor_formlabel, table_border;LLL:EXT:cms/locallang_ttc.xml:table_border_formlabel, table_cellspacing;LLL:EXT:cms/locallang_ttc.xml:table_cellspacing_formlabel, table_cellpadding;LLL:EXT:cms/locallang_ttc.xml:table_cellpadding_formlabel',
 			'canNotCollapse' => 1,
-		),		
+		),
 		'uploadslayout' => array (
-			'showitem' => 'filelink_size',
+			'showitem' => 'filelink_size;LLL:EXT:cms/locallang_ttc.xml:filelink_size_formlabel',
 			'canNotCollapse' => 1,
 		),
 	),

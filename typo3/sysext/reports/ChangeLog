@@ -1,3 +1,16 @@
-2009-09-18 Ingo Renner  <ingo@typo3.org>
+2010-11-14  Ingo Renner  <ingo@typo3.org>
+
+	* Changed the overview menu to use the core t3-overview-list CSS class for styling
+
+2010-11-13  Ingo Renner  <ingo@typo3.org>
+
+	* Fixed some minor style issues caused by Ext Js' style reset definitions
+
+2010-11-12  Ingo Renner  <ingo@typo3.org>
+
+	* Added feature #16337: System health status self monitoring
+	* Added feature #16338: Scheduler task to regularly execute the status report checks
+
+2009-09-18  Ingo Renner  <ingo@typo3.org>
 
 	* Integration of the reports module as a system extension

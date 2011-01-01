@@ -42,15 +42,24 @@ class tslib_content_ImageResource extends tslib_content_Abstract {
 	 * @return	string		Output
 	 */
 	public function render($conf = array()) {
+
 		$GLOBALS['TSFE']->lastImgResourceInfo = $this->cObj->getImgResource($conf['file'], $conf['file.']);
-		return $this->cObj->stdWrap($GLOBALS['TSFE']->lastImgResourceInfo[3], $conf['stdWrap.']);
+
+		$imageResource = $GLOBALS['TSFE']->lastImgResourceInfo[3];
+
+		$theValue = isset($conf['stdWrap.'])
+			? $this->cObj->stdWrap($imageResource, $conf['stdWrap.'])
+			: $imageResource;
+
+		return $theValue;
+
 	}
 
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_imageresource.php']) {
-	include_once ($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_imageresource.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_imageresource.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_imageresource.php']);
 }
 
 ?>

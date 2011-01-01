@@ -55,7 +55,6 @@ class tx_reports_Module extends t3lib_SCbase {
 			t3lib_extMgm::extPath('reports') . 'mod/mod_template.html'
 		);
 		$this->doc->backPath = $GLOBALS['BACK_PATH'];
-		$this->doc->getPageRenderer()->loadScriptaculous('effects');
 		$this->doc->addStyleSheet(
 			'tx_reports',
 			'../' . t3lib_extMgm::siteRelPath('reports') . 'mod/mod_styles.css'
@@ -111,29 +110,6 @@ class tx_reports_Module extends t3lib_SCbase {
 				function jumpToUrl(URL) {
 					document.location = URL;
 				}
-				var state;
-				Event.observe(document, "dom:loaded", function(){
-					$$("h2.section-header").invoke("observe", "click", function(event){
-						var item = Event.element(event);
-							// possible icon inside h2
-						if (item.hasClassName("t3-icon")) {
-							item = item.up("h2");
-						}
-						if (item.hasClassName("expanded")) {
-							item.removeClassName("expanded").addClassName("collapsed");
-							Effect.BlindUp(item.next("div"), {duration : 0.5});
-							state = 1;
-						} else {
-							item.removeClassName("collapsed").addClassName("expanded");
-							Effect.BlindDown(item.next("div"), {duration : 0.5});
-							state = 0;
-						}
-						event.stop();
-						new Ajax.Request("ajax.php", {
-							parameters : "ajaxID=Reports::saveCollapseState&item=" + item.id + "&state=" + state
-						});
-					});
-				});
 			';
 			$this->doc->postCode='
 				<script language="javascript" type="text/javascript">
@@ -162,10 +138,12 @@ class tx_reports_Module extends t3lib_SCbase {
 		$markers['CONTENT'] = $this->content;
 
 				// Build the <body> for the module
-		$this->content = $this->doc->startPage($GLOBALS['LANG']->getLL('title'));
-		$this->content.= $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
-		$this->content.= $this->doc->endPage();
-		$this->content = $this->doc->insertStylesAndJS($this->content);
+		$this->content = $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
+			// Renders the module page
+		$this->content = $this->doc->render(
+			$GLOBALS['LANG']->getLL('title'),
+			$this->content
+		);
 	}
 
 	/**
@@ -192,10 +170,10 @@ class tx_reports_Module extends t3lib_SCbase {
 			$title   = $GLOBALS['LANG']->getLL('reports_overview');
 		} else {
 			$content = '';
-			list($extKey, $reportName) = explode('.', $action, 2);
+			list($extensionKey, $reportName) = explode('.', $action, 2);
 
-			$reportClass = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports'][$extKey][$reportName]['report'];
-			$title       = $GLOBALS['LANG']->sL($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports'][$extKey][$reportName]['title']);
+			$reportClass = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports'][$extensionKey][$reportName]['report'];
+			$title       = $GLOBALS['LANG']->sL($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports'][$extensionKey][$reportName]['title']);
 
 			$reportInstance = t3lib_div::makeInstance($reportClass, $this);
 
@@ -216,7 +194,7 @@ class tx_reports_Module extends t3lib_SCbase {
 	 */
 	protected function indexAction() {
 		$defaultIcon = t3lib_extMgm::extRelPath('reports') . 'mod/moduleicon.gif';
-		$content = '<dl class="report-list">';
+		$content = '<dl class="t3-overview-list">';
 		$reports = array();
 
 		foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['reports'] as $extKey => $extensionReports) {
@@ -281,8 +259,8 @@ class tx_reports_Module extends t3lib_SCbase {
 
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/reports/mod/index.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/reports/mod/index.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/reports/mod/index.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/reports/mod/index.php']);
 }
 
 

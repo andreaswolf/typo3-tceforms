@@ -124,10 +124,12 @@ class SC_mod_user_task_index extends t3lib_SCbase {
 		$markers['CONTENT'] = $this->content;
 
 			// Build the <body> for the module
-		$this->content = $this->doc->startPage($GLOBALS['LANG']->getLL('title'));
-		$this->content .= $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
-		$this->content .= $this->doc->endPage();
-		$this->content = $this->doc->insertStylesAndJS($this->content);
+		$this->content = $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
+			// Renders the module page
+		$this->content = $this->doc->render(
+			$GLOBALS['LANG']->getLL('title'),
+			$this->content
+		);
 	}
 
 	/**
@@ -517,8 +519,8 @@ class SC_mod_user_task_index extends t3lib_SCbase {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/taskcenter/task/index.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/taskcenter/task/index.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/taskcenter/task/index.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/taskcenter/task/index.php']);
 }
 
 

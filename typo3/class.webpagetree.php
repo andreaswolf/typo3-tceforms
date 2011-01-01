@@ -423,7 +423,9 @@ class webPageTree extends t3lib_browseTree {
 
 				// Not in menu:
 				// @TODO: RFC #7370: doktype 2&5 are deprecated since TYPO3 4.2-beta1
-			if ($this->ext_separateNotinmenuPages && (t3lib_div::inList('5,6',$row['doktype']) || $row['doktype']>=200 || $row['nav_hide']))	{
+			if ($this->ext_separateNotinmenuPages &&
+				($row['doktype'] == t3lib_pageSelect::DOKTYPE_HIDE_IN_MENU || $row['doktype'] == t3lib_pageSelect::DOKTYPE_BE_USER_SECTION ||
+					$row['doktype'] >= 200 || $row['nav_hide'])) {
 				$outOfMenuPages[] = $row;
 				$outOfMenuPagesTextIndex[] = ($row['doktype']>=200 ? 'zzz'.$row['doktype'].'_' : '').$row['title'];
 			} else {
@@ -515,8 +517,8 @@ class webPageTree extends t3lib_browseTree {
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/class.webpagetree.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/class.webpagetree.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/class.webpagetree.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/class.webpagetree.php']);
 }
 
 ?>

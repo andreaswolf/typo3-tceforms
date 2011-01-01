@@ -1,29 +1,29 @@
 <?php
 /***************************************************************
-*  Copyright notice
-*
-*  (c) 2010 Ernesto Baschny <ernst@cron-it.de>
-*  All rights reserved
-*
-*  This script is part of the TYPO3 project. The TYPO3 project is
-*  free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  The GNU General Public License can be found at
-*  http://www.gnu.org/copyleft/gpl.html.
-*  A copy is found in the textfile GPL.txt and important notices to the license
-*  from the author is found in LICENSE.txt distributed with these scripts.
-*
-*
-*  This script is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  This copyright notice MUST APPEAR in all copies of the script!
-***************************************************************/
+ *  Copyright notice
+ *
+ *  (c) 2010 Ernesto Baschny <ernst@cron-it.de>
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
 
 	// Make sure Swift's auto-loader is registered
 require_once(PATH_typo3 . 'contrib/swiftmailer/swift_required.php');
@@ -41,7 +41,7 @@ require_once(PATH_typo3 . 'contrib/swiftmailer/swift_required.php');
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_mail_mailer extends Swift_Mailer {
+class t3lib_mail_Mailer extends Swift_Mailer {
 
 	/**
 	 * @var Swift_Transport
@@ -61,7 +61,7 @@ class t3lib_mail_mailer extends Swift_Mailer {
 			try {
 				$this->initializeTransport();
 			} catch (Exception $e) {
-				throw new t3lib_exception($e->getMessage());
+				throw new t3lib_exception($e->getMessage(), 1291068569);
 			}
 		}
 		parent::__construct($this->transport);
@@ -71,7 +71,7 @@ class t3lib_mail_mailer extends Swift_Mailer {
 	 * Prepares a transport using the TYPO3_CONF_VARS configuration
 	 *
 	 * Used options:
-	 * $TYPO3_CONF_VARS['MAIL']['transport'] = 'smtp' | 'sendmail' | 'mail'
+	 * $TYPO3_CONF_VARS['MAIL']['transport'] = 'smtp' | 'sendmail' | 'mail' | 'mbox'
 	 *
 	 * $TYPO3_CONF_VARS['MAIL']['transport_smtp_server'] = 'smtp.example.org';
 	 * $TYPO3_CONF_VARS['MAIL']['transport_smtp_port'] = '25';
@@ -81,7 +81,7 @@ class t3lib_mail_mailer extends Swift_Mailer {
 	 *
 	 * $TYPO3_CONF_VARS['MAIL']['transport_sendmail_command'] = '/usr/sbin/sendmail -bs'
 	 *
-	 * @throws Exception
+	 * @throws t3lib_exception
 	 */
 	private function initializeTransport() {
 		$mailSettings = $GLOBALS['TYPO3_CONF_VARS']['MAIL'];
@@ -89,16 +89,19 @@ class t3lib_mail_mailer extends Swift_Mailer {
 
 			case 'smtp':
 					// Get settings to be used when constructing the transport object
-				list($host, $port) = split(':', $mailSettings['transport_smtp_server']);
+				list($host, $port) = preg_split('/:/', $mailSettings['transport_smtp_server']);
 				if ($host === '') {
-					throw new t3lib_exception('$TYPO3_CONF_VARS[\'MAIL\'][\'transport_smtp_server\'] needs to be set when transport is set to "smtp"');
+					throw new t3lib_exception(
+						'$TYPO3_CONF_VARS[\'MAIL\'][\'transport_smtp_server\'] needs to be set when transport is set to "smtp"',
+						1291068606
+					);
 				}
 				if ($port === '') {
 					$port = '25';
 				}
-				$useEncryption = ( $mailSettings['transport_smtp_encrypt'] ? TRUE : FALSE);
+				$useEncryption = ($mailSettings['transport_smtp_encrypt'] ? TRUE : FALSE);
 
-				// Create our transport
+					// Create our transport
 				$this->transport = Swift_SmtpTransport::newInstance($host, $port, $useEncryption);
 
 					// Need authentication?
@@ -115,10 +118,22 @@ class t3lib_mail_mailer extends Swift_Mailer {
 			case 'sendmail':
 				$sendmailCommand = $mailSettings['transport_sendmail_command'];
 				if ($sendmailCommand === '') {
-					throw new t3lib_exception('$TYPO3_CONF_VARS[\'MAIL\'][\'transport_sendmail_command\'] needs to be set when transport is set to "sendmail"');
+					throw new t3lib_exception(
+						'$TYPO3_CONF_VARS[\'MAIL\'][\'transport_sendmail_command\'] needs to be set when transport is set to "sendmail"',
+						1291068620
+					);
 				}
 					// Create our transport
 				$this->transport = Swift_SendmailTransport::newInstance($sendmailCommand);
+				break;
+
+			case 'mbox':
+				$mboxFile = $mailSettings['transport_mbox_file'];
+				if ($mboxFile == '') {
+					throw new t3lib_exception('$TYPO3_CONF_VARS[\'MAIL\'][\'transport_mbox_file\'] needs to be set when transport is set to "mbox"');
+				}
+					// Create our transport
+				$this->transport = t3lib_div::makeInstance('t3lib_mail_mboxtransport', $mboxFile);
 				break;
 
 			case 'mail':
@@ -132,8 +147,8 @@ class t3lib_mail_mailer extends Swift_Mailer {
 
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_mail_mailer.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_mail_mailer.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_mail_mailer.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_mail_mailer.php']);
 }
 
 ?>

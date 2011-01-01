@@ -83,12 +83,9 @@ class Tx_Extbase_Persistence_Mapper_DataMapper implements t3lib_Singleton {
 	protected $referenceIndex;
 
 	/**
-	 * Constructs a new mapper
-	 *
+	 * @var Tx_Extbase_Object_ObjectManagerInterface
 	 */
-	public function __construct() {
-		$this->queryFactory = t3lib_div::makeInstance('Tx_Extbase_Persistence_QueryFactory');
-	}
+	protected $objectManager;
 
 	/**
 	 * Injects the identity map
@@ -131,13 +128,30 @@ class Tx_Extbase_Persistence_Mapper_DataMapper implements t3lib_Singleton {
 	}
 
 	/**
+	 * Injects the Query Factory
+	 *
+	 * @param Tx_Extbase_Persistence_QueryFactoryInterface $queryFactory
+	 */
+	public function injectQueryFactory(Tx_Extbase_Persistence_QueryFactoryInterface $queryFactory) {
+		$this->queryFactory = $queryFactory;
+	}
+
+	/**
 	 * Sets the query object model factory
 	 *
 	 * @param Tx_Extbase_Persistence_QOM_QueryObjectModelFactory $qomFactory
 	 * @return void
 	 */
-	public function setQomFactory(Tx_Extbase_Persistence_QOM_QueryObjectModelFactory $qomFactory) {
+	public function injectQomFactory(Tx_Extbase_Persistence_QOM_QueryObjectModelFactory $qomFactory) {
 		$this->qomFactory = $qomFactory;
+	}
+
+	/**
+	 * @param Tx_Extbase_Object_ObjectManagerInterface $objectManager
+	 * @return void
+	 */
+	public function injectObjectManager(Tx_Extbase_Object_ObjectManagerInterface $objectManager) {
+		$this->objectManager = $objectManager;
 	}
 
 	/**
@@ -297,19 +311,19 @@ class Tx_Extbase_Persistence_Mapper_DataMapper implements t3lib_Singleton {
 	 * @param mixed $fieldValue The raw field value.
 	 * @param bool $enableLazyLoading A flag indication if the related objects should be lazy loaded
 	 * @param bool $performLanguageOverlay A flag indication if the related objects should be localized
-	 * @return mixed The result
+	 * @return Tx_Extbase_Persistence_LazyObjectStorage|Tx_Extbase_Persistence_QueryResultInterface The result
 	 */
 	public function fetchRelated(Tx_Extbase_DomainObject_DomainObjectInterface $parentObject, $propertyName, $fieldValue = '', $enableLazyLoading = TRUE) {
 		$columnMap = $this->getDataMap(get_class($parentObject))->getColumnMap($propertyName);
 		$propertyMetaData = $this->reflectionService->getClassSchema(get_class($parentObject))->getProperty($propertyName);
 		if ($enableLazyLoading === TRUE && $propertyMetaData['lazy']) {
 			if ($propertyMetaData['type'] === 'Tx_Extbase_Persistence_ObjectStorage') {
-				$result = t3lib_div::makeInstance('Tx_Extbase_Persistence_LazyObjectStorage', $parentObject, $propertyName, $fieldValue);
+				$result = $this->objectManager->create('Tx_Extbase_Persistence_LazyObjectStorage', $parentObject, $propertyName, $fieldValue);
 			} else {
 				if (empty($fieldValue)) {
 					$result = NULL;
 				} else {
-					$result = t3lib_div::makeInstance('Tx_Extbase_Persistence_LazyLoadingProxy', $parentObject, $propertyName, $fieldValue);
+					$result = $this->objectManager->create('Tx_Extbase_Persistence_LazyLoadingProxy', $parentObject, $propertyName, $fieldValue);
 				}
 			}
 		} else {
@@ -344,8 +358,8 @@ class Tx_Extbase_Persistence_Mapper_DataMapper implements t3lib_Singleton {
 	protected function getPreparedQuery(Tx_Extbase_DomainObject_DomainObjectInterface $parentObject, $propertyName, $fieldValue = '') {
 		$columnMap = $this->getDataMap(get_class($parentObject))->getColumnMap($propertyName);
 		$type = $this->getType(get_class($parentObject), $propertyName);
-		$queryFactory = t3lib_div::makeInstance('Tx_Extbase_Persistence_QueryFactory');
-		$query = $queryFactory->create($type);
+
+		$query = $this->queryFactory->create($type);
 		$query->getQuerySettings()->setRespectStoragePage(FALSE);
 		if ($columnMap->getTypeOfRelation() === Tx_Extbase_Persistence_Mapper_ColumnMap::RELATION_HAS_MANY) {
 			if ($columnMap->getChildSortByFieldName() !== NULL) {
@@ -419,7 +433,7 @@ class Tx_Extbase_Persistence_Mapper_DataMapper implements t3lib_Singleton {
 	 *
 	 * @param mixed $result The result could be an object or an ObjectStorage
 	 * @param array $propertyMetaData The property meta data
-	 * @param array $result The result
+	 * @param Tx_Extbase_Persistence_QueryResultInterface|Tx_Extbase_Persistence_LoadingStrategyInterface $result The result
 	 * @return void
 	 */
 	public function mapResultToPropertyValue(Tx_Extbase_DomainObject_DomainObjectInterface $parentObject, $propertyName, $result) {
@@ -447,13 +461,8 @@ class Tx_Extbase_Persistence_Mapper_DataMapper implements t3lib_Singleton {
 					$propertyValue = $objects;
 				}
 			} elseif (strpos($propertyMetaData['type'], '_') !== FALSE) {
-				if (is_array($result)) {
-					
-					if (current($result) !== FALSE) {
-						$propertyValue = current($result);
-					} else {
-						$propertyValue = NULL;
-					}
+				if (is_object($result) && $result instanceof Tx_Extbase_Persistence_QueryResultInterface) {
+					$propertyValue = $result->getFirst();
 				} else {
 					$propertyValue = $result;
 				}
@@ -471,7 +480,7 @@ class Tx_Extbase_Persistence_Mapper_DataMapper implements t3lib_Singleton {
 	 */
 	public function countRelated(Tx_Extbase_DomainObject_DomainObjectInterface $parentObject, $propertyName, $fieldValue = '') {
 		$query = $this->getPreparedQuery($parentObject, $propertyName, $fieldValue);
-		return $query->count();
+		return $query->execute()->count();
 	}
 
 	/**
@@ -533,7 +542,7 @@ class Tx_Extbase_Persistence_Mapper_DataMapper implements t3lib_Singleton {
 				}
 			}
 		}
-		return Tx_Extbase_Utility_Extension::convertCamelCaseToLowerCaseUnderscored($propertyName);
+		return t3lib_div::camelCaseToLowerCaseUnderscored($propertyName);
 	}
 
 	/**

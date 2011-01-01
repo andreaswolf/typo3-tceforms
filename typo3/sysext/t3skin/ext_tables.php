@@ -1,7 +1,7 @@
 <?php
 if (!defined ('TYPO3_MODE')) 	die ('Access denied.');
 
-if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $GLOBALS['BE_USER']->isFrontendEditingActive())) {
+if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']))) {
 	global $TBE_STYLES;
 
 		// register as a skin
@@ -99,6 +99,35 @@ if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $
 		// Changing icon for filemounts, needs to be done here as overwriting the original icon would also change the filelist tree's root icon
 	$TCA['sys_filemounts']['ctrl']['iconfile'] = '_icon_ftp_2.gif';
 
+		// Adding flags to sys_language
+	t3lib_div::loadTCA('sys_language');
+	$TCA['sys_language']['ctrl']['typeicon_column'] = 'flag';
+	$TCA['sys_language']['ctrl']['typeicon_classes'] = array(
+		'default' => 'mimetypes-x-sys_language',
+		'mask'	=> 'flags-###TYPE###'
+	);
+	$languageKeys = array(
+		'ad', 'ae', 'af', 'ag', 'ai', 'al', 'am', 'an', 'ao', 'ar', 'as', 'at',
+		'au', 'aw', 'ax', 'az', 'ba', 'bb', 'bd', 'be', 'bf', 'bg', 'bh', 'bi', 
+		'bj', 'bm', 'bn', 'bo', 'br', 'bs', 'bt', 'bv', 'bw', 'by', 'bz', 'ca', 
+		'catalonia', 'cc', 'cd', 'cf', 'cg', 'ch', 'ci', 'ck', 'cl', 'cm', 'cn', 
+		'co', 'cr', 'cs', 'cu', 'cv', 'cx', 'cy', 'cz', 'de', 'dj', 'dk', 'dm', 
+		'do', 'dz', 'ec', 'ee', 'eg', 'eh', 'england', 'er', 'es', 'et',
+		'europeanunion', 'fam', 'fi', 'fj', 'fk', 'fm', 'fo', 'fr', 'ga', 
+		'gb', 'gd', 'ge', 'gf', 'gh', 'gi', 'gl', 'gm', 'gn', 'gp', 'gq', 'gr', 
+		'gs', 'gt', 'gu', 'gw', 'gy', 'hk', 'hm', 'hn', 'hr', 'ht', 'hu', 'id',
+		'ie', 'il', 'in', 'io', 'iq', 'ir', 'is', 'it', 'jm', 'jo', 'jp', 'ke', 
+		'kg', 'kh', 'ki', 'km', 'kn', 'kp', 'kr', 'kw', 'ky', 'kz', 'la', 'lb', 
+		'lc', 'li', 'lk', 'lr', 'ls', 'lt', 'lu', 'lv', 'ly', 'ma', 'mc', 'md', 
+		'me', 'mg', 'mh', 'mk', 'ml', 'mm', 'mn', 'mo', 'mp', 'mq', 'mr', 'ms', 
+		'mt', 'mu', 'mv', 'mw', 'mx', 'my', 'mz', 'na', 'nc', 'ne', 'nf', 'ng', 
+		'ni', 'nl', 'no', 'np', 'nr', 'nu', 'nz', 'om', 'pa', 'pe', 'pf', 'pg', 'qc',
+	);
+	foreach ($languageKeys as $languageKey) {
+		$TCA['sys_language']['columns']['flag']['config']['items'][] = array($languageKey, $languageKey, '');
+	}
+	unset($languageKeys, $languageKey);
+
 		// Manual setting up of alternative icons. This is mainly for module icons which has a special prefix:
 	$TBE_STYLES['skinImg'] = array_merge($presetSkinImgs, array (
 		'gfx/ol/blank.gif'                         => array('clear.gif','width="18" height="16"'),
@@ -149,6 +178,8 @@ if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $
 	$GLOBALS['TYPO3_CONF_VARS']['typo3/backend.php']['additionalBackendItems'][] = t3lib_extMgm::extPath('t3skin').'registerIe6Stylesheet.php';
 
 	$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/template.php']['preHeaderRenderHook'][] = t3lib_extMgm::extPath('t3skin').'pngfix/class.tx_templatehook.php:tx_templatehook->registerPngFix';
+
+	$GLOBALS['TBE_STYLES']['stylesheets']['admPanel'] = t3lib_extMgm::siteRelPath('t3skin') . 'stylesheets/visual/admin_panel.css';
 
 	t3lib_SpriteManager::addIconSprite(
 		array(
@@ -522,6 +553,8 @@ if (TYPO3_MODE == 'BE' || (TYPO3_MODE == 'FE' && isset($GLOBALS['BE_USER']) && $
 			'flags-py-overlay',
 			'flags-qa',
 			'flags-qa-overlay',
+			'flags-qc',
+			'flags-qc-overlay',
 			'flags-re',
 			'flags-re-overlay',
 			'flags-ro',

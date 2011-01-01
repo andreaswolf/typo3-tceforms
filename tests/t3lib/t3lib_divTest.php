@@ -22,7 +22,6 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-
 /**
  * Testcase for class t3lib_div
  *
@@ -49,6 +48,139 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	 */
 	protected $backupGlobalsBlacklist = array('TYPO3_DB');
 
+	public function tearDown() {
+		t3lib_div::purgeInstances();
+	}
+
+
+	///////////////////////////////
+	// Tests concerning gif_compress
+	///////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function gifCompressFixesPermissionOfConvertedFileIfUsingImagemagick() {
+		if (TYPO3_OS == 'WIN') {
+			$this->markTestSkipped('gifCompressFixesPermissionOfConvertedFileIfUsingImagemagick() test not available on Windows.');
+		}
+
+		if (!$GLOBALS['TYPO3_CONF_VARS']['GFX']['im'] || !$GLOBALS['TYPO3_CONF_VARS']['GFX']['im_path_lzw']) {
+			$this->markTestSkipped('gifCompressFixesPermissionOfConvertedFileIfUsingImagemagick() test not available without imagemagick setup.');
+		}
+
+		$testFinder = t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder');
+		$fixtureGifFile = $testFinder->getAbsoluteCoreTestsPath() . 't3lib/fixtures/clear.gif';
+
+		$GLOBALS['TYPO3_CONF_VARS']['GFX']['gif_compress'] = TRUE;
+
+			// Copy file to unique filename in typo3temp, set target permissions and run method
+		$testFilename = PATH_site . 'typo3temp/' . uniqid('test_') . '.gif';
+		@copy($fixtureGifFile, $testFilename);
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0777';
+		t3lib_div::gif_compress($testFilename, 'IM');
+
+			// Get actual permissions and clean up
+		clearstatcache();
+		$resultFilePermissions = substr(decoct(fileperms($testFilename)), 2);
+		t3lib_div::unlink_tempfile($testFilename);
+
+		$this->assertEquals($resultFilePermissions, '0777');
+	}
+
+	/**
+	 * @test
+	 */
+	public function gifCompressFixesPermissionOfConvertedFileIfUsingGd() {
+		if (TYPO3_OS == 'WIN') {
+			$this->markTestSkipped('gifCompressFixesPermissionOfConvertedFileIfUsingImagemagick() test not available on Windows.');
+		}
+
+		$testFinder = t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder');
+		$fixtureGifFile = $testFinder->getAbsoluteCoreTestsPath() . 't3lib/fixtures/clear.gif';
+
+		$GLOBALS['TYPO3_CONF_VARS']['GFX']['gdlib'] = TRUE;
+		$GLOBALS['TYPO3_CONF_VARS']['GFX']['gdlib_png'] = FALSE;
+
+			// Copy file to unique filename in typo3temp, set target permissions and run method
+		$testFilename = PATH_site . 'typo3temp/' . uniqid('test_') . '.gif';
+		@copy($fixtureGifFile, $testFilename);
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0777';
+		t3lib_div::gif_compress($testFilename, 'GD');
+
+			// Get actual permissions and clean up
+		clearstatcache();
+		$resultFilePermissions = substr(decoct(fileperms($testFilename)), 2);
+		t3lib_div::unlink_tempfile($testFilename);
+
+		$this->assertEquals($resultFilePermissions, '0777');
+	}
+
+	///////////////////////////////
+	// Tests concerning png_to_gif_by_imagemagick
+	///////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function pngToGifByImagemagickFixesPermissionsOfConvertedFile() {
+		if (TYPO3_OS == 'WIN') {
+			$this->markTestSkipped('pngToGifByImagemagickFixesPermissionsOfConvertedFile() test not available on Windows.');
+		}
+
+		if (!$GLOBALS['TYPO3_CONF_VARS']['GFX']['im'] || !$GLOBALS['TYPO3_CONF_VARS']['GFX']['im_path_lzw']) {
+			$this->markTestSkipped('pngToGifByImagemagickFixesPermissionsOfConvertedFile() test not available without imagemagick setup.');
+		}
+
+		$testFinder = t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder');
+		$fixturePngFile = $testFinder->getAbsoluteCoreTestsPath() . 't3lib/fixtures/clear.png';
+
+		$GLOBALS['TYPO3_CONF_VARS']['FE']['png_to_gif'] = TRUE;
+
+			// Copy file to unique filename in typo3temp, set target permissions and run method
+		$testFilename = PATH_site . 'typo3temp/' . uniqid('test_') . '.png';
+		@copy($fixturePngFile, $testFilename);
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0777';
+		$newGifFile = t3lib_div::png_to_gif_by_imagemagick($testFilename);
+
+			// Get actual permissions and clean up
+		clearstatcache();
+		$resultFilePermissions = substr(decoct(fileperms($newGifFile)), 2);
+		t3lib_div::unlink_tempfile($newGifFile);
+
+		$this->assertEquals($resultFilePermissions, '0777');
+	}
+
+	///////////////////////////////
+	// Tests concerning read_png_gif
+	///////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function readPngGifFixesPermissionsOfConvertedFile() {
+		if (TYPO3_OS == 'WIN') {
+			$this->markTestSkipped('readPngGifFixesPermissionsOfConvertedFile() test not available on Windows.');
+		}
+
+		if (!$GLOBALS['TYPO3_CONF_VARS']['GFX']['im']) {
+			$this->markTestSkipped('readPngGifFixesPermissionsOfConvertedFile() test not available without imagemagick setup.');
+		}
+
+		$testFinder = t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder');
+		$testGifFile = $testFinder->getAbsoluteCoreTestsPath() . 't3lib/fixtures/clear.gif';
+
+			// Set target permissions and run method
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0777';
+		$newPngFile = t3lib_div::read_png_gif($testGifFile, TRUE);
+
+			// Get actual permissions and clean up
+		clearstatcache();
+		$resultFilePermissions = substr(decoct(fileperms($newPngFile)), 2);
+		t3lib_div::unlink_tempfile($newPngFile);
+
+		$this->assertEquals($resultFilePermissions, '0777');
+	}
 
 	///////////////////////////////
 	// Tests concerning validIP
@@ -632,6 +764,40 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	public function getIndpEnvTypo3SitePathReturnsStringEndingWithSlash() {
 		$result = t3lib_div::getIndpEnv('TYPO3_SITE_PATH');
 		$this->assertEquals('/', $result[strlen($result) - 1]);
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function hostnameAndPortDataProvider() {
+		return array(
+			'localhost ipv4 without port' => array('127.0.0.1', '127.0.0.1', ''),
+			'localhost ipv4 with port' => array('127.0.0.1:81', '127.0.0.1', '81'),
+			'localhost ipv6 without port' => array('[::1]', '[::1]', ''),
+			'localhost ipv6 with port' => array('[::1]:81', '[::1]', '81'),
+			'ipv6 without port' => array('[2001:DB8::1]', '[2001:DB8::1]', ''),
+			'ipv6 with port' => array('[2001:DB8::1]:81', '[2001:DB8::1]', '81'),
+			'hostname without port' => array('lolli.did.this', 'lolli.did.this', ''),
+			'hostname with port' => array('lolli.did.this:42', 'lolli.did.this', '42'),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider hostnameAndPortDataProvider
+	 */
+	public function getIndpEnvTypo3HostOnlyParsesHostnamesAndIpAdresses($httpHost, $expectedIp) {
+		$_SERVER['HTTP_HOST'] = $httpHost;
+		$this->assertEquals($expectedIp, t3lib_div::getIndpEnv('TYPO3_HOST_ONLY'));
+	}
+
+	/**
+	 * @test
+	 * @dataProvider hostnameAndPortDataProvider
+	 */
+	public function getIndpEnvTypo3PortParsesHostnamesAndIpAdresses($httpHost, $dummy, $expectedPort) {
+		$_SERVER['HTTP_HOST'] = $httpHost;
+		$this->assertEquals($expectedPort, t3lib_div::getIndpEnv('TYPO3_PORT'));
 	}
 
 
@@ -1474,6 +1640,32 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
+	public function fixPermissionsCorrectlySetsGroup() {
+		if (TYPO3_OS == 'WIN') {
+			$this->markTestSkipped('fixPermissionsCorrectlySetsGroupOwnerOfFile() tests not available on Windows');
+		}
+		if (!function_exists('posix_getegid')) {
+			$this->markTestSkipped('Function posix_getegid() not available, fixPermissionsCorrectlySetsGroupOwnerOfFile() tests skipped');
+		}
+
+			// Create and prepare test file
+		$filename = PATH_site . 'typo3temp/' . uniqid('test_');
+		t3lib_div::writeFileToTypo3tempDir($filename, '42');
+
+			// Set target group and run method
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['createGroup'] = posix_getegid();
+		$fixPermissionsResult = t3lib_div::fixPermissions($filename);
+
+		clearstatcache();
+		$resultFileGroup = filegroup($filename);
+		unlink($filename);
+
+		$this->assertEquals($resultFileGroup, posix_getegid());
+	}
+
+	/**
+	 * @test
+	 */
 	public function fixPermissionsCorrectlySetsPermissionsToFile() {
 		if (TYPO3_OS == 'WIN') {
 			$this->markTestSkipped('fixPermissions() tests not available on Windows');
@@ -1486,19 +1678,16 @@ class t3lib_divTest extends tx_phpunit_testcase {
 
 			// Set target permissions and run method
 		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0660';
-		$GLOBALS['TYPO3_CONF_VARS']['BE']['createGroup'] = posix_getegid();
 		$fixPermissionsResult = t3lib_div::fixPermissions($filename);
 
 			// Get actual permissions and clean up
 		clearstatcache();
 		$resultFilePermissions = substr(decoct(fileperms($filename)), 2);
-		$resultFileGroup = filegroup($filename);
 		unlink($filename);
 
 			// Test if everything was ok
 		$this->assertTrue($fixPermissionsResult);
 		$this->assertEquals($resultFilePermissions, '0660');
-		$this->assertEquals($resultFileGroup, posix_getegid());
 	}
 
 	/**
@@ -1516,19 +1705,16 @@ class t3lib_divTest extends tx_phpunit_testcase {
 
 			// Set target permissions and run method
 		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0660';
-		$GLOBALS['TYPO3_CONF_VARS']['BE']['createGroup'] = posix_getegid();
 		$fixPermissionsResult = t3lib_div::fixPermissions($filename);
 
 			// Get actual permissions and clean up
 		clearstatcache();
 		$resultFilePermissions = substr(decoct(fileperms($filename)), 2);
-		$resultFileGroup = filegroup($filename);
 		unlink($filename);
 
 			// Test if everything was ok
 		$this->assertTrue($fixPermissionsResult);
 		$this->assertEquals($resultFilePermissions, '0660');
-		$this->assertEquals($resultFileGroup, posix_getegid());
 	}
 
 	/**
@@ -1546,19 +1732,16 @@ class t3lib_divTest extends tx_phpunit_testcase {
 
 			// Set target permissions and run method
 		$GLOBALS['TYPO3_CONF_VARS']['BE']['folderCreateMask'] = '0770';
-		$GLOBALS['TYPO3_CONF_VARS']['BE']['createGroup'] = posix_getegid();
 		$fixPermissionsResult = t3lib_div::fixPermissions($directory . '/');
 
 			// Get actual permissions and clean up
 		clearstatcache();
 		$resultDirectoryPermissions = substr(decoct(fileperms($directory)), 1);
-		$resultDirectoryGroup = filegroup($directory);
 		t3lib_div::rmdir($directory);
 
 			// Test if everything was ok
 		$this->assertTrue($fixPermissionsResult);
 		$this->assertEquals($resultDirectoryPermissions, '0770');
-		$this->assertEquals($resultDirectoryGroup, posix_getegid());
 	}
 
 	/**
@@ -1576,19 +1759,16 @@ class t3lib_divTest extends tx_phpunit_testcase {
 
 			// Set target permissions and run method
 		$GLOBALS['TYPO3_CONF_VARS']['BE']['folderCreateMask'] = '0770';
-		$GLOBALS['TYPO3_CONF_VARS']['BE']['createGroup'] = posix_getegid();
 		$fixPermissionsResult = t3lib_div::fixPermissions($directory);
 
 			// Get actual permissions and clean up
 		clearstatcache();
 		$resultDirectoryPermissions = substr(decoct(fileperms($directory)), 1);
-		$resultDirectoryGroup = filegroup($directory);
 		t3lib_div::rmdir($directory);
 
 			// Test if everything was ok
 		$this->assertTrue($fixPermissionsResult);
 		$this->assertEquals($resultDirectoryPermissions, '0770');
-		$this->assertEquals($resultDirectoryGroup, posix_getegid());
 	}
 
 	/**
@@ -1622,25 +1802,17 @@ class t3lib_divTest extends tx_phpunit_testcase {
 			// Set target permissions and run method
 		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0660';
 		$GLOBALS['TYPO3_CONF_VARS']['BE']['folderCreateMask'] = '0770';
-		$GLOBALS['TYPO3_CONF_VARS']['BE']['createGroup'] = posix_getegid();
 		$fixPermissionsResult = t3lib_div::fixPermissions($baseDirectory, TRUE);
 
 			// Get actual permissions
 		clearstatcache();
 		$resultBaseDirectoryPermissions = substr(decoct(fileperms($baseDirectory)), 1);
-		$resultBaseDirectoryGroup = filegroup($baseDirectory);
 		$resultBaseFilePermissions = substr(decoct(fileperms($baseDirectory . '/file')), 2);
-		$resultBaseFileGroup = filegroup($baseDirectory . '/file');
 		$resultFooDirectoryPermissions = substr(decoct(fileperms($baseDirectory . '/foo')), 1);
-		$resultFooDirectoryGroup = filegroup($baseDirectory . '/foo');
 		$resultFooFilePermissions = substr(decoct(fileperms($baseDirectory . '/foo/file')), 2);
-		$resultFooFileGroup = filegroup($baseDirectory . '/foo/file');
 		$resultBarDirectoryPermissions = substr(decoct(fileperms($baseDirectory . '/.bar')), 1);
-		$resultBarDirectoryGroup = filegroup($baseDirectory . '/.bar');
 		$resultBarFilePermissions = substr(decoct(fileperms($baseDirectory . '/.bar/.file')), 2);
-		$resultBarFileGroup = filegroup($baseDirectory . '/.bar/.file');
 		$resultBarFile2Permissions = substr(decoct(fileperms($baseDirectory . '/.bar/..file2')), 2);
-		$resultBarFile2Group = filegroup($baseDirectory . '/.bar/..file2');
 
 			// Clean up
 		unlink($baseDirectory . '/file');
@@ -1654,19 +1826,12 @@ class t3lib_divTest extends tx_phpunit_testcase {
 			// Test if everything was ok
 		$this->assertTrue($fixPermissionsResult);
 		$this->assertEquals($resultBaseDirectoryPermissions, '0770');
-		$this->assertEquals($resultBaseDirectoryGroup, posix_getegid());
 		$this->assertEquals($resultBaseFilePermissions, '0660');
-		$this->assertEquals($resultBaseFileGroup, posix_getegid());
 		$this->assertEquals($resultFooDirectoryPermissions, '0770');
-		$this->assertEquals($resultFooDirectoryGroup, posix_getegid());
 		$this->assertEquals($resultFooFilePermissions, '0660');
-		$this->assertEquals($resultFooFileGroup, posix_getegid());
 		$this->assertEquals($resultBarDirectoryPermissions, '0770');
-		$this->assertEquals($resultBarDirectoryGroup, posix_getegid());
 		$this->assertEquals($resultBarFilePermissions, '0660');
-		$this->assertEquals($resultBarFileGroup, posix_getegid());
 		$this->assertEquals($resultBarFile2Permissions, '0660');
-		$this->assertEquals($resultBarFile2Group, posix_getegid());
 	}
 
 	/**
@@ -1693,7 +1858,6 @@ class t3lib_divTest extends tx_phpunit_testcase {
 
 			// Test if everything was ok
 		$this->assertFalse($fixPermissionsResult);
-		$this->assertEquals($resultFilePermissions, '0742');
 	}
 
 
@@ -1735,6 +1899,176 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		t3lib_div::rmdir($directory);
 		$this->assertTrue($mkdirResult);
 		$this->assertTrue($directoryCreated);
+	}
+
+	/**
+	 * Data provider for ImageMagick shell commands
+	 * @see	explodeAndUnquoteImageMagickCommands
+	 */
+	public function imageMagickCommandsDataProvider() {
+		return array(
+			// Some theoretical tests first
+			array(
+				'aa bb "cc" "dd"',
+				array('aa', 'bb', '"cc"', '"dd"'),
+				array('aa', 'bb', 'cc', 'dd'),
+			),
+			array(
+				'aa bb "cc dd"',
+				array('aa', 'bb', '"cc dd"'),
+				array('aa', 'bb', 'cc dd'),
+			),
+			array(
+				'\'aa bb\' "cc dd"',
+				array('\'aa bb\'', '"cc dd"'),
+				array('aa bb', 'cc dd'),
+			),
+			array(
+				'\'aa bb\' cc "dd"',
+				array('\'aa bb\'', 'cc', '"dd"'),
+				array('aa bb', 'cc', 'dd'),
+			),
+			// Now test against some real world examples
+			array(
+				'/opt/local/bin/gm.exe convert +profile \'*\' -geometry 170x136!  -negate "C:/Users/Someuser.Domain/Documents/Htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]" "C:/Users/Someuser.Domain/Documents/Htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif"',
+				array(
+					'/opt/local/bin/gm.exe',
+					'convert',
+					'+profile',
+					'\'*\'',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'"C:/Users/Someuser.Domain/Documents/Htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]"',
+					'"C:/Users/Someuser.Domain/Documents/Htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif"'
+				),
+				array(
+					'/opt/local/bin/gm.exe',
+					'convert',
+					'+profile',
+					'*',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'C:/Users/Someuser.Domain/Documents/Htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]',
+					'C:/Users/Someuser.Domain/Documents/Htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif'
+				),
+			),
+			array(
+				'C:/opt/local/bin/gm.exe convert +profile \'*\' -geometry 170x136!  -negate "C:/Program Files/Apache2/htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]" "C:/Program Files/Apache2/htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif"',
+				array(
+					'C:/opt/local/bin/gm.exe',
+					'convert',
+					'+profile',
+					'\'*\'',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'"C:/Program Files/Apache2/htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]"',
+					'"C:/Program Files/Apache2/htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif"'
+				),
+				array(
+					'C:/opt/local/bin/gm.exe',
+					'convert',
+					'+profile',
+					'*',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'C:/Program Files/Apache2/htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]',
+					'C:/Program Files/Apache2/htdocs/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif'
+				),
+			),
+			array(
+				'/usr/bin/gm convert +profile \'*\' -geometry 170x136!  -negate "/Shared Items/Data/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]" "/Shared Items/Data/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif"',
+				array(
+					'/usr/bin/gm',
+					'convert',
+					'+profile',
+					'\'*\'',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'"/Shared Items/Data/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]"',
+					'"/Shared Items/Data/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif"'
+				),
+				array(
+					'/usr/bin/gm',
+					'convert',
+					'+profile',
+					'*',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'/Shared Items/Data/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]',
+					'/Shared Items/Data/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif'
+				),
+			),
+			array(
+				'/usr/bin/gm convert +profile \'*\' -geometry 170x136!  -negate "/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]" "/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif"',
+				array(
+					'/usr/bin/gm',
+					'convert',
+					'+profile',
+					'\'*\'',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'"/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]"',
+					'"/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif"'
+				),
+				array(
+					'/usr/bin/gm',
+					'convert',
+					'+profile',
+					'*',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]',
+					'/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif'
+				),
+			),
+			array(
+				'/usr/bin/gm convert +profile \'*\' -geometry 170x136!  -negate \'/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]\' \'/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif\'',
+				array(
+					'/usr/bin/gm',
+					'convert',
+					'+profile',
+					'\'*\'',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'\'/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]\'',
+					'\'/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif\''
+				),
+				array(
+					'/usr/bin/gm',
+					'convert',
+					'+profile',
+					'*',
+					'-geometry',
+					'170x136!',
+					'-negate',
+					'/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif[0]',
+					'/Network/Servers/server01.internal/Projects/typo3temp/temp/61401f5c16c63d58e1d92e8a2449f2fe_maskNT.gif'
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests if the commands are exploded and unquoted correctly
+	 *
+	 * @dataProvider	imageMagickCommandsDataProvider
+	 * @test
+	 */
+	public function explodeAndUnquoteImageMagickCommands($source, $expectedQuoted, $expectedUnquoted) {
+		$actualQuoted 	= t3lib_div::unQuoteFilenames($source);
+		$acutalUnquoted = t3lib_div::unQuoteFilenames($source, TRUE);
+
+		$this->assertEquals($expectedQuoted, $actualQuoted, 'The exploded command does not match the expected');
+		$this->assertEquals($expectedUnquoted, $acutalUnquoted, 'The exploded and unquoted command does not match the expected');
 	}
 
 
@@ -1814,6 +2148,344 @@ class t3lib_divTest extends tx_phpunit_testcase {
 			$expectedValue,
 			t3lib_div::dirname($input)
 		);
+	}
+
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// Tests concerning makeInstance, setSingletonInstance, addInstance, purgeInstances
+	/////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @test
+	 *
+	 * @expectedException InvalidArgumentException
+	 */
+	public function makeInstanceWithEmptyClassNameThrowsException() {
+		t3lib_div::makeInstance('');
+	}
+
+	/**
+	 * @test
+	 */
+	public function makeInstanceReturnsClassInstance() {
+		$className = get_class($this->getMock('foo'));
+
+		$this->assertTrue(
+			t3lib_div::makeInstance($className) instanceof $className
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function makeInstancePassesParametersToConstructor() {
+		$className = 'testingClass' . uniqid();
+		if (!class_exists($className, FALSE)) {
+			eval(
+				'class ' . $className . ' {' .
+				'  public $constructorParameter1;' .
+				'  public $constructorParameter2;' .
+				'  public function __construct($parameter1, $parameter2) {' .
+				'    $this->constructorParameter1 = $parameter1;' .
+				'    $this->constructorParameter2 = $parameter2;' .
+				'  }' .
+				'}'
+			);
+		}
+
+		$instance = t3lib_div::makeInstance($className, 'one parameter', 'another parameter');
+
+		$this->assertEquals(
+			'one parameter',
+			$instance->constructorParameter1,
+			'The first constructor parameter has not been set.'
+		);
+		$this->assertEquals(
+			'another parameter',
+			$instance->constructorParameter2,
+			'The second constructor parameter has not been set.'
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function makeInstanceCalledTwoTimesForNonSingletonClassReturnsDifferentInstances() {
+		$className = get_class($this->getMock('foo'));
+
+		$this->assertNotSame(
+			t3lib_div::makeInstance($className),
+			t3lib_div::makeInstance($className)
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function makeInstanceCalledTwoTimesForSingletonClassReturnsSameInstance() {
+		$className = get_class($this->getMock('t3lib_Singleton'));
+
+		$this->assertSame(
+			t3lib_div::makeInstance($className),
+			t3lib_div::makeInstance($className)
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function makeInstanceCalledTwoTimesForSingletonClassWithPurgeInstancesInbetweenReturnsDifferentInstances() {
+		$className = get_class($this->getMock('t3lib_Singleton'));
+
+		$instance = t3lib_div::makeInstance($className);
+		t3lib_div::purgeInstances();
+
+		$this->assertNotSame(
+			$instance,
+			t3lib_div::makeInstance($className)
+		);
+	}
+
+	/**
+	 * @test
+	 * @expectedException InvalidArgumentException
+	 */
+	public function setSingletonInstanceForEmptyClassNameThrowsException() {
+		$instance = $this->getMock('t3lib_Singleton');
+
+		t3lib_div::setSingletonInstance('', $instance);
+	}
+
+	/**
+	 * @test
+	 * @expectedException InvalidArgumentException
+	 */
+	public function setSingletonInstanceForClassThatIsNoSubclassOfProvidedClassThrowsException() {
+		$instance = $this->getMock('t3lib_Singleton', array('foo'));
+		$singletonClassName = get_class($this->getMock('t3lib_Singleton'));
+
+		t3lib_div::setSingletonInstance($singletonClassName, $instance);
+	}
+
+	/**
+	 * @test
+	 */
+	public function setSingletonInstanceMakesMakeInstanceReturnThatInstance() {
+		$instance = $this->getMock('t3lib_Singleton');
+		$singletonClassName = get_class($instance);
+
+		t3lib_div::setSingletonInstance($singletonClassName, $instance);
+
+		$this->assertSame(
+			$instance,
+			t3lib_div::makeInstance($singletonClassName)
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function setSingletonInstanceCalledTwoTimesMakesMakeInstanceReturnLastSetInstance() {
+		$instance1 = $this->getMock('t3lib_Singleton');
+		$singletonClassName = get_class($instance1);
+		$instance2 = new $singletonClassName();
+
+		t3lib_div::setSingletonInstance($singletonClassName, $instance1);
+		t3lib_div::setSingletonInstance($singletonClassName, $instance2);
+
+		$this->assertSame(
+			$instance2,
+			t3lib_div::makeInstance($singletonClassName)
+		);
+	}
+
+	/**
+	 * @test
+	 * @expectedException InvalidArgumentException
+	 */
+	public function addInstanceForEmptyClassNameThrowsException() {
+		$instance = $this->getMock('foo');
+
+		t3lib_div::addInstance('', $instance);
+	}
+
+	/**
+	 * @test
+	 * @expectedException InvalidArgumentException
+	 */
+	public function addInstanceForClassThatIsNoSubclassOfProvidedClassThrowsException() {
+		$instance = $this->getMock('foo', array('bar'));
+		$singletonClassName = get_class($this->getMock('foo'));
+
+		t3lib_div::addInstance($singletonClassName, $instance);
+	}
+
+	/**
+	 * @test
+	 * @expectedException InvalidArgumentException
+	 */
+	public function addInstanceWithSingletonInstanceThrowsException() {
+		$instance = $this->getMock('t3lib_Singleton');
+
+		t3lib_div::addInstance(get_class($instance), $instance);
+	}
+
+	/**
+	 * @test
+	 */
+	public function addInstanceMakesMakeInstanceReturnThatInstance() {
+		$instance = $this->getMock('foo');
+		$className = get_class($instance);
+
+		t3lib_div::addInstance($className, $instance);
+
+		$this->assertSame(
+			$instance,
+			t3lib_div::makeInstance($className)
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function makeInstanceCalledTwoTimesAfterAddInstanceReturnTwoDifferentInstances() {
+		$instance = $this->getMock('foo');
+		$className = get_class($instance);
+
+		t3lib_div::addInstance($className, $instance);
+
+		$this->assertNotSame(
+			t3lib_div::makeInstance($className),
+			t3lib_div::makeInstance($className)
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function addInstanceCalledTwoTimesMakesMakeInstanceReturnBothInstancesInAddingOrder() {
+		$instance1 = $this->getMock('foo');
+		$className = get_class($instance1);
+		t3lib_div::addInstance($className, $instance1);
+
+		$instance2 = new $className();
+		t3lib_div::addInstance($className, $instance2);
+
+		$this->assertSame(
+			$instance1,
+			t3lib_div::makeInstance($className),
+			'The first returned instance does not match the first added instance.'
+		);
+		$this->assertSame(
+			$instance2,
+			t3lib_div::makeInstance($className),
+			'The second returned instance does not match the second added instance.'
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function purgeInstancesDropsAddedInstance() {
+		$instance = $this->getMock('foo');
+		$className = get_class($instance);
+
+		t3lib_div::addInstance($className, $instance);
+		t3lib_div::purgeInstances();
+
+		$this->assertNotSame(
+			$instance,
+			t3lib_div::makeInstance($className)
+		);
+	}
+
+	/**
+	 * Data provider for validPathStrDetectsInvalidCharacters.
+	 *
+	 * @return array
+	 */
+	public function validPathStrInvalidCharactersDataProvider() {
+		return array(
+			'double slash in path' => array('path//path'),
+			'backslash in path' => array('path\\path'),
+			'directory up in path' => array('path/../path'),
+			'directory up at the beginning' => array('../path'),
+			'NUL character in path' => array("path\x00path"),
+			'BS character in path' => array("path\x08path"),
+		);
+	}
+
+	/**
+	 * Tests whether invalid characters are detected.
+	 *
+	 * @param string $path
+	 * @dataProvider validPathStrInvalidCharactersDataProvider
+	 * @test
+	 */
+	public function validPathStrDetectsInvalidCharacters($path) {
+		$this->assertNull(t3lib_div::validPathStr($path));
+	}
+
+	/**
+	 * Tests whether verifyFilenameAgainstDenyPattern detects the null character.
+	 *
+	 * @test
+	 */
+	public function verifyFilenameAgainstDenyPatternDetectsNullCharacter() {
+		$this->assertFalse(t3lib_div::verifyFilenameAgainstDenyPattern("image\x00.gif"));
+	}
+
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// Tests concerning sysLog
+	/////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function syslogFixesPermissionsOnFileIfUsingFileLogging() {
+		if (TYPO3_OS == 'WIN') {
+			$this->markTestSkipped('syslogFixesPermissionsOnFileIfUsingFileLogging() test not available on Windows.');
+		}
+
+			// Fake all required settings
+		$GLOBALS['TYPO3_CONF_VARS']['SYS']['systemLogLevel'] = 0;
+		$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLogInit'] = TRUE;
+		unset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLog']);
+		$testLogFilename = PATH_site . 'typo3temp/' . uniqid('test_') . '.txt';
+		$GLOBALS['TYPO3_CONF_VARS']['SYS']['systemLog'] = 'file,' . $testLogFilename . ',0';
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0777';
+
+			// Call method, get actual permissions and clean up
+		t3lib_div::syslog('testLog', 'test', 1);
+		clearstatcache();
+		$resultFilePermissions = substr(decoct(fileperms($testLogFilename)), 2);
+		t3lib_div::unlink_tempfile($testLogFilename);
+
+		$this->assertEquals($resultFilePermissions, '0777');
+	}
+
+	/**
+	 * @test
+	 */
+	public function deprecationLogFixesPermissionsOnLogFile() {
+		if (TYPO3_OS == 'WIN') {
+			$this->markTestSkipped('deprecationLogFixesPermissionsOnLogFile() test not available on Windows.');
+		}
+
+			// Fake all required settings and get an unique logfilename
+		$GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'] = uniqid('test_');
+		$deprecationLogFilename = t3lib_div::getDeprecationLogFileName();
+		$GLOBALS['TYPO3_CONF_VARS']['SYS']['enableDeprecationLog'] = TRUE;
+		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0777';
+
+			// Call method, get actual permissions and clean up
+		t3lib_div::deprecationLog('foo');
+		clearstatcache();
+		$resultFilePermissions = substr(decoct(fileperms($deprecationLogFilename)), 2);
+		@unlink($deprecationLogFilename);
+
+		$this->assertEquals($resultFilePermissions, '0777');
 	}
 }
 ?>

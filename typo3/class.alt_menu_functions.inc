@@ -225,7 +225,7 @@ class alt_menu_functions {
 
 				// Code for "About modules"
 			$descrCode.='
-						<tr class="c-mainitem bgColor4">
+						<tr class="c-mainitem">
 							<td colspan="3">'.$imageCode.$label.'</td>
 						</tr>';
 
@@ -662,7 +662,7 @@ class alt_menu_functions {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/class.alt_menu_functions.inc'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/class.alt_menu_functions.inc']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/class.alt_menu_functions.inc'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/class.alt_menu_functions.inc']);
 }
 ?>

@@ -30,10 +30,18 @@
  * @subpackage t3lib
  */
 class t3lib_tree_NodeTest extends tx_phpunit_testcase {
-	public function setUp() {
-	}
+	//////////////////////
+	// Utility functions
+	//////////////////////
 
-	public function tearDown() {
+	/**
+	 * Returns the absolute fixtures path for this testcase.
+	 *
+	 * @return string the absolute fixtures path for this testcase, will not be empty
+	 */
+	private function determineFixturesPath() {
+		return t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder')
+			->getAbsoluteCoreTestsPath() . 't3lib/tree/fixtures/';
 	}
 
 	protected function setUpNodeTestData() {
@@ -67,11 +75,16 @@ class t3lib_tree_NodeTest extends tx_phpunit_testcase {
 		return $fixture;
 	}
 
+
+	///////////////
+	// Test cases
+	///////////////
+
 	/**
 	 * @test
 	 */
 	public function serializeFixture() {
-		$expected = trim(file_get_contents(PATH_site . 'tests/t3lib/tree/fixtures/serialized.txt'));
+		$expected = trim(file_get_contents($this->determineFixturesPath() . 'serialized.txt'));
 		$fixture = $this->setUpNodeTestData();
 		$serializedString = trim($fixture->serialize());
 		$this->assertSame($expected, $serializedString);
@@ -81,8 +94,8 @@ class t3lib_tree_NodeTest extends tx_phpunit_testcase {
 	 * @test
 	 */
 	public function deserializeFixture() {
-		$source = trim(file_get_contents(PATH_site . 'tests/t3lib/tree/fixtures/serialized.txt'));
-		$node = new t3lib_tree_Node;
+		$source = trim(file_get_contents($this->determineFixturesPath() . 'serialized.txt'));
+		$node = new t3lib_tree_Node();
 		$node->unserialize($source);
 		$serializedString = $node->serialize();
 		$this->assertSame($source, $serializedString);

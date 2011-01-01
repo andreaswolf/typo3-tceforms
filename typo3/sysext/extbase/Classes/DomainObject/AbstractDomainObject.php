@@ -55,16 +55,6 @@ abstract class Tx_Extbase_DomainObject_AbstractDomainObject implements Tx_Extbas
 	private $_isClone = FALSE;
 
 	/**
-	 * The generic constructor. If you want to implement your own __constructor() method in your Domain Object you have to call
-	 * $this->initializeObject() in the first line of your constructor.
-	 *
-	 * @var array
-	 */
-	public function __construct() {
-		$this->initializeObject();
-	}
-
-	/**
 	 * This is the magic __wakeup() method. It's invoked by the unserialize statement in the reconstitution process
 	 * of the object. If you want to implement your own __wakeup() method in your Domain Object you have to call
 	 * parent::__wakeup() first!
@@ -75,13 +65,7 @@ abstract class Tx_Extbase_DomainObject_AbstractDomainObject implements Tx_Extbas
 		$this->initializeObject();
 	}
 
-	/**
-	 * A template method to initialize an object. This can be used to manipulate the object after
-	 * reconstitution and before the clean state of it's properties is stored.
-	 *
-	 * @return void
-	 */
-	protected function initializeObject() {
+	public function initializeObject() {
 	}
 
 	/**
@@ -96,7 +80,7 @@ abstract class Tx_Extbase_DomainObject_AbstractDomainObject implements Tx_Extbas
 			return NULL;
 		}
 	}
-
+	
 	/**
 	 * Reconstitutes a property. Only for internal use.
 	 *
@@ -135,7 +119,7 @@ abstract class Tx_Extbase_DomainObject_AbstractDomainObject implements Tx_Extbas
 		}
 		return $properties;
 	}
-
+	
 	/**
 	 * Returns the property value of the given property name. Only for internal use.
 	 *
@@ -163,7 +147,7 @@ abstract class Tx_Extbase_DomainObject_AbstractDomainObject implements Tx_Extbas
 	 */
 	public function _memorizeCleanState() {
 	}
-
+	
 	/**
 	 * Returns TRUE if the properties were modified after reconstitution. However, value objects can be never updated.
 	 *
@@ -201,6 +185,15 @@ abstract class Tx_Extbase_DomainObject_AbstractDomainObject implements Tx_Extbas
 	 */
 	public function __clone() {
 		$this->_isClone = TRUE;
+	}
+
+	/**
+	 * Returns the class name and the uid of the object as string
+	 *
+	 * @return string
+	 */
+	public function __toString() {
+		return get_class($this) . ':' . (string)$this->uid;
 	}
 
 }

@@ -805,6 +805,9 @@ class tx_sysaction_task implements tx_taskcenter_Task {
 				$fullsearch->noDownloadB = 1;
 
 				$type = $sql_query['qC']['search_query_makeQuery'];
+				if ($sql_query['qC']['labels_noprefix'] === 'on') {
+					$GLOBALS['SOBE']->MOD_SETTINGS['labels_noprefix'] = 'on';
+				}
 				$sqlQuery = $sql_query['qSelect'];
 				$queryIsEmpty = FALSE;
 
@@ -1024,8 +1027,8 @@ class tx_sysaction_task implements tx_taskcenter_Task {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/sys_action/task/class.tx_sysaction_task.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/sys_action/task/class.tx_sysaction_task.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/sys_action/task/class.tx_sysaction_task.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/sys_action/task/class.tx_sysaction_task.php']);
 }
 
 ?>

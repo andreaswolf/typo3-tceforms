@@ -1,26 +1,26 @@
 <?php
 /***************************************************************
-*  Copyright notice
-*
-*  (c) 2002-2010 René Fritz (r.fritz@colorcube.de)
-*  All rights reserved
-*
-*  This script is part of the Typo3 project. The Typo3 project is
-*  free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  The GNU General Public License can be found at
-*  http://www.gnu.org/copyleft/gpl.html.
-*
-*  This script is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  This copyright notice MUST APPEAR in all copies of the script!
-***************************************************************/
+ *  Copyright notice
+ *
+ *  (c) 2002-2010 René Fritz (r.fritz@colorcube.de)
+ *  All rights reserved
+ *
+ *  This script is part of the Typo3 project. The Typo3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
 /**
  * t3lib_exec finds executables (programs) on Unix and Windows without knowing where they are
  *
@@ -34,23 +34,20 @@
  *
  *
  *   85: class t3lib_exec
- *   95:     function checkCommand($cmd, $handler='')
- *  166:     function getCommand($cmd, $handler='', $handlerOpt='')
- *  199:     function addPaths($paths)
- *  211:     function getPaths($addInvalid=false)
- *  237:     function _init()
- *  259:     function _initPaths($paths='')
- *  312:     function _getConfiguredApps()
- *  339:     function _getPaths()
- *  400:     function _fixPath($path)
+ *   95:	 function checkCommand($cmd, $handler='')
+ *  166:	 function getCommand($cmd, $handler='', $handlerOpt='')
+ *  199:	 function addPaths($paths)
+ *  211:	 function getPaths($addInvalid=false)
+ *  237:	 function _init()
+ *  259:	 function _initPaths($paths='')
+ *  312:	 function _getConfiguredApps()
+ *  339:	 function _getPaths()
+ *  400:	 function _fixPath($path)
  *
  * TOTAL FUNCTIONS: 9
  * (This index is automatically created/updated by the extension "extdeveval")
  *
  */
-
-
-
 
 
 /**
@@ -163,7 +160,7 @@ class t3lib_exec {
 			// Try to get the executable with the command 'which'.
 			// It does the same like already done, but maybe on other paths
 		if (TYPO3_OS != 'WIN') {
-			$cmd = @exec('which ' . $cmd);
+			$cmd = @t3lib_utility_Command::exec('which ' . $cmd);
 			if (@is_executable($cmd)) {
 				self::$applications[$cmd]['app'] = $cmd;
 				self::$applications[$cmd]['path'] = dirname($cmd) . '/';
@@ -392,7 +389,7 @@ class t3lib_exec {
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_exec.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_exec.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_exec.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_exec.php']);
 }
 ?>

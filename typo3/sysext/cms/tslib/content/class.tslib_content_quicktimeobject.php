@@ -50,9 +50,15 @@ class tslib_content_QuicktimeObject extends tslib_content_Abstract {
 			$prefix = $GLOBALS['TSFE']->absRefPrefix;
 		}
 
-		$filename = $this->cObj->stdWrap($conf['file'], $conf['file.']);
+		$filename = isset( $conf['file.'])
+			? $this->cObj->stdWrap($conf['file'], $conf['file.'])
+			: $conf['file'];
 
-		$typeConf = $conf[$conf['type'] . '.'];
+		$type = isset( $conf['type.'])
+			? $this->cObj->stdWrap($conf['type'], $conf['type.'])
+			: $conf['type'];
+
+		$typeConf = $conf[$type . '.'];
 
 			//add QTobject js-file
 		$GLOBALS['TSFE']->getPageRenderer()->addJsFile(TYPO3_mainDir . 'contrib/flashmedia/qtobject/qtobject.js');
@@ -71,15 +77,29 @@ class tslib_content_QuicktimeObject extends tslib_content_Abstract {
 		}
 		$params = ($params ? substr($params, 0, -2) : '') . LF . $qtObject . '.write("' . $replaceElementIdString . '");';
 
-		$alternativeContent = $this->cObj->stdWrap($conf['alternativeContent'], $conf['alternativeContent.']);
-		$layout = $this->cObj->stdWrap($conf['layout'], $conf['layout.']);
+		$alternativeContent = isset($conf['alternativeContent.'])
+			? $this->cObj->stdWrap($conf['alternativeContent'], $conf['alternativeContent.'])
+			:  $conf['alternativeContent'];
+
+		$layout = isset($conf['layout.'])
+			? $this->cObj->stdWrap($conf['layout'], $conf['layout.'])
+			: $conf['layout'];
 		$layout = str_replace('###ID###', $replaceElementIdString, $layout);
 		$layout = str_replace('###QTOBJECT###', '<div id="' . $replaceElementIdString . '">' . $alternativeContent . '</div>', $layout);
 
-		$width = $this->cObj->stdWrap($conf['width'], $conf['width.']);
-		$height = $this->cObj->stdWrap($conf['height'], $conf['height.']);
-		$width = $width ? $width : $conf[$conf['type'] . '.']['defaultWidth'];
-		$height = $height ? $height : $conf[$conf['type'] . '.']['defaultHeight'];
+		$width = isset($conf['width.'])
+			? $this->cObj->stdWrap($conf['width'], $conf['width.'])
+			: $conf['width'];
+		if(!$width) {
+			$width = $conf[$type . '.']['defaultWidth'];
+		}
+
+		$height = isset($conf['height.'])
+			? $this->cObj->stdWrap($conf['height'], $conf['height.'])
+			: $conf['height'];
+		if(!$height) {
+			$height = $conf[$type . '.']['defaultHeight'];
+		}
 
 		$embed = 'var ' . $qtObject . ' = new QTObject("' . $prefix . $filename . '", "' .
 			$replaceElementIdString . '", "' . $width . '", "' . $height . '");';
@@ -90,14 +110,18 @@ class tslib_content_QuicktimeObject extends tslib_content_Abstract {
 				' . $params . '
 			</script>';
 
+		if (isset($conf['stdWrap.'])) {
+			$content = $this->cObj->stdWrap($content, $conf['stdWrap.']);
+		}
+
 		return $content;
 	}
 
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_quicktimeobject.php']) {
-	include_once ($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_quicktimeobject.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_quicktimeobject.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_quicktimeobject.php']);
 }
 
 ?>

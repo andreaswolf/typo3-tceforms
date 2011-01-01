@@ -95,7 +95,7 @@ table.typo3-TCEforms span.typo3-TCEforms-recHeader {
 
 table.typo3-TCEforms div.typo3-dyntabmenu-tabs,
 table.typo3-TCEforms tr.typo3-TCEforms-recHeaderRow td {
-	background: #F1F1F1;
+	background: #f8f8f8;
 }
 
 table.typo3-TCEforms tr.typo3-TCEforms-recHeaderRow td {
@@ -265,7 +265,6 @@ table.typo3-TCEforms .wrapperTable3,
 table.typo3-TCEforms .wrapperTable4,
 table.typo3-TCEforms .wrapperTable5 {
 	border: 1px solid #c0c0c0;
-	border-top: none;
 }
 
 table.typo3-TCEforms .wrapperTable1 {
@@ -292,6 +291,14 @@ table.typo3-TCEforms table.wrapperAttention .wrapperTable5 {
 
 .t3-form-palette-fieldset {
 	border:none;
+}
+
+table.typo3-TCEforms div.imagethumbs .nobr {
+	background-color: #CCC;
+}
+
+table.typo3-TCEforms span.filetypes {
+	font-size: 0.8em;
 }
 
 input.typo3-TCEforms-suggest-search {
@@ -424,4 +431,12 @@ TCEforms Sections
 
 .t3-form-field-add-flexsection {
 	border-top: 1px solid #cdcdcd;
+}
+
+
+.typo3-TCEforms-select-selectedItemWithBackgroundImage {
+	background-color:#fff;
+	background-position: 0% 50%;
+	background-repeat:no-repeat;
+	padding:1px 1px 1px 24px;
 }

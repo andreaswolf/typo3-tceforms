@@ -77,7 +77,7 @@ class tx_reports_reports_status_SecurityStatus implements tx_reports_StatusProvi
 			$value    = $GLOBALS['LANG']->getLL('status_insecure');
 			$severity = tx_reports_reports_status_Status::ERROR;
 
-			$editUserAccountUrl = 'alt_doc.php?returnUrl=index.php&edit[be_users][' . $row['uid'] . ']=edit';
+			$editUserAccountUrl = 'alt_doc.php?returnUrl=mod.php?M=tools_txreportsM1&edit[be_users][' . $row['uid'] . ']=edit';
 			$message = sprintf(
 				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:warning.backend_admin'),
 				'<a href="' . $editUserAccountUrl . '">',
@@ -301,8 +301,8 @@ class tx_reports_reports_status_SecurityStatus implements tx_reports_StatusProvi
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/reports/reports/status/class.tx_reports_reports_status_securitystatus.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/reports/reports/status/class.tx_reports_reports_status_securitystatus.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/reports/reports/status/class.tx_reports_reports_status_securitystatus.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/reports/reports/status/class.tx_reports_reports_status_securitystatus.php']);
 }
 
 ?>

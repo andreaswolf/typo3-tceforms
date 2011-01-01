@@ -51,7 +51,6 @@
  * This automatically inserts the value of {customer.name} inside the textbox and adjusts the name of the textbox accordingly.
  *
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License, version 2
- * @scope prototype
  */
 class Tx_Fluid_ViewHelpers_FormViewHelper extends Tx_Fluid_ViewHelpers_Form_AbstractFormViewHelper {
 
@@ -389,9 +388,9 @@ class Tx_Fluid_ViewHelpers_FormViewHelper extends Tx_Fluid_ViewHelpers_Form_Abst
 			$pluginName = $request->getPluginName();
 		}
 
-		return 'tx_' . strtolower($extensionName) . '_' . strtolower($pluginName);
+		return Tx_Extbase_Utility_Extension::getPluginNamespace($extensionName, $pluginName);
 	}
-	
+
 	/**
 	 * Remove Checkbox field names from ViewHelper variable container, to start from scratch when a new form starts.
 	 */

@@ -301,7 +301,7 @@ class SC_alt_doc {
 		}
 
 			// If pages are being edited, we set an instruction about updating the page tree after this operation.
-		if (isset($this->data['pages']))	{
+		if (isset($this->data['pages']) || $BE_USER->workspace != 0 && count($this->data)) {
 			t3lib_BEfunc::setUpdateSignal('updatePageTree');
 		}
 
@@ -1236,7 +1236,7 @@ class SC_alt_doc {
 		list($table,$orig_uid,$language) = explode(':',$justLocalized);
 
 		if ($TCA[$table] && $TCA[$table]['ctrl']['languageField'] && $TCA[$table]['ctrl']['transOrigPointerField'])	{
-			list($localizedRecord) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+			$localizedRecord = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
 					'uid',
 					$table,
 					$TCA[$table]['ctrl']['languageField'].'='.intval($language).' AND '.
@@ -1267,6 +1267,11 @@ class SC_alt_doc {
 		global $LANG;
 
 		$modSharedTSconfig = t3lib_BEfunc::getModTSconfig($id, 'mod.SHARED');
+		
+			// fallback non sprite-configuration
+		if (preg_match('/\.gif$/', $modSharedTSconfig['properties']['defaultLanguageFlag'])) {
+			$modSharedTSconfig['properties']['defaultLanguageFlag'] = str_replace('.gif', '', $modSharedTSconfig['properties']['defaultLanguageFlag']);
+		}
 
 		$languages = array(
 			0 => array(
@@ -1535,8 +1540,8 @@ class SC_alt_doc {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/alt_doc.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/alt_doc.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/alt_doc.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/alt_doc.php']);
 }
 
 

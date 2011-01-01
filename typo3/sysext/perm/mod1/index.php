@@ -311,14 +311,16 @@ class SC_mod_web_perm_index {
 			$markers['CONTENT'] = $this->content;
 
 				// Build the <body> for the module
-			$this->content = $this->doc->startPage($LANG->getLL('permissions'));
-			$this->content.= $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
+			$this->content = $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
 		} else {
 				// If no access or if ID == zero
-			$this->content.=$this->doc->startPage($LANG->getLL('permissions'));
-			$this->content.=$this->doc->header($LANG->getLL('permissions'));
+			$this->content =$this->doc->header($LANG->getLL('permissions'));
 		}
-		$this->content.= $this->doc->endPage();
+			// Renders the module page
+		$this->content = $this->doc->render(
+			$LANG->getLL('permissions'),
+			$this->content
+		);
 	}
 
 	/**
@@ -358,10 +360,12 @@ class SC_mod_web_perm_index {
 		}
 
 			// If access to Web>List for user, then link to that module.
-		$buttons['record_list'] = t3lib_extMgm::createListViewLink(
-			$this->pageinfo['uid'],
-			'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
-			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+		$buttons['record_list'] = t3lib_BEfunc::getListViewLink(
+			array(
+				'id' => $this->pageinfo['uid'],
+				'returnUrl' => t3lib_div::getIndpEnv('REQUEST_URI'),
+			),
+			$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList')
 		);
 		return $buttons;
 	}
@@ -835,8 +839,8 @@ class SC_mod_web_perm_index {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/mod/web/perm/index.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/mod/web/perm/index.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/mod/web/perm/index.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/mod/web/perm/index.php']);
 }
 
 

@@ -1,74 +1,40 @@
-<!-- ###TOTAL_WRAP### begin -->
+<!-- ###TOTALWRAP### begin -->
 <h2>###PAGE_TITLE###</h2>
+
 <table class="typo3-TCEforms">
-<tr>
-<td colspan="2">
-###WRAP_CONTENT###
-</td>
-</tr>
-<tr class="typo3-TCEforms-recHeaderRow">
-	<td colspan="2">###RECORD_ICON### <span class="typo3-TCEforms-recHeader">###TABLE_TITLE###</span> ###ID_NEW_INDICATOR###</td>
-</tr>
-<tr>
-	<td><!-- --></td>
-	<td><img src="clear.gif" width="'.($this->docLarge ? 440+150 : 440).'" height="1" alt="" /></td>
-</tr>
+	|
+	<tr class="typo3-TCEforms-recHeaderRow">
+		<td colspan="2">###RECORD_ICON### <span class="typo3-TCEforms-recHeader">###TABLE_TITLE###</span> ###ID_NEW_INDICATOR###</td>
+	</tr>
 </table>
-<!-- ###TOTAL_WRAP### end -->
-
-<!-- ###TOTAL_WRAP_IRRE### begin -->
-###LEVELLINKS_TOP###
-<div id="###IRREFIELDNAMES###_records">
-###FORM_CONTENT###
-</div>
-###LEVELLINKS_BOTTOM###
-<!-- ###TOTAL_WRAP_IRRE### begin -->
-
-<!-- ###RECORD_WRAP_IRRE### begin -->
-<div id="###IRREFIELDNAMES###_div">
-<div id="###IRREFIELDNAMES###_header">
-<table cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-right:###MARGIN_RIGHT###px;" background="###BACKGROUND###" class="###CLASS###">
-<tr class="class-main12"><td width="18"><a style="display:block;"###ONCLICK### href="#">###ICON###</a></td><td align="left"><b><a style="display:block;"###ONCLICK### href="#">###TITLE###</b></span></td><td align="right">###CONTROL_BUTTONS###</td></tr></table>
-</div>
-<div id="###IRREFIELDNAMES###_fields" style="###FIELDS_STYLE###">
-###WRAP_CONTENT###
-</div>
-</div>
-<!-- ###RECORD_WRAP_IRRE### end -->
+<!-- ###TOTALWRAP### end -->
 
 
-<!-- ###FIELD_WRAP### begin -->
+<!-- ###FIELDTEMPLATE### begin -->
 <tr ###BGCOLOR_HEAD######CLASSATTR_2###>
-	<td>###FIELD_HELP_ICON###</td>
-	<td width="99%"><span style="color:###FONTCOLOR_HEAD###;"###CLASSATTR_4###><b>###FIELD_NAME###</b></span>###FIELD_HELP_TEXT###</td>
+	<td colspan="2" class="formField-header"><span style="color:###FONTCOLOR_HEAD###;"###CLASSATTR_4###><strong>###FIELD_NAME###</strong></span><img name="req_###FIELD_TABLE###_###FIELD_ID###_###FIELD_FIELD###" src="clear.gif" class="t3-TCEforms-reqImg" alt="" /><img name="cm_###FIELD_TABLE###_###FIELD_ID###_###FIELD_FIELD###" src="clear.gif" class="t3-TCEforms-contentchangedImg" alt="" /></td>
 </tr>
 <tr ###BGCOLOR######CLASSATTR_1###>
-	<td nowrap="nowrap"><img name="req_###FIELD_TABLE###_###FIELD_ID###_###FIELD_FIELD###" src="clear.gif" class="t3-TCEforms-reqImg" alt="" /><img name="cm_###FIELD_TABLE###_###FIELD_ID###_###FIELD_FIELD###" src="clear.gif" class="t3-TCEforms-contentchangedImg" alt="" /></td>
-	<td valign="top">###FIELD_ITEM######FIELD_PAL_LINK_ICON###</td>
+	<td colspan="2" class="formField-field" valign="top">###FIELD_ITEM######FIELD_PAL_LINK_ICON###</td>
 </tr>
-<!-- ###FIELD_WRAP### end -->
+<!-- ###FIELDTEMPLATE### end -->
 
 
-<!-- ###PALETTE_FIELD### begin -->
+<!-- ###PALETTE_FIELDTEMPLATE### begin -->
 <tr ###BGCOLOR######CLASSATTR_1###>
-	<td></td>
-	<td nowrap="nowrap" valign="top">###FIELD_PALETTE###</td>
+	<td colspan="2" nowrap="nowrap" valign="top">###FIELD_PALETTE###</td>
 </tr>
-<!-- ###PALETTE_FIELD### end -->
+<!-- ###PALETTE_FIELDTEMPLATE### end -->
 
 
-<!-- ###PALETTE_HEADER### begin -->
+<!-- ###PALETTE_FIELDTEMPLATE_HEADER### begin -->
 <tr ###BGCOLOR_HEAD######CLASSATTR_2###>
-	<td><!-- --></td>
-	<td nowrap="nowrap" valign="top"><strong>###FIELD_HEADER###</strong></td>
+	<td colspan="2" nowrap="nowrap" valign="top" class="palette-header"><strong>###FIELD_HEADER###</strong></td>
 </tr>
-<!-- ###PALETTE_HEADER### end -->
+<!-- ###PALETTE_FIELDTEMPLATE_HEADER### end -->
 
 
 <!-- ###SECTION_WRAP### begin -->
-<tr>
-	<td colspan="2"><img src="clear.gif" width="1" height="###SPACE_BEFORE###" alt="" /></td>
-</tr>
 <tr>
 	<td colspan="2"><table ###TABLE_ATTRIBS###>###CONTENT###</table></td>
 </tr>

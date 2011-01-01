@@ -27,7 +27,7 @@
 /**
  * Contains an example DBAL handler class
  *
- * $Id: class.tx_dbal_handler_openoffice.php 35523 2010-07-11 14:04:44Z xperseguers $
+ * $Id: class.tx_dbal_handler_openoffice.php 40828 2010-12-05 14:55:53Z xperseguers $
  *
  * @author	Kasper Skårhøj <kasper@typo3.com>
  */
@@ -228,8 +228,8 @@ class tx_dbal_handler_openoffice extends tx_dbal_sqlengine {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/dbal/handlers/class.tx_dbal_handler_openoffice.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/dbal/handlers/class.tx_dbal_handler_openoffice.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/dbal/handlers/class.tx_dbal_handler_openoffice.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/dbal/handlers/class.tx_dbal_handler_openoffice.php']);
 }
 
 ?>

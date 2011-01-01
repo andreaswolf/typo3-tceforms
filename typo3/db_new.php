@@ -328,10 +328,12 @@ class SC_db_new {
 
 				// Record list
 				// If access to Web>List for user, then link to that module.
-			$buttons['record_list'] = t3lib_extMgm::createListViewLink(
-				$this->pageinfo['uid'],
-				'&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')),
-				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList', TRUE)
+			$buttons['record_list'] = t3lib_BEfunc::getListViewLink(
+				array(
+					'id' => $this->pageinfo['uid'],
+					'returnUrl' => t3lib_div::getIndpEnv('REQUEST_URI'),
+				),
+				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.showList')
 			);
 		}
 
@@ -720,8 +722,8 @@ class SC_db_new {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/db_new.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/db_new.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/db_new.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/db_new.php']);
 }
 
 

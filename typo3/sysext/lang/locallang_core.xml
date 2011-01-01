@@ -9,6 +9,7 @@
 			<label index="labels.openInNewWindow">Open in new window</label>
 			<label index="labels.goBack">Go back</label>
 			<label index="labels.makeShortcut">Create a shortcut to this page?</label>
+			<label index="labels.makeBookmark">Create a bookmark to this page</label>
 			<label index="labels.lockedRecord">The user '%s' began to edit this record %s ago.</label>
 			<label index="labels.lockedRecord_content">The user '%s' began to edit content on this page %s ago.</label>
 			<label index="labels.lockedRecordUser">The %s '%s' began to edit this record %s ago.</label>
@@ -63,6 +64,9 @@ Do you want to continue WITHOUT saving?</label>
 			<label index="labels.depth_infi">Infinite</label>
 			<label index="labels.allow">Allow</label>
 			<label index="labels.deny">Deny</label>
+			<label index="labels.automatic">Auto</label>
+			<label index="labels.enabled">Enabled</label>
+			<label index="labels.show">Show</label>
 			<label index="labels.generalTab">General</label>
 			<label index="labels.refresh">Reload the tree from server</label>
 			<label index="labels.temporaryDBmount">Cancel temporary DB mount</label>
@@ -79,8 +83,8 @@ Do you want to continue WITHOUT saving?</label>
 			<label index="labels.rootLevel">root level</label>
 			<label index="labels.addnew">Add new</label>
 			<label index="labels.toggleall">Toggle all</label>
-			<label index="labels.selected">Selected</label>
-			<label index="labels.items">Items</label>
+			<label index="labels.selected">Selected Items</label>
+			<label index="labels.items">Available Items</label>
 			<label index="labels.remove_selected">Remove selected items</label>
 			<label index="labels.move_to_top">Move selected items to top</label>
 			<label index="labels.move_up">Move selected items upwards</label>
@@ -265,11 +269,17 @@ Would you like to save now in order to refresh the display?</label>
 			<label index="warning.memcache_not_usable">Memcache is configured, but connection to memcached failed with these configuration(s):</label>
 			<label index="warning.file_missing">File is missing!</label>
 			<label index="warning.file_missing_text">This content element references a file which seems to not exist:</label>
+			<label index="error.formProtection.tokenInvalid">Validating the security token of this form has failed. Please reload the form and submit it again.</label>
 			<label index="toolbarItems.shortcuts">Shortcuts</label>
 			<label index="toolbarItems.shortcut">Shortcut</label>
 			<label index="toolbarItems.shortcutsGroup">Shortcut Group</label>
 			<label index="toolbarItems.shortcutsEdit">Edit Shortcut</label>
 			<label index="toolbarItems.shortcutsDelete">Delete Shortcut</label>
+			<label index="toolbarItems.bookmarks">Bookmarks</label>
+			<label index="toolbarItems.bookmark">Bookmark</label>
+			<label index="toolbarItems.bookmarksGroup">Bookmark group</label>
+			<label index="toolbarItems.bookmarksEdit">Edit bookmark</label>
+			<label index="toolbarItems.bookmarksDelete">Delete bookmark</label>
 			<label index="toolbarItems.search">Search</label>
 			<label index="toolbarItems.workspace">Workspace</label>
 			<label index="tabs.closeAll">Close All Tabs</label>
@@ -289,7 +299,7 @@ Check also the following points:\n
 - javascript: method\'s name should be like: &quot;TYPO3.MyExtension.Sample.myMethod&quot;\n</label>
 			<label index="ExtDirect.noNamespace">Ext Direct error in &quot;%s&quot;: no namespace has been found.</label>
 			<label index="extension.not.installed">Extension "%s" is not installed.</label>
-			<label index="link.to.dblist.correctly">Please, do not link to this page. Use t3lib_extMgm::createListViewLink() for link generation.</label>
+			<label index="link.to.dblist.correctly">Please, do not link to this page. Use t3lib_BEfunc::getListViewLink() for link generation.</label>
 			<label index="link.to.filefile.correctly">Please, do not link to this page.</label>
 			<label index="loadingIndicator">Loading ...</label>
 		</languageKey>

@@ -261,7 +261,7 @@ class tx_rtehtmlarea_select_image extends browse_links {
 	 * @return	string		the body tag additions
 	 */
 	public function getBodyTagAdditions() {
-		return '';
+		return 'onload="initEventListeners();"';
 	}
 
 	/**
@@ -449,9 +449,10 @@ class tx_rtehtmlarea_select_image extends browse_links {
 		$JScode='
 			var plugin = window.parent.RTEarea["' . $editorNo . '"].editor.getPlugin("TYPO3Image");
 			var HTMLArea = window.parent.HTMLArea;
-			var Ext = window.parent.Ext;
-			if (Ext.isWebKit) {
-				plugin.dialog.mon(Ext.get(plugin.dialog.getComponent("content-iframe").getEl().dom.contentWindow.document.documentElement), "dragend", plugin.onDrop, plugin, {single: true});
+			function initEventListeners() {
+				if (Ext.isWebKit) {
+					Ext.EventManager.addListener(window.document.body, "dragend", plugin.onDrop, plugin, { single: true });
+				}
 			}
 			function jumpToUrl(URL,anchor)	{
 				var add_act = URL.indexOf("act=")==-1 ? "&act='.$act.'" : "";
@@ -1226,8 +1227,8 @@ class tx_rtehtmlarea_select_image extends browse_links {
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/mod4/class.tx_rtehtmlarea_select_image.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/mod4/class.tx_rtehtmlarea_select_image.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/mod4/class.tx_rtehtmlarea_select_image.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/mod4/class.tx_rtehtmlarea_select_image.php']);
 }
 
 ?>

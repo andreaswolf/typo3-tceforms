@@ -42,14 +42,19 @@ class tslib_content_Text extends tslib_content_Abstract {
 	 * @return	string		Output
 	 */
 	public function render($conf = array()) {
-		return $this->cObj->stdWrap($conf['value'], $conf);
+		$content = $conf['value'];
+		unset($conf['value']);
+		if(count($conf)) {
+			$content = $this->cObj->stdWrap($content, $conf);
+		}
+		return $content;
 	}
 
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_text.php']) {
-	include_once ($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_text.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_text.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['tslib/content/class.tslib_content_text.php']);
 }
 
 ?>

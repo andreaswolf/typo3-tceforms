@@ -774,7 +774,9 @@ class local_beUserAuth extends t3lib_beUserAuth {
 						foreach ($items as $iCfg)	{
 							if (isset($nef[$iCfg[1]]))	{
 								unset($nef[$iCfg[1]]);
-								if (strlen($iCfg[2]))	{
+								if (strpos($iCfg[2], '.gif') === FALSE) {
+									$icon = t3lib_iconWorks::getSpriteIcon($iCfg[2]) . '&nbsp;';
+								} elseif (strlen($iCfg[2]))	{
 									$icon = '<img '.t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'],'gfx/'.$iCfg[2]).' class="absmiddle" style="margin-right: 5px;" alt="" />';
 								} else {
 									$icon = '';
@@ -1184,10 +1186,12 @@ class SC_mod_tools_be_user_index {
 		$markers['CONTENT'] = $this->content;
 
 			// Build the <body> for the module
-		$this->content = $this->doc->startPage('Backend User Administration');
-		$this->content.= $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
-		$this->content.= $this->doc->endPage();
-		$this->content = $this->doc->insertStylesAndJS($this->content);
+		$this->content = $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
+			// Renders the module page
+		$this->content = $this->doc->render(
+			'Backend User Administration',
+			$this->content
+		);
 	}
 
 	/**
@@ -1603,12 +1607,12 @@ class SC_mod_tools_be_user_index {
 		}
 			// Wrap <table> tag around the rows:
 		$outTable = '
-		<table border="0" cellpadding="2" cellspacing="2">
-			<tr class="bgColor5">
-				<td valign="top"><strong>' . $GLOBALS['LANG']->getLL('timestamp', true) . '</strong></td>
-				<td valign="top"><strong>' . $GLOBALS['LANG']->getLL('host', true) . '</strong></td>
-				<td valign="top" colspan="5"><strong>' . $GLOBALS['LANG']->getLL('username', true) . '</strong></td>
-			</tr>'.$outTable.'
+		<table border="0" cellpadding="0" cellspacing="0" class="typo3-dblist">
+			<tr class="t3-row-header">
+				<td>' . $GLOBALS['LANG']->getLL('timestamp', true) . '</td>
+				<td>' . $GLOBALS['LANG']->getLL('host', true) . '</td>
+				<td colspan="5">' . $GLOBALS['LANG']->getLL('username', true) . '</td>
+			</tr>' . $outTable . '
 		</table>';
 
 		$content.= $this->doc->section($GLOBALS['LANG']->getLL('whoIsOnline', true),$outTable,0,1);
@@ -1618,8 +1622,8 @@ class SC_mod_tools_be_user_index {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/beuser/mod/index.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/beuser/mod/index.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/beuser/mod/index.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/beuser/mod/index.php']);
 }
 
 

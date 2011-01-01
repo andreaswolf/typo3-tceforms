@@ -186,8 +186,8 @@ class localRecordList extends recordList {
 			if (isset($GLOBALS['SOBE']->modTSconfig['properties']['noViewWithDokTypes'])) {
 				$noViewDokTypes = t3lib_div::trimExplode(',', $GLOBALS['SOBE']->modTSconfig['properties']['noViewWithDokTypes'], true);
 			} else {
-					//default exclusion: doktype 254, 255
-				$noViewDokTypes = array('254', '255');
+					//default exclusion: doktype 254 (sysfolder), 255 (recycler)
+				$noViewDokTypes = array(t3lib_pageSelect::DOKTYPE_SYSFOLDER, t3lib_pageSelect::DOKTYPE_RECYCLER);
 			}
 
 			if (!in_array($this->pageRow['doktype'], $noViewDokTypes)) {
@@ -1561,7 +1561,11 @@ class localRecordList extends recordList {
 						$url . '&justLocalized=' . rawurlencode($table . ':' . $row['uid'] . ':' . $lUid_OnPage)
 					);
 					$language = t3lib_BEfunc::getRecord('sys_language', $lUid_OnPage, 'title');
-					$lC = ($this->languageIconTitles[$lUid_OnPage]['flagIcon'] ? '<img src="'.$this->languageIconTitles[$lUid_OnPage]['flagIcon'].'" class="absmiddle" alt="" />' : $this->languageIconTitles[$lUid_OnPage]['title']);
+					if ($this->languageIconTitles[$lUid_OnPage]['flagIcon']) {
+						$lC = t3lib_iconWorks::getSpriteIcon($this->languageIconTitles[$lUid_OnPage]['flagIcon']);;
+					} else {
+						$lC = $this->languageIconTitles[$lUid_OnPage]['title'];
+					}
 					$lC = '<a href="' . htmlspecialchars($href) . '" title="' . htmlspecialchars($language['title']) . '">' . $lC . '</a> ';
 
 					$lNew.=$lC;
@@ -1629,7 +1633,7 @@ class localRecordList extends recordList {
 				<!--
 					Field selector for extended table view:
 				-->
-				<table border="0" cellpadding="0" cellspacing="0" class="bgColor4" id="typo3-dblist-fieldSelect">
+				<table border="0" cellpadding="0" cellspacing="0" id="typo3-dblist-fieldSelect">
 					<tr>
 						<td>'.$lMenu.'</td>
 						<td><input type="submit" name="search" value="'.$LANG->sL('LLL:EXT:lang/locallang_core.php:labels.setFields',1).'" /></td>
@@ -1859,8 +1863,8 @@ class localRecordList extends recordList {
 
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/class.db_list_extra.inc'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/class.db_list_extra.inc']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/class.db_list_extra.inc'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/class.db_list_extra.inc']);
 }
 
 ?>

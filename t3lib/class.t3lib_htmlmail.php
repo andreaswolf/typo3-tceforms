@@ -1,29 +1,29 @@
 <?php
 /***************************************************************
-*  Copyright notice
-*
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
-*  All rights reserved
-*
-*  This script is part of the TYPO3 project. The TYPO3 project is
-*  free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  The GNU General Public License can be found at
-*  http://www.gnu.org/copyleft/gpl.html.
-*  A copy is found in the textfile GPL.txt and important notices to the license
-*  from the author is found in LICENSE.txt distributed with these scripts.
-*
-*
-*  This script is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  This copyright notice MUST APPEAR in all copies of the script!
-***************************************************************/
+ *  Copyright notice
+ *
+ *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
 /**
  * HTML mail class
  *
@@ -37,61 +37,61 @@
  *
  *
  *  193: class t3lib_htmlmail
- *  261:     function t3lib_htmlmail ()
- *  268:     function start ()
- *  305:     function useQuotedPrintable()
- *  315:     function useBase64()
- *  326:     function use8Bit()
- *  338:     function encodeMsg($content)
- *  348:     function addPlain ($content)
- *  360:     function addAttachment($file)
- *  378:     function addHTML ($file)
- *  401:     function extractHtmlInit($html,$url)
- *  412:     function send($recipient)
+ *  261:	 function t3lib_htmlmail ()
+ *  268:	 function start ()
+ *  305:	 function useQuotedPrintable()
+ *  315:	 function useBase64()
+ *  326:	 function use8Bit()
+ *  338:	 function encodeMsg($content)
+ *  348:	 function addPlain ($content)
+ *  360:	 function addAttachment($file)
+ *  378:	 function addHTML ($file)
+ *  401:	 function extractHtmlInit($html,$url)
+ *  412:	 function send($recipient)
  *
- *              SECTION: Main functions
- *  441:     function setHeaders()
- *  500:     function setRecipient ($recip)
- *  518:     function getHTMLContentType()
- *  527:     function setContent()
- *  554:     function constructMixed ($boundary)
- *  593:     function constructHTML ($boundary)
- *  617:     function constructAlternative($boundary)
- *  638:     function constructHTML_media ($boundary)
- *  691:     function sendTheMail ()
- *  757:     function getBoundary()
- *  769:     function setPlain ($content)
- *  780:     function setHtml ($content)
- *  791:     function add_header($header)
- *  812:     function add_message($string)
- *  823:     function getContent($type)
- *  832:     function preview()
+ *			  SECTION: Main functions
+ *  441:	 function setHeaders()
+ *  500:	 function setRecipient ($recip)
+ *  518:	 function getHTMLContentType()
+ *  527:	 function setContent()
+ *  554:	 function constructMixed ($boundary)
+ *  593:	 function constructHTML ($boundary)
+ *  617:	 function constructAlternative($boundary)
+ *  638:	 function constructHTML_media ($boundary)
+ *  691:	 function sendTheMail ()
+ *  757:	 function getBoundary()
+ *  769:	 function setPlain ($content)
+ *  780:	 function setHtml ($content)
+ *  791:	 function add_header($header)
+ *  812:	 function add_message($string)
+ *  823:	 function getContent($type)
+ *  832:	 function preview()
  *
- *              SECTION: Functions for acquiring attachments, HTML, analyzing and so on  **
- *  860:     function fetchHTML($file)
- *  878:     function fetchHTMLMedia()
- *  899:     function extractMediaLinks()
- *  976:     function extractHyperLinks()
- * 1025:     function extractFramesInfo()
- * 1051:     function substMediaNamesInHTML($absolute)
- * 1078:     function substHREFsInHTML()
- * 1106:     function substHTTPurlsInPlainText($content)
- * 1142:     function fixRollOvers()
+ *			  SECTION: Functions for acquiring attachments, HTML, analyzing and so on  **
+ *  860:	 function fetchHTML($file)
+ *  878:	 function fetchHTMLMedia()
+ *  899:	 function extractMediaLinks()
+ *  976:	 function extractHyperLinks()
+ * 1025:	 function extractFramesInfo()
+ * 1051:	 function substMediaNamesInHTML($absolute)
+ * 1078:	 function substHREFsInHTML()
+ * 1106:	 function substHTTPurlsInPlainText($content)
+ * 1142:	 function fixRollOvers()
  *
- *              SECTION: File and URL-functions
- * 1189:     function makeBase64($inputstr)
- * 1200:     function getExtendedURL($url)
- * 1222:     function addUserPass($url)
- * 1238:     function getURL($url)
- * 1250:     function getStrippedURL($url)
- * 1271:     function getMimeType($url)
- * 1300:     function absRef($ref)
- * 1320:     function split_fileref($fileref)
- * 1347:     function extParseUrl($path)
- * 1362:     function tag_regex($tagArray)
- * 1384:     function get_tag_attributes($tag)
- * 1426:     function quoted_printable($string)
- * 1437:     function convertName($name)
+ *			  SECTION: File and URL-functions
+ * 1189:	 function makeBase64($inputstr)
+ * 1200:	 function getExtendedURL($url)
+ * 1222:	 function addUserPass($url)
+ * 1238:	 function getURL($url)
+ * 1250:	 function getStrippedURL($url)
+ * 1271:	 function getMimeType($url)
+ * 1300:	 function absRef($ref)
+ * 1320:	 function split_fileref($fileref)
+ * 1347:	 function extParseUrl($path)
+ * 1362:	 function tag_regex($tagArray)
+ * 1384:	 function get_tag_attributes($tag)
+ * 1426:	 function quoted_printable($string)
+ * 1437:	 function convertName($name)
  *
  * TOTAL FUNCTIONS: 49
  * (This index is automatically created/updated by the extension "extdeveval")
@@ -101,32 +101,32 @@
  * NOTES on MIME mail structures:
  *
  * Plain + HTML
- * 	multipart/alternative	(text, html)
- * 	multipart/alternative	(text, html)
+ *	 multipart/alternative	(text, html)
+ *	 multipart/alternative	(text, html)
  *
  * Plain + HTML + image
- * 	multipart/related (m/a, cids)
- * 		multipart/alternative (text, html)
+ *	 multipart/related (m/a, cids)
+ *		 multipart/alternative (text, html)
  *
- * 	multipart/related  (m/a, cids)
- * 		multipart/alternative	(text, html)
+ *	 multipart/related  (m/a, cids)
+ *		 multipart/alternative	(text, html)
  *
  * plain + attachment
- * 	multipart/mixed
+ *	 multipart/mixed
  *
  * HTML + Attachment:
- * 	multipart/mixed		(text/html , attachments)
+ *	 multipart/mixed		(text/html , attachments)
  *
  * Plain + HTML + Attachments:
- * 	multipart/mixed		(m/a, attachments)
- * 		multipart/alternative	(text, html)
+ *	 multipart/mixed		(m/a, attachments)
+ *		 multipart/alternative	(text, html)
  *
  * Plain + HTML + image + attachment
  *
- * 		Outlook expr.
- * 	multipart/mixed (m/r, attachments)
- * 		multipart/related  (m/a, cids)
- * 			multipart/alternative	(text, html)
+ *		 Outlook expr.
+ *	 multipart/mixed (m/r, attachments)
+ *		 multipart/related  (m/a, cids)
+ *			 multipart/alternative	(text, html)
  *
  *
  *
@@ -161,17 +161,17 @@
  * platforms with different line break conventions.
  * For formalists, the syntax of quoted-printable data is described by the following grammar:
  *
- *    quoted-printable := ([*(ptext / SPACE / TAB) ptext] ["="] CRLF)
- *         ; Maximum line length of 76 characters excluding CRLF
+ *	quoted-printable := ([*(ptext / SPACE / TAB) ptext] ["="] CRLF)
+ *		 ; Maximum line length of 76 characters excluding CRLF
  *
- *    ptext := octet /<any ASCII character except "=", SPACE, or TAB>
- *         ; characters not listed as "mail-safe" in Appendix B
- *         ; are also not recommended.
+ *	ptext := octet /<any ASCII character except "=", SPACE, or TAB>
+ *		 ; characters not listed as "mail-safe" in Appendix B
+ *		 ; are also not recommended.
  *
- *    octet := "=" 2(DIGIT / "A" / "B" / "C" / "D" / "E" / "F")
- *         ; octet must be used for characters > 127, =, SPACE, or TAB,
- *         ; and is recommended for any characters not listed in
- *         ; Appendix B as "mail-safe".
+ *	octet := "=" 2(DIGIT / "A" / "B" / "C" / "D" / "E" / "F")
+ *		 ; octet must be used for characters > 127, =, SPACE, or TAB,
+ *		 ; and is recommended for any characters not listed in
+ *		 ; Appendix B as "mail-safe".
  */
 /**
  * HTML mail class
@@ -182,27 +182,27 @@
  */
 class t3lib_htmlmail {
 		// Headerinfo:
-	var $recipient		= '';
-	var $recipient_copy	= '';	// This recipient (or list of...) will also receive the mail. Regard it as a copy.
+	var $recipient = '';
+	var $recipient_copy = ''; // This recipient (or list of...) will also receive the mail. Regard it as a copy.
 	var $recipient_blindcopy = ''; // This recipient (or list of...) will also receive the mail as a blind copy. Regard it as a copy.
-	var $subject		= '';
-	var $from_email		= '';
-	var $from_name		= '';
-	var $replyto_email	= '';
-	var $replyto_name	= '';
-	var $organisation	= '';
-	var $priority		= 3;	// 1 = highest, 5 = lowest, 3 = normal
-	var $mailer			= '';	// X-mailer, set to TYPO3 Major.Minor in constructor
-	var $alt_base64		= 0;
-	var $alt_8bit		= 0;
-	var $jumperURL_prefix	= '';		// This is a prefix that will be added to all links in the mail. Example: 'http://www.mydomain.com/jump?userid=###FIELD_uid###&url='. if used, anything after url= is urlencoded.
-	var $jumperURL_useId	= 0;			// If set, then the array-key of the urls are inserted instead of the url itself. Smart in order to reduce link-length
-	var $mediaList		= '';				// If set, this is a list of the media-files (index-keys to the array) that should be represented in the html-mail
-	var $http_password	= '';
-	var $http_username	= '';
-	var $postfix_version1	= false;
+	var $subject = '';
+	var $from_email = '';
+	var $from_name = '';
+	var $replyto_email = '';
+	var $replyto_name = '';
+	var $organisation = '';
+	var $priority = 3; // 1 = highest, 5 = lowest, 3 = normal
+	var $mailer = ''; // X-mailer, set to TYPO3 Major.Minor in constructor
+	var $alt_base64 = 0;
+	var $alt_8bit = 0;
+	var $jumperURL_prefix = ''; // This is a prefix that will be added to all links in the mail. Example: 'http://www.mydomain.com/jump?userid=###FIELD_uid###&url='. if used, anything after url= is urlencoded.
+	var $jumperURL_useId = 0; // If set, then the array-key of the urls are inserted instead of the url itself. Smart in order to reduce link-length
+	var $mediaList = ''; // If set, this is a list of the media-files (index-keys to the array) that should be represented in the html-mail
+	var $http_password = '';
+	var $http_username = '';
+	var $postfix_version1 = FALSE;
 
-	// Internal
+		// Internal
 	/*
 	This is how the $theParts-array is normally looking
 	var $theParts = array(
@@ -223,7 +223,7 @@ class t3lib_htmlmail {
 	var $messageid = '';
 	var $returnPath = '';
 	var $Xid = '';
-	var $dontEncodeHeader = false;		// If set, the header will not be encoded
+	var $dontEncodeHeader = FALSE; // If set, the header will not be encoded
 
 	var $headers = '';
 	var $message = '';
@@ -235,7 +235,6 @@ class t3lib_htmlmail {
 	var $html_text_header = '';
 	var $charset = '';
 	var $defaultCharset = 'iso-8859-1';
-
 
 
 	/**
@@ -284,7 +283,7 @@ class t3lib_htmlmail {
 				$this->charset = $GLOBALS['LANG']->charSet;
 			} elseif ($GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset']) {
 				$this->charset = $GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'];
-			} else	{
+			} else {
 				$this->charset = $this->defaultCharset;
 			}
 		}
@@ -300,8 +299,8 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function useQuotedPrintable() {
-		$this->plain_text_header = 'Content-Type: text/plain; charset='.$this->charset.$this->linebreak.'Content-Transfer-Encoding: quoted-printable';
-		$this->html_text_header = 'Content-Type: text/html; charset='.$this->charset.$this->linebreak.'Content-Transfer-Encoding: quoted-printable';
+		$this->plain_text_header = 'Content-Type: text/plain; charset=' . $this->charset . $this->linebreak . 'Content-Transfer-Encoding: quoted-printable';
+		$this->html_text_header = 'Content-Type: text/html; charset=' . $this->charset . $this->linebreak . 'Content-Transfer-Encoding: quoted-printable';
 	}
 
 	/**
@@ -310,8 +309,8 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function useBase64() {
-		$this->plain_text_header = 'Content-Type: text/plain; charset='.$this->charset.$this->linebreak.'Content-Transfer-Encoding: base64';
-		$this->html_text_header = 'Content-Type: text/html; charset='.$this->charset.$this->linebreak.'Content-Transfer-Encoding: base64';
+		$this->plain_text_header = 'Content-Type: text/plain; charset=' . $this->charset . $this->linebreak . 'Content-Transfer-Encoding: base64';
+		$this->html_text_header = 'Content-Type: text/html; charset=' . $this->charset . $this->linebreak . 'Content-Transfer-Encoding: base64';
 		$this->alt_base64 = 1;
 	}
 
@@ -322,8 +321,8 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function use8Bit() {
-		$this->plain_text_header = 'Content-Type: text/plain; charset='.$this->charset.$this->linebreak.'Content-Transfer-Encoding: 8bit';
-		$this->html_text_header = 'Content-Type: text/html; charset='.$this->charset.$this->linebreak.'Content-Transfer-Encoding: 8bit';
+		$this->plain_text_header = 'Content-Type: text/plain; charset=' . $this->charset . $this->linebreak . 'Content-Transfer-Encoding: 8bit';
+		$this->html_text_header = 'Content-Type: text/html; charset=' . $this->charset . $this->linebreak . 'Content-Transfer-Encoding: 8bit';
 		$this->alt_8bit = 1;
 	}
 
@@ -340,7 +339,7 @@ class t3lib_htmlmail {
 			return $this->makeBase64($content);
 		} elseif ($this->alt_8bit) {
 			return $content;
-		} else	{
+		} else {
 			return t3lib_div::quoted_printable($content);
 		}
 	}
@@ -374,15 +373,15 @@ class t3lib_htmlmail {
 			$temp = $this->split_fileref($file);
 			if ($temp['file']) {
 				$fileInfo['filename'] = $temp['file'];
-			} elseif (strpos(' '.$fileInfo['content_type'], 'htm')) {
+			} elseif (strpos(' ' . $fileInfo['content_type'], 'htm')) {
 				$fileInfo['filename'] = 'index.html';
-			} else	{
+			} else {
 				$fileInfo['filename'] = 'unknown';
 			}
 			$this->theParts['attach'][] = $fileInfo;
-			return true;
+			return TRUE;
 		}
-		return false;
+		return FALSE;
 	}
 
 
@@ -395,7 +394,7 @@ class t3lib_htmlmail {
 	public function addHTML($file) {
 		$status = $this->fetchHTML($file);
 		if (!$status) {
-			return false;
+			return FALSE;
 		}
 		if ($this->extractFramesInfo()) {
 			return 'Document was a frameset. Stopped';
@@ -403,7 +402,7 @@ class t3lib_htmlmail {
 		$this->extractMediaLinks();
 		$this->extractHyperLinks();
 		$this->fetchHTMLMedia();
-		$this->substMediaNamesInHTML(0);	// 0 = relative
+		$this->substMediaNamesInHTML(0); // 0 = relative
 		$this->substHREFsInHTML();
 		$this->setHtml($this->encodeMsg($this->theParts['html']['content']));
 	}
@@ -416,7 +415,7 @@ class t3lib_htmlmail {
 	 * @param	string		$url: will be added to the html "path" part
 	 * @return	void
 	 */
-	public function extractHtmlInit($html,$url) {
+	public function extractHtmlInit($html, $url) {
 		$this->theParts['html']['content'] = $html;
 		$this->theParts['html']['path'] = $url;
 	}
@@ -439,17 +438,6 @@ class t3lib_htmlmail {
 	}
 
 
-
-
-
-
-
-
-
-
-
-
-
 	/*****************************************
 	 *
 	 * Main functions
@@ -464,23 +452,23 @@ class t3lib_htmlmail {
 	public function setHeaders() {
 		$this->headers = '';
 			// Message_id
-		$this->add_header('Message-ID: <'.$this->messageid.'>');
+		$this->add_header('Message-ID: <' . $this->messageid . '>');
 			// Return path
 		if ($this->returnPath) {
-			$this->add_header('Return-Path: '.$this->returnPath);
-			$this->add_header('Errors-To: '.$this->returnPath);
+			$this->add_header('Return-Path: ' . $this->returnPath);
+			$this->add_header('Errors-To: ' . $this->returnPath);
 		}
 			// X-id
 		if ($this->Xid) {
-			$this->add_header('X-Typo3MID: '.$this->Xid);
+			$this->add_header('X-Typo3MID: ' . $this->Xid);
 		}
 
 			// From
 		if ($this->from_email) {
 			if ($this->from_name && !t3lib_div::isBrokenEmailEnvironment()) {
-				$this->add_header('From: '.$this->from_name.' <'.$this->from_email.'>');
+				$this->add_header('From: ' . $this->from_name . ' <' . $this->from_email . '>');
 			} else {
-				$this->add_header('From: '.$this->from_email);
+				$this->add_header('From: ' . $this->from_email);
 			}
 		}
 
@@ -497,9 +485,9 @@ class t3lib_htmlmail {
 			// Reply
 		if ($this->replyto_email) {
 			if ($this->replyto_name) {
-				$this->add_header('Reply-To: '.$this->replyto_name.' <'.$this->replyto_email.'>');
+				$this->add_header('Reply-To: ' . $this->replyto_name . ' <' . $this->replyto_email . '>');
 			} else {
-				$this->add_header('Reply-To: '.$this->replyto_email);
+				$this->add_header('Reply-To: ' . $this->replyto_email);
 			}
 		}
 			// Organization, using american english spelling (organization / organisation) as defined in RFC 1036 / 2076
@@ -508,19 +496,19 @@ class t3lib_htmlmail {
 		}
 			// mailer
 		if ($this->mailer) {
-			$this->add_header('X-Mailer: '.$this->mailer);
+			$this->add_header('X-Mailer: ' . $this->mailer);
 		}
 			// priority
 		if ($this->priority) {
-			$this->add_header('X-Priority: '.$this->priority);
+			$this->add_header('X-Priority: ' . $this->priority);
 		}
 		$this->add_header('Mime-Version: 1.0');
 
 		if (!$this->dontEncodeHeader) {
-			$enc = $this->alt_base64 ? 'base64' : 'quoted_printable';	// Header must be ASCII, therefore only base64 or quoted_printable are allowed!
+			$enc = $this->alt_base64 ? 'base64' : 'quoted_printable'; // Header must be ASCII, therefore only base64 or quoted_printable are allowed!
 				// Quote recipient and subject
-			$this->recipient = t3lib_div::encodeHeader($this->recipient,$enc,$this->charset);
-			$this->subject = t3lib_div::encodeHeader($this->subject,$enc,$this->charset);
+			$this->recipient = t3lib_div::encodeHeader($this->recipient, $enc, $this->charset);
+			$this->subject = t3lib_div::encodeHeader($this->subject, $enc, $this->charset);
 		}
 	}
 
@@ -558,19 +546,19 @@ class t3lib_htmlmail {
 
 			// Setting up headers
 		if (count($this->theParts['attach'])) {
-			// Generate (plain/HTML) / attachments
+				// Generate (plain/HTML) / attachments
 			$this->add_header('Content-Type: multipart/mixed;');
 			$this->add_header(' boundary="' . $boundary . '"');
 			$this->add_message('This is a multi-part message in MIME format.' . LF);
 			$this->constructMixed($boundary);
 		} elseif ($this->theParts['html']['content']) {
-			// Generate plain/HTML mail
+				// Generate plain/HTML mail
 			$this->add_header('Content-Type: ' . $this->getHTMLContentType() . ';');
 			$this->add_header(' boundary="' . $boundary . '"');
 			$this->add_message('This is a multi-part message in MIME format.' . LF);
 			$this->constructHTML($boundary);
 		} else {
-			// Generate plain only
+				// Generate plain only
 			$this->add_header($this->plain_text_header);
 			$this->add_message($this->getContent('plain'));
 		}
@@ -587,19 +575,19 @@ class t3lib_htmlmail {
 		$this->add_message('--' . $boundary);
 
 		if ($this->theParts['html']['content']) {
-			// HTML and plain is added
+				// HTML and plain is added
 			$newBoundary = $this->getBoundary();
-			$this->add_message('Content-Type: '.$this->getHTMLContentType() . ';');
+			$this->add_message('Content-Type: ' . $this->getHTMLContentType() . ';');
 			$this->add_message(' boundary="' . $newBoundary . '"');
 			$this->add_message('');
 			$this->constructHTML($newBoundary);
 		} else {
-			// Purely plain
+				// Purely plain
 			$this->add_message($this->plain_text_header);
 			$this->add_message('');
 			$this->add_message($this->getContent('plain'));
 		}
-		// attachments are added
+			// attachments are added
 		if (is_array($this->theParts['attach'])) {
 			foreach ($this->theParts['attach'] as $media) {
 				$this->add_message('--' . $boundary);
@@ -623,10 +611,10 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function constructHTML($boundary) {
-		// If media, then we know, the multipart/related content-type has been set before this function call
+			// If media, then we know, the multipart/related content-type has been set before this function call
 		if (count($this->theParts['html']['media'])) {
 			$this->add_message('--' . $boundary);
-			// HTML has media
+				// HTML has media
 			$newBoundary = $this->getBoundary();
 			$this->add_message('Content-Type: multipart/alternative;');
 			$this->add_message(' boundary="' . $newBoundary . '"');
@@ -636,8 +624,8 @@ class t3lib_htmlmail {
 				// Adding the plaintext/html mix, and use $newBoundary
 			$this->constructAlternative($newBoundary);
 			$this->constructHTML_media($boundary);
-		} else	{
-			// if no media, just use the $boundary for adding plaintext/html mix
+		} else {
+				// if no media, just use the $boundary for adding plaintext/html mix
 			$this->constructAlternative($boundary);
 		}
 	}
@@ -650,7 +638,7 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function constructAlternative($boundary) {
-		$this->add_message('--'.$boundary);
+		$this->add_message('--' . $boundary);
 
 			// plain is added
 		$this->add_message($this->plain_text_header);
@@ -673,9 +661,9 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function constructHTML_media($boundary) {
-		// media is added
+			// media is added
 		if (is_array($this->theParts['html']['media'])) {
-			foreach($this->theParts['html']['media'] as $key => $media) {
+			foreach ($this->theParts['html']['media'] as $key => $media) {
 				if (!$this->mediaList || t3lib_div::inList($this->mediaList, $key)) {
 					$this->add_message('--' . $boundary);
 					$this->add_message('Content-Type: ' . $media['ctype']);
@@ -716,11 +704,11 @@ class t3lib_htmlmail {
 	 * @return	boolean		Returns whether the mail was sent (successfully accepted for delivery)
 	 */
 	public function sendTheMail() {
-		$mailWasSent = false;
+		$mailWasSent = FALSE;
 
 			// Sending the mail requires the recipient and message to be set.
 		if (!trim($this->recipient) || !trim($this->message)) {
-			return false;
+			return FALSE;
 		}
 
 			// On windows the -f flag is not used (specific for Sendmail and Postfix),
@@ -731,38 +719,46 @@ class t3lib_htmlmail {
 		}
 		$recipient = t3lib_div::normalizeMailAddress($this->recipient);
 
-		// If safe mode is on, the fifth parameter to mail is not allowed, so the fix wont work on unix with safe_mode=On
+			// If safe mode is on, the fifth parameter to mail is not allowed, so the fix wont work on unix with safe_mode=On
 		$returnPathPossible = (!t3lib_utility_PhpOptions::isSafeModeEnabled() && $this->forceReturnPath);
 		if ($returnPathPossible) {
-			$mailWasSent = t3lib_utility_Mail::mail($recipient,
-				  $this->subject,
-				  $this->message,
-				  $this->headers,
-				  $returnPath);
+			$mailWasSent = t3lib_utility_Mail::mail(
+				$recipient,
+				$this->subject,
+				$this->message,
+				$this->headers,
+				$returnPath
+			);
 		} else {
-			$mailWasSent = t3lib_utility_Mail::mail($recipient,
-				  $this->subject,
-				  $this->message,
-				  $this->headers);
+			$mailWasSent = t3lib_utility_Mail::mail(
+				$recipient,
+				$this->subject,
+				$this->message,
+				$this->headers
+			);
 		}
 
 			// Auto response
 		if ($this->auto_respond_msg) {
-			$theParts = explode('/',$this->auto_respond_msg,2);
+			$theParts = explode('/', $this->auto_respond_msg, 2);
 			$theParts[0] = str_replace('###SUBJECT###', $this->subject, $theParts[0]);
-			$theParts[1] = str_replace("/",LF,$theParts[1]);
+			$theParts[1] = str_replace("/", LF, $theParts[1]);
 			$theParts[1] = str_replace("###MESSAGE###", $this->getContent('plain'), $theParts[1]);
 			if ($returnPathPossible) {
-				$mailWasSent = t3lib_utility_Mail::mail($this->from_email,
+				$mailWasSent = t3lib_utility_Mail::mail(
+					$this->from_email,
 					$theParts[0],
 					$theParts[1],
-					'From: ' . $recipient,
-					$returnPath);
+					'From: ' . $recipient . $this->linebreak . $this->plain_text_header,
+					$returnPath
+				);
 			} else {
-				$mailWasSent = t3lib_utility_Mail::mail($this->from_email,
+				$mailWasSent = t3lib_utility_Mail::mail(
+					$this->from_email,
 					$theParts[0],
 					$theParts[1],
-					'From: ' . $recipient);
+					'From: ' . $recipient . $this->linebreak . $this->plain_text_header
+				);
 			}
 		}
 		if ($this->returnPath) {
@@ -779,7 +775,7 @@ class t3lib_htmlmail {
 	 */
 	public function getBoundary() {
 		$this->part++;
-		return 	"----------".uniqid("part_".$this->part."_");
+		return "----------" . uniqid("part_" . $this->part . "_");
 	}
 
 
@@ -813,9 +809,9 @@ class t3lib_htmlmail {
 	 */
 	public function add_header($header) {
 			// Mail headers must be ASCII, therefore we convert the whole header to either base64 or quoted_printable
-		if (!$this->dontEncodeHeader && !stristr($header,'Content-Type') && !stristr($header,'Content-Transfer-Encoding')) {
+		if (!$this->dontEncodeHeader && !stristr($header, 'Content-Type') && !stristr($header, 'Content-Transfer-Encoding')) {
 				// Field tags must not be encoded
-			$parts = explode(': ',$header,2);
+			$parts = explode(': ', $header, 2);
 			if (count($parts) == 2) {
 				$enc = $this->alt_base64 ? 'base64' : 'quoted_printable';
 				$parts[1] = t3lib_div::encodeHeader($parts[1], $enc, $this->charset);
@@ -823,7 +819,7 @@ class t3lib_htmlmail {
 			}
 		}
 
-		$this->headers .= $header.LF;
+		$this->headers .= $header . LF;
 	}
 
 
@@ -834,7 +830,7 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function add_message($msg) {
-		$this->message .= $msg.LF;
+		$this->message .= $msg . LF;
 	}
 
 
@@ -861,12 +857,6 @@ class t3lib_htmlmail {
 	}
 
 
-
-
-
-
-
-
 	/****************************************************
 	 *
 	 * Functions for acquiring attachments, HTML, analyzing and so on  **
@@ -884,11 +874,11 @@ class t3lib_htmlmail {
 		$this->theParts['html']['content'] = $this->getURL($file);
 		if ($this->theParts['html']['content']) {
 			$addr = $this->extParseUrl($file);
- 			$path = ($addr['scheme']) ? $addr['scheme'].'://'.$addr['host'].(($addr['port'])?':'.$addr['port']:'').(($addr['filepath'])?$addr['filepath']:'/') : $addr['filepath'];
+			$path = ($addr['scheme']) ? $addr['scheme'] . '://' . $addr['host'] . (($addr['port']) ? ':' . $addr['port'] : '') . (($addr['filepath']) ? $addr['filepath'] : '/') : $addr['filepath'];
 			$this->theParts['html']['path'] = $path;
-			return true;
-		} else	{
-			return false;
+			return TRUE;
+		} else {
+			return FALSE;
 		}
 	}
 
@@ -899,13 +889,15 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function fetchHTMLMedia() {
-		if (!is_array($this->theParts['html']['media']) || !count($this->theParts['html']['media'])) return;
+		if (!is_array($this->theParts['html']['media']) || !count($this->theParts['html']['media'])) {
+			return;
+		}
 		foreach ($this->theParts['html']['media'] as $key => $media) {
 				// fetching the content and the mime-type
 			$picdata = $this->getExtendedURL($this->theParts['html']['media'][$key]['absRef']);
 			if (is_array($picdata)) {
 				$this->theParts['html']['media'][$key]['content'] = $picdata['content'];
-				$this->theParts['html']['media'][$key]['ctype']   = $picdata['content_type'];
+				$this->theParts['html']['media'][$key]['ctype'] = $picdata['content_type'];
 			}
 		}
 	}
@@ -918,7 +910,7 @@ class t3lib_htmlmail {
 	 */
 	public function extractMediaLinks() {
 		$html_code = $this->theParts['html']['content'];
-		$attribRegex = $this->tag_regex(array('img','table','td','tr','body','iframe','script','input','embed'));
+		$attribRegex = $this->tag_regex(array('img', 'table', 'td', 'tr', 'body', 'iframe', 'script', 'input', 'embed'));
 
 			// split the document by the beginning of the above tags
 		$codepieces = preg_split($attribRegex, $html_code);
@@ -926,24 +918,24 @@ class t3lib_htmlmail {
 		$pieces = count($codepieces);
 		$reg = array();
 		for ($i = 1; $i < $pieces; $i++) {
-			$tag = strtolower(strtok(substr($html_code,$len+1,10),' '));
-			$len += strlen($tag)+strlen($codepieces[$i])+2;
+			$tag = strtolower(strtok(substr($html_code, $len + 1, 10), ' '));
+			$len += strlen($tag) + strlen($codepieces[$i]) + 2;
 			$dummy = preg_match('/[^>]*/', $codepieces[$i], $reg);
-			$attributes = $this->get_tag_attributes($reg[0]);	// Fetches the attributes for the tag
+			$attributes = $this->get_tag_attributes($reg[0]); // Fetches the attributes for the tag
 			$imageData = array();
 
 				// Finds the src or background attribute
 			$imageData['ref'] = ($attributes['src'] ? $attributes['src'] : $attributes['background']);
 			if ($imageData['ref']) {
 					// find out if the value had quotes around it
-				$imageData['quotes'] = (substr($codepieces[$i], strpos($codepieces[$i], $imageData['ref'])-1,1) == '"') ? '"' : '';
+				$imageData['quotes'] = (substr($codepieces[$i], strpos($codepieces[$i], $imageData['ref']) - 1, 1) == '"') ? '"' : '';
 					// subst_str is the string to look for, when substituting lateron
-				$imageData['subst_str'] = $imageData['quotes'].$imageData['ref'].$imageData['quotes'];
-				if ($imageData['ref'] && !strstr($this->image_fullpath_list,"|".$imageData["subst_str"]."|")) {
-					$this->image_fullpath_list .= "|".$imageData['subst_str']."|";
+				$imageData['subst_str'] = $imageData['quotes'] . $imageData['ref'] . $imageData['quotes'];
+				if ($imageData['ref'] && !strstr($this->image_fullpath_list, "|" . $imageData["subst_str"] . "|")) {
+					$this->image_fullpath_list .= "|" . $imageData['subst_str'] . "|";
 					$imageData['absRef'] = $this->absRef($imageData['ref']);
 					$imageData['tag'] = $tag;
-					$imageData['use_jumpurl'] = $attributes['dmailerping']?1:0;
+					$imageData['use_jumpurl'] = $attributes['dmailerping'] ? 1 : 0;
 					$this->theParts['html']['media'][] = $imageData;
 				}
 			}
@@ -963,11 +955,11 @@ class t3lib_htmlmail {
 					// Finds the src or background attribute
 				$imageData['ref'] = $attributes['href'];
 					// Finds out if the value had quotes around it
-				$imageData['quotes'] = (substr($codepieces[$i],strpos($codepieces[$i], $imageData['ref'])-1,1) == '"') ? '"' : '';
+				$imageData['quotes'] = (substr($codepieces[$i], strpos($codepieces[$i], $imageData['ref']) - 1, 1) == '"') ? '"' : '';
 					// subst_str is the string to look for, when substituting lateron
-				$imageData['subst_str'] = $imageData['quotes'].$imageData['ref'].$imageData['quotes'];
-				if ($imageData['ref'] && !strstr($this->image_fullpath_list,"|".$imageData["subst_str"]."|")) {
-					$this->image_fullpath_list .= "|".$imageData["subst_str"]."|";
+				$imageData['subst_str'] = $imageData['quotes'] . $imageData['ref'] . $imageData['quotes'];
+				if ($imageData['ref'] && !strstr($this->image_fullpath_list, "|" . $imageData["subst_str"] . "|")) {
+					$this->image_fullpath_list .= "|" . $imageData["subst_str"] . "|";
 					$imageData['absRef'] = $this->absRef($imageData["ref"]);
 					$this->theParts['html']['media'][] = $imageData;
 				}
@@ -977,27 +969,27 @@ class t3lib_htmlmail {
 			// fixes javascript rollovers
 		$codepieces = explode('.src', $html_code);
 		$pieces = count($codepieces);
-		$expr = '/^[^'.quotemeta('"').quotemeta("'").']*/';
-		for($i = 1; $i < $pieces; $i++) {
+		$expr = '/^[^' . quotemeta('"') . quotemeta("'") . ']*/';
+		for ($i = 1; $i < $pieces; $i++) {
 			$temp = $codepieces[$i];
-			$temp = trim(str_replace('=','',trim($temp)));
-			preg_match($expr,substr($temp,1,strlen($temp)),$reg);
+			$temp = trim(str_replace('=', '', trim($temp)));
+			preg_match($expr, substr($temp, 1, strlen($temp)), $reg);
 			$imageData['ref'] = $reg[0];
-			$imageData['quotes'] = substr($temp,0,1);
+			$imageData['quotes'] = substr($temp, 0, 1);
 				// subst_str is the string to look for, when substituting lateron
-			$imageData['subst_str'] = $imageData['quotes'].$imageData['ref'].$imageData['quotes'];
+			$imageData['subst_str'] = $imageData['quotes'] . $imageData['ref'] . $imageData['quotes'];
 			$theInfo = $this->split_fileref($imageData['ref']);
 
 			switch ($theInfo['fileext']) {
 				case 'gif':
 				case 'jpeg':
 				case 'jpg':
-					if ($imageData['ref'] && !strstr($this->image_fullpath_list,"|".$imageData["subst_str"]."|")) {
-						$this->image_fullpath_list .= "|".$imageData['subst_str']."|";
+					if ($imageData['ref'] && !strstr($this->image_fullpath_list, "|" . $imageData["subst_str"] . "|")) {
+						$this->image_fullpath_list .= "|" . $imageData['subst_str'] . "|";
 						$imageData['absRef'] = $this->absRef($imageData['ref']);
 						$this->theParts['html']['media'][] = $imageData;
 					}
-				break;
+					break;
 			}
 		}
 	}
@@ -1010,12 +1002,12 @@ class t3lib_htmlmail {
 	 */
 	public function extractHyperLinks() {
 		$html_code = $this->theParts['html']['content'];
-		$attribRegex = $this->tag_regex(array('a','form','area'));
-		$codepieces = preg_split($attribRegex, $html_code);	// Splits the document by the beginning of the above tags
+		$attribRegex = $this->tag_regex(array('a', 'form', 'area'));
+		$codepieces = preg_split($attribRegex, $html_code); // Splits the document by the beginning of the above tags
 		$len = strlen($codepieces[0]);
 		$pieces = count($codepieces);
-		for($i = 1; $i < $pieces; $i++) {
-			$tag = strtolower(strtok(substr($html_code,$len+1,10)," "));
+		for ($i = 1; $i < $pieces; $i++) {
+			$tag = strtolower(strtok(substr($html_code, $len + 1, 10), " "));
 			$len += strlen($tag) + strlen($codepieces[$i]) + 2;
 
 			$dummy = preg_match('/[^>]*/', $codepieces[$i], $reg);
@@ -1025,11 +1017,11 @@ class t3lib_htmlmail {
 			$hrefData['ref'] = ($attributes['href'] ? $attributes['href'] : $hrefData['ref'] = $attributes['action']);
 			if ($hrefData['ref']) {
 					// Finds out if the value had quotes around it
-				$hrefData['quotes'] = (substr($codepieces[$i],strpos($codepieces[$i], $hrefData["ref"])-1,1) == '"') ? '"' : '';
+				$hrefData['quotes'] = (substr($codepieces[$i], strpos($codepieces[$i], $hrefData["ref"]) - 1, 1) == '"') ? '"' : '';
 					// subst_str is the string to look for, when substituting lateron
-				$hrefData['subst_str'] = $hrefData['quotes'].$hrefData['ref'].$hrefData['quotes'];
-				if ($hrefData['ref'] && substr(trim($hrefData['ref']),0,1) != "#" && !strstr($this->href_fullpath_list,"|".$hrefData['subst_str']."|")) {
-					$this->href_fullpath_list .= "|".$hrefData['subst_str']."|";
+				$hrefData['subst_str'] = $hrefData['quotes'] . $hrefData['ref'] . $hrefData['quotes'];
+				if ($hrefData['ref'] && substr(trim($hrefData['ref']), 0, 1) != "#" && !strstr($this->href_fullpath_list, "|" . $hrefData['subst_str'] . "|")) {
+					$this->href_fullpath_list .= "|" . $hrefData['subst_str'] . "|";
 					$hrefData['absRef'] = $this->absRef($hrefData['ref']);
 					$hrefData['tag'] = $tag;
 					$this->theParts['html']['hrefs'][] = $hrefData;
@@ -1039,15 +1031,15 @@ class t3lib_htmlmail {
 			// Extracts TYPO3 specific links made by the openPic() JS function
 		$codepieces = explode("onClick=\"openPic('", $html_code);
 		$pieces = count($codepieces);
-		for($i = 1; $i < $pieces; $i++) {
-			$showpic_linkArr = explode("'",$codepieces[$i]);
+		for ($i = 1; $i < $pieces; $i++) {
+			$showpic_linkArr = explode("'", $codepieces[$i]);
 			$hrefData['ref'] = $showpic_linkArr[0];
 			if ($hrefData['ref']) {
 				$hrefData['quotes'] = "'";
 					// subst_str is the string to look for, when substituting lateron
-				$hrefData['subst_str'] = $hrefData['quotes'].$hrefData['ref'].$hrefData['quotes'];
-				if ($hrefData['ref'] && !strstr($this->href_fullpath_list,"|".$hrefData['subst_str']."|")) {
-					$this->href_fullpath_list .= "|".$hrefData['subst_str']."|";
+				$hrefData['subst_str'] = $hrefData['quotes'] . $hrefData['ref'] . $hrefData['quotes'];
+				if ($hrefData['ref'] && !strstr($this->href_fullpath_list, "|" . $hrefData['subst_str'] . "|")) {
+					$this->href_fullpath_list .= "|" . $hrefData['subst_str'] . "|";
 					$hrefData['absRef'] = $this->absRef($hrefData['ref']);
 					$this->theParts['html']['hrefs'][] = $hrefData;
 				}
@@ -1064,12 +1056,12 @@ class t3lib_htmlmail {
 	public function extractFramesInfo() {
 		$htmlCode = $this->theParts['html']['content'];
 		$info = array();
-		if (strpos(' '.$htmlCode,'<frame ')) {
+		if (strpos(' ' . $htmlCode, '<frame ')) {
 			$attribRegex = $this->tag_regex('frame');
 				// Splits the document by the beginning of the above tags
 			$codepieces = preg_split($attribRegex, $htmlCode, 1000000);
 			$pieces = count($codepieces);
-			for($i = 1; $i < $pieces; $i++) {
+			for ($i = 1; $i < $pieces; $i++) {
 				$dummy = preg_match('/[^>]*/', $codepieces[$i], $reg);
 					// Fetches the attributes for the tag
 				$attributes = $this->get_tag_attributes($reg[0]);
@@ -1094,9 +1086,9 @@ class t3lib_htmlmail {
 		if (is_array($this->theParts['html']['media'])) {
 			foreach ($this->theParts['html']['media'] as $key => $val) {
 				if ($val['use_jumpurl'] && $this->jumperURL_prefix) {
-					$subst = $this->jumperURL_prefix.t3lib_div::rawUrlEncodeFP($val['absRef']);
+					$subst = $this->jumperURL_prefix . t3lib_div::rawUrlEncodeFP($val['absRef']);
 				} else {
-					$subst = ($absolute) ? $val['absRef'] : 'cid:part'.$key.'.'.$this->messageid;
+					$subst = ($absolute) ? $val['absRef'] : 'cid:part' . $key . '.' . $this->messageid;
 				}
 				$this->theParts['html']['content'] = str_replace(
 					$val['subst_str'],
@@ -1116,14 +1108,16 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function substHREFsInHTML() {
-		if (!is_array($this->theParts['html']['hrefs'])) return;
+		if (!is_array($this->theParts['html']['hrefs'])) {
+			return;
+		}
 		foreach ($this->theParts['html']['hrefs'] as $key => $val) {
 				// Form elements cannot use jumpurl!
 			if ($this->jumperURL_prefix && $val['tag'] != 'form') {
 				if ($this->jumperURL_useId) {
-					$substVal = $this->jumperURL_prefix.$key;
+					$substVal = $this->jumperURL_prefix . $key;
 				} else {
-					$substVal = $this->jumperURL_prefix.t3lib_div::rawUrlEncodeFP($val['absRef']);
+					$substVal = $this->jumperURL_prefix . t3lib_div::rawUrlEncodeFP($val['absRef']);
 				}
 			} else {
 				$substVal = $val['absRef'];
@@ -1143,32 +1137,34 @@ class t3lib_htmlmail {
 	 * @return	string		the changed content
 	 */
 	public function substHTTPurlsInPlainText($content) {
-		if (!$this->jumperURL_prefix) return $content;
+		if (!$this->jumperURL_prefix) {
+			return $content;
+		}
 
 		$textpieces = explode("http://", $content);
 		$pieces = count($textpieces);
 		$textstr = $textpieces[0];
-		for($i = 1; $i<$pieces; $i++) {
-			$len = strcspn($textpieces[$i],chr(32).TAB.CRLF);
-			if (trim(substr($textstr,-1)) == '' && $len) {
-				$lastChar = substr($textpieces[$i],$len-1,1);
-				if (!preg_match('/[A-Za-z0-9\/#]/',$lastChar)) {
+		for ($i = 1; $i < $pieces; $i++) {
+			$len = strcspn($textpieces[$i], chr(32) . TAB . CRLF);
+			if (trim(substr($textstr, -1)) == '' && $len) {
+				$lastChar = substr($textpieces[$i], $len - 1, 1);
+				if (!preg_match('/[A-Za-z0-9\/#]/', $lastChar)) {
 					$len--;
 				}
 
 				$parts = array();
-				$parts[0] = "http://".substr($textpieces[$i],0,$len);
-				$parts[1] = substr($textpieces[$i],$len);
+				$parts[0] = "http://" . substr($textpieces[$i], 0, $len);
+				$parts[1] = substr($textpieces[$i], $len);
 
 				if ($this->jumperURL_useId) {
 					$this->theParts['plain']['link_ids'][$i] = $parts[0];
-					$parts[0] = $this->jumperURL_prefix.'-'.$i;
+					$parts[0] = $this->jumperURL_prefix . '-' . $i;
 				} else {
-					$parts[0] = $this->jumperURL_prefix.t3lib_div::rawUrlEncodeFP($parts[0]);
+					$parts[0] = $this->jumperURL_prefix . t3lib_div::rawUrlEncodeFP($parts[0]);
 				}
-				$textstr .= $parts[0].$parts[1];
+				$textstr .= $parts[0] . $parts[1];
 			} else {
-				$textstr .= 'http://'.$textpieces[$i];
+				$textstr .= 'http://' . $textpieces[$i];
 			}
 		}
 		return $textstr;
@@ -1185,36 +1181,32 @@ class t3lib_htmlmail {
 	 */
 	public function fixRollOvers() {
 		$newContent = '';
-		$items = explode('.src',$this->theParts['html']['content']);
-		if (count($items) <= 1)	return;
+		$items = explode('.src', $this->theParts['html']['content']);
+		if (count($items) <= 1) {
+			return;
+		}
 
-		foreach($items as $key => $part) {
+		foreach ($items as $key => $part) {
 			$sub = substr($part, 0, 200);
-			if (preg_match('/cid:part[^ "\']*/',$sub,$reg)) {
+			if (preg_match('/cid:part[^ "\']*/', $sub, $reg)) {
 					// The position of the string
-				$thePos = strpos($part,$reg[0]);
+				$thePos = strpos($part, $reg[0]);
 					// Finds the id of the media...
-				preg_match('/cid:part([^\.]*).*/',$sub,$reg2);
+				preg_match('/cid:part([^\.]*).*/', $sub, $reg2);
 				$theSubStr = $this->theParts['html']['media'][intval($reg2[1])]['absRef'];
 				if ($thePos && $theSubStr) {
-					// ... and substitutes the javaScript rollover image with this instead
-					// If the path is NOT and url, the reference is set to nothing
-					if (!strpos(' '.$theSubStr, 'http://')) {
+						// ... and substitutes the javaScript rollover image with this instead
+						// If the path is NOT and url, the reference is set to nothing
+					if (!strpos(' ' . $theSubStr, 'http://')) {
 						$theSubStr = 'http://';
 					}
-					$part = substr($part, 0, $thePos) . $theSubStr . substr($part,$thePos+strlen($reg[0]),strlen($part));
+					$part = substr($part, 0, $thePos) . $theSubStr . substr($part, $thePos + strlen($reg[0]), strlen($part));
 				}
 			}
-			$newContent .= $part . ((($key+1) != count($items)) ? '.src' : '');
+			$newContent .= $part . ((($key + 1) != count($items)) ? '.src' : '');
 		}
 		$this->theParts['html']['content'] = $newContent;
 	}
-
-
-
-
-
-
 
 
 	/*******************************************
@@ -1243,13 +1235,15 @@ class t3lib_htmlmail {
 	public function getExtendedURL($url) {
 		$res = array();
 		$res['content'] = $this->getURL($url);
-		if (!$res['content']) return false;
+		if (!$res['content']) {
+			return FALSE;
+		}
 		$pathInfo = parse_url($url);
 		$fileInfo = $this->split_fileref($pathInfo['path']);
 		switch ($fileInfo['fileext']) {
 			case 'gif':
 			case 'png':
-				$res['content_type'] = 'image/'.$fileInfo['fileext'];
+				$res['content_type'] = 'image/' . $fileInfo['fileext'];
 				break;
 			case 'jpg':
 			case 'jpeg':
@@ -1283,7 +1277,7 @@ class t3lib_htmlmail {
 		$pass = $this->http_password;
 		$matches = array();
 		if ($user && $pass && preg_match('/^(https?:\/\/)/', $url, $matches)) {
-			return $matches[1].$user.':'.$pass.'@'.substr($url,strlen($matches[1]));
+			return $matches[1] . $user . ':' . $pass . '@' . substr($url, strlen($matches[1]));
 		}
 		return $url;
 	}
@@ -1354,11 +1348,11 @@ class t3lib_htmlmail {
 		$info = parse_url($ref);
 		if ($info['scheme']) {
 			return $ref;
-		} elseif (preg_match('/^\//',$ref)) {
+		} elseif (preg_match('/^\//', $ref)) {
 			$addr = parse_url($this->theParts['html']['path']);
-			return  $addr['scheme'].'://'.$addr['host'].($addr['port']?':'.$addr['port']:'').$ref;
+			return $addr['scheme'] . '://' . $addr['host'] . ($addr['port'] ? ':' . $addr['port'] : '') . $ref;
 		} else {
-			// If the reference is relative, the path is added, in order for us to fetch the content
+				// If the reference is relative, the path is added, in order for us to fetch the content
 			return $this->theParts['html']['path'] . $ref;
 		}
 	}
@@ -1375,7 +1369,7 @@ class t3lib_htmlmail {
 		if (preg_match('/(.*\/)(.*)$/', $fileref, $reg)) {
 			$info['path'] = $reg[1];
 			$info['file'] = $reg[2];
-		} else	{
+		} else {
 			$info['path'] = '';
 			$info['file'] = $fileref;
 		}
@@ -1384,7 +1378,7 @@ class t3lib_htmlmail {
 			$info['filebody'] = $reg[1];
 			$info['fileext'] = strtolower($reg[2]);
 			$info['realFileext'] = $reg[2];
-		} else	{
+		} else {
 			$info['filebody'] = $info['file'];
 			$info['fileext'] = '';
 		}
@@ -1417,7 +1411,7 @@ class t3lib_htmlmail {
 		$tags = (!is_array($tags) ? array($tags) : $tags);
 		$regexp = '/';
 		$c = count($tags);
-		foreach($tags as $tag) {
+		foreach ($tags as $tag) {
 			$c--;
 			$regexp .= '<' . $tag . '[[:space:]]' . (($c) ? '|' : '');
 		}
@@ -1430,12 +1424,12 @@ class t3lib_htmlmail {
 	 * If an attribute is empty (like OPTION) the value of that key is just empty. Check it with is_set();
 	 *
 	 * @param	string		$tag: is either like this "<TAG OPTION ATTRIB=VALUE>" or
-	 * 				this " OPTION ATTRIB=VALUE>" which means you can omit the tag-name
+	 *				 this " OPTION ATTRIB=VALUE>" which means you can omit the tag-name
 	 * @return	array		array with attributes as keys in lower-case
 	 */
 	public function get_tag_attributes($tag) {
 		$attributes = array();
-		$tag = ltrim(preg_replace('/^<[^ ]*/','',trim($tag)));
+		$tag = ltrim(preg_replace('/^<[^ ]*/', '', trim($tag)));
 		$tagLen = strlen($tag);
 		$safetyCounter = 100;
 			// Find attribute
@@ -1444,27 +1438,29 @@ class t3lib_htmlmail {
 			$reg = preg_split('/[[:space:]=>]/', $tag, 2);
 			$attrib = $reg[0];
 
-			$tag = ltrim(substr($tag,strlen($attrib),$tagLen));
-			if (substr($tag,0,1) == '=') {
-				$tag = ltrim(substr($tag,1,$tagLen));
-				if (substr($tag,0,1) == '"') {
+			$tag = ltrim(substr($tag, strlen($attrib), $tagLen));
+			if (substr($tag, 0, 1) == '=') {
+				$tag = ltrim(substr($tag, 1, $tagLen));
+				if (substr($tag, 0, 1) == '"') {
 						// Quotes around the value
-					$reg = explode('"',substr($tag,1,$tagLen),2);
+					$reg = explode('"', substr($tag, 1, $tagLen), 2);
 					$tag = ltrim($reg[1]);
 					$value = $reg[0];
 				} else {
 						// No quotes around value
-					preg_match('/^([^[:space:]>]*)(.*)/',$tag,$reg);
+					preg_match('/^([^[:space:]>]*)(.*)/', $tag, $reg);
 					$value = trim($reg[1]);
 					$tag = ltrim($reg[2]);
-					if (substr($tag,0,1) == '>') {
+					if (substr($tag, 0, 1) == '>') {
 						$tag = '';
 					}
 				}
 			}
 			$attributes[strtolower($attrib)] = $value;
 			$safetyCounter--;
-			if ($safetyCounter < 0) break;
+			if ($safetyCounter < 0) {
+				break;
+			}
 		}
 		return $attributes;
 	}
@@ -1477,7 +1473,7 @@ class t3lib_htmlmail {
 	 *
 	 * @param	string		Content to encode
 	 * @return	string		The QP encoded string
-	 * @deprecated since TYPO3 4.0, will be removed in TYPO3 4.6 
+	 * @deprecated since TYPO3 4.0, will be removed in TYPO3 4.6
 	 */
 	public function quoted_printable($string) {
 		t3lib_div::logDeprecatedFunction();
@@ -1492,7 +1488,7 @@ class t3lib_htmlmail {
 	 *
 	 * @param	string		$name: the name
 	 * @return	string		the name
-	 * @deprecated since TYPO3 4.0, will be removed in TYPO3 4.6 
+	 * @deprecated since TYPO3 4.0, will be removed in TYPO3 4.6
 	 */
 	public function convertName($name) {
 		t3lib_div::logDeprecatedFunction();
@@ -1501,8 +1497,8 @@ class t3lib_htmlmail {
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_htmlmail.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_htmlmail.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_htmlmail.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['t3lib/class.t3lib_htmlmail.php']);
 }
 
 ?>

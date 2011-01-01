@@ -68,8 +68,8 @@ class tx_rsaauth_split_storage extends tx_rsaauth_abstract_storage {
 			$GLOBALS['TYPO3_DB']->exec_DELETEquery('tx_rsaauth_keys',
 						'crdate<' . ($GLOBALS['EXEC_TIME'] - 30 * 60));
 
-			// Get our value
-			list($row) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('key_value',
+				// Get our value
+			$row = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('key_value',
 				'tx_rsaauth_keys', 'uid=' . $keyId);
 			if (is_array($row)) {
 				$result = $keyPart1 . $row['key_value'];
@@ -130,8 +130,8 @@ class tx_rsaauth_split_storage extends tx_rsaauth_abstract_storage {
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rsaauth/sv1/storage/class.tx_rsaauth_split_storage.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rsaauth/sv1/storage/class.tx_rsaauth_split_storage.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/rsaauth/sv1/storage/class.tx_rsaauth_split_storage.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/rsaauth/sv1/storage/class.tx_rsaauth_split_storage.php']);
 }
 
 ?>

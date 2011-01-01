@@ -61,6 +61,7 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 		$this->doc = t3lib_div::makeInstance('template');
 		$this->doc->setModuleTemplate(t3lib_extMgm::extPath('recycler') . 'mod1/mod_template.html');
 		$this->doc->backPath = $GLOBALS['BACK_PATH'];
+		$this->doc->setExtDirectStateProvider();
 
 		$this->pageRenderer = $this->doc->getPageRenderer();
 
@@ -112,13 +113,16 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 	 * @return	void
 	 */
 	public function flush() {
-		$content = $this->doc->startPage($GLOBALS['LANG']->getLL('title'));
-		$content.= $this->doc->moduleBody(
+		$content = $this->doc->moduleBody(
 			$this->pageRecord,
 			$this->getDocHeaderButtons(),
 			$this->getTemplateMarkers()
 		);
-		$content.= $this->doc->endPage();
+			// Renders the module page
+		$content = $this->doc->render(
+			$GLOBALS['LANG']->getLL('title'),
+			$content
+		);
 
 		$this->content = null;
 		$this->doc = null;
@@ -186,6 +190,7 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 			'deleteDisable' => $this->allowDelete ? 0 : 1,
 			'depthSelection' => $this->getDataFromSession('depthSelection', 0),
 			'tableSelection' => $this->getDataFromSession('tableSelection', 'pages'),
+			'States' => $GLOBALS['BE_USER']->uc['moduleData']['web_recycler']['States'],
 		);
 		return $configuration;
 	}
@@ -325,8 +330,8 @@ class  tx_recycler_module1 extends t3lib_SCbase {
 
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/recycler/mod1/index.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/recycler/mod1/index.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/recycler/mod1/index.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/recycler/mod1/index.php']);
 }
 
 

@@ -129,11 +129,10 @@ class SC_mod_user_setup_index {
 
 	/**
 	 * If settings are submitted to _POST[DATA], store them
-	 * NOTICE: This method is called before the template.php is included. See buttom of document
-	 *
-	 * @return	void
+	 * NOTICE: This method is called before the template.php is included. See
+	 * bottom of document.
 	 */
-	function storeIncomingData()	{
+	public function storeIncomingData() {
 		/* @var $BE_USER t3lib_beUserAuth */
 		global $BE_USER;
 
@@ -144,8 +143,14 @@ class SC_mod_user_setup_index {
 		$storeRec = array();
 		$fieldList = $this->getFieldsFromShowItem();
 
-		if (is_array($d))	{
-
+		$formProtection = t3lib_formProtection_Factory::get(
+			't3lib_formprotection_BackendFormProtection'
+		);
+		if (is_array($d) && $formProtection->validateToken(
+				(string) t3lib_div::_POST('formToken'),
+				'BE user setup', 'edit'
+			)
+		) {
 				// UC hashed before applying changes
 			$save_before = md5(serialize($BE_USER->uc));
 
@@ -428,18 +433,21 @@ class SC_mod_user_setup_index {
 
 		$this->content .= $this->doc->spacer(20) . $this->doc->getDynTabMenu($menuItems, 'user-setup', FALSE, FALSE, 0, 1, FALSE, 1, $this->dividers2tabs);
 
+		$formProtection = t3lib_formProtection_Factory::get(
+			't3lib_formprotection_BackendFormProtection'
+		);
+		$formToken = $formProtection->generateToken('BE user setup', 'edit');
 
 			// Submit and reset buttons
 		$this->content .= $this->doc->spacer(20);
 		$this->content .= $this->doc->section('',
 			t3lib_BEfunc::cshItem('_MOD_user_setup', 'reset', $BACK_PATH) . '
 			<input type="hidden" name="simUser" value="'.$this->simUser.'" />
+			<input type="hidden" name="formToken" value="' . $formToken . '" />
 			<input type="submit" name="data[save]" value="'.$LANG->getLL('save').'" />
 			<input type="submit" name="data[setValuesToDefault]" value="'.$LANG->getLL('resetConfiguration').'" onclick="return confirm(\''.$LANG->getLL('setToStandardQuestion').'\');" />
 			<input type="submit" name="data[clearSessionVars]" value="' . $LANG->getLL('clearSessionVars') . '"  onclick="return confirm(\'' . $LANG->getLL('clearSessionVarsQuestion') . '\');" />'
 		);
-
-
 
 			// Notice
 		$this->content .= $this->doc->spacer(30);
@@ -450,6 +458,8 @@ class SC_mod_user_setup_index {
 			t3lib_FlashMessage::INFO
 		);
 		$this->content .= $flashMessage->render();
+			// end of wrapper div
+		$this->content .= '</div>';
 
 			// Setting up the buttons and markers for docheader
 		$docHeaderButtons = $this->getButtons();
@@ -457,12 +467,12 @@ class SC_mod_user_setup_index {
 		$markers['CONTENT'] = $this->content;
 
 			// Build the <body> for the module
-		$this->content = $this->doc->startPage($LANG->getLL('UserSettings'));
-		$this->content.= $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
-			// end of wrapper div
-		$this->content .= '</div>';
-		$this->content.= $this->doc->endPage();
-		$this->content = $this->doc->insertStylesAndJS($this->content);
+		$this->content = $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
+			// Renders the module page
+		$this->content = $this->doc->render(
+			$LANG->getLL('UserSettings'),
+			$this->content
+		);
 
 	}
 
@@ -924,12 +934,18 @@ class SC_mod_user_setup_index {
 	 * @return	string		HTML output.
 	 */
 	protected function getCSH($str, $label) {
-		if (!t3lib_div::inList('language,simuser', $str)) {
-			$str = 'option_' . $str;
-		}
-		return t3lib_BEfunc::wrapInHelp('_MOD_user_setup', $str, $label);
+		$context = '_MOD_user_setup';
+		$field = $str;
+		$strParts = explode(':', $str);
+		if (count($strParts) > 1) {
+				// Setting comes from another extension
+			$context = $strParts[0];
+			$field = $strParts[1];
+		} else if (!t3lib_div::inList('language,simuser', $str)) {
+			$field = 'option_' . $str;
+ 		}
+		return t3lib_BEfunc::wrapInHelp($context, $field, $label);
 	}
-
 	/**
 	 * Returns array with fields defined in $GLOBALS['TYPO3_USER_SETTINGS']['showitem']
 	 *
@@ -950,8 +966,8 @@ class SC_mod_user_setup_index {
 }
 
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/setup/mod/index.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/setup/mod/index.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/setup/mod/index.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/setup/mod/index.php']);
 }
 
 
@@ -969,4 +985,6 @@ $SOBE->init();
 $SOBE->main();
 $SOBE->printContent();
 
+t3lib_formProtection_Factory::get('t3lib_formprotection_BackendFormProtection')
+	->persistTokens();
 ?>

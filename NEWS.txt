@@ -3,6 +3,16 @@ CHANGES & IMPROVEMENTS between TYPO3 4.4 and 4.5
 (for technical details see ChangeLog)
 ************************************************************************
 
+Changes in 4.5 pre-releases
+===========================
+
+	* All additions to alpha3 and beta1 have been documented here:
+	  http://forge.typo3.org/projects/typo3v45-projects/wiki/TYPO3_450alpha3
+	  http://forge.typo3.org/projects/typo3v45-projects/wiki/TYPO3_450beta1
+
+	This information will be merged in this NEWS.txt below before the
+	final release.
+
 General
 =======
 
@@ -22,13 +32,16 @@ General
 	  it in the media element as URL. Currently supported platforms:
 	  youtube, dailymotion, sevenload, vimeo, clipfish, google,
 	  metacafe, myvideo, liveleak and veoh.
-
+	* A improved version of misc/advanced.htaccess provides more accurate
+	  and up-to-date information and is a real working sample on how to setup
+	  your Apache to server TYPO3 pages. This setup is now also used in the
+	  introduction package as-is.
 
 
 Backend
 =======
 
-	* The frameset was removed. This makes the Backend a lot faster. 
+	* The frameset was removed. This makes the Backend a lot faster.
           Now the navigation tree also can be resized. The new backend works
           using the ExtJS viewport, providing an easy and unified interface
           to manipulate the content of the different panels.
@@ -65,6 +78,9 @@ Backend
 	  checkbox (#13797). In User-TS, you can set:
 	  options.enableShowPalettes=0 to see this feature in action.
 	  Default is still "1" like it used to be.
+	* The cron syntax interpreter of the Scheduler was entirely refactored.
+	  It now supports the full range of cron syntax features as can be found
+	  in Unix manual pages.
 
 
 Frontend
@@ -129,6 +145,12 @@ Development
 	  having no console like the IE
 	* ExtDirect is available in the frontend now (#15754):
 	  http://wiki.typo3.org/ExtDirect
+	* t3lib_div now provides two functions setSingletonInstance and addInstance
+	  that will set the objects to be returned by makeInstance. (#16267)
+	  This will allow unit tests to inject mocks into makeInstance.
+	  In addition, there now is a function purgeInstances that makes
+	  makeInstance return fresh instances (singleton as well as non-singleton).
+
 
 TypoScript
 ==========
@@ -199,6 +221,16 @@ Workspaces
 	  task runs. Note that automatic "un-publication" still does not
 	  work. Replaces non-working CLI script
 	  "typo3/mod/user/ws/cli/ws_cli.phpsh".
+	* The workspaces module was completely rewritten and is now based on
+	  ExtJS. The usability is enhanced by displaying the information in a
+	  nice grid view. Besides that each workspace can now have a customized
+	  set of stages which are child records of a workspace record.
+	  Make sure to run the upgrade wizard which migrates the hardcoded draft
+	  workspace to a real workspace and sets up the new stages.
+	* Inline Relational Record Editing (IRRE) can now also be used for 1:n
+	  relations in workspaces.
+	* In order to support custom stages properly it's recommended to change
+	   the type of all t3ver_stage fields from tinyint(4) to int(11).
 
 
 Backend skin

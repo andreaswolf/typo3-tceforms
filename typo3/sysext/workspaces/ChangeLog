@@ -1,0 +1,178 @@
+2010-12-28  Steffen Kamper  <steffen@typo3.org>
+
+	* Follow-up to #11635: Removed remaining event listener
+
+2010-12-26  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Fixed issue #11722: TempFlashMessageQueueViewHelper is not required anymore
+	* Fixed bug #11718: ExtJS confirmation window contents might be "cached"
+
+2010-12-25  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Fixed bug #11473: Send to stage window may be too large
+	* Fixed bug #11608: Missing space in Mass Release Confirmation
+	* Fixed bug #11635: Remove "Preview of workspace ..." box when in workspace preview module
+	* Fixed bug #11657: singleView should not have depth and mass-action combos
+	* Fixed bug #11600: [All] tab in ws-module should not have action-buttons
+
+2010-12-22  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Fixed bug #11568: Remove "Enable comparison view" switch
+	* Fixed bug #11479: Label of publish action is confusing
+
+2010-12-22  Steffen Gebert <steffen@steffen-gebert.de>
+
+	* Added feature #10642: Design of workspace preview/comparison view (Thanks to Lars Zimmermann)
+
+2010-12-21  Sonja Scholz <ss@cabag.ch>
+
+	* Fixed bug #11480: Add warning when choosing mass actions
+
+2010-12-21  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Followup-to #9819: Workspace preview window - browser compatibility fixed
+
+2010-12-20  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Fixed bug #10693: Save and view command previews wrong page record
+	* Fixed bug #11532: Generate Workspace Preview Link not working
+	* Fixed bug #11605: Do you really want to swap?? - one question mark is enough
+	* Fixed bug #11531 Check if email is set before trying to send an email
+	* Fixed bug #11141: switching with the tabs in the workspace module should also switch to the related workspace
+
+2010-12-19  Marco Bresch <marco.bresch@starfinanz.de>
+
+	* Fixed bug #11142: The 'All' tab throws Exception 'No such workspace defined'
+
+2010-12-19  Sonja Scholz <ss@cabag.ch>
+
+	* Cleanup: #11153: Determine whether Tx_Workspaces_Service_Stages::encodeStageUid and resolveStageUid are required
+
+2010-12-19  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Followup-to #9819: Workspace preview window - "live" and "workspace" buttons are clickable now
+
+2010-12-18  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Fixed bug #11318: workspaces task miss title
+
+2010-12-17  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Followup-to #9819: Workspace preview window - empty preview.css included in order to support the skin team
+
+2010-12-14  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Fixed bug #9819: Workspace preview window
+
+2010-12-05  Steffen Gebert  <steffen@steffen-gebert.de>
+
+	* Fixed bug #11290: PHP notices from XCLASS inclusions
+
+2010-12-01  Oliver Hader  <oliver@typo3.org>
+
+	* Raised version to 4.5.0beta2b
+
+2010-12-01  Steffen Ritter  <typo3@steffen-ritter.net>
+
+	* Follow-Up #11131: Usability: labels improvements, change the label as a new one is introduced
+
+2010-12-01  Oliver Hader  <oliver@typo3.org>
+
+	* Raised version to 4.5.0beta2a
+
+2010-12-01  Steffen Gebert  <steffen@steffen-gebert.de>
+
+	* Fixed bug #11193: Remove calls to disable compression and merging of CSS/JS
+
+2010-12-01  Oliver Hader  <oliver@typo3.org>
+
+	* Cleanup: Fixed ext_emconf.php
+	* Raised version to 4.5.0beta2
+
+2010-11-30  Steffen Ritter  <typo3@steffen-ritter.net>
+
+	* Fixed bug #11143: Editing workspaces record shows PHP warning
+	* Fixed bug #10291: change action icons
+	* Fixed bug #7050: Remove UID from WSP Dropdown
+	* Fixed bug #11152 Calls about this-> in static context in workspaces-lib
+	* Cleanup: Added several small changes from the Skin-Team at the xTemplate
+
+2010-11-30  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Fixed bug #11138: preview links in page- and list-module point to mod.php instead of typo3/mod.php
+
+2010-11-30  Oliver Hader  <oliver@tpyo3.org>
+
+	* Fixed bug #11124: Stages should use suggest wizard for persons
+	* Cleanup: Fixed PHPdoc comments and exception timestamp
+	* Fixed bug #11115: ExtDirect exception sendToNextStageWindow: StageId is supposed to be an integer
+	* Fixed task #11161: Simplify outputting errors from PHP to the grid component
+	* Fixed bug #11144: Records that belong to a particular workspace shall be removed when the workspace is removed
+
+2010-11-29  Sonja Scholz <ss@cabag.ch>
+
+	* Fixed bug: #11131: Usability: labels improvements
+
+2010-11-29  Tolleiv Nietsch <typo3@tolleiv.de>
+
+	* Fixed bug: #11006: Error when using old-style workspace
+	* Fixed bug: #10831: New preview window shows wrong behavior for new page in LIVE WS
+
+2010-11-28  Sonja Scholz  <ss@cabag.ch>
+
+	* Fixed bug: #11116: Add some CSS classes for detailView
+
+2010-11-22  Oliver Hader  <oliver@tpyo3.org>
+
+	* Cleanup: Fixed PHPdoc comments
+	* Fixed bug #11033: DB error in query after publish to Live action
+
+2010-11-17  Tolleiv Nietsch <info@tolleiv.de>
+
+	* Fixed bug: #10916 workspace preview module raises error in conjunction with the newest extbase version
+
+2010-11-17  Oliver Hader  <oliver@tpyo3.org>
+
+	* Raised version to 4.5.0beta1a
+
+2010-11-17  Tolleiv Nietsch <info@tolleiv.de>
+
+	* Fixed bug: #10896 php-warnings after merge into Core - missing argument
+	* Fixed bug: #10895 php-warnings after merge into Core - array_merge on non-array
+
+2010-11-17  Steffen Ritter  <info@rs-websystems.de>
+
+	* Fixed bug #10894: Workspaces Extbase Controller has to be adapted according to breaking changes in Extbase 1.3.beta1
+
+2010-11-17  Oliver Hader  <oliver@tpyo3.org>
+
+	* Cleanup: Fixed ext_emconf.php
+	* Raised version to 4.5.0beta1
+
+2010-11-16  Tolleiv Nietsch <info@tolleiv.de>
+
+	* Fixed bug: #10778 Consider http://bugs.typo3.org/view.php?id=9508 when implementing preview link in new module
+	* Fixed bug: #10819 viewOnClick causes error if frontendpreview is disabled
+	* Fixed issue: #10817 DAU WS-Module warning
+
+2010-11-12  Oliver Hader  <oliver@tpyo3.org>
+
+	* Fixed bug: Typing error and superfluous labels in locallang file
+	* Fixed bug: Missing fields in SQL definition reviewers, stagechg_notification
+	* Cleanup: Defined svn:eol-style property
+	* Cleanup: Fixed formatting and configuration in the ExtJS part (thanks to Steffen Kamper)
+	* Cleanup: Added language label for swap workspace column (thanks to Steffen Kamper)
+	* Cleanup: Defined fixed width of ExtJS components (thanks to Steffen Kamper)
+	* Cleanup: Remover superfluous quotes (thanks to Steffen Kamper)
+	* Cleanup: Fixed undefined variables and added PHPdoc comments
+
+2010-11-11  Oliver Hader  <oliver@tpyo3.org>
+
+	* Cleanup: Added PHPdoc comments and some formatting changes
+	* Cleanup: Fixed formatting issues
+	* Cleanup: Fixed copyright notices
+	* Cleanup: Fixed ext_emconf.php
+
+2010-11-11  Workspaces Team  http://forge.typo3.org/projects/show/typo3v4-workspaces
+
+	* Imported workspaces system extension from GitHub repository after commit f1cd6371d96faa8a8d35

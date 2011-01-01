@@ -1,29 +1,29 @@
 <?php
 /***************************************************************
-*  Copyright notice
-*
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
-*  All rights reserved
-*
-*  This script is part of the Typo3 project. The Typo3 project is
-*  free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  The GNU General Public License can be found at
-*  http://www.gnu.org/copyleft/gpl.html.
-*  A copy is found in the textfile GPL.txt and important notices to the license
-*  from the author is found in LICENSE.txt distributed with these scripts.
-*
-*
-*  This script is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  This copyright notice MUST APPEAR in all copies of the script!
-***************************************************************/
+ *  Copyright notice
+ *
+ *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  All rights reserved
+ *
+ *  This script is part of the Typo3 project. The Typo3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
 /**
  * Parent class for "Services" classes
  *
@@ -39,57 +39,54 @@
  *
  *  125: class t3lib_svbase
  *
- *              SECTION: Get service meta information
- *  191:     function getServiceInfo()
- *  201:     function getServiceKey()
- *  211:     function getServiceTitle()
- *  224:     function getServiceOption($optionName, $defaultValue='', $includeDefaultConfig=TRUE)
+ *			  SECTION: Get service meta information
+ *  191:	 function getServiceInfo()
+ *  201:	 function getServiceKey()
+ *  211:	 function getServiceTitle()
+ *  224:	 function getServiceOption($optionName, $defaultValue='', $includeDefaultConfig=TRUE)
  *
- *              SECTION: Error handling
- *  259:     function devLog($msg, $severity=0, $dataVar=FALSE)
- *  273:     function errorPush($errNum=T3_ERR_SV_GENERAL, $errMsg='Unspecified error occured')
- *  288:     function errorPull()
- *  300:     function getLastError()
- *  315:     function getLastErrorMsg()
- *  330:     function getErrorMsgArray()
- *  348:     function getLastErrorArray()
- *  357:     function resetErrors()
+ *			  SECTION: Error handling
+ *  259:	 function devLog($msg, $severity=0, $dataVar=FALSE)
+ *  273:	 function errorPush($errNum=T3_ERR_SV_GENERAL, $errMsg='Unspecified error occured')
+ *  288:	 function errorPull()
+ *  300:	 function getLastError()
+ *  315:	 function getLastErrorMsg()
+ *  330:	 function getErrorMsgArray()
+ *  348:	 function getLastErrorArray()
+ *  357:	 function resetErrors()
  *
- *              SECTION: General service functions
- *  377:     function checkExec($progList)
- *  401:     function deactivateService()
+ *			  SECTION: General service functions
+ *  377:	 function checkExec($progList)
+ *  401:	 function deactivateService()
  *
- *              SECTION: IO tools
- *  427:     function checkInputFile ($absFile)
- *  448:     function readFile ($absFile, $length=0)
- *  473:     function writeFile ($content, $absFile='')
- *  499:     function tempFile ($filePrefix)
- *  517:     function registerTempFile ($absFile)
- *  527:     function unlinkTempFiles ()
+ *			  SECTION: IO tools
+ *  427:	 function checkInputFile ($absFile)
+ *  448:	 function readFile ($absFile, $length=0)
+ *  473:	 function writeFile ($content, $absFile='')
+ *  499:	 function tempFile ($filePrefix)
+ *  517:	 function registerTempFile ($absFile)
+ *  527:	 function unlinkTempFiles ()
  *
- *              SECTION: IO input
- *  549:     function setInput ($content, $type='')
- *  563:     function setInputFile ($absFile, $type='')
- *  576:     function getInput ()
- *  591:     function getInputFile ($createFile='')
+ *			  SECTION: IO input
+ *  549:	 function setInput ($content, $type='')
+ *  563:	 function setInputFile ($absFile, $type='')
+ *  576:	 function getInput ()
+ *  591:	 function getInputFile ($createFile='')
  *
- *              SECTION: IO output
- *  616:     function setOutputFile ($absFile)
- *  626:     function getOutput ()
- *  640:     function getOutputFile ($absFile='')
+ *			  SECTION: IO output
+ *  616:	 function setOutputFile ($absFile)
+ *  626:	 function getOutput ()
+ *  640:	 function getOutputFile ($absFile='')
  *
- *              SECTION: Service implementation
- *  664:     function init()
- *  688:     function reset()
- *  703:     function __destruct()
+ *			  SECTION: Service implementation
+ *  664:	 function init()
+ *  688:	 function reset()
+ *  703:	 function __destruct()
  *
  * TOTAL FUNCTIONS: 30
  * (This index is automatically created/updated by the extension "extdeveval")
  *
  */
-
-
-
 
 
 define ('T3_ERR_SV_GENERAL', -1); // General error - something went wrong
@@ -108,12 +105,6 @@ define ('T3_ERR_SV_PROG_FAILED', -41); // passed subtype is not possible with th
 // define ('T3_ERR_SV_serviceType_myerr, -100); // All errors with prefix T3_ERR_SV_[serviceType]_ and lower than -99 are service type dependent error
 
 
-
-
-
-
-
-
 /**
  * Parent class for "Services" classes
  *
@@ -124,44 +115,43 @@ define ('T3_ERR_SV_PROG_FAILED', -41); // passed subtype is not possible with th
 abstract class t3lib_svbase {
 
 	/**
-	 * service description array
+	 * @var array service description array
 	 */
-	var $info=array();
+	var $info = array();
 
 	/**
-	 * error stack
+	 * @var array error stack
 	 */
-	var $error=array();
+	var $error = array();
 
 	/**
-	 * Defines if debug messages should be written with t3lib_div::devLog
+	 * @var bool Defines if debug messages should be written with t3lib_div::devLog
 	 */
-	var $writeDevLog = false;
+	var $writeDevLog = FALSE;
 
 
 	/**
-	 * The output content.
-	 * That's what the services produced as result.
+	 * @var string The output content. That's what the services produced as result.
 	 */
 	var $out = '';
 
 	/**
-	 * The file that should be processed.
+	 * @var string The file that should be processed.
 	 */
 	var $inputFile = '';
 
 	/**
-	 * The content that should be processed.
+	 * @var string The content that should be processed.
 	 */
 	var $inputContent = '';
 
 	/**
-	 * The type of the input content (or file). Might be the same as the service subtypes.
+	 * @var string The type of the input content (or file). Might be the same as the service subtypes.
 	 */
 	var $inputType = '';
 
 	/**
-	 * The file where the output should be written to.
+	 * @var string The file where the output should be written to.
 	 */
 	var $outputFile = '';
 
@@ -173,7 +163,8 @@ abstract class t3lib_svbase {
 	 */
 	var $tempFiles = array();
 
-
+	/** @var string Prefix for temporary files */
+	protected $prefixId = '';
 
 	/***************************************
 	 *
@@ -216,26 +207,25 @@ abstract class t3lib_svbase {
 	 * Returns service configuration values from the $TYPO3_CONF_VARS['SVCONF'] array
 	 *
 	 * @param	string		Name of the config option
-	 * @param	boolean		If set the 'default' config will be return if no special config for this service is available (default: true)
-	 * @param	[type]		$includeDefaultConfig: ...
+	 * @param	mixed		Default configuration if no special config is available
+	 * @param	bool		If set the 'default' config will be returned if no special config for this service is available (default: true)
 	 * @return	mixed		configuration value for the service
 	 */
-	function getServiceOption($optionName, $defaultValue='', $includeDefaultConfig=TRUE) {
+	function getServiceOption($optionName, $defaultValue = '', $includeDefaultConfig = TRUE) {
 		$config = NULL;
 
 		$svOptions = $GLOBALS['TYPO3_CONF_VARS']['SVCONF'][$this->info['serviceType']];
 
-		if(isset($svOptions[$this->info['serviceKey']][$optionName])) {
+		if (isset($svOptions[$this->info['serviceKey']][$optionName])) {
 			$config = $svOptions[$this->info['serviceKey']][$optionName];
-		} elseif($includeDefaultConfig AND isset($svOptions['default'][$optionName])) {
+		} elseif ($includeDefaultConfig && isset($svOptions['default'][$optionName])) {
 			$config = $svOptions['default'][$optionName];
 		}
-		if(!isset($config)) {
+		if (!isset($config)) {
 			$config = $defaultValue;
 		}
 		return $config;
 	}
-
 
 
 	/***************************************
@@ -250,11 +240,11 @@ abstract class t3lib_svbase {
 	 *
 	 * @param	string		Debug message
 	 * @param	integer		Severity: 0 is info, 1 is notice, 2 is warning, 3 is fatal error, -1 is "OK" message
-	 * @param	array		Additional data you want to pass to the logger.
+	 * @param	array|bool	Additional data you want to pass to the logger.
 	 * @return	void
 	 */
-	function devLog($msg, $severity=0, $dataVar=FALSE) {
-		if($this->writeDevLog) {
+	function devLog($msg, $severity = 0, $dataVar = FALSE) {
+		if ($this->writeDevLog) {
 			t3lib_div::devLog($msg, $this->info['serviceKey'], $severity, $dataVar);
 		}
 	}
@@ -263,15 +253,15 @@ abstract class t3lib_svbase {
 	/**
 	 * Puts an error on the error stack. Calling without parameter adds a general error.
 	 *
+	 * @param	integer		error number (see T3_ERR_SV_* constants)
 	 * @param	string		error message
-	 * @param	string		error number (see T3_ERR_SV_* constants)
 	 * @return	void
 	 */
-	function errorPush($errNum=T3_ERR_SV_GENERAL, $errMsg='Unspecified error occured') {
-		array_push($this->error, array('nr'=>$errNum, 'msg'=>$errMsg));
+	function errorPush($errNum = T3_ERR_SV_GENERAL, $errMsg = 'Unspecified error occured') {
+		array_push($this->error, array('nr' => $errNum, 'msg' => $errMsg));
 
 		if (is_object($GLOBALS['TT'])) {
-			$GLOBALS['TT']->setTSlogMessage($errMsg,2);
+			$GLOBALS['TT']->setTSlogMessage($errMsg, 2);
 		}
 
 	}
@@ -292,15 +282,15 @@ abstract class t3lib_svbase {
 	/**
 	 * Returns the last error number from the error stack.
 	 *
-	 * @return	string		error number
+	 * @return	int|bool		error number (or TRUE if no error)
 	 */
 	function getLastError() {
-		if(count($this->error)) {
+		$lastError = TRUE; // means all is ok - no error
+		if (count($this->error)) {
 			$error = end($this->error);
-			return $error['nr'];
-		} else {
-			return TRUE; // means all is ok - no error
+			$lastError = $error['nr'];
 		}
+		return $lastError;
 	}
 
 
@@ -310,12 +300,12 @@ abstract class t3lib_svbase {
 	 * @return	string		error message
 	 */
 	function getLastErrorMsg() {
-		if(count($this->error)) {
+		$lastErrorMessage = '';
+		if (count($this->error)) {
 			$error = end($this->error);
-			return $error['msg'];
-		} else {
-			return '';
+			$lastErrorMessage = $error['msg'];
 		}
+		return $lastErrorMessage;
 	}
 
 
@@ -327,9 +317,8 @@ abstract class t3lib_svbase {
 	function getErrorMsgArray() {
 		$errArr = array();
 
-		if(count($this->error)) {
-			reset($this->error);
-			foreach($this->error as $error) {
+		if (count($this->error)) {
+			foreach ($this->error as $error) {
 				$errArr[] = $error['msg'];
 			}
 		}
@@ -352,9 +341,8 @@ abstract class t3lib_svbase {
 	 * @return	void
 	 */
 	function resetErrors() {
-		$this->error=array();
+		$this->error = array();
 	}
-
 
 
 	/***************************************
@@ -362,7 +350,6 @@ abstract class t3lib_svbase {
 	 *	 General service functions
 	 *
 	 ***************************************/
-
 
 
 	/**
@@ -375,10 +362,10 @@ abstract class t3lib_svbase {
 		$ret = TRUE;
 
 		$progList = t3lib_div::trimExplode(',', $progList, 1);
-		foreach($progList as $prog) {
+		foreach ($progList as $prog) {
 			if (!t3lib_exec::checkCommand($prog)) {
 					// program not found
-				$this->errorPush('External program not found: '.$prog, T3_ERR_SV_PROG_NOT_FOUND);
+				$this->errorPush(T3_ERR_SV_PROG_NOT_FOUND, 'External program not found: ' . $prog);
 				$ret = FALSE;
 			}
 		}
@@ -396,13 +383,6 @@ abstract class t3lib_svbase {
 	}
 
 
-
-
-
-
-
-
-
 	/***************************************
 	 *
 	 *	 IO tools
@@ -410,24 +390,24 @@ abstract class t3lib_svbase {
 	 ***************************************/
 
 
-
 	/**
 	 * Check if a file exists and is readable.
 	 *
 	 * @param	string		File name with absolute path.
-	 * @return	string		File name or FALSE.
+	 * @return	string|bool	File name or FALSE.
 	 */
-	function checkInputFile ($absFile)	{
-		if(t3lib_div::isAllowedAbsPath($absFile) && @is_file($absFile)) {
-			if(@is_readable($absFile)) {
-				return $absFile;
+	function checkInputFile($absFile) {
+		$checkResult = FALSE;
+		if (t3lib_div::isAllowedAbsPath($absFile) && @is_file($absFile)) {
+			if (@is_readable($absFile)) {
+				$checkResult = $absFile;
 			} else {
-				$this->errorPush(T3_ERR_SV_FILE_READ, 'File is not readable: '.$absFile);
+				$this->errorPush(T3_ERR_SV_FILE_READ, 'File is not readable: ' . $absFile);
 			}
 		} else {
-			$this->errorPush(T3_ERR_SV_FILE_NOT_FOUND, 'File not found: '.$absFile);
+			$this->errorPush(T3_ERR_SV_FILE_NOT_FOUND, 'File not found: ' . $absFile);
 		}
-		return FALSE;
+		return $checkResult;
 	}
 
 
@@ -436,15 +416,15 @@ abstract class t3lib_svbase {
 	 *
 	 * @param	string		File name to read from.
 	 * @param	integer		Maximum length to read. If empty the whole file will be read.
-	 * @return	string		$content or FALSE
+	 * @return	string|bool	$content or FALSE
 	 */
-	function readFile ($absFile, $length=0)	{
+	function readFile($absFile, $length = 0) {
 		$out = FALSE;
 
 		if ($this->checkInputFile($absFile)) {
 			$out = file_get_contents($absFile);
-			if ($out===FALSE)	{
-				$this->errorPush(T3_ERR_SV_FILE_READ, 'Can not read from file: '.$absFile);
+			if ($out === FALSE) {
+				$this->errorPush(T3_ERR_SV_FILE_READ, 'Can not read from file: ' . $absFile);
 			}
 		}
 		return $out;
@@ -456,21 +436,19 @@ abstract class t3lib_svbase {
 	 *
 	 * @param	string		Content to write to the file
 	 * @param	string		File name to write into. If empty a temp file will be created.
-	 * @return	string		File name or FALSE
+	 * @return	string|bool	File name or FALSE
 	 */
-	function writeFile ($content, $absFile='')	{
-		$ret = TRUE;
-
+	function writeFile($content, $absFile = '') {
 		if (!$absFile) {
 			$absFile = $this->tempFile($this->prefixId);
 		}
 
-		if($absFile && t3lib_div::isAllowedAbsPath($absFile)) {
-			if ($fd = @fopen($absFile,'wb')) {
+		if ($absFile && t3lib_div::isAllowedAbsPath($absFile)) {
+			if ($fd = @fopen($absFile, 'wb')) {
 				@fwrite($fd, $content);
 				@fclose($fd);
 			} else {
-				$this->errorPush(T3_ERR_SV_FILE_WRITE, 'Can not write to file: '.$absFile);
+				$this->errorPush(T3_ERR_SV_FILE_WRITE, 'Can not write to file: ' . $absFile);
 				$absFile = FALSE;
 			}
 		}
@@ -482,18 +460,18 @@ abstract class t3lib_svbase {
 	 * Create a temporary file.
 	 *
 	 * @param	string		File prefix.
-	 * @return	string		File name or FALSE
+	 * @return	string|bool	File name or FALSE
 	 */
-	function tempFile ($filePrefix)	{
+	function tempFile($filePrefix) {
 		$absFile = t3lib_div::tempnam($filePrefix);
-		if($absFile) {
-			$ret = TRUE;
-			$this->registerTempFile ($absFile);
+		if ($absFile) {
+			$ret = $absFile;
+			$this->registerTempFile($absFile);
 		} else {
 			$ret = FALSE;
 			$this->errorPush(T3_ERR_SV_FILE_WRITE, 'Can not create temp file.');
 		}
-		return ($ret ? $absFile : FALSE);
+		return $ret;
 	}
 
 	/**
@@ -502,7 +480,7 @@ abstract class t3lib_svbase {
 	 * @param	string		File name with absolute path.
 	 * @return	void
 	 */
-	function registerTempFile ($absFile)	{
+	function registerTempFile($absFile) {
 		$this->tempFiles[] = $absFile;
 	}
 
@@ -512,7 +490,7 @@ abstract class t3lib_svbase {
 	 * @param	string		File name with absolute path.
 	 * @return	void
 	 */
-	function unlinkTempFiles ()	{
+	function unlinkTempFiles() {
 		foreach ($this->tempFiles as $absFile) {
 			t3lib_div::unlink_tempfile($absFile);
 		}
@@ -534,7 +512,7 @@ abstract class t3lib_svbase {
 	 * @param	string		The type of the input content (or file). Might be the same as the service subtypes.
 	 * @return	void
 	 */
-	function setInput ($content, $type='') {
+	function setInput($content, $type = '') {
 		$this->inputContent = $content;
 		$this->inputFile = '';
 		$this->inputType = $type;
@@ -548,7 +526,7 @@ abstract class t3lib_svbase {
 	 * @param	string		The type of the input content (or file). Might be the same as the service subtypes.
 	 * @return	void
 	 */
-	function setInputFile ($absFile, $type='') {
+	function setInputFile($absFile, $type = '') {
 		$this->inputContent = '';
 		$this->inputFile = $absFile;
 		$this->inputType = $type;
@@ -561,8 +539,8 @@ abstract class t3lib_svbase {
 	 *
 	 * @return	mixed
 	 */
-	function getInput () {
-		if ($this->inputContent=='') {
+	function getInput() {
+		if ($this->inputContent == '') {
 			$this->inputContent = $this->readFile($this->inputFile);
 		}
 		return $this->inputContent;
@@ -576,16 +554,14 @@ abstract class t3lib_svbase {
 	 * @param	string		File name. If empty a temp file will be created.
 	 * @return	string		File name or FALSE if no input or file error.
 	 */
-	function getInputFile ($createFile='') {
-		if($this->inputFile) {
+	function getInputFile($createFile = '') {
+		if ($this->inputFile) {
 			$this->inputFile = $this->checkInputFile($this->inputFile);
 		} elseif ($this->inputContent) {
 			$this->inputFile = $this->writeFile($this->inputContent, $createFile);
 		}
 		return $this->inputFile;
 	}
-
-
 
 
 	/***************************************
@@ -601,7 +577,7 @@ abstract class t3lib_svbase {
 	 * @param	string		file name
 	 * @return	void
 	 */
-	function setOutputFile ($absFile) {
+	function setOutputFile($absFile) {
 		$this->outputFile = $absFile;
 	}
 
@@ -611,7 +587,7 @@ abstract class t3lib_svbase {
 	 *
 	 * @return	mixed
 	 */
-	function getOutput () {
+	function getOutput() {
 		if ($this->outputFile) {
 			$this->out = $this->readFile($this->outputFile);
 		}
@@ -625,14 +601,12 @@ abstract class t3lib_svbase {
 	 * @param	string		Absolute filename to write to
 	 * @return	mixed
 	 */
-	function getOutputFile ($absFile='') {
+	function getOutputFile($absFile = '') {
 		if (!$this->outputFile) {
 			$this->outputFile = $this->writeFile($this->out, $absFile);
 		}
 		return $this->outputFile;
 	}
-
-
 
 
 	/***************************************
@@ -649,10 +623,11 @@ abstract class t3lib_svbase {
 	 *
 	 * @return	boolean		TRUE if the service is available
 	 */
-	function init()	{
-		// do not work :-(  but will not hurt
+	function init() {
+			// do not work :-(  but will not hurt
+			// use it as inspiration for a service based on this class
 		register_shutdown_function(array(&$this, '__destruct'));
-		// look in makeInstanceService()
+			// look in makeInstanceService()
 
 		$this->reset();
 
@@ -663,7 +638,7 @@ abstract class t3lib_svbase {
 			}
 		}
 
-		return ($this->getLastError() === true);
+		return ($this->getLastError() === TRUE);
 	}
 
 
@@ -673,7 +648,7 @@ abstract class t3lib_svbase {
 	 *
 	 * @return	void
 	 */
-	function reset()	{
+	function reset() {
 		$this->unlinkTempFiles();
 		$this->resetErrors();
 		$this->out = '';
@@ -685,6 +660,7 @@ abstract class t3lib_svbase {
 
 	/**
 	 * Clean up the service.
+	 * Child classes should explicitly call parent::__destruct() in their destructors for this to work
 	 *
 	 * @return	void
 	 */
@@ -692,19 +668,7 @@ abstract class t3lib_svbase {
 		$this->unlinkTempFiles();
 	}
 
-
-	/* every service type has it's own API
-	function process($content='', $type='', $conf=array())	{	//
-	}
-	*/
-
 }
 
-/**
- // Does not make sense, because this class is always extended by the service classes..
-if (defined("TYPO3_MODE") && $TYPO3_CONF_VARS[TYPO3_MODE]["XCLASS"]["t3lib/class.t3lib_svbase.php"])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]["XCLASS"]["t3lib/class.t3lib_svbase.php"]);
-}
-*/
-
+// XCLASS handling does not make sense, because this class is always extended by the service classes..
 ?>

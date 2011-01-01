@@ -352,18 +352,19 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 			$RTEHeight = isset($BE_USER->userTS['options.']['RTESmallHeight']) ? $BE_USER->userTS['options.']['RTESmallHeight'] : '380';
 			$RTEWidth  = $RTEWidth + ($this->TCEform->docLarge ? (isset($BE_USER->userTS['options.']['RTELargeWidthIncrement']) ? $BE_USER->userTS['options.']['RTELargeWidthIncrement'] : '150') : 0);
 			$RTEWidth -= ($inline->getStructureDepth() > 0 ? ($inline->getStructureDepth()+1)*$inline->getLevelMargin() : 0);
-			if (isset($this->thisConfig['RTEWidthOverride'])) {
-				if (strstr($this->thisConfig['RTEWidthOverride'], '%')) {
+			$RTEWidthOverride = (is_object($GLOBALS['BE_USER']) && isset($GLOBALS['BE_USER']->uc['rteWidth']) && trim($GLOBALS['BE_USER']->uc['rteWidth'])) ? trim($GLOBALS['BE_USER']->uc['rteWidth']) : trim($this->thisConfig['RTEWidthOverride']);
+			if ($RTEWidthOverride) {
+				if (strstr($RTEWidthOverride, '%')) {
 					if ($this->client['browser'] != 'msie') {
-						$RTEWidth = (intval($this->thisConfig['RTEWidthOverride']) > 0) ? $this->thisConfig['RTEWidthOverride'] : '100%';
+						$RTEWidth = (intval($RTEWidthOverride) > 0) ? $RTEWidthOverride : '100%';
 					}
 				} else {
-					$RTEWidth = (intval($this->thisConfig['RTEWidthOverride']) > 0) ? intval($this->thisConfig['RTEWidthOverride']) : $RTEWidth;
+					$RTEWidth = (intval($RTEWidthOverride) > 0) ? intval($RTEWidthOverride) : $RTEWidth;
 				}
 			}
 			$RTEWidth = strstr($RTEWidth, '%') ? $RTEWidth :  $RTEWidth . 'px';
 			$RTEHeight = $RTEHeight + ($this->TCEform->docLarge ?  (isset($BE_USER->userTS['options.']['RTELargeHeightIncrement']) ? $BE_USER->userTS['options.']['RTELargeHeightIncrement'] : 0) : 0);
-			$RTEHeightOverride = intval($this->thisConfig['RTEHeightOverride']);
+			$RTEHeightOverride = (is_object($GLOBALS['BE_USER']) && isset($GLOBALS['BE_USER']->uc['rteHeight']) && intval($GLOBALS['BE_USER']->uc['rteHeight'])) ? intval($GLOBALS['BE_USER']->uc['rteHeight']) : intval($this->thisConfig['RTEHeightOverride']);
 			$RTEHeight = ($RTEHeightOverride > 0) ? $RTEHeightOverride : $RTEHeight;
 			$editorWrapWidth = '99%';
 			$editorWrapHeight = '100%';
@@ -589,8 +590,8 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 			bar, left, center, right, justifyfull,
 			bar, orderedlist, unorderedlist, definitionlist, definitionitem, outdent, indent,  bar, lefttoright, righttoleft, language, showlanguagemarks,
 			bar, textcolor, bgcolor, textindicator,
-			bar, emoticon, insertcharacter, link, unlink, image, table,' . (($this->thisConfig['hideTableOperationsInToolbar'] && is_array($this->thisConfig['buttons.']) && is_array($this->thisConfig['buttons.']['toggleborders.']) && $this->thisConfig['buttons.']['toggleborders.']['keepInToolbar']) ? ' toggleborders,': '') . ' user, acronym, bar, findreplace, spellcheck,
-			bar, chMode, inserttag, removeformat, bar, copy, cut, paste, pasteastext, bar, undo, redo, bar, showhelp, about, linebreak,
+			bar, editelement, emoticon, insertcharacter, link, unlink, image, table,' . (($this->thisConfig['hideTableOperationsInToolbar'] && is_array($this->thisConfig['buttons.']) && is_array($this->thisConfig['buttons.']['toggleborders.']) && $this->thisConfig['buttons.']['toggleborders.']['keepInToolbar']) ? ' toggleborders,': '') . ' user, acronym, bar, findreplace, spellcheck,
+			bar, chMode, inserttag, removeformat, bar, copy, cut, paste, pastetoggle, pastebehaviour, bar, undo, redo, bar, showhelp, about, linebreak,
 			' . ($this->thisConfig['hideTableOperationsInToolbar'] ? '': 'bar, toggleborders,') . ' bar, tableproperties, tablerestyle, bar, rowproperties, rowinsertabove, rowinsertunder, rowdelete, rowsplit, bar,
 			columnproperties, columninsertbefore, columninsertafter, columndelete, columnsplit, bar,
 			cellproperties, cellinsertbefore, cellinsertafter, celldelete, cellsplit, cellmerge';
@@ -825,8 +826,10 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 			RTEarea[editornumber].deleted = false;
 			RTEarea[editornumber].textAreaId = "' . $textAreaId . '";
 			RTEarea[editornumber].id = "RTEarea" + editornumber;
-			RTEarea[editornumber].RTEWidthOverride = "' . trim($this->thisConfig['RTEWidthOverride']) . '";
-			RTEarea[editornumber].RTEHeightOverride = "' . trim($this->thisConfig['RTEHeightOverride']) . '";
+			RTEarea[editornumber].RTEWidthOverride = "' . ((is_object($GLOBALS['BE_USER']) && isset($GLOBALS['BE_USER']->uc['rteWidth']) && trim($GLOBALS['BE_USER']->uc['rteWidth'])) ? trim($GLOBALS['BE_USER']->uc['rteWidth']) : trim($this->thisConfig['RTEWidthOverride'])) . '";
+			RTEarea[editornumber].RTEHeightOverride = "' . ((is_object($GLOBALS['BE_USER']) && isset($GLOBALS['BE_USER']->uc['rteHeight']) && intval($GLOBALS['BE_USER']->uc['rteHeight'])) ? intval($GLOBALS['BE_USER']->uc['rteHeight']) : intval($this->thisConfig['RTEHeightOverride'])) . '";
+			RTEarea[editornumber].resizable = ' . ((is_object($GLOBALS['BE_USER']) && isset($GLOBALS['BE_USER']->uc['rteResize']) && $GLOBALS['BE_USER']->uc['rteResize']) ? 'true' : (trim($this->thisConfig['rteResize']) ? 'true' : 'false')) . ';
+			RTEarea[editornumber].maxHeight = "' . ((is_object($GLOBALS['BE_USER']) && isset($GLOBALS['BE_USER']->uc['rteMaxHeight']) && intval($GLOBALS['BE_USER']->uc['rteMaxHeight'])) ? trim($GLOBALS['BE_USER']->uc['rteMaxHeight']) : (intval($this->thisConfig['rteMaxHeight']) ? intval($this->thisConfig['rteMaxHeight']) : '2000')) . '";
 			RTEarea[editornumber].fullScreen = ' . ($this->fullScreen ? 'true' : 'false') . ';
 			RTEarea[editornumber].showStatusBar = ' . (trim($this->thisConfig['showStatusBar'])?'true':'false') . ';
 			RTEarea[editornumber].enableWordClean = ' . (trim($this->thisConfig['enableWordClean'])?'true':'false') . ';
@@ -877,10 +880,8 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 		if (is_array($this->thisConfig['buttons.'])) {
 			foreach ($this->thisConfig['buttons.'] as $buttonIndex => $conf) {
 				$button = substr($buttonIndex, 0, -1);
-				if (in_array($button,$this->toolbar)) {
 					$configureRTEInJavascriptString .= '
 			RTEarea[editornumber].buttons.'.$button.' = ' . $this->buildNestedJSArray($conf) . ';';
-				}
 			}
 		}
 
@@ -1485,7 +1486,7 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 				";
 	}
 }
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/class.tx_rtehtmlarea_base.php'])	{
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/class.tx_rtehtmlarea_base.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/class.tx_rtehtmlarea_base.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/rtehtmlarea/class.tx_rtehtmlarea_base.php']);
 }
 ?>
