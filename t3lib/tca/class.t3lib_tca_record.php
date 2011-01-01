@@ -205,7 +205,7 @@ class t3lib_TCA_Record {
 
 				// Get data for diff:
 			if ($this->dataStructure->getControlValue('transOrigDiffSourceField')) {
-				$this->defaultLanguageData_diff = unserialize($this->getValue($this->dataStructure->getControlValue('transOrigDiffSourceField'));
+				$this->defaultLanguageData_diff = unserialize($this->getValue($this->dataStructure->getControlValue('transOrigDiffSourceField')));
 			}
 
 				// If there are additional preview languages, load information for them also:
