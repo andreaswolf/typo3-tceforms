@@ -236,7 +236,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	 * @param	array		The palette pointer.
 	 * @param	integer		The record array
 	 */
-	public function wrapOpenPalette($header, $retFunc)	{
+	public function wrapOpenPalette($header, $retFunc) {
 		$res = '<a href="#" onclick="TBE_EDITOR.toggle_display_states(\''.$this->getHtmlId().'\',\'block\',\'none\'); return false;" >'.$header.'</a>';
 		return array($res,'');
 	}
@@ -255,15 +255,19 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	 *
 	 * @return	boolean
 	 */
-	public function isCollapsed()	{
+	public function isCollapsed() {
 		$tableDataStructure = $this->recordObject->getDataStructure();
 
-		if ($this->displayed)
-			return 0;
-		if ($tableTCAdefinition['ctrl']['canNotCollapse'])
-			return 0;
-		if (is_array($tableTCAdefinition['palettes'][$this->paletteNumber]) && $tableTCAdefinition['palettes'][$this->paletteNumber]['canNotCollapse'])
-			return 0;
+		if ($this->displayed) {
+			return FALSE;
+		}
+		if ($tableDataStructure->getControlValue('canNotCollapse') == TRUE) {
+			return FALSE;
+		}
+		// TODO implement this setting in t3lib_TCA_DataStructure_Palette
+		if (is_array($tableTCAdefinition['palettes'][$this->paletteNumber]) && $tableTCAdefinition['palettes'][$this->paletteNumber]['canNotCollapse']) {
+			return FALSE;
+		}
 
 		return $this->contextObject->getPalettesCollapsed();
 	}
