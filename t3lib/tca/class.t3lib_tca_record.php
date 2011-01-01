@@ -226,28 +226,30 @@ class t3lib_TCA_Record {
 	 *
 	 * return array	Array of additional languages to preview
 	 */
-	public function getAdditionalPreviewLanguages()	{
-		if (!isset($this->cachedAdditionalPreviewLanguages)) 	{
+	public function getAdditionalPreviewLanguages() {
+		static $cachedAdditionalPreviewLanguages;
+
+		if (!isset($cachedAdditionalPreviewLanguages)) {
 			if ($GLOBALS['BE_USER']->getTSConfigVal('options.additionalPreviewLanguages'))	{
 				$uids = t3lib_div::intExplode(',',$GLOBALS['BE_USER']->getTSConfigVal('options.additionalPreviewLanguages'));
 				foreach($uids as $uid)	{
 					if ($sys_language_rec = t3lib_BEfunc::getRecord('sys_language',$uid))	{
-						$this->cachedAdditionalPreviewLanguages[$uid] = array('uid' => $uid);
+						$cachedAdditionalPreviewLanguages[$uid] = array('uid' => $uid);
 
 						if ($sys_language_rec['static_lang_isocode'] && t3lib_extMgm::isLoaded('static_info_tables'))	{
 							$staticLangRow = t3lib_BEfunc::getRecord('static_languages',$sys_language_rec['static_lang_isocode'],'lg_iso_2');
 							if ($staticLangRow['lg_iso_2']) {
-								$this->cachedAdditionalPreviewLanguages[$uid]['uid'] = $uid;
-								$this->cachedAdditionalPreviewLanguages[$uid]['ISOcode'] = $staticLangRow['lg_iso_2'];
+								$cachedAdditionalPreviewLanguages[$uid]['uid'] = $uid;
+								$cachedAdditionalPreviewLanguages[$uid]['ISOcode'] = $staticLangRow['lg_iso_2'];
 							}
 						}
 					}
 				}
 			} else {
 					// None:
-				$this->cachedAdditionalPreviewLanguages = array();
+				$cachedAdditionalPreviewLanguages = array();
 			}
 		}
-		return $this->cachedAdditionalPreviewLanguages;
+		return $cachedAdditionalPreviewLanguages;
 	}
 }
