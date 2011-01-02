@@ -227,8 +227,108 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 		$this->formFieldIdPrefix = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'id');
 	}
 
+	/**
+	 * Returns the label and a special label for new records or the wrapped uid for existing records
+	 *
+	 * @return array the record label and the "new" label
+	 */
+	protected function getLabels() {
+		if (strstr($this->getValue('uid'), 'NEW')) {
+			#t3lib_BEfunc::fixVersioningPid($this->table,$this->record);	// Kasper: Should not be used here because NEW records are not offline workspace versions...
+
+			$truePid = t3lib_BEfunc::getTSconfig_pidValue($this->getTable(), $this->getValue('uid'), $this->getValue('pid'));
+			$prec = t3lib_BEfunc::getRecordWSOL('pages', $truePid, 'title');
+			$pageTitle = t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE);
+			$rLabel = '<em>[PID: ' . $truePid . '] ' . $pageTitle . '</em>';
+
+		        // Fetch translated title of the table
+			$tableTitle = $GLOBALS['LANG']->sL($this->getDataStructure()->getControlValue('title'));
+			if ($this->getTable() === 'pages') {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.createNewPage', TRUE);
+				$pageTitle = sprintf($label, $tableTitle);
+			} else {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.createNewRecord', TRUE);
+
+				if ($this->getValue('pid') == 0) {
+					$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.createNewRecordRootLevel', TRUE);
+				}
+				$pageTitle = sprintf($label, $tableTitle, $pageTitle);
+			}
+
+			$recordLabels = array(
+				'###ID_NEW_INDICATOR###' => ' <span class="typo3-TCEforms-newToken">'.
+				  $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.new', 1).
+				  '</span>',
+				'###PAGE_TITLE###' => $pageTitle,
+				'###RECORD_LABEL###' => $rLabel
+			);
+		} else {
+			$newLabel = ' <span class="typo3-TCEforms-recUid">[' . $this->getValue('uid') . ']</span>';
+			$rLabel   = t3lib_BEfunc::getRecordTitle($this->getTable(), $this->getRecordData(), TRUE, FALSE);
+			$prec = t3lib_BEfunc::getRecordWSOL('pages', $this->getValue('pid'), 'title');
+
+				// Fetch translated title of the table
+			$tableTitle = $GLOBALS['LANG']->sL($this->getDataStructure()->getControlValue('title'));
+			if ($this->getTable() === 'pages') {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editPage', TRUE);
+
+					// Just take the record title and prepend an edit label.
+				$pageTitle = sprintf($label, $tableTitle, $rLabel);
+			} else {
+				$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editRecord', TRUE);
+
+				$pageTitle = t3lib_BEfunc::getRecordTitle('pages', $prec, TRUE, FALSE);
+				if ($rLabel === t3lib_BEfunc::getNoRecordTitle(TRUE)) {
+					$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editRecordNoTitle', TRUE);
+				}
+				if ($this->getValue('pid') == 0) {
+					$label = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.editRecordRootLevel', TRUE);
+				}
+
+				if ($rLabel !== t3lib_BEfunc::getNoRecordTitle(TRUE)) {
+
+						// Just take the record title and preped an edit label.
+					$pageTitle = sprintf($label, $tableTitle, $rLabel, $pageTitle);
+				} else {
+
+						// Leave out the record title since it is not set.
+					$pageTitle = sprintf($label, $tableTitle, $pageTitle);
+				}
+			}
+
+			$recordLabels = array(
+				'###ID_NEW_INDICATOR###' => $newLabel,
+				'###PAGE_TITLE###' => $pageTitle,
+				'###RECORD_LABEL###' => $rLabel
+			);
+		}
+		return $recordLabels;
+	}
+
 
 	public function render() {
+		global $TCA;
+
+		$wrap = t3lib_parsehtml::getSubpart($this->contextObject->getTemplateContent(), '###TOTALWRAP###');
+		if ($wrap == '') {
+			throw new RuntimeException('No template wrap for record found.');
+		}
+
+		$recordLabels = $this->getLabels();
+		$recordContent = $this->getSheetContents();
+
+		$markerArray = t3lib_div::array_merge($recordLabels, array(
+			'###TABLE_TITLE###' => htmlspecialchars($GLOBALS['LANG']->sL($TCA[$this->getTable()]['ctrl']['title'])),
+			'###RECORD_ICON###' => t3lib_iconWorks::getSpriteIconForRecord($this->getTable(), $this->getRecordData(), array('title' => $this->getPath())),
+			'###WRAP_CONTENT###' => $recordContent
+		));
+
+		$content = t3lib_parsehtml::substituteMarkerArray($wrap, $markerArray);
+
+		return $content;
+	}
+
+	protected function getSheetContents() {
 		$tabContents = array();
 
 		$c = 0;
