@@ -491,20 +491,22 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 	 */
 	public function getLanguageIcon($sys_language_uid) {
 		global $TCA, $LANG;
+		static $cachedLanguageFlag = array();
 
 		$mainKey = $this->table.':'.$this->recordData['uid'];
 
-		if (!isset($this->cachedLanguageFlag[$mainKey])) {
+		if (!isset($cachedLanguageFlag[$mainKey])) {
 			t3lib_BEfunc::fixVersioningPid($this->table, $this->recordData);
 			list($tscPID,$thePidValue) = $this->getTSCpid($this->table, $this->recordData['uid'], $this->recordData['pid']);
 
+			/** @var $t8Tools t3lib_transl8tools */
 			$t8Tools = t3lib_div::makeInstance('t3lib_transl8tools');
-			$this->cachedLanguageFlag[$mainKey] = $t8Tools->getSystemLanguages($tscPID, $this->backPath);
+			$cachedLanguageFlag[$mainKey] = $t8Tools->getSystemLanguages($tscPID, $this->backPath);
 		}
 
 			// Convert sys_language_uid to sys_language_uid if input was in fact a string (ISO code expected then)
 		if (!t3lib_div::testInt($sys_language_uid)) {
-			foreach($this->cachedLanguageFlag[$mainKey] as $rUid => $cD) {
+			foreach($cachedLanguageFlag[$mainKey] as $rUid => $cD) {
 				if ('v' . $cD['ISOcode'] === $sys_language_uid) {
 					$sys_language_uid = $rUid;
 				}
@@ -512,11 +514,11 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 		}
 
 		$out = '';
-		if ($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon']) {
-			$out .= t3lib_iconWorks::getSpriteIcon($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon']);
+		if ($cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon']) {
+			$out .= t3lib_iconWorks::getSpriteIcon($cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon']);
 			$out .= '&nbsp;';
-	   } else if ($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['title']) {
-			$out .= '[' . $this->cachedLanguageFlag[$mainKey][$sys_language_uid]['title'] . ']';
+	   } else if ($cachedLanguageFlag[$mainKey][$sys_language_uid]['title']) {
+			$out .= '[' . $cachedLanguageFlag[$mainKey][$sys_language_uid]['title'] . ']';
 			$out .= '&nbsp;';
 		}
 		return $out;
@@ -530,11 +532,13 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 	 * @see t3lib_BEfunc::getTSCpid()
 	 */
 	function getTSCpid() {
+		static $cache = array();
+
 		$key = $this->table.':'.$this->recordData['uid'].':'.$this->recordData['pid'];
-		if (!isset($this->cache_getTSCpid[$key])) {
-			$this->cache_getTSCpid[$key] = t3lib_BEfunc::getTSCpid($this->table, $this->recordData['uid'], $this->recordData['pid']);
+		if (!isset($cache[$key])) {
+			$cache[$key] = t3lib_BEfunc::getTSCpid($this->table, $this->recordData['uid'], $this->recordData['pid']);
 		}
-		return $this->cache_getTSCpid[$key];
+		return $cache[$key];
 	}
 }
 
