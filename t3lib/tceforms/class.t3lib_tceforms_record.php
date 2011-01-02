@@ -511,7 +511,15 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 			}
 		}
 
-		return ($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon'] ? '<img src="'.$this->cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon'].'" class="absmiddle" alt="" />' : ($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['title'] ? '['.$this->cachedLanguageFlag[$mainKey][$sys_language_uid]['title'].']' : '')).'&nbsp;';
+		$out = '';
+		if ($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon']) {
+			$out .= t3lib_iconWorks::getSpriteIcon($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['flagIcon']);
+			$out .= '&nbsp;';
+	   } else if ($this->cachedLanguageFlag[$mainKey][$sys_language_uid]['title']) {
+			$out .= '[' . $this->cachedLanguageFlag[$mainKey][$sys_language_uid]['title'] . ']';
+			$out .= '&nbsp;';
+		}
+		return $out;
 	}
 
 	/**

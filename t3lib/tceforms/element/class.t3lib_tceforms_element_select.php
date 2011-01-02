@@ -147,7 +147,9 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 				if ($sM) {
 					list($selectIconFile,$selectIconInfo) = $this->getIcon($p[2]);
 						if (!empty($selectIconInfo)) {
-							$selectedStyle = ' style="background: #fff url(' . $selectIconFile . ') 0% 50% no-repeat; padding: 1px 1px 1px 24px; -webkit-background-size: 0;"';
+							$selectedStyle = ' class="typo3-TCEforms-select-selectedItemWithBackgroundImage" style="background-image:url(' . $selectIconFile . ');"';
+						} else {
+							$selectedStyle = ' class="' . t3lib_iconWorks::getSpriteIconClasses($p[2]) . '"';
 						}
 				}
 			}
@@ -177,18 +179,24 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 				}
 			}
 
-				// If there is an icon for the selector box (rendered in table under)...:
+				// If there is an icon for the selector box (rendered in selicon-table below)...:
+				// if there is an icon ($p[2]), icons should be shown, and, if only selected are visible, is it selected
 			if ($p[2] && !$suppressIcons && (!$onlySelectedIconShown || $sM))	{
 				list($selIconFile,$selIconInfo)=$this->getIcon($p[2]);
-				$iOnClick = $this->contextObject->elName($this->formFieldName) . '.selectedIndex='.$c.'; ' .
-					$this->contextObject->elName($this->formFieldName) . '.style.backgroundImage=' . $this->contextObject->elName($this->formFieldName) . '.options[' . $c .'].style.backgroundImage; ' .
-					implode('', $this->fieldChangeFunc) . $this->contextObject->blur().'return false;';
+				if (!empty($selIconInfo)) {
+					$iOnClick = $this->contextObject->elName($this->formFieldName) . '.selectedIndex=' . $c . '; ' .
+						$this->contextObject->elName($this->formFieldName) . '.style.backgroundImage=' . $this->contextObject->elName($this->formFieldName) . '.options[' . $c . '].style.backgroundImage; ' .
+						implode('', $this->fieldChangeFunc) . $this->parentFormObject->blur() . 'return false;';
+				} else {
+					$iOnClick = $this->contextObject->elName($this->formFieldName) . '.selectedIndex=' . $c . '; ' .
+						$this->contextObject->elName($this->formFieldName) . '.class=' . $this->contextObject->elName($this->formFieldName) . '.options[' . $c . '].class; ' .
+						implode('', $this->fieldChangeFunc) . $this->parentFormObject->blur() . 'return false;';
+				}
 				$selicons[]=array(
 					(!$onlySelectedIconShown ? '<a href="#" onclick="'.htmlspecialchars($iOnClick).'">' : '').
-					'<img src="'.$selIconFile.'" '.$selIconInfo[3].' vspace="2" border="0" title="'.htmlspecialchars($p[0]).'" alt="'.htmlspecialchars($p[0]).'" />'.
+					$this->getIconHtml($p[2], htmlspecialchars($p[0]), htmlspecialchars($p[0])) .
 					(!$onlySelectedIconShown ? '</a>' : ''),
 					$c,$sM);
-				$onChangeIcon = 'this.style.backgroundImage=this.options[this.selectedIndex].style.backgroundImage;';
 			}
 			$c++;
 		}
@@ -290,9 +298,10 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 					}
 
 						// Icon:
-					$selIconFile = '';
 					if ($p[2])	{
-						list($selIconFile,$selIconInfo) = $this->getIcon($p[2]);
+						$selIcon = $p[2];
+					} else {
+						$selIcon = t3lib_iconWorks::getSpriteIcon('empty-empty');
 					}
 
 						// Compile row:
@@ -325,7 +334,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 						<tr id="' . $this->recordId . '" class="'.($sM ? 'c-selectedItem' : 'c-unselectedItem').'" onclick="'.htmlspecialchars($onClick).'" style="cursor: pointer;">
 							<td width="12"><input type="checkbox"'.$this->insertDefaultElementStyle('check').' name="'.htmlspecialchars($this->formFieldName.'['.$c.']').'" value="'.htmlspecialchars($p[1]).'"'.$sM.' onclick="'.htmlspecialchars($sOnChange).'"'.$this->onFocus.' /></td>
 							<td class="c-labelCell" onclick="'.htmlspecialchars($onClickCell).'">'.
-								($selIconFile ? '<img src="'.$selIconFile.'" '.$selIconInfo[3].' vspace="2" border="0" class="absmiddle" style="margin-right: 4px;" alt="" />' : '').
+								$this->getIconHtml($selIcon) .
 								$label .
  								'</td>
 								<td class="c-descr" onclick="'.htmlspecialchars($onClickCell).'">' . (strcmp($p[3],'') ? $help : '') . '</td>
@@ -648,7 +657,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 						if (!$TCA[$theTableNames]['ctrl']['adminOnly'])	{
 
 								// Icon:
-							$icon = '../'.TYPO3_mainDir.t3lib_iconWorks::skinImg($this->backPath,t3lib_iconWorks::getIcon($theTableNames, array()),'',1);
+							$icon = t3lib_iconWorks::mapRecordTypeToSpriteIconName($theTableNames, array());
 
 								// Add description texts:
 							if ($this->edit_showFieldHelp)	{
@@ -672,7 +681,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 					foreach($theTypes as $theTypeArrays)	{
 							// Icon:
-						$icon = $theTypeArrays[1]!='--div--' ? '../'.TYPO3_mainDir.t3lib_iconWorks::skinImg($this->backPath,t3lib_iconWorks::getIcon('pages', array('doktype' => $theTypeArrays[1])),'',1) : '';
+						$icon = t3lib_iconWorks::mapRecordTypeToSpriteIconName('pages', array('doktype' => $theTypeArrays[1]));
 
 							// Item configuration:
 						$items[] = array(
@@ -700,7 +709,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 						$items[] = array(
 							ereg_replace(':$','',$theTypeArrays[0]),
 							$theTypeArrays[1],
-							'',
+							'empty-empty',
 							$descr
 						);
 					}
@@ -710,8 +719,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 							// Icons:
 					$icons = array(
-						'ALLOW' => '../'.TYPO3_mainDir.t3lib_iconWorks::skinImg($this->backPath,'gfx/icon_ok2.gif','',1),
-						'DENY' => '../'.TYPO3_mainDir.t3lib_iconWorks::skinImg($this->backPath,'gfx/icon_fatalerror.gif','',1),
+						'ALLOW' => 'status-status-permission-granted',
+						'DENY' => 'status-status-permission-denied',
 					);
 
 						// Traverse types:
@@ -756,8 +765,9 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 										// Icon:
 									if ($itemCfg[1])	{
 										list($icon) = $this->getIcon($itemCfg[1]);
-										if ($icon)	$icon = '../'.TYPO3_mainDir.$icon;
-									} else $icon = '';
+									} else {
+										$icon = 'empty-empty';
+									}
 
 										// Add item to be selected:
 									$items[] = array(
@@ -874,8 +884,10 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 					$iParts = t3lib_div::trimExplode(',',$row[$iField],1);
 					$icon = '../'.$iPath.'/'.trim($iParts[0]);
 				} elseif (t3lib_div::inList('singlebox,checkbox',$this->fieldConfig['config']['renderMode'])) {
-					$icon = '../'.TYPO3_mainDir.t3lib_iconWorks::skinImg($this->backPath,t3lib_iconWorks::getIcon($f_table, $row),'',1);
-				} else $icon = '';
+					$icon = t3lib_iconWorks::mapRecordTypeToSpriteIconName($f_table, $row);
+				} else {
+					$icon = 'empty-empty';
+				}
 
 					// Add the item:
 				$items[] = array(

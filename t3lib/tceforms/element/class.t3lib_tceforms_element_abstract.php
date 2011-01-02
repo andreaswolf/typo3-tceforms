@@ -1200,6 +1200,22 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return array($selIconFile,$selIconInfo);
 	}
 
+	/**
+	 * Renders the $icon, supports a filename for skinImg or sprite-icon-name
+	 * @param $icon the icon passed, could be a file-reference or a sprite Icon name
+	 * @param string $alt alt attribute of the icon returned
+	 * @param string $title title attribute of the icon return
+	 * @return an tag representing to show the asked icon
+	 */
+	protected function getIconHtml($icon, $alt = '', $title = '') {
+		$iconArray = $this->getIcon($icon);
+		if (is_file(t3lib_div::resolveBackPath(PATH_typo3 . $iconArray[0]))) {
+			return '<img src="' . $iconArray[0] . '" alt="' . $alt . '" ' . ($title ? 'title="' . $title . '"' : '') . ' />';
+		} else {
+			return t3lib_iconWorks::getSpriteIcon($icon, array('alt'=> $alt, 'title'=> $title));
+		}
+	}
+
 
 	/************************************************************
 	 *
@@ -1607,8 +1623,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 						// Title / icon:
 					$iTitle = htmlspecialchars($this->sL($wConf['title']));
 					if ($wConf['icon'])	{
-						$iDat = $this->getIcon($wConf['icon']);
-						$icon = '<img src="'.$iDat[0].'" '.$iDat[1][3].' border="0"'.t3lib_BEfunc::titleAltAttrib($iTitle).' />';
+						$icon = $this->getIconHtml($wConf['icon'], $iTitle, $iTitle);
 					} else {
 						$icon = $iTitle;
 					}
