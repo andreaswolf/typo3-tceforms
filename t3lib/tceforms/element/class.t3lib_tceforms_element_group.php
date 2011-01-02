@@ -189,7 +189,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 										$rr,
 										array(
 											'style' => 'vertical-align:top',
-											'title' => htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'], $perms_clause, 15) . ' [UID: ' . $rr['uid'] . ']"')
+											'title' => htmlspecialchars(t3lib_BEfunc::getRecordPath($rr['pid'], $perms_clause, 15) . ' [UID: ' . $rr['uid'] . ']')
 										)
 									),
 									$table,
