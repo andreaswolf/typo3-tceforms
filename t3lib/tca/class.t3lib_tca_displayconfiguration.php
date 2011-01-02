@@ -192,13 +192,22 @@ class t3lib_TCA_DisplayConfiguration {
 
 		$paletteObject = new t3lib_TCA_DataStructure_Palette($this->dataStructure, $label, $paletteNumber);
 
-		foreach ($paletteFieldNames as $fieldName) {
-			if (in_array($fieldName, $this->excludeFieldList)) {
+		foreach ($paletteFieldNames as $fieldDescriptor) {
+			$fieldDescriptorParts = t3lib_div::trimExplode(';', $fieldDescriptor);
+			$fieldName = $fieldDescriptorParts[0];
+			if (in_array($fieldName, $this->excludeFieldList) || $fieldName == '') {
 				continue;
 			}
+			switch ($fieldName) {
+				case '--linebreak--':
+					// TODO implement linebreak handling
+					break;
 
-			$fieldObject = $this->dataStructure->getFieldObject($fieldName);
-			$paletteObject->addElement($fieldObject);
+				default:
+					$fieldObject = $this->dataStructure->getFieldObject($fieldName);
+					$fieldObject->setLabel($fieldDescriptorParts[1]);
+					$paletteObject->addElement($fieldObject);
+			}
 		}
 
 		return $paletteObject;
