@@ -135,7 +135,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 			return '';
 		}
 
-		$template = t3lib_parsehtml::getSubpart($this->contextObject->getTemplateContent(), '###PALETTE_FIELD###');
+		$template = t3lib_parsehtml::getSubpart($this->contextObject->getTemplateContent(), '###PALETTE_FIELDTEMPLATE###');
 
 		foreach ($this->paletteElements as $paletteElement) {
 			$paletteContents[] = $paletteElement->render();
