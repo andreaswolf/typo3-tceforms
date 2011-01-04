@@ -47,7 +47,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 	protected $pal = NULL;
 
-	protected $hasPalette = false;
+	protected $_hasPalette = false;
 
 	protected $isInPalette = false;
 
@@ -292,7 +292,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		                    ->setRecordObject($this->recordObject)
 		                    ->injectFormBuilder($this->formBuilder);
 
-		$this->hasPalette = TRUE;
+		$this->_hasPalette = TRUE;
 	}
 
 	public function setRecord($record) {
@@ -336,6 +336,14 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return $this->parentFormObject;
 	}
 
+	public function getPalette() {
+		return $this->paletteObject;
+	}
+
+	public function hasPalette() {
+		return $this->_hasPalette;
+	}
+
 	public function setContextObject(t3lib_TCEforms_Context $contextObject) {
 		$this->contextObject = $contextObject;
 
@@ -347,7 +355,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	public function setPaletteObject(t3lib_TCEforms_Container_Palette $palette) {
 		$this->paletteObject = $palette;
 		$this->paletteObject->setContainingObject($this);
-		$this->hasPalette = TRUE;
+		$this->_hasPalette = TRUE;
 	}
 
 	/**
@@ -476,7 +484,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 			// If the field is NOT a palette field, then we might create an icon which links to a palette for the field, if one exists.
 		// TODO: move palette rendering to own method
-		if ($this->hasPalette) {
+		if ($this->_hasPalette) {
 			$paletteFields = $this->paletteObject->render();
 
 			if ($this->paletteObject->isCollapsed() && $paletteFields != '') {
@@ -560,7 +568,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			}
 		}
 
-		if ($this->hasPalette) {
+		if ($this->_hasPalette) {
 			$out .= $paletteFields;
 		}
 
