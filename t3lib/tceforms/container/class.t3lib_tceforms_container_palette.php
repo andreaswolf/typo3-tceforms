@@ -79,6 +79,10 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		$this->paletteElements[] = $elementObject;
 	}
 
+	public function getElements() {
+		return $this->paletteElements;
+	}
+
 	/**
 	 * @deprecated
 	 */

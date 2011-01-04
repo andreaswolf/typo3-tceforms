@@ -544,6 +544,14 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 		t3lib_div::devLog('Added sheet no. ' . count($this->sheetObjects) . ' to record ' . $this->getIdentifier() . '.', 't3lib_TCEforms_Record', t3lib_div::SYSLOG_SEVERITY_INFO);
 	}
 
+	public function getSheets() {
+		return $this->sheetObjects;
+	}
+
+	public function getSheetCount() {
+		return count($this->sheetObjects);
+	}
+
 
 
 	/********************************************

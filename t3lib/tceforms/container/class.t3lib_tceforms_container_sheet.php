@@ -151,6 +151,10 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 		return $this->header;
 	}
 
+	public function getElements() {
+		return $this->childObjects;
+	}
+
 	public function getRequiredFields() {
 		return $this->requiredFields;
 	}
