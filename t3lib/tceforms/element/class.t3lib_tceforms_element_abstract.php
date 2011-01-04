@@ -511,20 +511,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$this->fieldChangeFunc['inline'] = "inline.handleChangedField('".$this->formFieldName."','".$this->inline->inlineNames['object']."[$this->table][".$this->record['uid']."]');";
 		}*/
 
-		$item = $this->renderField();
-
-			// Add language + diff
-		if ($this->fieldConfig['l10n_display'] && (t3lib_div::inList($this->fieldConfig['l10n_display'], 'hideDiff') || t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly'))) {
-			$renderLanguageDiff = false;
-		} else {
-			$renderLanguageDiff = true;
-		}
-
-		if ($renderLanguageDiff) {
-			$item = $this->renderDefaultLanguageContent($item);
-			$item = $this->renderDefaultLanguageDiff($item);
-		}
-
+		$item = $this->renderContents();
 
 			// Create output value:
 		// TODO: refactor this
@@ -573,6 +560,26 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		}
 
 		return $out;
+	}
+
+	protected abstract function renderField();
+
+	public function renderContents() {
+		$item = $this->renderField();
+
+			// Add language + diff
+		if ($this->fieldConfig['l10n_display'] && (t3lib_div::inList($this->fieldConfig['l10n_display'], 'hideDiff') || t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly'))) {
+			$renderLanguageDiff = false;
+		} else {
+			$renderLanguageDiff = true;
+		}
+
+		if ($renderLanguageDiff) {
+			$item = $this->renderDefaultLanguageContent($item);
+			$item = $this->renderDefaultLanguageDiff($item);
+		}
+
+		return $item;
 	}
 
 	public function getHelpText() {

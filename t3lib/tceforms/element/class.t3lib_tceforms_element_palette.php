@@ -45,6 +45,9 @@ class t3lib_TCEforms_Element_Palette extends t3lib_TCEforms_Element_Abstract {
 			return $item;
 		}
 	}
+
+	protected function renderField() {
+	}
 }
 
 ?>
