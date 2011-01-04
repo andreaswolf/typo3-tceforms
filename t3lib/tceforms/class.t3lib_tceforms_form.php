@@ -249,9 +249,16 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	public function render() {
 		t3lib_div::devLog('Started rendering TCEforms form.', 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		foreach ($this->recordObjects as $recordObject) {
+		/*foreach ($this->recordObjects as $recordObject) {
 			$content .= $this->renderRecordObject($recordObject);
-		}
+		}*/
+
+		/** @var $view Tx_Fluid_View_StandaloneView */
+		$view = t3lib_div::makeInstance('Tx_Fluid_View_StandaloneView');
+		$view->setTemplatePathAndFilename(PATH_typo3 . 'templates/tceforms/backendform.html');
+		$view->assign('records', $this->recordObjects);
+		$view->assign('context', $this->contextObject);
+		$content = $view->render() . $content;
 
 		return $content;
 	}
@@ -626,8 +633,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		$this->hiddenFieldsHtmlCode[$elementName] = $code;
 	}
 
-	protected function getHtmlForHiddenFields() {
-		return $this->hiddenFieldsHtmlCode;
+	public function getHtmlForHiddenFields() {
+		return implode("\n", $this->hiddenFieldsHtmlCode);
 	}
 
 

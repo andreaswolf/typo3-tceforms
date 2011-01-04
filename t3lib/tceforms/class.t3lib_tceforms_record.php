@@ -429,6 +429,10 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 		return $this->new;
 	}
 
+	public function getIcon() {
+		return t3lib_iconWorks::getSpriteIconForRecord($this->getTable(), $this->getRecordData(), array('title' => $this->getPath()));
+	}
+
 	/**
 	 * Returns the context object this form is in.
 	 *

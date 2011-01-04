@@ -29,6 +29,7 @@ Ext.ns('TYPO3');
 
 	// class to manipulate TCEFORMS
 TYPO3.TCEFORMS = {
+	records: [],
 
 	init: function() {
 		Ext.QuickTips.init();
@@ -98,6 +99,38 @@ TYPO3.TCEFORMS = {
 					dynamic:   true
 				});
 			}
+		});
+	},
+
+	registerRecord: function(table, uid, sheetIdentifier) {
+		this.records.push({
+			'table': table,
+			'uid': uid,
+			'sheetIdentifier': sheetIdentifier
+		});
+	},
+
+	createTabMenu: function(identifier) {
+		return new Ext.TabPanel({
+			resizeTabs:true, // turn on tab resizing
+			applyTo: 'record-' + identifier,
+			enableTabScroll:true,
+			autoHeight:true,
+			defaults: {autoScroll:true},
+			id: identifier,
+			autoTabs: true,
+			autoTabSelector: "div[id^=" + identifier + "-]",
+			activeTab: 0,
+			border:false,
+			deferredRender: false,
+			autoWidth: true,
+			monitorResize: true
+		});
+	},
+
+	initRecords: function() {
+		this.records.each(function(recordInfo) {
+			var tabMenu = TYPO3.TCEFORMS.createTabMenu(recordInfo.sheetIdentifier);
 		});
 	}
 	

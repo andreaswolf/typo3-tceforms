@@ -1,0 +1,61 @@
+{namespace tceforms=t3lib_TCEforms_ViewHelpers}
+  
+<script type="text/javascript">
+/*<![CDATA[*/
+		Ext.onReady(function(){
+/*]]>*/
+			TYPO3.TCEFORMS.registerRecord('{record.table}', '{record.uid}', '{record.shortSheetIdentifier}');
+/*<![CDATA[*/
+		});
+/*]]>*/
+</script>
+<script type="text/javascript">
+/*<![CDATA[*/
+
+Ext.onReady(function(){
+
+// tab generation code
+/*var index = 0;
+while(index < 7){
+	addTab();
+}*/
+
+/*new Ext.Button({
+	text: 'Add Tab',
+	handler: addTab,
+	iconCls:'new-tab'
+}).render(document.body, 'tabs');*/
+});
+
+/*]]>*/
+</script>
+<div id="record-tabs">
+
+</div>
+<div id="record-{record.shortSheetIdentifier}">
+	<f:for each="{record.sheets}" as="sheet" iteration="iteration">
+		<div class="c-tablayer x-hide-display" id="{record.shortSheetIdentifier}-{iteration.index}-DIV" title="{sheet.header}">
+		<table border="0" cellspacing="0" cellpadding="0" width="100%">
+			<tr>
+				<td colspan="2"><img src="clear.gif" width="1" height="###SPACE_BEFORE###" alt="" /></td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<table>
+						<f:for each="{sheet.elements}" as="element">
+							<tr ###BGCOLOR_HEAD######CLASSATTR_2###>
+								<td><!--{element.helpTextIcon}--></td>
+								<td width="99%"><span style="color:###FONTCOLOR_HEAD###;"###CLASSATTR_4###><b>{element.name}</b></span>{element.helpText}</td>
+							</tr>
+							<tr ###BGCOLOR######CLASSATTR_1###>
+								<td nowrap="nowrap"><img name="req_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-TCEforms-reqImg" alt="" /><img name="cm_###FIELD_TABLE###_###FIELD_ID###_###FIELD_FIELD###" src="clear.gif" class="t3-TCEforms-contentchangedImg" alt="" /></td>
+								<td valign="top"><tceforms:element element="{element}" record="{record}" /></td>
+							</tr>
+						</f:for>
+					</table>
+				</td>
+			</tr>
+		</table>
+		</div>
+	</f:for>
+</div>
