@@ -832,7 +832,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	// TODO: will be removed after refactoring render()
 	function intoTemplate($inArr,$altTemplate='')	{
-		$parentTemplate = t3lib_parsehtml::getSubpart($this->contextObject->getTemplateContent(), '###FIELD_WRAP###');
+		$parentTemplate = t3lib_parsehtml::getSubpart($this->contextObject->getTemplateContent(), '###FIELDTEMPLATE###');
 		$template = $this->rplColorScheme($altTemplate?$altTemplate:$parentTemplate);
 
 		foreach ($inArr as $key => $value) {
@@ -1116,7 +1116,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		    )
 		    || $force)
 		  ) {
-			return t3lib_BEfunc::helpTextIcon($table, $field, $this->backPath, $force);
+			return t3lib_BEfunc::helpTextIcon($this->table, $this->field, $this->backPath, $force);
 		} else {
 				// Detects fields with no CSH and outputs dummy line to insert into CSH locallang file:
 			return '<span class="nbsp">&nbsp;</span>';
