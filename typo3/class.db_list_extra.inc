@@ -1166,6 +1166,18 @@ class localRecordList extends recordList {
 			$cells['edit'] = $this->spaceIcon;
 		}
 
+			// "Edit" link: ( Only if permissions to edit the page-record of the content of the parent page ($this->id)
+		if ($permsEdit) {
+			$params = '&edit[' . $table . '][' . $row['uid'] . ']=edit';
+			$retUrl = 'returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'));
+			$editUrl = "window.location.href='" . $this->backPath . "alt_doc_new.php?" . $retUrl . $params . "'; return false;";
+			$cells['edit2'] = '<a href="#" onclick="' . htmlspecialchars($editUrl) . '" title="Edit record with new TCEforms">' .
+				($TCA[$table]['ctrl']['readOnly'] ? t3lib_iconWorks::getSpriteIcon('actions-document-open-read-only') : t3lib_iconWorks::getSpriteIcon('actions-document-open')) .
+				'</a>';
+		} elseif (!$this->table) {
+			$cells['edit2'] = $this->spaceIcon;
+		}
+
 			// "Move" wizard link for pages/tt_content elements:
 		if (($table=="tt_content" && $permsEdit) || ($table=='pages'))	{
 			$cells['move']='<a href="#" onclick="'.htmlspecialchars('return jumpExt(\''.$this->backPath.'move_el.php?table='.$table.'&uid='.$row['uid'].'\');').'" title="'.$LANG->getLL('move_' . ($table == 'tt_content' ? 'record' : 'page'), TRUE) . '">' .

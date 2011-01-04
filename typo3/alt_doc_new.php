@@ -129,7 +129,7 @@ class SC_alt_doc {
 	/**
 	 * document template object
 	 *
-	 * @var mediumDoc
+	 * @var template
 	 */
 	var $doc;
 	var $template;			// a static HTML template, usually in templates/alt_doc.html
@@ -301,7 +301,7 @@ class SC_alt_doc {
 		}
 
 			// If pages are being edited, we set an instruction about updating the page tree after this operation.
-		if (isset($this->data['pages']) || $BE_USER->workspace != 0 && count($this->data)) {
+		if (isset($this->data['pages']))	{
 			t3lib_BEfunc::setUpdateSignal('updatePageTree');
 		}
 
@@ -398,12 +398,12 @@ class SC_alt_doc {
 			}
 
 			$tce->printLogErrorMessages(
-				(isset($_POST['_saveandclosedok_x']) || isset($_POST['_translation_savedok_x'])) ?
+				isset($_POST['_saveandclosedok_x']) ?
 				$this->retUrl :
 				$this->R_URL_parts['path'].'?'.t3lib_div::implodeArrayForUrl('',$this->R_URL_getvars)	// popView will not be invoked here, because the information from the submit button for save/view will be lost .... But does it matter if there is an error anyways?
 			);
 		}
-		if ((isset($_POST['_saveandclosedok_x']) || isset($_POST['_translation_savedok_x'])) || $this->closeDoc<0)	{	//  || count($tce->substNEWwithIDs)... If any new items has been save, the document is CLOSED because if not, we just get that element re-listed as new. And we don't want that!
+		if (isset($_POST['_saveandclosedok_x']) || $this->closeDoc<0)	{	//  || count($tce->substNEWwithIDs)... If any new items has been save, the document is CLOSED because if not, we just get that element re-listed as new. And we don't want that!
 			$this->closeDocument(abs($this->closeDoc));
 		}
 	}
@@ -446,12 +446,14 @@ class SC_alt_doc {
 		$this->MOD_SETTINGS = t3lib_BEfunc::getModuleData($this->MOD_MENU, t3lib_div::_GP('SET'), $this->MCONF['name']);
 
 			// Create an instance of the document template object
-		$this->doc = $GLOBALS['TBE_TEMPLATE'];
+		$this->doc = t3lib_div::makeInstance('template');
 		$this->doc->backPath = $BACK_PATH;
 		$this->doc->setModuleTemplate('templates/alt_doc.html');
+		$this->doc->docType = 'xhtml_trans';
 		$this->doc->form = '<form action="'.htmlspecialchars($this->R_URI).'" method="post" enctype="'.$GLOBALS['TYPO3_CONF_VARS']['SYS']['form_enctype'].'" name="editform" onsubmit="document.editform._scrollPosition.value=(document.documentElement.scrollTop || document.body.scrollTop); return TBE_EDITOR.checkSubmit(1);">';
 
 		$this->doc->getPageRenderer()->loadPrototype();
+		$this->doc->getPageRenderer()->enableDebugMode();
 		$this->doc->JScode = $this->doc->wrapScriptTags('
 			function jumpToUrl(URL,formEl)	{	//
 				if (!TBE_EDITOR.isFormChanged())	{
@@ -523,6 +525,8 @@ class SC_alt_doc {
 			$this->tceforms->enableClickMenu = TRUE;
 			$this->tceforms->enableTabMenu = TRUE;
 
+			//$this->tceforms->setPalettesCollapsed(!$this->MOD_SETTINGS['showPalettes']);
+
 				// Clipboard is initialized:
 			$this->tceforms->clipObj = t3lib_div::makeInstance('t3lib_clipboard');		// Start clipboard
 			$this->tceforms->clipObj->initializeClipboard();	// Initialize - reads the clipboard content from the user session
@@ -552,9 +556,9 @@ class SC_alt_doc {
 					// Module configuration
 				$this->modTSconfig = ($this->viewId ? t3lib_BEfunc::getModTSconfig($this->viewId,'mod.xMOD_alt_doc') : array());
 
-				$body.= $this->tceforms->printNeededJSFunctions_top();
+				//$body.= $this->tceforms->printNeededJSFunctions_top();
 				$body.= $this->compileForm($editForm);
-				$body.= $this->tceforms->printNeededJSFunctions();
+				//$body.= $this->tceforms->printNeededJSFunctions();
 				$body.= $this->functionMenus();
 				$body.= $this->tceformMessages();
 			}
@@ -621,7 +625,7 @@ class SC_alt_doc {
 	 * @return	string		HTML form elements wrapped in tables
 	 */
 	function makeEditForm()	{
-		global $BE_USER,$LANG,$TCA;
+		global $BE_USER,$LANG,$TCA,$BACK_PATH;
 
 			// Initialize variables:
 		$this->elementsData=array();
@@ -630,6 +634,18 @@ class SC_alt_doc {
 		$thePrevUid='';
 		$editForm='';
 		$trData = NULL;
+
+		$newTCEforms = new t3lib_TCEforms_Form();
+		$newTCEforms->setFieldList($this->columnsOnly)
+		            ->setPalettesCollapsed(!$this->MOD_SETTINGS['showPalettes'])
+		            ->setTemplateFile(PATH_typo3 . 'templates/tceforms.html')
+		            ->setEditFieldHelpMode($BE_USER->uc['edit_showFieldHelp'])
+		            ->setFileUploadEnabled($BE_USER->uc['edit_docModuleUpload'])
+		            ->setBackpath($BACK_PATH)
+		            ->setRTEEnabled($BE_USER->isRTE())
+		            ->setDoSaveFieldName('doSave')
+		            ->setClickmenuEnabled(TRUE)
+		            ->init();
 
 			// Traverse the GPvar edit array
 		foreach($this->editconf as $table => $conf)	{	// Tables:
@@ -747,7 +763,41 @@ class SC_alt_doc {
 									// Now, render the form:
 								if (is_array($rec))	{
 
+									// Initialize the TCEforms record (testing only!)
+
+									/*if ($this->columnsOnly)	{
+										$TCEformsClassName = t3lib_div::makeInstanceClassName('t3lib_TCEforms_ListedFieldsForm');
+										$localTCEforms = new $TCEformsClassName($table, $rec);
+
+										if(is_array($this->columnsOnly)){
+											$localTCEforms->setFieldList($this->columnsOnly[$table]);
+										} else {
+											$localTCEforms->setFieldList($this->columnsOnly);
+										}
+									} else {
+										$TCEformsClassName = t3lib_div::makeInstanceClassName('t3lib_TCEforms_MultiFieldForm');
+										$localTCEforms = new $TCEformsClassName($table, $rec);
+									}*/
+									// TODO: add code for columnsOnly here (need to implement the limit function in
+									// _Form first.
+
+									$recordObject = $newTCEforms->addRecord($table, $rec);
+
+									/*$localTCEforms->setTCEformsObject($this->tceforms);
+									$localTCEforms->setPalettesCollapsed(!$this->MOD_SETTINGS['showPalettes']);
+
+									$localTCEforms->backPath = $BACK_PATH;*/
+
+									//$editForm .= $localTCEforms->printNeededJSFunctions_top();
+									// TODO make this work again $editForm .= $newTCEforms->render();
+									//$editForm .= $localTCEforms->render();
+
+									//$editForm .= $localTCEforms->getBottomJavascript();
+
+
+
 										// Setting visual path / title of form:
+
 									$this->generalPathOfForm = $this->tceforms->getRecordPath($table,$rec);
 									if (!$this->storeTitle)	{
 										$this->storeTitle = $this->recTitle ? htmlspecialchars($this->recTitle) : t3lib_BEfunc::getRecordTitle($table,$rec,TRUE);
@@ -759,12 +809,13 @@ class SC_alt_doc {
 									if (is_array($this->overrideVals[$table]))	{
 										$this->tceforms->hiddenFieldListArr = array_keys($this->overrideVals[$table]);
 									}
+									$newTCEforms->registerHiddenFields($table, array_keys((array)$this->overrideVals[$table]));
 
 										// Register default language labels, if any:
 									$this->tceforms->registerDefaultLanguageData($table,$rec);
 
 										// Create form for the record (either specific list of fields or the whole record):
-									$panel = '';
+									/*$panel = '';
 									if ($this->columnsOnly)	{
 										if(is_array($this->columnsOnly)){
 											$panel.= $this->tceforms->getListedFields($table,$rec,$this->columnsOnly[$table]);
@@ -774,12 +825,13 @@ class SC_alt_doc {
 									} else {
 										$panel.= $this->tceforms->getMainFields($table,$rec);
 									}
-									$panel = $this->tceforms->wrapTotal($panel,$rec,$table);
+									$panel = $this->tceforms->wrapTotal($panel,$rec,$table);*/
+									// what about wrapTotal in new TCEforms-classes? -- AW, 25.07.2008
 
 										// Setting the pid value for new records:
-									if ($cmd=='new')	{
-										$panel.= '<input type="hidden" name="data['.$table.']['.$rec['uid'].'][pid]" value="'.$rec['pid'].'" />';
-										$this->newC++;
+									if ($cmd == 'new') {
+										$newItemPidFields .= '<input type="hidden" name="data['.$table.']['.$rec['uid'].'][pid]" value="'.$rec['pid'].'" />';
+										$this->newElementCounter++;
 									}
 
 										// Display "is-locked" message:
@@ -801,13 +853,20 @@ class SC_alt_doc {
 							} else {
 								$this->errorC++;
 								$editForm.=$LANG->sL('LLL:EXT:lang/locallang_core.php:labels.noEditPermission',1).'<br /><br />'.
-									($deniedAccessReason ? 'Reason: ' . htmlspecialchars($deniedAccessReason) . '<br /><br />' : '');
+											($deniedAccessReason ? 'Reason: '.htmlspecialchars($deniedAccessReason).'<br/><br/>' : '');
 							}
 						}
 					}
 				}
 			}
 		}
+
+
+		$editForm = $newTCEforms->renderJavascriptBeforeForm()
+			. $recordLockMessages
+			. $newTCEforms->render()
+			. $newTCEforms->renderJavascriptAfterForm()
+			. $newItemPidFields;
 
 		return $editForm;
 	}
@@ -1178,7 +1237,7 @@ class SC_alt_doc {
 		list($table,$orig_uid,$language) = explode(':',$justLocalized);
 
 		if ($TCA[$table] && $TCA[$table]['ctrl']['languageField'] && $TCA[$table]['ctrl']['transOrigPointerField'])	{
-			$localizedRecord = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
+			list($localizedRecord) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
 					'uid',
 					$table,
 					$TCA[$table]['ctrl']['languageField'].'='.intval($language).' AND '.
@@ -1209,11 +1268,6 @@ class SC_alt_doc {
 		global $LANG;
 
 		$modSharedTSconfig = t3lib_BEfunc::getModTSconfig($id, 'mod.SHARED');
-		
-			// fallback non sprite-configuration
-		if (preg_match('/\.gif$/', $modSharedTSconfig['properties']['defaultLanguageFlag'])) {
-			$modSharedTSconfig['properties']['defaultLanguageFlag'] = str_replace('.gif', '', $modSharedTSconfig['properties']['defaultLanguageFlag']);
-		}
 
 		$languages = array(
 			0 => array(
@@ -1399,6 +1453,9 @@ class SC_alt_doc {
 	function getNewIconMode($table, $key = 'saveDocNew') {
 		$TSconfig = $GLOBALS['BE_USER']->getTSConfig('options.'.$key);
 		$output = trim(isset($TSconfig['properties'][$table]) ? $TSconfig['properties'][$table] : $TSconfig['value']);
+		if ($key == 'saveDocNew' && $TSconfig['value'] != '0') {
+			$output = !(isset($TSconfig['properties'][$table]) && $TSconfig['properties'][$table] == '0');
+		}
 		return $output;
 	}
 
@@ -1479,8 +1536,8 @@ class SC_alt_doc {
 }
 
 
-if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/alt_doc.php'])) {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/alt_doc.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/alt_doc.php'])	{
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['typo3/alt_doc.php']);
 }
 
 
