@@ -582,6 +582,10 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return $item;
 	}
 
+	public function getContents() {
+		return $this->renderContents();
+	}
+
 	public function getHelpText() {
 		return $this->helpText();
 	}
