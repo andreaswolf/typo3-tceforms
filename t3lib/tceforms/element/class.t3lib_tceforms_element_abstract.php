@@ -1248,14 +1248,12 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * Initialize item array (for checkbox, selectorbox, radio buttons)
 	 * Will resolve the label value.
 	 *
-	 * @param	array		The "columns" array for the field (from TCA)
-	 * @return	array		An array of arrays with three elements; label, value, icon
+	 * @return  array  An array of arrays with three elements; label, value, icon
 	 */
-	protected function initItemArray($fieldValue)	{
+	protected function initItemArray() {
 		$items = array();
-		if (is_array($fieldValue['config']['items']))	{
-			reset ($fieldValue['config']['items']);
-			while (list($itemName,$itemValue) = each($fieldValue['config']['items']))	{
+		if (is_array($this->fieldConfig['config']['items'])) {
+			foreach($this->fieldConfig['config']['items'] as $itemName => $itemValue) {
 				$items[] = array($this->sL($itemValue[0]), $itemValue[1], $itemValue[2]);
 			}
 		}
@@ -1284,31 +1282,27 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * Perform user processing of the items arrays of checkboxes, selectorboxes and radio buttons.
 	 *
 	 * @param	array		The array of items (label,value,icon)
-	 * @param	array		The "itemsProcFunc." from fieldTSconfig of the field.
-	 * @param	array		The config array for the field.
-	 * @param	string		Table name
-	 * @param	array		Record row
-	 * @param	string		Field name
 	 * @return	array		The modified $items array
 	 *
 	 * @TODO refactor this
-	 *  - use proper table, row, field
 	 *  - rename to processItems()
 	 *  - get config from object, not parameter
 	 *  - remove iArray parameter, get it from object properties
 	 */
-	protected function procItems($items,$iArray,$config,$table,$row,$field)	{
+	protected function procItems($items) {
 		global $TCA;
 
-		$params=array();
+		$params = array();
 		$params['items'] = &$items;
-		$params['config'] = $config;
-		$params['TSconfig'] = $iArray;
-		$params['table'] = $table;
-		$params['row'] = $row;
-		$params['field'] = $field;
+		$params['config'] = $this->fieldConfig['config'];
+		$params['TSconfig'] = $this->fieldTSConfig['itemsProcFunc.'];
+		$params['table'] = $this->table;
+		$params['row'] = $this->record;
+		$params['field'] = $this->field;
 
-		t3lib_div::callUserFunction($config['itemsProcFunc'],$params,$this);
+		$processFunction = $this->fieldConfig['config']['itemsProcFunc'];
+
+		t3lib_div::callUserFunction($processFunction, $params, $this);
 		return $items;
 	}
 

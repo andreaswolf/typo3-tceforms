@@ -6,14 +6,14 @@ require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.
 class t3lib_TCEforms_Element_Check extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
 		$disabled = '';
-		if($this->contextObject->isReadOnly() || $this->config['readOnly']) {
+		if ($this->isReadOnly()) {
 			$disabled = ' disabled="disabled"';
 		}
 
 			// Traversing the array of items:
-		$selItems = $this->initItemArray($this->fieldConfig);
-		if ($this->config['itemsProcFunc']) {
-			$selItems = $this->TCEformsObject->procItems($selItems,$this->fieldTSConfig['itemsProcFunc.'],$this->table,$this->record,$this->field);
+		$selItems = $this->initItemArray();
+		if ($this->fieldTSConfig['itemsProcFunc']) {
+			$selItems = $this->procItems($selItems);
 		}
 
 		if (!count($selItems)) {

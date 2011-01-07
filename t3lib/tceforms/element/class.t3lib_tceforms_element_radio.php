@@ -13,8 +13,10 @@ class t3lib_TCEforms_Element_Radio extends t3lib_TCEforms_Element_Abstract {
 		}
 
 			// Get items for the array:
-		$selItems = $this->initItemArray($this->fieldConf);
-		if ($config['itemsProcFunc']) $selItems = $this->procItems($selItems,$this->fieldTSConfig['itemsProcFunc.'],$config,$table,$row,$field);
+		$selItems = $this->initItemArray();
+		if ($config['itemsProcFunc']) {
+			$selItems = $this->procItems($selItems);
+		}
 
 			// Traverse the items, making the form elements:
 		for ($c=0;$c<count($selItems);$c++) {

@@ -27,19 +27,19 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 		// Getting the selector box items from the system
 		$this->selectItems = $this->addSelectOptionsToItemArray(
-			$this->initItemArray($this->fieldConfig),
+			$this->initItemArray(),
 			$this->getTSconfig(FALSE)
 		);
 		$this->selectItems = $this->addItems($this->selectItems, $this->fieldTSConfig['addItems.']);
 		if ($this->fieldConfig['config']['itemsProcFunc']) {
-			$this->selectItems = $this->procItems($this->selectItems, $this->fieldTSConfig['itemsProcFunc.'], $this->fieldConfig['config'], $this->table, $this->record, $this->field);
+			$this->selectItems = $this->procItems($this->selectItems);
 		}
 			// Possibly filter some items:
 		$keepItemsFunc = create_function('$value', 'return $value[1];');
 		$this->selectItems = t3lib_div::keepItemsInArray($this->selectItems, $this->fieldTSConfig['keepItems'], $keepItemsFunc);
 			// Process items by a user function:
 		if (isset($this->fieldConfig['config']['itemsProcFunc']) && $this->fieldConfig['config']['itemsProcFunc']) {
-			$this->selectItems = $this->procItems($this->selectItems, $this->fieldTSConfig['itemsProcFunc.'], $this->fieldConfig['config'], $this->table, $this->record, $this->field);
+			$this->selectItems = $this->procItems($this->selectItems);
 		}
 
 			// Possibly remove some items:
