@@ -1,6 +1,6 @@
 {namespace tceforms=t3lib_TCEforms_ViewHelpers}
 
-<div {f:if(condition: {element.palette.collapsed}, then: 'style="display: none;"', else: 'style="display: block;"')} id="TCEFORMS_{record.table}_{palette.name}_{record.uid}">
+<div {f:if(condition: '{element.palette.collapsed}', then: 'style="display: none;"', else: 'style="display: block;"')} id="TCEFORMS_{record.table}_{palette.name}_{record.uid}">
 	<fieldset class="t3-form-palette-fieldset">
 		<f:for each="{palette.elements}" as="pelement">
 			<span class="t3-form-palette-field-container">

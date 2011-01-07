@@ -34,21 +34,12 @@ while(index < 7){
 </div>
 <div id="record-{record.shortSheetIdentifier}">
 	<f:for each="{record.sheets}" as="sheet" iteration="iteration">
-		<div class="c-tablayer x-hide-display" id="{record.shortSheetIdentifier}-{iteration.index}-DIV" title="{sheet.header}">
-		<table border="0" cellspacing="0" cellpadding="0" width="100%">
-			<tr>
-				<td colspan="2"><img src="clear.gif" width="1" height="###SPACE_BEFORE###" alt="" /></td>
-			</tr>
-			<tr>
-				<td colspan="2">
-					<table>
-						<f:for each="{sheet.elements}" as="element">
-							<tceforms:element element="{element}" record="{record}" />
-						</f:for>
-					</table>
-				</td>
-			</tr>
-		</table>
+		<div class="c-tablayer x-hide-display typo3-dyntabmenu-divs" style="border-top:none;" id="{record.shortSheetIdentifier}-{iteration.index}-DIV" title="{sheet.header}">
+			<table class="wrapperTable typo3-TCEforms" border="0" cellspacing="0" cellpadding="0" width="100%">
+				<f:for each="{sheet.elements}" as="element">
+					<tceforms:element element="{element}" record="{record}" />
+				</f:for>
+			</table>
 		</div>
 	</f:for>
 </div>
