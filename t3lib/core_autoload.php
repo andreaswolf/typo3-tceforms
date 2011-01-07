@@ -190,6 +190,7 @@ $t3libClasses = array(
 	't3lib_tceforms_element_text' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_text.php',
 	't3lib_tceforms_element_unknown' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_unknown.php',
 	't3lib_tceforms_element_user' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_user.php',
+	't3lib_tceforms_helper' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_helper.php',
 	't3lib_tceforms_viewhelpers_elementviewhelper' => PATH_t3lib . 'tceforms/viewhelpers/class.t3lib_tceforms_viewhelpers_elementviewhelper.php',
 	't3lib_utility_client' => PATH_t3lib . 'utility/class.t3lib_utility_client.php',
 	't3lib_utility_dependency' => PATH_t3lib . 'utility/class.t3lib_utility_dependency.php',
