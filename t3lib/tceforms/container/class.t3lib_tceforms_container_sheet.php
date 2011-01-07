@@ -137,7 +137,15 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 				$currentBorderStyle = $childObject->getBorderStyle();
 			}
 
-			$contentStack[] = $childObject->render();
+			$childContent = $childObject->render();
+
+			if ($childContent != '') {
+				$contentStack[] = $childContent;
+			}
+		}
+
+		if (count($contentStack) == 0) {
+			return '';
 		}
 
 		$content .= $this->wrapBorder(implode('', $contentStack), $currentBorderStyle);
