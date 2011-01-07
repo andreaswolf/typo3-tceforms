@@ -6,7 +6,7 @@ require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.
 class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelector {
 	protected function renderField() {
 			// Init:
-		$config = $this->fieldConfig['config'];
+		$config = $this->fieldSetup['config'];
 		$internal_type = $config['internal_type'];
 		$show_thumbs = $config['show_thumbs'];
 		$size = intval($config['size']);
@@ -23,7 +23,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 		$info='';
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. See http://typo3.org/documentation/document-library/doc_core_api/Wizards_Configuratio/.
-		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
+		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldSetup['defaultExtras']);
 
 			// Acting according to either "file" or "db" type:
 		switch((string)$config['internal_type'])	{
@@ -238,7 +238,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 			return;
 		}
 
-		$mode = $this->fieldConfig['config']['internal_type'];
+		$mode = $this->fieldSetup['config']['internal_type'];
 
 		switch($mode) {
 			case 'db':

@@ -6,7 +6,7 @@ require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.
 class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
 			// Init config:
-		$config = $this->fieldConfig['config'];
+		$config = $this->fieldSetup['config'];
 
 		if($this->contextObject->isReadOnly() || $config['readOnly']) {
 			// TODO: make this render again
@@ -29,7 +29,7 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 		$RTEwouldHaveBeenLoaded = 0;	// Set true, if the RTE would have been loaded if it wasn't for the disable-RTE flag in the bottom of the page...
 
 			// "Extra" configuration; Returns configuration for the field based on settings found in the "types" fieldlist. Traditionally, this is where RTE configuration has been found.
-		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
+		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldSetup['defaultExtras']);
 
 			// Setting up the altItem form field, which is a hidden field containing the value
 		$altItem = '<input type="hidden" name="'.htmlspecialchars($this->formFieldName).'" value="'.htmlspecialchars($this->itemFormElValue).'" />';

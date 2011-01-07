@@ -34,14 +34,14 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		                 ->setContextRecordObject($this->contextRecordObject)
 		                 ->setContainingElement($this)
 		                 ->injectFormBuilder($this->formBuilder)
-		                 ->setFieldConfig($this->fieldConfig)
+		                 ->setFieldConfig($this->fieldSetup)
 		                 ->init();
 
-		$this->foreignTable = $this->fieldConfig['config']['foreign_table'];
+		$this->foreignTable = $this->fieldSetup['config']['foreign_table'];
 		t3lib_div::loadTCA($this->foreignTable);
 
 			// check the TCA configuration - if false is returned, something was wrong
-		if ($this->formObject->checkConfiguration($this->fieldConfig['config']) === false) {
+		if ($this->formObject->checkConfiguration($this->fieldSetup['config']) === false) {
 			unset($this->formObject); // TODO: do proper garbage collection here
 			return false;
 		}
@@ -73,8 +73,8 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 
 			// set the first and last record to the config array
 		$relatedRecordsUids = array_keys($relatedRecords['records']);
-		$this->fieldConfig['config']['inline']['first'] = reset($relatedRecordsUids);
-		$this->fieldConfig['config']['inline']['last'] = end($relatedRecordsUids);
+		$this->fieldSetup['config']['inline']['first'] = reset($relatedRecordsUids);
+		$this->fieldSetup['config']['inline']['last'] = end($relatedRecordsUids);
 
 		foreach ($relatedRecords['records'] as $record) {
 			$this->formObject->addRecord($this->foreignTable, $record);
@@ -121,9 +121,9 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		$records = array();
 		$pid = $this->record['pid'];
 		$elements = $this->itemFormElValue;
-		$foreignTable = $this->fieldConfig['config']['foreign_table'];
+		$foreignTable = $this->fieldSetup['config']['foreign_table'];
 
-		$localizationMode = t3lib_BEfunc::getInlineLocalizationMode($this->table, $this->fieldConfig['config']);
+		$localizationMode = t3lib_BEfunc::getInlineLocalizationMode($this->table, $this->fieldSetup['config']);
 
 		/*if ($localizationMode!=false) {
 			$language = intval($row[$GLOBALS['TCA'][$table]['ctrl']['languageField']]);
@@ -251,7 +251,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		$formContent = $this->formObject->render();
 
 			// add Drag&Drop functions for sorting to TCEforms::$additionalJS_post
-		if (count($this->relationList) > 1 && $this->fieldConfig['config']['appearance']['useSortable']) {
+		if (count($this->relationList) > 1 && $this->fieldSetup['config']['appearance']['useSortable']) {
 			$this->addJavaScriptSortable($this->getIrreIdentifier() . '_records');
 			// publish the uids of the child records in the given order to the browser
 		}
@@ -259,8 +259,8 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 
 		$markerArray = array(
 			'###IRREFIELDNAMES###' => $this->getIrreIdentifier(),
-			'###LEVELLINKS_TOP###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'top')) ? $levelLinks : ''),
-			'###LEVELLINKS_BOTTOM###' => (in_array($this->fieldConfig['config']['appearance']['levelLinksPosition'], array('both', 'bottom')) ? $levelLinks : ''),
+			'###LEVELLINKS_TOP###' => (in_array($this->fieldSetup['config']['appearance']['levelLinksPosition'], array('both', 'top')) ? $levelLinks : ''),
+			'###LEVELLINKS_BOTTOM###' => (in_array($this->fieldSetup['config']['appearance']['levelLinksPosition'], array('both', 'bottom')) ? $levelLinks : ''),
 			'###FORM_CONTENT###' => $formContent
 		);
 
@@ -268,16 +268,16 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	}
 
 	protected function renderLevelLinks() {
-		//if ($this->fieldConfig['appearance']['levelLinksPosition']!='none') {
-			$levelLinks = $this->getLevelInteractionLink('newRecord', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldConfig['config']);
+		//if ($this->fieldSetup['appearance']['levelLinksPosition']!='none') {
+			$levelLinks = $this->getLevelInteractionLink('newRecord', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldSetup['config']);
 			if ($language > 0) { // TODO fix this
 					// Add the "Localize all records" link before all child records:
-				if (isset($this->fieldConfig['appearance']['showAllLocalizationLink']) && $this->fieldConfig['appearance']['showAllLocalizationLink']) {
-					$levelLinks .= $this->getLevelInteractionLink('localize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldConfig);
+				if (isset($this->fieldSetup['appearance']['showAllLocalizationLink']) && $this->fieldSetup['appearance']['showAllLocalizationLink']) {
+					$levelLinks .= $this->getLevelInteractionLink('localize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldSetup);
 				}
 					// Add the "Synchronize with default language" link before all child records:
 				if (isset($config['appearance']['showSynchronizationLink']) && $config['appearance']['showSynchronizationLink']) {
-					$levelLinks .= $this->getLevelInteractionLink('synchronize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldConfig);
+					$levelLinks .= $this->getLevelInteractionLink('synchronize', $this->getIrreIdentifier() . '['.$this->foreignTable.']', $this->fieldSetup);
 				}
 			}
 		//}

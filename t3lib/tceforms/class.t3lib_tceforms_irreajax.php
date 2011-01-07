@@ -238,7 +238,7 @@ t3lib_div::devLog('inlineViewCurrent: ' . serialize($inlineViewCurrent), 't3lib_
 	 * @return	array		Changed TCA field configuration
 	 *
 	 * TODO Remove duplication (this function also exists in Element_Abstract, but it is non-static and directly
-	 *      changes $this->fieldConfig)
+	 *      changes $this->fieldSetup)
 	 */
 	protected static function overrideFieldConf($fieldConfig, $TSconfig) {
 		if (is_array($TSconfig)) {

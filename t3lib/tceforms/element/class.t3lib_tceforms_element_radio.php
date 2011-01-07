@@ -5,7 +5,7 @@ require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.
 
 class t3lib_TCEforms_Element_Radio extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
-		$config = $this->fieldConfig['config'];
+		$config = $this->fieldSetup['config'];
 
 		$disabled = '';
 		if ($this->isReadOnly()) {

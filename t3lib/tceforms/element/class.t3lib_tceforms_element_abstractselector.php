@@ -68,7 +68,7 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 			if ($this->shouldRecordBrowserBeRendered() && !$params['noBrowser']) {
 				$aOnClick = 'setFormValueOpenBrowser(\'' . $this->mode.'\',\'' . ($this->formFieldName . '|||' . $this->allowed . '|' . $aOnClickInline) . '\'); return false;';
 				$icons['R'][] = '<a href="#" onclick="' . htmlspecialchars($aOnClick) . '">' .
-						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars($this->getLL('l_browse_' . ($this->fieldConfig['config']['internal_type'] == 'db' ? 'db' : 'file'))))) .
+						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars($this->getLL('l_browse_' . ($this->fieldSetup['config']['internal_type'] == 'db' ? 'db' : 'file'))))) .
 						'</a>';
 			}
 			if ($this->shouldMoveIconsBeShown()) {
@@ -138,15 +138,15 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 	}
 
 	protected function shouldListBeRendered() {
-		return !(isset($this->fieldConfig['config']['disable_controls']) && t3lib_div::inList($this->fieldConfig['config']['disable_controls'], 'list'));
+		return !(isset($this->fieldSetup['config']['disable_controls']) && t3lib_div::inList($this->fieldSetup['config']['disable_controls'], 'list'));
 	}
 
 	protected function shouldRecordBrowserBeRendered() {
-		return $this->shouldListBeRendered() && !(isset($this->fieldConfig['config']['disable_controls']) && t3lib_div::inList($this->fieldConfig['config']['disable_controls'], 'browser'));
+		return $this->shouldListBeRendered() && !(isset($this->fieldSetup['config']['disable_controls']) && t3lib_div::inList($this->fieldSetup['config']['disable_controls'], 'browser'));
 	}
 
 	protected function shouldMoveIconsBeShown() {
-		return ($this->fieldConfig['config']['maxitems'] > 1);
+		return ($this->fieldSetup['config']['maxitems'] > 1);
 	}
 
 	protected function hasItems() {
@@ -162,7 +162,7 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 
 	protected function checkClipboardElements() {
 		// TODO: move to Element_Group
-		$mode = $this->fieldConfig['config']['internal_type'];
+		$mode = $this->fieldSetup['config']['internal_type'];
 
 		$clipElements = $this->getClipboardElements($allowed,$mode);
 		if (count($clipElements)) {

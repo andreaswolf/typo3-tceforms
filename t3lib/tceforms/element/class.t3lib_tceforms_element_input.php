@@ -5,9 +5,9 @@ require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.
 
 class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
-		$config = $this->fieldConfig['config'];
+		$config = $this->fieldSetup['config'];
 
-		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldConfig['defaultExtras']);
+		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldSetup['defaultExtras']);
 		$size = t3lib_div::intInRange($config['size'] ? $config['size'] : 30, 5, $this->maxInputWidth);
 		$evalList = t3lib_div::trimExplode(',',$config['eval'], TRUE);
 		$classAndStyleAttributes = $this->formWidthAsArray($size);

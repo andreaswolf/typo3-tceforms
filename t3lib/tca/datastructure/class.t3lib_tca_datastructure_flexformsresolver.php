@@ -28,7 +28,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolver extends t3lib_TCA_DataStructure_
 		$record = $flexElementObject->getRecordObject()->getRecordData();
 		$table = $flexElementObject->getRecordObject()->getTable();
 		$field = $flexElementObject->getFieldname();
-		$fieldConfig = $flexElementObject->getFieldConfig();
+		$fieldConfig = $flexElementObject->getFieldSetup();
 
 		$dataStructureArray = t3lib_BEfunc::getFlexFormDS($fieldConfig['config'], $record, $table);
 

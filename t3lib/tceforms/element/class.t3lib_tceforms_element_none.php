@@ -6,7 +6,7 @@ require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.
 class t3lib_TCEforms_Element_None extends t3lib_TCEforms_Element_Abstract {
 	protected function renderField() {
 			// Init:
-		$config = $this->fieldConfig['config'];
+		$config = $this->fieldSetup['config'];
 		$itemValue = $this->itemFormElValue;
 
 			// is colorScheme[0] the right value?

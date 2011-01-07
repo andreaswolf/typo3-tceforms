@@ -11,7 +11,7 @@ class t3lib_TCEforms_Element_User extends t3lib_TCEforms_Element_Abstract {
 		// we need to rebuild $PA here because it does not exist by default anymore
 		$PA = $this->PA;
 		$PA['pal'] = $this->pal;
-		$PA['fieldConf'] = $this->fieldConfig;
+		$PA['fieldConf'] = $this->fieldSetup;
 		$PA['fieldTSConfig'] = $this->fieldTSConfig; // not filled?
 		$PA['itemFormElName']      = $this->formFieldName;
 		$PA['itemFormElName_file'] = $this->fileFormFieldName;
@@ -26,7 +26,7 @@ class t3lib_TCEforms_Element_User extends t3lib_TCEforms_Element_Abstract {
 		$PA['row']   = $this->record;
 		$PA['pObj']  = $TCEformsObject;//&$this->TCEformsObject;
 
-		$item = t3lib_div::callUserFunction($this->fieldConfig['config']['userFunc'], $PA, $TCEformsObject);
+		$item = t3lib_div::callUserFunction($this->fieldSetup['config']['userFunc'], $PA, $TCEformsObject);
 		return $item;
 	}
 }

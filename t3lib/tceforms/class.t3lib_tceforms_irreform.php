@@ -53,7 +53,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		//$this->contextObject->registerRequiredFieldRange($this->itemFormElName, array($minitems, $maxitems, 'imgName' => $this->table . '_' . $this->record['uid'] . '_' . $this->field));
 
 			// add the current inline job to the structure stack
-		//$this->pushStructure($this->table, $this->record['uid'], $this->field, $this->fieldConfig['config']);
+		//$this->pushStructure($this->table, $this->record['uid'], $this->field, $this->fieldSetup['config']);
 			// e.g. inline[<table>][<uid>][<field>]
 		$nameForm = $this->inlineNames['form'];
 			// e.g. inline[<pid>][<table1>][<uid1>][<field1>][<table2>][<uid2>][<field2>]
@@ -79,7 +79,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 
 		/*
 			// if relations are required to be unique, get the uids that have already been used on the foreign side of the relation
-		if ($this->fieldConfig['config']['foreign_unique']) {
+		if ($this->fieldSetup['config']['foreign_unique']) {
 				// If uniqueness *and* selector are set, they should point to the same field - so, get the configuration of one:
 			$selConfig = $this->getPossibleRecordsSelectorConfig($config, $config['foreign_unique']);
 				// Get the used unique ids:

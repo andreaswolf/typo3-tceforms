@@ -22,9 +22,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * The TCA config for the field
 	 *
 	 * @var array
-	 * TODO: rename to fieldSetup to avoid (conf)using fieldConfig['config']
 	 */
-	protected $fieldConfig;
+	protected $fieldSetup;
 
 	protected $hiddenFieldListArr = array();
 
@@ -216,7 +215,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		global $TYPO3_CONF_VARS;
 
 			// Field config is the same as $PA['fieldConf'] below
-		$this->fieldConfig = $fieldConfig;
+		$this->fieldSetup = $fieldConfig;
 		$this->field = $field;
 		$this->extra = $extra;
 		$this->alternativeName = $alternativeName;
@@ -261,7 +260,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 
 		// TODO move this to FormBuilder
-		//$skipThisField = $this->inline->skipField($table, $this->field, $this->record, $this->fieldConfig['config']);
+		//$skipThisField = $this->inline->skipField($table, $this->field, $this->record, $this->fieldSetup['config']);
 
 		// Check if this field is configured and editable (according to excludefields + other configuration).
 		// If not, it won't be rendered
@@ -270,9 +269,9 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			&& (!$this->isExcludeField() || $BE_USER->check('non_exclude_fields',$this->table.':'.$this->field))
 			&& !$this->isPassThroughField()
 			&& ($this->isRteEnabled() || !$this->isOnlyShownIfRteIsEnabled())
-			&& (!$this->hasDisplayCondition() || $this->isDisplayCondition($this->fieldConfig['displayCond'], $this->record))
-			&& (!$TCA[$this->table]['ctrl']['languageField'] || $this->fieldConfig['l10n_display'] || strcmp($this->fieldConfig['l10n_mode'],'exclude') || $this->record[$TCA[$this->table]['ctrl']['languageField']]<=0)
-			&& (!$TCA[$this->table]['ctrl']['languageField'] || !$this->localizationMode || $this->localizationMode===$this->fieldConfig['l10n_cat'])
+			&& (!$this->hasDisplayCondition() || $this->isDisplayCondition($this->fieldSetup['displayCond'], $this->record))
+			&& (!$TCA[$this->table]['ctrl']['languageField'] || $this->fieldSetup['l10n_display'] || strcmp($this->fieldSetup['l10n_mode'],'exclude') || $this->record[$TCA[$this->table]['ctrl']['languageField']]<=0)
+			&& (!$TCA[$this->table]['ctrl']['languageField'] || !$this->localizationMode || $this->localizationMode===$this->fieldSetup['l10n_cat'])
 			)) {
 			$this->doNotRender = TRUE;
 		}
@@ -289,7 +288,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 		// TODO check if the label works correctly under all circumstances
 		if (!$this->doNotRender) {
-			$this->label = ($this->alternativeName ? $this->alternativeName : $this->fieldConfig['label']);
+			$this->label = ($this->alternativeName ? $this->alternativeName : $this->fieldSetup['label']);
 			$this->label = ($this->fieldTSConfig['label'] ? $this->fieldTSConfig['label'] : $this->label);
 			$this->label = ($this->fieldTSConfig['label.'][$GLOBALS['LANG']->lang] ? $this->fieldTSConfig['label.'][$GLOBALS['LANG']->lang] : $this->label);
 			$this->label = $this->sL($this->label);
@@ -441,7 +440,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @return boolean
 	 */
 	protected function isReadOnly() {
-		return ($this->contextObject->isReadOnly() || $this->fieldConfig['config']['readOnly']);
+		return ($this->contextObject->isReadOnly() || $this->fieldSetup['config']['readOnly']);
 	}
 
 	/**
@@ -465,11 +464,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	// NOTE: these methods were extracted from the monster condition in render()
 
 	protected function isPassThroughField() {
-		return $this->fieldConfig['config']['form_type'] == 'passthrough';
+		return $this->fieldSetup['config']['form_type'] == 'passthrough';
 	}
 
 	protected function hasFieldConfig() {
-		return is_array($this->fieldConfig);
+		return is_array($this->fieldSetup);
 	}
 
 	protected function isRteEnabled() {
@@ -477,15 +476,15 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	}
 
 	protected function isOnlyShownIfRteIsEnabled() {
-		return $this->fieldConfig['config']['showIfRTE'];
+		return $this->fieldSetup['config']['showIfRTE'];
 	}
 
 	protected function hasDisplayCondition() {
-		return $this->fieldConfig['displayCond'];
+		return $this->fieldSetup['displayCond'];
 	}
 
 	protected function isExcludeField() {
-		return $this->fieldConfig['exclude'];
+		return $this->fieldSetup['exclude'];
 	}
 
 	/*
@@ -509,8 +508,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$this->overrideFieldConf($this->fieldTSConfig);
 
 			// set field to read-only if configured for translated records to show default language content as readonly
-		if ($this->fieldConfig['l10n_display'] && t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly') && $this->record[$TCA[$this->table]['ctrl']['languageField']] > 0) {
-			$this->fieldConfig['config']['readOnly'] =  true;
+		if ($this->fieldSetup['l10n_display'] && t3lib_div::inList($this->fieldSetup['l10n_display'], 'defaultAsReadonly') && $this->record[$TCA[$this->table]['ctrl']['languageField']] > 0) {
+			$this->fieldSetup['config']['readOnly'] =  true;
 			$this->itemFormElValue = $this->defaultLanguageData[$this->table.':'.$this->record['uid']][$this->field];
 		}
 
@@ -557,7 +556,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		//      renderPaletteContents
 		// putting it all together will happen in Record object
 
-		if ($this->fieldConfig['config']['form_type']=='user' && $this->fieldConfig['config']['noTableWrapping'])	{
+		if ($this->fieldSetup['config']['form_type']=='user' && $this->fieldSetup['config']['noTableWrapping'])	{
 			$out = $item;
 		} elseif ($this->isInPalette) {
 			$out=array(
@@ -602,7 +601,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$item = $this->renderField();
 
 			// Add language + diff
-		if ($this->fieldConfig['l10n_display'] && (t3lib_div::inList($this->fieldConfig['l10n_display'], 'hideDiff') || t3lib_div::inList($this->fieldConfig['l10n_display'], 'defaultAsReadonly'))) {
+		if ($this->fieldSetup['l10n_display'] && (t3lib_div::inList($this->fieldSetup['l10n_display'], 'hideDiff') || t3lib_div::inList($this->fieldSetup['l10n_display'], 'defaultAsReadonly'))) {
 			$renderLanguageDiff = false;
 		} else {
 			$renderLanguageDiff = true;
@@ -639,8 +638,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 *
 	 * @return array
 	 */
-	public function getFieldConfig() {
-		return $this->fieldConfig;
+	public function getFieldSetup() {
+		return $this->fieldSetup;
 	}
 
 	/**
@@ -730,7 +729,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * @return	array		Changed TCA field configuration
 	 */
 	protected function overrideFieldConf($TSconfig) {
-		$fieldConfig = $this->fieldConfig['config'];
+		$fieldConfig = $this->fieldSetup['config'];
 
 		if (is_array($TSconfig)) {
 			$TSconfig = t3lib_div::removeDotsFromTS($TSconfig);
@@ -749,7 +748,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			}
 		}
 
-		$this->fieldConfig['config'] = $fieldConfig;
+		$this->fieldSetup['config'] = $fieldConfig;
 	}
 
 	/**
@@ -1022,7 +1021,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$dLVal = t3lib_BEfunc::getProcessedValue($this->table, $this->field, $this->defaultLanguageValue, 0, 1);
 
 				// Don't show content if it's for IRRE child records:
-			if ($this->fieldConfig['type'] != 'inline') {
+			if ($this->fieldSetup['type'] != 'inline') {
 				if (strcmp($dLVal, '')) {
 					$item.='<div class="typo3-TCEforms-originalLanguageValue">'.$this->recordObject->getLanguageIcon(0).$this->previewFieldValue($dLVal).'&nbsp;</div>';
 				}
@@ -1091,8 +1090,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	// TODO: move to renderField in type group
 	protected function previewFieldValue($value) {
-		if ($this->fieldConfig['type'] === 'group' &&
-				($this->fieldConfig['internal_type'] === 'file' ||
+		if ($this->fieldSetup['type'] === 'group' &&
+				($this->fieldSetup['internal_type'] === 'file' ||
 				$config['config']['internal_type'] === 'file_reference')) {
 				// Ignore uploadfolder if internal_type is file_reference
 			if ($config['config']['internal_type'] === 'file_reference') {
@@ -1117,7 +1116,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 					$rowCopy[$field] = $imgPath;
 
 						// Icon + clickmenu:
-					$absFilePath = t3lib_div::getFileAbsFileName($this->fieldConfig['uploadfolder'] ? $config['config']['uploadfolder'] . '/' . $imgPath : $imgPath);
+					$absFilePath = t3lib_div::getFileAbsFileName($this->fieldSetup['uploadfolder'] ? $config['config']['uploadfolder'] . '/' . $imgPath : $imgPath);
 
 					$fI = pathinfo($imgPath);
 					$fileIcon = t3lib_BEfunc::getFileIcon(strtolower($fI['extension']));
@@ -1286,8 +1285,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	protected function initItemArray() {
 		$items = array();
-		if (is_array($this->fieldConfig['config']['items'])) {
-			foreach($this->fieldConfig['config']['items'] as $itemName => $itemValue) {
+		if (is_array($this->fieldSetup['config']['items'])) {
+			foreach($this->fieldSetup['config']['items'] as $itemName => $itemValue) {
 				$items[] = array($this->sL($itemValue[0]), $itemValue[1], $itemValue[2]);
 			}
 		}
@@ -1328,13 +1327,13 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 		$params = array();
 		$params['items'] = &$items;
-		$params['config'] = $this->fieldConfig['config'];
+		$params['config'] = $this->fieldSetup['config'];
 		$params['TSconfig'] = $this->fieldTSConfig['itemsProcFunc.'];
 		$params['table'] = $this->table;
 		$params['row'] = $this->record;
 		$params['field'] = $this->field;
 
-		$processFunction = $this->fieldConfig['config']['itemsProcFunc'];
+		$processFunction = $this->fieldSetup['config']['itemsProcFunc'];
 
 		t3lib_div::callUserFunction($processFunction, $params, $this);
 		return $items;
@@ -1648,10 +1647,10 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$listFlag = '_list';
 
 			// Manipulate the field name (to be the true form field name) and remove a suffix-value if the item is a selector box with renderMode "singlebox":
-		if ($this->fieldConfig['config']['form_type']=='select')	{
-			if ($this->fieldConfig['config']['maxitems']<=1)	{	// Single select situation:
+		if ($this->fieldSetup['config']['form_type']=='select')	{
+			if ($this->fieldSetup['config']['maxitems']<=1)	{	// Single select situation:
 				$listFlag = '';
-			} elseif ($this->fieldConfig['config']['renderMode']=='singlebox')	{
+			} elseif ($this->fieldSetup['config']['renderMode']=='singlebox')	{
 				$itemName.='[]';
 				$listFlag = '';
 			}
