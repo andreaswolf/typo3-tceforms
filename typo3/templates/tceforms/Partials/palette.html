@@ -5,12 +5,12 @@
 		<f:for each="{palette.elements}" as="pelement">
 			<span class="t3-form-palette-field-container">
 				<label {palette.labelAttributes}>
-					{pelement.label}
+					<f:raw>{pelement.label}</f:raw>
 						<img name="req_{record.table}_{record.uid}_{pelement.fieldname}" src="clear.gif" class="t3-form-palette-icon-required" alt="" />
 					<img name="cm_{record.table}_{record.uid}_{pelement.fieldname}" src="clear.gif" class="t3-form-palette-icon-contentchanged" alt="" />
 				</label>
 				<span {palette.fieldAttributes}>
-					<tceforms:element element="{pelement}" record="{record}" inpalette="true"/> <!-- insert help icon -->
+					<tceforms:element element="{pelement}" record="{record}" inpalette="true"/>
 				</span>
 			</span>
 		</f:for>

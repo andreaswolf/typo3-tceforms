@@ -299,6 +299,10 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 				$lTTS_url = $this->backPath.'alt_doc.php?edit['.$this->table.']['.$this->record['uid'].']=edit&columnsOnly='.$this->field.'&returnUrl='.rawurlencode($this->thisReturnUrl());
 				$this->label = '<a href="'.htmlspecialchars($lTTS_url).'">'.$this->label.'</a>';
 			}
+
+				// wrap the label with help text
+			$this->label = t3lib_BEfunc::wrapInHelp($this->table, $this->field, $this->label);
+
 		}
 
 		if ($this->contextObject->isFieldHidden($this->table, $this->field)) {
