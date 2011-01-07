@@ -100,6 +100,15 @@ class t3lib_TCA_Record {
 	}
 
 	/**
+	 * Returns the uid of this record, if any.
+	 *
+	 * @return integer
+	 */
+	public function getUid() {
+		return $this->getValue('uid');
+	}
+
+	/**
 	 * Returns the object representation of the data structure for this record.
 	 * The source for this data structure could have been PHP-based TCA or an XML-based Flexform
 	 * data structure
