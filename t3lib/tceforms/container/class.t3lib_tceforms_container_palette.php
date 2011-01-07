@@ -3,11 +3,12 @@
 require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_container.php');
 
 class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
-	protected $table;
-	protected $record;
-	protected $paletteNumber;
-	protected $field;
-
+	/**
+	 * The name of this palette, as used as key in the palettes array of the TCA configuration
+	 *
+	 * @var string
+	 */
+	protected $name;
 
 	/**
 	 * The form this palette belongs to
@@ -38,8 +39,8 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	protected $paletteElements;
 
 
-	public function __construct($paletteNumber) {
-		$this->paletteNumber = $paletteNumber;
+	public function __construct($paletteName) {
+		$this->name = $paletteName;
 	}
 
 	/**
@@ -70,7 +71,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	}
 
 	public function init() {
-		$this->recordObject->setPaletteCreated($this->paletteNumber);
+		$this->recordObject->setPaletteCreated($this->name);
 	}
 
 	public function addElement(t3lib_TCEforms_Element_Abstract $elementObject) {
@@ -81,6 +82,10 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 
 	public function getElements() {
 		return $this->paletteElements;
+	}
+
+	public function getName() {
+		return $this->name;
 	}
 
 	/**
@@ -98,8 +103,8 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		}*/
 
 			// Load the palette TCEform elements
-		if ($TCAdefinition && (is_array($TCAdefinition['palettes'][$this->paletteNumber]) || $itemList)) {
-			$itemList = ($itemList ? $itemList : $TCAdefinition['palettes'][$this->paletteNumber]['showitem']);
+		if ($TCAdefinition && (is_array($TCAdefinition['palettes'][$this->name]) || $itemList)) {
+			$itemList = ($itemList ? $itemList : $TCAdefinition['palettes'][$this->name]['showitem']);
 			if ($itemList) {
 				$fields = t3lib_div::trimExplode(',',$itemList,1);
 				foreach($fields as $info) {
@@ -215,7 +220,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	 * @return string
 	 */
 	protected function getHtmlId() {
-		return 'TCEFORMS_'.$this->recordObject->getTable().'_'.$this->paletteNumber.'_'.$this->recordObject->getValue('uid');
+		return 'TCEFORMS_'.$this->recordObject->getTable().'_'.$this->name.'_'.$this->recordObject->getValue('uid');
 	}
 
 	/**
@@ -233,7 +238,7 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 			return FALSE;
 		}
 		// TODO implement this setting in t3lib_TCA_DataStructure_Palette
-		if (is_array($tableTCAdefinition['palettes'][$this->paletteNumber]) && $tableTCAdefinition['palettes'][$this->paletteNumber]['canNotCollapse']) {
+		if (is_array($tableTCAdefinition['palettes'][$this->name]) && $tableTCAdefinition['palettes'][$this->name]['canNotCollapse']) {
 			return FALSE;
 		}
 

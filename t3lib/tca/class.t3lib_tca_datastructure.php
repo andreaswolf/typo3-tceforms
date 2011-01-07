@@ -197,25 +197,25 @@ class t3lib_TCA_DataStructure {
 	/**
 	 * Returns TRUE if a certain palette exists in this datastructure
 	 *
-	 * @param integer $paletteNumber The number of the palette as used in TCA configuration
+	 * @param integer $paletteName The name of the palette as used in TCA configuration
 	 */
-	public function hasPalette($paletteNumber) {
-		return array_key_exists($paletteNumber, $this->palettes);
+	public function hasPalette($paletteName) {
+		return array_key_exists($paletteName, $this->palettes);
 	}
 
 	/**
 	 * Returns configuration for a palette
 	 *
-	 * @param integer $paletteNumber
-	 * @return array The palette configuration as specified in TCA
+	 * @param   integer  $paletteName  The name of the palette as used in TCA configuration
+	 * @return  array  The palette configuration as specified in TCA
 	 */
-	public function getPaletteConfiguration($paletteNumber) {
-		if (!$this->hasPalette($paletteNumber)) {
-			throw new InvalidArgumentException("Palette $paletteNumber does not exist.");
+	public function getPaletteConfiguration($paletteName) {
+		if (!$this->hasPalette($paletteName)) {
+			throw new InvalidArgumentException("Palette '$paletteName' does not exist.");
 		}
 		// TODO create palette
 
-		return $this->palettes[$paletteNumber];
+		return $this->palettes[$paletteName];
 	}
 
 	/**

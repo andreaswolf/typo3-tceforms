@@ -22,14 +22,14 @@ class t3lib_TCA_DataStructure_Palette {
 	/**
 	 * @param t3lib_TCA_DataStructure $dataStructure
 	 * @param string $label
-	 * @param integer $paletteNumber
+	 * @param integer $name The name used as the key in the TCA palettes array
 	 *
 	 * @TODO get the complete configuration from DataStructure, handle canNotCollapse
 	 */
-	public function __construct(t3lib_TCA_DataStructure $dataStructure, $label, $paletteNumber) {
+	public function __construct(t3lib_TCA_DataStructure $dataStructure, $label, $name) {
 		$this->dataStructure = $dataStructure;
 		$this->label = $label;
-		$this->paletteNumber = $paletteNumber;
+		$this->name = $name;
 	}
 
 	/**
@@ -56,8 +56,8 @@ class t3lib_TCA_DataStructure_Palette {
 	 *
 	 * @return integer
 	 */
-	public function getNumber() {
-		return $this->paletteNumber;
+	public function getName() {
+		return $this->name;
 	}
 
 	public function getLabel() {
