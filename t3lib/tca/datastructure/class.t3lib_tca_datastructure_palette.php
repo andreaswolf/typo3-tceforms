@@ -72,7 +72,7 @@ class t3lib_TCA_DataStructure_Palette {
 	 * @return bool TRUE if this palette is collapsible
 	 */
 	public function isCollapsible() {
-		return !(array_key_exists('canNotCollapse', $this->paletteConfiguration) && !$this->paletteConfiguration['canNotCollapse']);
+		return (!array_key_exists('canNotCollapse', $this->paletteConfiguration) || !$this->paletteConfiguration['canNotCollapse']);
 	}
 }
 
