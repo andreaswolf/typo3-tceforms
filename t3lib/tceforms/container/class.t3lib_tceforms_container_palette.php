@@ -245,12 +245,17 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		if ($tableDataStructure->getControlValue('canNotCollapse') == TRUE) {
 			return FALSE;
 		}
-		// TODO implement this setting in t3lib_TCA_DataStructure_Palette
-		if (is_array($tableTCAdefinition['palettes'][$this->name]) && $tableTCAdefinition['palettes'][$this->name]['canNotCollapse']) {
+		if (!$this->paletteDefinition->isCollapsible()) {
 			return FALSE;
 		}
 
 		return $this->contextObject->getPalettesCollapsed();
+	}
+
+	public function getToggleIcon() {
+		$icon = t3lib_iconWorks::getSpriteIcon('actions-system-options-view', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_moreOptions'))));
+		$res = '<a href="#" onclick="TBE_EDITOR.toggle_display_states(\'' . $this->getHtmlId() . '\',\'block\',\'none\'); return false;" >' . $icon . '</a>';
+		return $res;
 	}
 
 	public function setDisplayed($displayed) {

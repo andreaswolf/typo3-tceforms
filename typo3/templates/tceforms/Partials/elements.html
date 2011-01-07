@@ -6,7 +6,12 @@
 	<tr ###BGCOLOR######CLASSATTR_1###>
 		<td valign="top" colspan="2"><f:raw>{element.contents}</f:raw>
 		<f:if condition="{element.palette}">
-			<f:then><f:render partial="palette" arguments="{palette: element.palette, element: element, record: record}"/></f:then>
+			<f:then>
+				<f:if condition="{element.palette.collapsed}">
+					<f:then><f:raw>{element.palette.toggleicon}</f:raw></f:then>
+				</f:if>
+				<f:render partial="palette" arguments="{palette: element.palette, element: element, record: record}"/>
+			</f:then>
 		</f:if></td>
 	</tr>
 </f:section>
