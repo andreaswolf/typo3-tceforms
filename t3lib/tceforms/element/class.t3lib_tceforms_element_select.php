@@ -582,7 +582,6 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 			'size' => $size,
 			'autoSizeMax' => t3lib_div::intInRange($this->fieldConfig['config']['autoSizeMax'],0),
 			'style' => isset($this->fieldConfig['config']['selectedListStyle']) ? ' style="'.htmlspecialchars($this->fieldConfig['config']['selectedListStyle']).'"' : ' style="'.$this->defaultMultipleSelectorStyle.'"',
-			'dontShowMoveIcons' => ($maxitems<=1),
 			'maxitems' => $maxitems,
 			'info' => '',
 			'headers' => array(
@@ -593,7 +592,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 			'thumbnails' => $itemsToSelect,
 			'readOnly' => $disabled
 		);
-		$item .= $this->dbFileIcons($this->itemFormElName,'','',$this->items,'',$params,$this->onFocus);
+		$item .= $this->renderItemList('', $params);
 
 		return $item;
 	}
@@ -924,7 +923,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 			return;
 		}
 
-		while(list(,$pp)=each($this->items)) {
+		foreach ($this->items as $pp) {
 			$pParts = explode('|',$pp, 2);
 			$uidList[]=$pUid=$pParts[0];
 			$pTitle = $pParts[1];

@@ -20,28 +20,53 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 	 */
 	protected $items = array();
 
+	/**
+	 * The mode - may be db, file or folder
+	 *
+	 * @var string
+	 * TODO move to Element_Group
+	 */
+	protected $mode = '';
 
-	protected function renderItemList($selector = '', $onFocus = '') {
+	/**
+	 * FIXME
+	 *
+	 * @var string
+	 * TODO move to Element_Group
+	 */
+	protected $allowed = '';
+
+
+	/**
+	 * @param string $selector
+	 * @return string
+	 *
+	 * @see t3lib_TCEforms::dbFileIcons()
+	 *
+	 * @TODO cleanup rendering in this method
+	 */
+	protected function renderItemList($selector = '', $params = array()) {
 			// Sets a flag which means some JavaScript is included on the page to support this element.
 		$this->printNeededJS['dbFileIcons'] = TRUE;
 
 		$disabled = $this->getDisabledCode();
-
 		$options = $this->renderOptions();
 
+		$selectorSize = $params['autoSizeMax'] ? t3lib_div::intInRange(count($this->items) + 1, t3lib_div::intInRange($params['size'], 1), $params['autoSizeMax']) : $params['size'];
 		if (!$this->isReadOnly() && $this->shouldListBeRendered()) {
-			if ($this->shouldRecordBrowserBeRendered()) {
-					// check against inline uniqueness
-				// TODO: re-implement for IRRE
-				/*$inlineParent = $this->inline->getStructureLevel(-1);
-				if(is_array($inlineParent) && $inlineParent['uid']) {
-					if ($inlineParent['config']['foreign_table'] == $table && $inlineParent['config']['foreign_unique'] == $field) {
-						$objectPrefix = $this->inline->inlineNames['object'].'['.$table.']';
-						$aOnClickInline = $objectPrefix.'|inline.checkUniqueElement|inline.setUniqueElement';
-						$rOnClickInline = 'inline.revertUnique(\''.$objectPrefix.'\',null,\''.$uid.'\');';
-					}
-				}*/
-				$aOnClick = 'setFormValueOpenBrowser(\'' . $mode.'\',\'' . ($this->formFieldName . '|||' . $allowed . '|' . $aOnClickInline) . '\'); return false;';
+				// check against inline uniqueness
+			// TODO: re-implement for IRRE
+			/*$inlineParent = $this->inline->getStructureLevel(-1);
+			if(is_array($inlineParent) && $inlineParent['uid']) {
+				if ($inlineParent['config']['foreign_table'] == $table && $inlineParent['config']['foreign_unique'] == $field) {
+					$objectPrefix = $this->inline->inlineNames['object'].'['.$table.']';
+					$aOnClickInline = $objectPrefix.'|inline.checkUniqueElement|inline.setUniqueElement';
+					$rOnClickInline = 'inline.revertUnique(\''.$objectPrefix.'\',null,\''.$uid.'\');';
+				}
+			}*/
+			// TODO move this code to group field, as it is only required there
+			if ($this->shouldRecordBrowserBeRendered() && !$params['noBrowser']) {
+				$aOnClick = 'setFormValueOpenBrowser(\'' . $this->mode.'\',\'' . ($this->formFieldName . '|||' . $this->allowed . '|' . $aOnClickInline) . '\'); return false;';
 				$icons['R'][] = '<a href="#" onclick="' . htmlspecialchars($aOnClick) . '">' .
 						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars($this->getLL('l_browse_' . ($this->fieldConfig['config']['internal_type'] == 'db' ? 'db' : 'file'))))) .
 						'</a>';
@@ -73,13 +98,15 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 					'</a>';
 		}
 
-		$selectorSize = $params['autoSizeMax'] ? t3lib_div::intInRange(count($this->items) + 1, t3lib_div::intInRange($params['size'], 1), $params['autoSizeMax']) : $params['size'];
-		if (!$selector)	{
+		if (!$selector) {
 			$selector = '<select id="' . uniqid('tceforms-multiselect-') . '" ' . (!$this->shouldListBeRendered() ? 'style="display: none"' : 'size="' . $selectorSize . '"' .
 			  $this->insertDefaultElementStyle('group', 'tceforms-multiselect')) . ' multiple="multiple" name="' . $this->formFieldName . '_list" ' . $this->onFocus .
 			  $params['style'] . $disabled . '>' . implode('', $options) . '</select>';
 		}
 
+		// TODO insert some kind of hook here to manipulate the icons (maybe neccessary for moving the browser functionality to Element_Group, see above)
+
+			// TODO move this code to template
 		$str = '<table border="0" cellpadding="0" cellspacing="0" width="1">
 			' . ($params['headers'] ? '
 				<tr>
@@ -119,7 +146,7 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 	}
 
 	protected function shouldMoveIconsBeShown() {
-		//
+		return ($this->fieldConfig['config']['maxitems'] > 1);
 	}
 
 	protected function hasItems() {
@@ -128,6 +155,8 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 
 	/**
 	 * Renders the options for the selector.
+	 *
+	 * @return array
 	 */
 	abstract protected function renderOptions();
 
