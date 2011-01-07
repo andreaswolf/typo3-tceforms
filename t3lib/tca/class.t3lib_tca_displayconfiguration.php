@@ -187,13 +187,13 @@ class t3lib_TCA_DisplayConfiguration {
 	 * @return t3lib_TCA_DataStructure_Palette
 	 *
 	 * TODO: respect label if given as second element of $fieldDescriptorParts.
-	 * TODO: implement handling of newline
+	 * TODO: implement handling of linebreak
 	 */
 	protected function createPaletteObject($paletteNumber, $label = '') {
 		$paletteConfiguration = $this->dataStructure->getPaletteConfiguration($paletteNumber);
 		$paletteFieldNames = t3lib_div::trimExplode(',', $paletteConfiguration['showitem']);
 
-		$paletteObject = new t3lib_TCA_DataStructure_Palette($this->dataStructure, $label, $paletteNumber);
+		$paletteObject = new t3lib_TCA_DataStructure_Palette($paletteConfiguration, $this->dataStructure, $label, $paletteNumber);
 
 		foreach ($paletteFieldNames as $fieldDescriptor) {
 			$fieldDescriptorParts = t3lib_div::trimExplode(';', $fieldDescriptor);

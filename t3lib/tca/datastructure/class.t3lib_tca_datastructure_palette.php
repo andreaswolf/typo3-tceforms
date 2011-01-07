@@ -19,14 +19,18 @@ class t3lib_TCA_DataStructure_Palette {
 	 */
 	protected $dataStructure;
 
+	protected $paletteConfiguration = array();
+
 	/**
+	 * @param array  $paletteConfiguration  The configuration of this palette
 	 * @param t3lib_TCA_DataStructure $dataStructure
 	 * @param string $label
 	 * @param integer $name The name used as the key in the TCA palettes array
 	 *
 	 * @TODO get the complete configuration from DataStructure, handle canNotCollapse
 	 */
-	public function __construct(t3lib_TCA_DataStructure $dataStructure, $label, $name) {
+	public function __construct(array $paletteConfiguration, t3lib_TCA_DataStructure $dataStructure, $label, $name) {
+		$this->paletteConfiguration = $paletteConfiguration;
 		$this->dataStructure = $dataStructure;
 		$this->label = $label;
 		$this->name = $name;
@@ -62,6 +66,13 @@ class t3lib_TCA_DataStructure_Palette {
 
 	public function getLabel() {
 		return $this->label;
+	}
+
+	/**
+	 * @return bool TRUE if this palette is collapsible
+	 */
+	public function isCollapsible() {
+		return !(array_key_exists('canNotCollapse', $this->paletteConfiguration) && !$this->paletteConfiguration['canNotCollapse']);
 	}
 }
 

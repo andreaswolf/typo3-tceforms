@@ -147,7 +147,7 @@ class t3lib_TCEforms_FormBuilder {
 		$dataStructureElements = $paletteDataStructureObject->getElements();
 
 		/* @var $paletteObject t3lib_TCEforms_Container_Palette */
-		$paletteObject = $this->createPaletteContainerObject($paletteDataStructureObject->getName());
+		$paletteObject = $this->createPaletteContainerObject($paletteDataStructureObject);
 
 		foreach ($dataStructureElements as $element) {
 			$fieldObject = $this->createObjectFromFieldDefinition($element);
@@ -258,8 +258,8 @@ class t3lib_TCEforms_FormBuilder {
 	 *
 	 * @return t3lib_TCEforms_Container_Palette
 	 */
-	protected function createPaletteContainerObject($paletteName) {
-		$paletteObject = new t3lib_TCEforms_Container_Palette($paletteName);
+	protected function createPaletteContainerObject(t3lib_TCA_DataStructure_Palette $paletteDataStructure) {
+		$paletteObject = new t3lib_TCEforms_Container_Palette($paletteDataStructure, $paletteDataStructure->getName());
 		$paletteObject->setContextObject($this->contextObject)
 		              ->setRecordObject($this->recordObject)
 		              ->init();
