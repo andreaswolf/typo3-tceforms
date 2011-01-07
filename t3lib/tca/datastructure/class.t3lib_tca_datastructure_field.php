@@ -23,6 +23,13 @@ class t3lib_TCA_DataStructure_Field {
 	 */
 	protected $configuration;
 
+	/**
+	 * The label of this entry.
+	 *
+	 * Either comes from
+	 *
+	 * @var string
+	 */
 	protected $label;
 
 	/**

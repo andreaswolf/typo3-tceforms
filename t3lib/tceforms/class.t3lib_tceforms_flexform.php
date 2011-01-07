@@ -29,8 +29,8 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	 * The localization method for this record. This is determined by the value meta->langChildren
 	 * of the FlexForm data structure.
 	 *
-	 * value 0 means one record for each language
-	 * value 1 means all languages in one record
+	 * value 0 means one record for each language (language codes on language part)
+	 * value 1 means all languages in one record  (language codes on value part)
 	 *
 	 * @var integer
 	 */

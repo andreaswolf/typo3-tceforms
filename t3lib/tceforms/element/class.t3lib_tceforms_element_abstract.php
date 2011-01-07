@@ -11,12 +11,18 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	protected $container;
 
+	/**
+	 * An alternative label given at the second position of an entry in a type or palette configuration
+	 *
+	 * @var string
+	 */
 	protected $alternativeName;
 
 	/**
 	 * The TCA config for the field
 	 *
 	 * @var array
+	 * TODO: rename to fieldSetup to avoid (conf)using fieldConfig['config']
 	 */
 	protected $fieldConfig;
 
@@ -28,10 +34,27 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 	protected $fieldChangeFunc = array();
 
+	/**
+	 * The table this field belongs to
+	 *
+	 * @var string
+	 */
 	protected $table;
 
+	/**
+	 * The fieldname as used in the database. This may contain special values ("--linebreak--" and the like), but they are
+	 * not handled in this class.
+	 * TODO create special handling classes for special values
+	 *
+	 * @var string
+	 */
 	protected $field;
 
+	/**
+	 * The record data this field belongs to
+	 *
+	 * @var array
+	 */
 	protected $record;
 
 	/**
@@ -49,6 +72,12 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 	protected $_hasPalette = false;
 
+	/**
+	 * TRUE if this field belongs to a palette (which may in turn belong to another field, or be on the top level)
+	 * TODO: check if this field is still neccessary with the Fluid rendering
+	 *
+	 * @var boolean
+	 */
 	protected $isInPalette = false;
 
 	/**
@@ -406,6 +435,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return $this;
 	}
 
+	/**
+	 * Returns TRUE if this field is read only, i.e., it may not be changed.
+	 *
+	 * @return boolean
+	 */
 	protected function isReadOnly() {
 		return ($this->contextObject->isReadOnly() || $this->fieldConfig['config']['readOnly']);
 	}
@@ -652,7 +686,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 * Multiple requests to this function will return cached content so there is no performance
 	 * loss in calling this many times since the information is looked up only once.
 	 *
-	 * Uses central caching functionality in AbstractForm
+	 * Uses central caching functionality in t3lib_TCEforms_Form
 	 *
 	 * @see t3lib_TCEForms_Form::getTSconfig()
 	 */

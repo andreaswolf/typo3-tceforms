@@ -164,7 +164,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	protected static $cachedTSconfig;
 
 	/**
-	 * The inline elements used in this form (and all subforms)
+	 * The inline elements used in this form (and all subforms).
 	 *
 	 * @var array
 	 */
@@ -721,7 +721,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 *
 	 * @return  string  If the current browser supports styles, the string 'this.blur();' is returned.
 	 */
-	// TODO: move to Element_Abstract
+	// TODO: move to generic helper class, make static
 	public function blur() {
 		return $GLOBALS['CLIENT']['FORMSTYLE'] ? 'this.blur();' : '';
 	}

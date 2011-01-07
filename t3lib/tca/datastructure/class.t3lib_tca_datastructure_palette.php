@@ -23,6 +23,8 @@ class t3lib_TCA_DataStructure_Palette {
 	 * @param t3lib_TCA_DataStructure $dataStructure
 	 * @param string $label
 	 * @param integer $paletteNumber
+	 *
+	 * @TODO get the complete configuration from DataStructure, handle canNotCollapse
 	 */
 	public function __construct(t3lib_TCA_DataStructure $dataStructure, $label, $paletteNumber) {
 		$this->dataStructure = $dataStructure;

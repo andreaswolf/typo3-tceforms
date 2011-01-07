@@ -62,9 +62,12 @@ class t3lib_TCA_DataStructure {
 	protected $displayConfigurations = array();
 
 	/**
+	 * Constructor for this class.
 	 *
+	 * Expects a TCA configuration as used in the normal PHP-based TCA. It has to have these sections: ctrl, columns,
+	 * palettes, types; each should be an array as used in the TCA.
 	 *
-	 * @param array $TCAinformation
+	 * @param array $TCAinformation The information from the Table Control Array
 	 * @return void
 	 */
 	public function __construct($TCAinformation) {
@@ -156,6 +159,12 @@ class t3lib_TCA_DataStructure {
 		return array_keys($this->fields);
 	}
 
+	/**
+	 * Returns the configuration object for a field
+	 *
+	 * @param string $fieldName
+	 * @return t3lib_TCA_DataStructure_Field
+	 */
 	public function getFieldConfiguration($fieldName) {
 		return $this->fields[$fieldName];
 	}

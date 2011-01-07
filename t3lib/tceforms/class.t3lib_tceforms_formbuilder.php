@@ -112,7 +112,7 @@ class t3lib_TCEforms_FormBuilder {
 	 * @param   string   $theField  The field name
 	 * @param   string   $fieldConf The field configuration
 	 * @param   string   $altName   Alternative field name label to show.
-	 * @return  t3lib_TCEforms_AbstractElement
+	 * @return  t3lib_TCEforms_Element_Abstract
 	 */
 	public function createObjectFromFieldDefinition(t3lib_TCA_DataStructure_Field $fieldDefinition) {
 		$fieldConf = $fieldDefinition->getConfiguration();

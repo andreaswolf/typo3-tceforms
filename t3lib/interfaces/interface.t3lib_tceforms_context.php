@@ -50,6 +50,8 @@ interface t3lib_TCEforms_Context {
 	 *
 	 * Technically speaking, these are all languages that have a record in sys_language.
 	 *
+	 * @param  boolean $onlyIsoCoded
+	 * @param  boolean $setDefault
 	 * @return array
 	 */
 	public function getAvailableLanguages($onlyIsoCoded = TRUE, $setDefault = TRUE);

@@ -185,6 +185,9 @@ class t3lib_TCA_DisplayConfiguration {
 	 * @param integer $paletteNumber
 	 * @param string $label
 	 * @return t3lib_TCA_DataStructure_Palette
+	 *
+	 * TODO: respect label if given as second element of $fieldDescriptorParts.
+	 * TODO: implement handling of newline
 	 */
 	protected function createPaletteObject($paletteNumber, $label = '') {
 		$paletteConfiguration = $this->dataStructure->getPaletteConfiguration($paletteNumber);
