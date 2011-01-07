@@ -219,7 +219,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 		}
 		$item.= '<select'.$selectedStyle.' id="' . uniqid('tceforms-select-') . '" name="'.$this->formFieldName.'"'.
 					($config['iconsInOptionTags'] ? ' class="icon-select"' : '') .
-					$this->insertDefaultElementStyle('select', 'tceforms-multiselect').
+					$this->insertDefaultElementStyle('select').
 					($size?' size="'.$size.'"':'').
 					' onchange="'.htmlspecialchars($onChangeIcon . $sOnChange).'"'.
 					$this->onFocus.$disabled.'>';
