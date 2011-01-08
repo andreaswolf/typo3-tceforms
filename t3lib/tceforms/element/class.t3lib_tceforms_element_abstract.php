@@ -269,7 +269,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			&& (!$this->isExcludeField() || $BE_USER->check('non_exclude_fields',$this->table.':'.$this->field))
 			&& !$this->isPassThroughField()
 			&& ($this->isRteEnabled() || !$this->isOnlyShownIfRteIsEnabled())
-			&& (!$this->hasDisplayCondition() || $this->isDisplayCondition($this->fieldSetup['displayCond'], $this->record))
+			&& (!$this->hasDisplayCondition() || $this->evaluateDisplayCondition())
 			&& (!$TCA[$this->table]['ctrl']['languageField'] || $this->fieldSetup['l10n_display'] || strcmp($this->fieldSetup['l10n_mode'],'exclude') || $this->record[$TCA[$this->table]['ctrl']['languageField']]<=0)
 			&& (!$TCA[$this->table]['ctrl']['languageField'] || !$this->localizationMode || $this->localizationMode===$this->fieldSetup['l10n_cat'])
 			)) {
@@ -758,91 +758,98 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	/**
 	 * Returns true, if the evaluation of the required-field code is OK.
 	 *
-	 * @param	string		The required-field code
-	 * @param	array		The record to evaluate
-	 * @param	string		FlexForm value key, eg. vDEF
-	 * @return	boolean
+	 * @return boolean
 	 */
-	protected function isDisplayCondition($displayCond,$row,$ffValueKey='')	{
+	protected function evaluateDisplayCondition() {
 		$output = FALSE;
 
-		$parts = explode(':',$displayCond);
-		switch((string)$parts[0]) { // Type of condition:
+		$displayCond = $this->fieldSetup['displayCond'];
+		$row = $this->record;
+		// TODO implement FlexForm value key $ffValueeKey, if still neccessary
+
+		$parts = explode(':', $displayCond);
+		switch ((string)$parts[0]) { // Type of condition:
 			case 'FIELD':
 				$theFieldValue = $ffValueKey ? $row[$parts[1]][$ffValueKey] : $row[$parts[1]];
 
-				switch((string)$parts[2]) {
+				switch ((string)$parts[2]) {
 					case 'REQ':
-						if (strtolower($parts[3])=='true')	{
+						if (strtolower($parts[3]) == 'true') {
 							$output = $theFieldValue ? TRUE : FALSE;
-						} elseif (strtolower($parts[3])=='false') {
+						} elseif (strtolower($parts[3]) == 'false') {
 							$output = !$theFieldValue ? TRUE : FALSE;
 						}
-					break;
+						break;
 					case '>':
 						$output = $theFieldValue > $parts[3];
-					break;
+						break;
 					case '<':
 						$output = $theFieldValue < $parts[3];
-					break;
+						break;
 					case '>=':
 						$output = $theFieldValue >= $parts[3];
-					break;
+						break;
 					case '<=':
 						$output = $theFieldValue <= $parts[3];
-					break;
+						break;
 					case '-':
 					case '!-':
-						$cmpParts = explode('-',$parts[3]);
+						$cmpParts = explode('-', $parts[3]);
 						$output = $theFieldValue >= $cmpParts[0] && $theFieldValue <= $cmpParts[1];
-						if ($parts[2]{0}=='!')	$output = !$output;
-					break;
+						if ($parts[2]{0} == '!') {
+							$output = !$output;
+						}
+						break;
 					case 'IN':
 					case '!IN':
-						$output = t3lib_div::inList($parts[3],$theFieldValue);
-						if ($parts[2]{0}=='!')	$output = !$output;
-					break;
+						$output = t3lib_div::inList($parts[3], $theFieldValue);
+						if ($parts[2]{0} == '!') {
+							$output = !$output;
+						}
+						break;
 					case '=':
 					case '!=':
-						$output = t3lib_div::inList($parts[3],$theFieldValue);
-						if ($parts[2]{0}=='!')	$output = !$output;
-					break;
+						$output = t3lib_div::inList($parts[3], $theFieldValue);
+						if ($parts[2]{0} == '!') {
+							$output = !$output;
+						}
+						break;
 				}
-			break;
+				break;
 			case 'EXT':
-				switch((string)$parts[2]) {
+				switch ((string)$parts[2]) {
 					case 'LOADED':
-						if (strtolower($parts[3])=='true') {
+						if (strtolower($parts[3]) == 'true') {
 							$output = t3lib_extMgm::isLoaded($parts[1]) ? TRUE : FALSE;
-						} elseif (strtolower($parts[3])=='false') {
+						} elseif (strtolower($parts[3]) == 'false') {
 							$output = !t3lib_extMgm::isLoaded($parts[1]) ? TRUE : FALSE;
 						}
-					break;
+						break;
 				}
-			break;
+				break;
 			case 'REC':
-				switch((string)$parts[1])	{
+				switch ((string)$parts[1]) {
 					case 'NEW':
-						if (strtolower($parts[2])=='true') {
+						if (strtolower($parts[2]) == 'true') {
 							$output = !(intval($row['uid']) > 0) ? TRUE : FALSE;
-						} elseif (strtolower($parts[2])=='false') {
+						} elseif (strtolower($parts[2]) == 'false') {
 							$output = (intval($row['uid']) > 0) ? TRUE : FALSE;
 						}
-					break;
+						break;
 				}
-			break;
+				break;
 			case 'HIDE_L10N_SIBLINGS':
-				if ($ffValueKey==='vDEF') {
+				if ($ffValueKey === 'vDEF') {
 					$output = TRUE;
-				} elseif ($parts[1]==='except_admin' && $GLOBALS['BE_USER']->isAdmin()) {
+				} elseif ($parts[1] === 'except_admin' && $GLOBALS['BE_USER']->isAdmin()) {
 					$output = TRUE;
 				}
-			break;
+				break;
 			case 'HIDE_FOR_NON_ADMINS':
 				$output = $GLOBALS['BE_USER']->isAdmin() ? TRUE : FALSE;
-			break;
+				break;
 			case 'VERSION':
-				switch((string)$parts[1]) {
+				switch ((string)$parts[1]) {
 					case 'IS':
 						$isNewRecord = (intval($row['uid']) > 0 ? FALSE : TRUE);
 
@@ -865,9 +872,9 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 						} else if (strtolower($parts[2]) == 'false') {
 							$output = !$isVersion;
 						}
-					break;
+						break;
 				}
-			break;
+				break;
 		}
 
 		return $output;
