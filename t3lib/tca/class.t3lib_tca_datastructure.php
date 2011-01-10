@@ -12,6 +12,7 @@
 class t3lib_TCA_DataStructure {
 	/**
 	 * The definition of the fields this data structure contains
+     * This holds information about e.g. $TCA[$tableName]['columns']
 	 *
 	 * @var array<t3lib_TCA_DataStructure_Field>
 	 */
@@ -19,6 +20,7 @@ class t3lib_TCA_DataStructure {
 
 	/**
 	 * The control section of this data structure
+     * This holds information from e.g. $TCA[$tableName]['ctrl']
 	 *
 	 * @var array
 	 */
@@ -26,6 +28,7 @@ class t3lib_TCA_DataStructure {
 
 	/**
 	 * The configuration objects of all defined palettes
+     * This holds information from e.g. $TCA[$tableName]['palettes']
 	 *
 	 * @var array<t3lib_TCA_DataStructure_Palette>
 	 */
@@ -33,6 +36,7 @@ class t3lib_TCA_DataStructure {
 
 	/**
 	 * All type values defined for this data structure.
+     * This holds information from e.g. $TCA[$tableName]['types']
 	 *
 	 * Default type is zero
 	 *
@@ -43,6 +47,7 @@ class t3lib_TCA_DataStructure {
 	/**
 	 * The raw information on the types for this data structure. See $types for a parsed version.
 	 * Parsing is done automatically on access.
+     * This holds information from e.g. $TCA[$tableName]['types']
 	 *
 	 * @var array
 	 */
@@ -51,6 +56,7 @@ class t3lib_TCA_DataStructure {
 	/**
 	 * The different types defined for this data structure.
 	 * The array contains an entry for each defined type, with a reference to the type object
+     * This holds information from e.g. $TCA[$tableName]['types']
 	 *
 	 * @var array<t3lib_TCA_DataStructure_Type>
 	 */

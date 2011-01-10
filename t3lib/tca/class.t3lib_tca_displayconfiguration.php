@@ -1,7 +1,13 @@
 <?php
 
 /**
- * This class holds all information neccessary for e.g. building a complete editing form for a record.
+ * This class holds all information neccessary for
+ * e.g. building a complete editing form for a record.
+ *
+ * A display configuration holds the right information of a record
+ * on what to display and what not to display. It takes the "type" field
+ * of the TCA records (defined in the "ctrl" section of a TCA table) and
+ * the subtype field of a record into account.
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  */
