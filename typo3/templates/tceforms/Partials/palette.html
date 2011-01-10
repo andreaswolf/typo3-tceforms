@@ -5,7 +5,7 @@
 		<f:for each="{palette.elements}" as="pelement">
 			<span class="t3-form-palette-field-container">
 				<label {palette.labelAttributes}>
-					<f:raw>{pelement.label}</f:raw>
+					<f:escape value="{pelement.label}" type="none"/>
 						<img name="req_{record.table}_{record.uid}_{pelement.fieldname}" src="clear.gif" class="t3-form-palette-icon-required" alt="" />
 					<img name="cm_{record.table}_{record.uid}_{pelement.fieldname}" src="clear.gif" class="t3-form-palette-icon-contentchanged" alt="" />
 				</label>

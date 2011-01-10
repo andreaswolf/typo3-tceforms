@@ -1,14 +1,14 @@
 
 <f:section name="default">
 	<tr class="class-main2" ###BGCOLOR_HEAD######CLASSATTR_2###>
-		<td class="formField-header"><span style="color:###FONTCOLOR_HEAD###;"###CLASSATTR_4###><b><f:raw>{element.label}</f:raw></b></span><img name="req_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-TCEforms-reqImg" alt="" /><img name="cm_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-TCEforms-contentchangedImg" alt="" /></td>
+		<td class="formField-header"><span style="color:###FONTCOLOR_HEAD###;"###CLASSATTR_4###><b><f:escape value="{element.label}" type="none"/></b></span><img name="req_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-TCEforms-reqImg" alt="" /><img name="cm_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-TCEforms-contentchangedImg" alt="" /></td>
 	</tr>
 	<tr class="class-main1" ###BGCOLOR######CLASSATTR_1###>
-		<td class="formField-field"><f:raw>{element.contents}</f:raw>
+		<td class="formField-field"><f:escape value="{element.contents}" type="none"/>
 		<f:if condition="{element.palette}">
 			<f:then>
 				<f:if condition="{element.palette.collapsed}">
-					<f:then><f:raw>{element.palette.toggleicon}</f:raw></f:then>
+					<f:then><f:escape value="{element.palette.toggleicon}" type="none"/></f:then>
 				</f:if>
 				<f:render partial="palette" arguments="{palette: element.palette, element: element, record: record}"/>
 			</f:then>
