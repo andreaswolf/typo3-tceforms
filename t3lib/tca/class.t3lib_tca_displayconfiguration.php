@@ -90,19 +90,23 @@ class t3lib_TCA_DisplayConfiguration {
 				}
 
 				if ($theField !== '') {
+					// Getting the style information out:
+					$fieldStyle = t3lib_TCA_FieldStyle::createFromDefinition($parts[4], $fieldStyle);
+
 					if ($theField == '--palette--') {
-						$elementObject = $this->createPaletteObject($parts[2], $GLOBALS['LANG']->sL($parts[1]));
+						$elementObject = $this->createPaletteObject($parts[2], $GLOBALS['LANG']->sL($parts[1]), $fieldStyle);
 					} elseif ($this->dataStructure->hasField($theField)) {
 						// we possibly modify the object, so create a clone
 						$elementObject = clone $this->dataStructure->getFieldObject($theField);
 
 						if ($parts[2]) {
-							$paletteObject = $this->createPaletteObject($parts[2]);
+							$paletteObject = $this->createPaletteObject($parts[2], '', $fieldStyle);
 							$elementObject->addPalette($paletteObject);
 						}
 
 						$elementObject->setSpecialConfiguration($parts[3]);
 						$elementObject->setLabel($GLOBALS['LANG']->sL($parts[1]));
+						$elementObject->setStyle($fieldStyle);
 					} else {
 						// if this is no field, just continue with the next entry in the field list.
 						continue;
@@ -113,36 +117,6 @@ class t3lib_TCA_DisplayConfiguration {
 
 					if ($this->typeConfiguration->hasSubtypeValueField() && $this->typeConfiguration->getSubtypeValueField() == $theField) {
 						$this->subtypeValueFieldSheet = $currentSheet;
-					}
-				}
-
-				// Getting the style information out:
-				// TODO: Make this really object oriented
-				if (isset($parts[4])) {
-					$color_style_parts = t3lib_div::trimExplode('-',$parts[4]);
-				} else {
-					$color_style_parts = array();
-				}
-				if (strcmp($color_style_parts[0], '')) {
-					//$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
-					if (!isset($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])])) {
-						//$formFieldObject->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][0]);
-					}
-				}
-				// TODO: add getter and setter for _wrapBorder
-				if (strcmp($color_style_parts[1], '')) {
-					//$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])]);
-					// TODO check if this check is still neccessary
-					if (!isset($GLOBALS['TBE_STYLES']['styleschemes'][intval($color_style_parts[1])])) {
-						//$formFieldObject->setFieldStyle($GLOBALS['TBE_STYLES']['styleschemes'][0]);
-					}
-				}
-				if (strcmp($color_style_parts[2], '')) {
-					if (isset($parts[4])) $formFieldObject->_wrapBorder = true;
-					//$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])]);
-					// TODO check if this check is still neccessary
-					if (!isset($GLOBALS['TBE_STYLES']['borderschemes'][intval($color_style_parts[2])])) {
-						//$formFieldObject->setBorderStyle($GLOBALS['TBE_STYLES']['borderschemes'][0]);
 					}
 				}
 			}
@@ -184,16 +158,18 @@ class t3lib_TCA_DisplayConfiguration {
 	 *
 	 * @param integer $paletteNumber
 	 * @param string $label
+	 * @param t3lib_TCA_FieldStyle $fieldStyle The style for the field that contains the palette. Neccessary as a starting point for
 	 * @return t3lib_TCA_DataStructure_Palette
 	 *
 	 * TODO: respect label if given as second element of $fieldDescriptorParts.
 	 * TODO: implement handling of linebreak
 	 */
-	protected function createPaletteObject($paletteNumber, $label = '') {
+	protected function createPaletteObject($paletteNumber, $label = '', t3lib_TCA_FieldStyle $fieldStyle = NULL) {
 		$paletteConfiguration = $this->dataStructure->getPaletteConfiguration($paletteNumber);
 		$paletteFieldNames = t3lib_div::trimExplode(',', $paletteConfiguration['showitem']);
 
 		$paletteObject = new t3lib_TCA_DataStructure_Palette($paletteConfiguration, $this->dataStructure, $label, $paletteNumber);
+		$paletteObject->setStyle($fieldStyle);
 
 		foreach ($paletteFieldNames as $fieldDescriptor) {
 			$fieldDescriptorParts = t3lib_div::trimExplode(';', $fieldDescriptor);
@@ -209,6 +185,7 @@ class t3lib_TCA_DisplayConfiguration {
 				default:
 					$fieldObject = $this->dataStructure->getFieldObject($fieldName);
 					$fieldObject->setLabel($fieldDescriptorParts[1]);
+					$fieldObject->setStyle($fieldStyle);
 					$paletteObject->addElement($fieldObject);
 			}
 		}

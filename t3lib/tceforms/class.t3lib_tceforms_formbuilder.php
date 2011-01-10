@@ -123,6 +123,7 @@ class t3lib_TCEforms_FormBuilder {
 		$fieldType = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
 
 		$elementObject = $this->createElementObject($fieldType, $fieldName, $fieldConf);
+		$elementObject->setStyle($fieldDefinition->getStyle());
 
 		if ($fieldDefinition->hasPalette()) {
 			$paletteDefinition = $fieldDefinition->getPalette();

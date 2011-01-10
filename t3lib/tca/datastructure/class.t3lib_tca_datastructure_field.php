@@ -1,6 +1,6 @@
 <?php
 
-class t3lib_TCA_DataStructure_Field {
+class t3lib_TCA_DataStructure_Field extends t3lib_TCA_DataStructure_Element {
 
 	/**
 	 * The data structure this field belongs to

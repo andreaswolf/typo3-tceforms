@@ -1,6 +1,6 @@
 <?php
 
-class t3lib_TCA_DataStructure_Palette {
+class t3lib_TCA_DataStructure_Palette extends t3lib_TCA_DataStructure_Element {
 
 	/**
 	 * @var string
