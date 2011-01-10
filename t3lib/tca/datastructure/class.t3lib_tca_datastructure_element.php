@@ -3,7 +3,7 @@
 /**
  * A common base class for fields and palettes used in TCA
  */
-class t3lib_TCA_DataStructure_Element {
+abstract class t3lib_TCA_DataStructure_Element {
 	/**
 	 * The styling information for this field
 	 *
