@@ -206,6 +206,8 @@ class t3lib_TCA_DisplayConfiguration {
 			}
 			switch ($fieldName) {
 				case '--linebreak--':
+					$linebreakObject = t3lib_div::makeInstance('t3lib_TCA_DataStructure_LinebreakElement');
+					$paletteObject->addElement($linebreakObject);
 					// TODO implement linebreak handling
 					break;
 
