@@ -41,27 +41,48 @@ class t3lib_TCA_DisplayConfiguration {
 	protected $excludeFieldList;
 
 
-	protected function __construct(t3lib_TCA_DataStructure $dataStructure) {
+	/**
+	 * constructor, should not be used publicly, although has to be public due to
+	 * the use of t3lib_div::makeInstance().
+	 * For instantiating the class, please have a look at the createFromConfiguration
+	 * function when there is a concrete typeConfiguration (with every TCA record)
+	 * or createFromSheets when having a Flexform.
+	 *
+	 * @param t3lib_TCA_DataStructure $dataStructure
+	 * @see createFromConfiguration(), createFromSheets()
+	 */
+	public function __construct(t3lib_TCA_DataStructure $dataStructure) {
 		$this->dataStructure = $dataStructure;
 	}
 
-	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, $typeConfiguration, array $addFieldList, array $excludeFieldList) {
-		$obj = new t3lib_TCA_DisplayConfiguration($dataStructure);
+	/**
+	 * Factory method to create a new display configuration
+	 * based on the data structure and a single entry of the typeConfiguration
+	 */
+	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, t3lib_TCA_DataStructure_Type $typeConfiguration, array $addFieldList, array $excludeFieldList) {
+		/** @var $obj t3lib_TCA_DisplayConfiguration */
+		$obj = t3lib_div::makeInstance('t3lib_TCA_DisplayConfiguration', $dataStructure);
 		$obj->typeConfiguration = $typeConfiguration;
-		$obj->resolveConfiguration($typeConfiguration, $addFieldList, $excludeFieldList);
+		$obj->excludeFieldList = $excludeFieldList;
+		$obj->resolveConfiguration($typeConfiguration);
 		$obj->addElements($addFieldList);
 
 		return $obj;
 	}
 
+	/**
+	 * Factory method to create a new display configuration
+	 * based on the data structure and the sheets, used when having flexforms
+	 */
 	public static function createFromSheets(t3lib_TCA_DataStructure $dataStructure, array $sheets) {
-		$obj = new t3lib_TCA_DisplayConfiguration($dataStructure);
+		/** @var $obj t3lib_TCA_DisplayConfiguration */
+		$obj = t3lib_div::makeInstance('t3lib_TCA_DisplayConfiguration', $dataStructure);
 		$obj->sheets = $sheets;
 
 		return $obj;
 	}
 
-	protected function resolveConfiguration($configuration, array $addFieldList, array $excludeFieldList) {
+	protected function resolveConfiguration($configuration) {
 		// TODO store styling information from the showitem subarray
 		$fields = $this->typeConfiguration->getShowitemString();
 
@@ -91,7 +112,7 @@ class t3lib_TCA_DisplayConfiguration {
 				$currentSheet = $this->createSheetObject($GLOBALS['LANG']->sL($parts[1]));
 			} else {
 
-				if (in_array($theField, $excludeFieldList)) {
+				if (in_array($theField, $this->excludeFieldList)) {
 					continue;
 				}
 
