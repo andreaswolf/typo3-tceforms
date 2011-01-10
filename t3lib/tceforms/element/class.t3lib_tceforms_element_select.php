@@ -63,7 +63,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 		}
 
 		// Creating the label for the "No Matching Value" entry.
-		$this->nonMatchingValueLabel = (isset($this->fieldTSConfig['noMatchingValue_label']) ? $this->sL($this->fieldTSConfig['noMatchingValue_label']) : '[ ' . $this->getLL('l_noMatchingValue') . ' ]');
+		$this->nonMatchingValueLabel = (isset($this->fieldTSConfig['noMatchingValue_label']) ? $this->sL($this->fieldTSConfig['noMatchingValue_label']) : '[ ' . t3lib_TCEforms_Helper::getLL('l_noMatchingValue') . ' ]');
 
 		// If a SINGLE selector box...
 		if (intval($this->fieldSetup['config']['maxitems']) <= 1 && $this->fieldSetup['config']['renderMode'] !== 'tree') {
@@ -281,10 +281,10 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 								<tr class="c-header-checkbox-controls">
 									<td colspan="3">' .
 										'<a href="#" onclick="' . htmlspecialchars(implode('', $setAll).' return false;') . '">' .
-										htmlspecialchars($this->getLL('l_checkAll')) .
+										htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_checkAll')) .
 										'</a>
 										<a href="#" onclick="' . htmlspecialchars(implode('', $unSetAll).' return false;').'">' .
-										htmlspecialchars($this->getLL('l_uncheckAll')) .
+										htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_uncheckAll')) .
 										'</a>
 									</td>
 								</tr>';
@@ -356,10 +356,10 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 						<tr class="c-header-checkbox-controls">
 							<td colspan="3">'.
 								'<a href="#" onclick="' . htmlspecialchars(implode('', $setAll).' return false;') . '">' .
-								htmlspecialchars($this->getLL('l_checkAll')) .
+								htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_checkAll')) .
 								'</a>
 								<a href="#" onclick="' . htmlspecialchars(implode('', $unSetAll).' return false;') . '">' .
-								htmlspecialchars($this->getLL('l_uncheckAll')) .
+								htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_uncheckAll')) .
 								'</a>
 							</td>
 						</tr>';
@@ -387,7 +387,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 			// Add revert icon
 		if (is_array($restoreCmd)) {
 			$item .= '<a href="#" onclick="' . implode('', $restoreCmd).' return false;' . '">' .
-				t3lib_iconWorks::getSpriteIcon('actions-edit-undo', array('title' => htmlspecialchars($this->getLL('l_revertSelection')))) . '</a>';
+				t3lib_iconWorks::getSpriteIcon('actions-edit-undo', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_revertSelection')))) . '</a>';
 		}
  			// Implode rows in table:
 		$item .= '
@@ -479,7 +479,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 					'.$selectBox.'
 					<br/>
 					<em>'.
-						htmlspecialchars($this->getLL('l_holdDownCTRL')).
+						htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_holdDownCTRL')).
 						'</em>
 					</td>
 					<td valign="top">
@@ -592,8 +592,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 			'maxitems' => $maxitems,
 			'info' => '',
 			'headers' => array(
-				'selector' => $this->getLL('l_selected').':<br />',
-				'items' => $this->getLL('l_items').':<br />'
+				'selector' => t3lib_TCEforms_Helper::getLL('l_selected').':<br />',
+				'items' => t3lib_TCEforms_Helper::getLL('l_items').':<br />'
 			),
 			'noBrowser' => 1,
 			'thumbnails' => $itemsToSelect,

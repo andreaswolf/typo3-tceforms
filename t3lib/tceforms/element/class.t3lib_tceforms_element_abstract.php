@@ -529,7 +529,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$paletteFields = $this->paletteObject->render();
 
 			if ($this->paletteObject->isCollapsed() && $paletteFields != '') {
-				list($thePalIcon,$palJSfunc) = $this->paletteObject->wrapOpenPalette(t3lib_iconWorks::getSpriteIcon('actions-system-options-view', array('title' => htmlspecialchars($this->getLL('l_moreOptions')))), TRUE);
+				list($thePalIcon,$palJSfunc) = $this->paletteObject->wrapOpenPalette(t3lib_iconWorks::getSpriteIcon('actions-system-options-view', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_moreOptions')))), TRUE);
 			} else {
 				$thePalIcon = '';
 				$palJSfunc = '';
@@ -1110,7 +1110,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 					);
 
 					$item .= '<div class="typo3-TCEforms-diffBox">'.
-						'<div class="typo3-TCEforms-diffBox-header">'.htmlspecialchars($this->getLL('l_changeInOrig')).':</div>'.
+						'<div class="typo3-TCEforms-diffBox-header">'.htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_changeInOrig')).':</div>'.
 						$diffres.
 					'</div>';
 				}
@@ -1396,28 +1396,6 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		return $GLOBALS['LANG']->sL($str);
 	}
 
-	/**
-	 * Returns language label from locallang_core.php
-	 * Labels must be prefixed with either "l_" or "m_".
-	 * The prefix "l_" maps to the prefix "labels." inside locallang_core.php
-	 * The prefix "m_" maps to the prefix "mess." inside locallang_core.php
-	 *
-	 * @param   string  The label key
-	 * @return  string  The value of the label, fetched for the current backend language.
-	 */
-	protected function getLL($str) {
-		$content = '';
-
-		switch(substr($str, 0, 2)) {
-			case 'l_':
-				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.' . substr($str,2));
-			break;
-			case 'm_':
-				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:mess.' . substr($str,2));
-			break;
-		}
-		return $content;
-	}
 	/************************************************************
 	 *
 	 * Form element helper functions
@@ -1536,24 +1514,24 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 				}*/
 				$aOnClick='setFormValueOpenBrowser(\''.$mode.'\',\''.($this->formFieldName.'|||'.$allowed.'|'.$aOnClickInline).'\'); return false;';
 				$icons['R'][]='<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
-						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars($this->getLL('l_browse_' . ($mode == 'db' ? 'db' : 'file'))))) .
+						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_browse_' . ($mode == 'db' ? 'db' : 'file'))))) .
 						'</a>';
 			}
 			if (!$params['dontShowMoveIcons'])	{
 				if ($sSize>=5)	{
 					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Top\'); return false;">'.
-							t3lib_iconWorks::getSpriteIcon('actions-move-to-top', array('title' => htmlspecialchars($this->getLL('l_move_to_top')))) .
+							t3lib_iconWorks::getSpriteIcon('actions-move-to-top', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_move_to_top')))) .
 							'</a>';
 				}
 				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Up\'); return false;">'.
-						t3lib_iconWorks::getSpriteIcon('actions-move-up', array('title' => htmlspecialchars($this->getLL('l_move_up')))) .
+						t3lib_iconWorks::getSpriteIcon('actions-move-up', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_move_up')))) .
 						'</a>';
 				$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Down\'); return false;">'.
-						t3lib_iconWorks::getSpriteIcon('actions-move-down', array('title' => htmlspecialchars($this->getLL('l_move_down')))) .
+						t3lib_iconWorks::getSpriteIcon('actions-move-down', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_move_down')))) .
 						'</a>';
 				if ($sSize>=5)	{
 					$icons['L'][]='<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Bottom\'); return false;">'.
-							t3lib_iconWorks::getSpriteIcon('actions-move-to-bottom', array('title' => htmlspecialchars($this->getLL('l_move_to_bottom')))) .
+							t3lib_iconWorks::getSpriteIcon('actions-move-to-bottom', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_move_to_bottom')))) .
 							'</a>';
 				}
 			}
@@ -1574,12 +1552,12 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 				}
 				$aOnClick.= 'return false;';
 				$icons['R'][]='<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.
-						t3lib_iconWorks::getSpriteIcon('actions-document-paste-into', array('title' => htmlspecialchars(sprintf($this->getLL('l_clipInsert_' . ($mode == 'db' ? 'db' : 'file')), count($clipElements))))) .
+						t3lib_iconWorks::getSpriteIcon('actions-document-paste-into', array('title' => htmlspecialchars(sprintf(t3lib_TCEforms_Helper::getLL('l_clipInsert_' . ($mode == 'db' ? 'db' : 'file')), count($clipElements))))) .
 						'</a>';
 			}
 			$rOnClick = $rOnClickInline.'setFormValueManipulate(\''.$this->formFieldName.'\',\'Remove\'); return false';
 			$icons['L'][]='<a href="#" onclick="'.htmlspecialchars($rOnClick).'">'.
-					t3lib_iconWorks::getSpriteIcon('actions-selection-delete', array('title' => htmlspecialchars($this->getLL('l_remove_selected')))) .
+					t3lib_iconWorks::getSpriteIcon('actions-selection-delete', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_remove_selected')))) .
 					'</a>';
 		}
 
@@ -1762,7 +1740,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 										case 'popup':
 										case 'colorbox':
 												// Current form value is passed as P[currentValue]!
-											$addJS = $wConf['popup_onlyOpenIfSelected']?'if (!TBE_EDITOR.curSelected(\''.$itemName.$listFlag.'\')){alert('.$GLOBALS['LANG']->JScharCode($this->getLL('m_noSelItemForEdit')).'); return false;}':'';
+											$addJS = $wConf['popup_onlyOpenIfSelected']?'if (!TBE_EDITOR.curSelected(\''.$itemName.$listFlag.'\')){alert('.$GLOBALS['LANG']->JScharCode(t3lib_TCEforms_Helper::getLL('m_noSelItemForEdit')).'); return false;}':'';
 											$curSelectedValues='+\'&P[currentSelectedValues]=\'+TBE_EDITOR.curSelected(\''.$itemName.$listFlag.'\')';
 											$aOnClick=	$this->contextObject->blur().
 														$addJS.

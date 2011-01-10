@@ -79,24 +79,24 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 			if ($this->shouldRecordBrowserBeRendered() && !$params['noBrowser']) {
 				$aOnClick = 'setFormValueOpenBrowser(\'' . $this->mode.'\',\'' . ($this->formFieldName . '|||' . $this->allowed . '|' . $aOnClickInline) . '\'); return false;';
 				$icons['R'][] = '<a href="#" onclick="' . htmlspecialchars($aOnClick) . '">' .
-						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars($this->getLL('l_browse_' . ($this->fieldSetup['config']['internal_type'] == 'db' ? 'db' : 'file'))))) .
+						t3lib_iconWorks::getSpriteIcon('actions-insert-record', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_browse_' . ($this->fieldSetup['config']['internal_type'] == 'db' ? 'db' : 'file'))))) .
 						'</a>';
 			}
 			if ($this->shouldMoveIconsBeShown()) {
 				if ($selectorSize >= 5) {
 					$icons['L'][] = '<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Top\'); return false;">'.
-							t3lib_iconWorks::getSpriteIcon('actions-move-to-top', array('title' => htmlspecialchars($this->getLL('l_move_to_top')))) .
+							t3lib_iconWorks::getSpriteIcon('actions-move-to-top', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_move_to_top')))) .
 							'</a>';
 				}
 				$icons['L'][] = '<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Up\'); return false;">'.
-						t3lib_iconWorks::getSpriteIcon('actions-move-up', array('title' => htmlspecialchars($this->getLL('l_move_up')))) .
+						t3lib_iconWorks::getSpriteIcon('actions-move-up', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_move_up')))) .
 						'</a>';
 				$icons['L'][] = '<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Down\'); return false;">'.
-						t3lib_iconWorks::getSpriteIcon('actions-move-down', array('title' => htmlspecialchars($this->getLL('l_move_down')))) .
+						t3lib_iconWorks::getSpriteIcon('actions-move-down', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_move_down')))) .
 						'</a>';
 				if ($selectorSize >= 5) {
 					$icons['L'][] = '<a href="#" onclick="setFormValueManipulate(\''.$this->formFieldName.'\',\'Bottom\'); return false;">'.
-							t3lib_iconWorks::getSpriteIcon('actions-move-to-bottom', array('title' => htmlspecialchars($this->getLL('l_move_to_bottom')))) .
+							t3lib_iconWorks::getSpriteIcon('actions-move-to-bottom', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_move_to_bottom')))) .
 							'</a>';
 				}
 			}
@@ -105,7 +105,7 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 
 			$rOnClick = $rOnClickInline . 'setFormValueManipulate(\'' . $this->formFieldName . '\',\'Remove\'); return false';
 			$icons['L'][] = '<a href="#" onclick="' . htmlspecialchars($rOnClick) . '">'.
-					t3lib_iconWorks::getSpriteIcon('actions-selection-delete', array('title' => htmlspecialchars($this->getLL('l_remove_selected')))) .
+					t3lib_iconWorks::getSpriteIcon('actions-selection-delete', array('title' => htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_remove_selected')))) .
 					'</a>';
 		}
 
@@ -190,7 +190,7 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 			}
 			$aOnClick .= 'return false;';
 			$icons['R'][] = '<a href="#" onclick="' . htmlspecialchars($aOnClick) . '">' .
-					t3lib_iconWorks::getSpriteIcon('actions-document-paste-into', array('title' => htmlspecialchars(sprintf($this->getLL('l_clipInsert_' . ($mode == 'db' ? 'db' : 'file')), count($clipElements))))) .
+					t3lib_iconWorks::getSpriteIcon('actions-document-paste-into', array('title' => htmlspecialchars(sprintf(t3lib_TCEforms_Helper::getLL('l_clipInsert_' . ($mode == 'db' ? 'db' : 'file')), count($clipElements))))) .
 					'</a>';
 		}
 	}

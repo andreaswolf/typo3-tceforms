@@ -81,7 +81,7 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 			// Display ordinary field if RTE was not loaded.
 		if (!$RTEwasLoaded) {
 			if ($specConf['rte_only'])	{	// Show message, if no RTE (field can only be edited with RTE!)
-				$item = '<p><em>'.htmlspecialchars($this->getLL('l_noRTEfound')).'</em></p>';
+				$item = '<p><em>'.htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_noRTEfound')).'</em></p>';
 			} else {
 				if ($specConf['nowrap'])	{
 					$wrap = 'off';
