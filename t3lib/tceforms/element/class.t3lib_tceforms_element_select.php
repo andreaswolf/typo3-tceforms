@@ -68,7 +68,7 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 		$this->nonMatchingValueLabel = (isset($this->fieldTSConfig['noMatchingValue_label']) ? $this->sL($this->fieldTSConfig['noMatchingValue_label']) : '[ ' . $this->getLL('l_noMatchingValue') . ' ]');
 
 		// If a SINGLE selector box...
-		if (intval($this->fieldSetup['config']['maxitems']) <= 1) {
+		if (intval($this->fieldSetup['config']['maxitems']) <= 1 && $this->fieldSetup['config']['renderMode'] !== 'tree') {
 			$item = $this->initSubtypeSingle();
 		} elseif (!strcmp($this->fieldSetup['config']['renderMode'], 'checkbox')) {
 			// Checkbox renderMode
@@ -76,6 +76,15 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 		} elseif (!strcmp($this->fieldSetup['config']['renderMode'], 'singlebox')) {
 			// Single selector box renderMode
 			$item = $this->initSubtypeSinglebox();
+		} elseif (!strcmp($this->fieldSetup['config']['renderMode'], 'tree')) { // Tree renderMode
+			$PA = array(
+				'fieldConf' => $this->fieldSetup,
+				'fieldChangeFunc' => $this->fieldChangeFunc,
+				'itemFormElName' => $this->formFieldName
+			);
+			/** @var t3lib_TCEforms_Tree $treeClass */
+			$treeClass = t3lib_div::makeInstance('t3lib_TCEforms_Tree');
+			$item = $treeClass->renderField($this->table, $this->field, $this->record, $PA, $this);
 		} else {
 			// Traditional multiple selector box:
 			$item = $this->initSubtypeMultiple();

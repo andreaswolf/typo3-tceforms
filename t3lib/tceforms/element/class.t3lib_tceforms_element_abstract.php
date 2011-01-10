@@ -158,6 +158,13 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	protected $fieldStyle = array();
 
 	/**
+	 * The style of this element
+	 *
+	 * @var t3lib_TCA_FieldStyle
+	 */
+	protected $style;
+
+	/**
 	 *
 	 *
 	 * @var t3lib_TCEforms_FormBuilder
@@ -994,6 +1001,14 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$this->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][0]);
 		$this->fieldStyle = $GLOBALS['TBE_STYLES']['styleschemes'][0];
 		$this->borderStyle = $GLOBALS['TBE_STYLES']['borderschemes'][0];
+	}
+
+	public function setStyle(t3lib_TCA_FieldStyle $style) {
+		$this->style = $style;
+	}
+
+	public function getStyle() {
+		return $this->style;
 	}
 
 
