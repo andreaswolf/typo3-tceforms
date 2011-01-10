@@ -153,6 +153,7 @@ $t3libClasses = array(
 	't3lib_tca_fieldstyle' => PATH_t3lib . 'tca/class.t3lib_tca_fieldstyle.php',
 	't3lib_tca_flexformdatastructure' => PATH_t3lib . 'tca/class.t3lib_tca_flexformdatastructure.php',
 	't3lib_tca_datastructure_element' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_element.php',
+	't3lib_tca_datastructure_linebreakelement' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_linebreakelement.php',
 	't3lib_tca_datastructure_field' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_field.php',
 	't3lib_tca_datastructure_flexformsresolver' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_flexformsresolver.php',
 	't3lib_tca_datastructure_palette' => PATH_t3lib . 'tca/datastructure/class.t3lib_tca_datastructure_palette.php',
