@@ -36,6 +36,13 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 	 */
 	protected $allowed = '';
 
+	/**
+	 * The uids of the records used in this selector
+	 *
+	 * @var array
+	 */
+	protected $uidList = array();
+
 
 	/**
 	 * @param string $selector
@@ -51,6 +58,10 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 
 		$disabled = $this->getDisabledCode();
 		$options = $this->renderOptions();
+		$icons = array(
+			'L' => array(),
+			'R' => array()
+		);
 
 		$selectorSize = $params['autoSizeMax'] ? t3lib_div::intInRange(count($this->items) + 1, t3lib_div::intInRange($params['size'], 1), $params['autoSizeMax']) : $params['size'];
 		if (!$this->isReadOnly() && $this->shouldListBeRendered()) {
@@ -132,7 +143,7 @@ abstract class t3lib_TCEforms_Element_AbstractSelector extends t3lib_TCEforms_El
 		</table>';
 
 			// Creating the hidden field which contains the actual value as a comma list.
-		$str .= '<input type="hidden" name="' . $this->formFieldName . '" value="' . htmlspecialchars(implode(',', $uidList)) . '" />';
+		$str .= '<input type="hidden" name="' . $this->formFieldName . '" value="' . htmlspecialchars(implode(',', $this->uidList)) . '" />';
 
 		return $str;
 	}

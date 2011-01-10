@@ -929,12 +929,12 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 
 	protected function renderOptions() {
 		if (!$this->hasItems()) {
-			return;
+			return array();
 		}
 
 		foreach ($this->items as $pp) {
 			$pParts = explode('|',$pp, 2);
-			$uidList[]=$pUid=$pParts[0];
+			$this->uidList[] = $pUid = $pParts[0];
 			$pTitle = $pParts[1];
 			$opt[]='<option value="'.htmlspecialchars(rawurldecode($pUid)).'">'.htmlspecialchars(rawurldecode($pTitle)).'</option>';
 		}

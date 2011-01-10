@@ -235,19 +235,21 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 
 	protected function renderOptions() {
 		if (!$this->hasItems()) {
-			return;
+			return array();
 		}
 
 		$mode = $this->fieldSetup['config']['internal_type'];
+		$opt = array();
 
+		// came from dbFileIcons()
 		switch($mode) {
 			case 'db':
-				while(list(,$pp)=each($this->items))	{
+				foreach ($this->items as $pp)	{
 					$pRec = t3lib_BEfunc::getRecordWSOL($pp['table'],$pp['id']);
 					if (is_array($pRec))	{
 						$pTitle = t3lib_BEfunc::getRecordTitle($pp['table'], $pRec, FALSE, TRUE);
 						$pUid = $pp['table'].'_'.$pp['id'];
-						$uidList[]=$pUid;
+						$this->uidList[] = $pUid;
 						$opt[]='<option value="'.htmlspecialchars($pUid).'">'.htmlspecialchars($pTitle).'</option>';
 					}
 				}
@@ -256,14 +258,14 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 			case 'file_reference':
 				foreach ($this->items as $item) {
 					$itemParts = explode('|', $item);
-					$uidList[] = $pUid = $pTitle = $itemParts[0];
+					$this->uidList[] = $pUid = $pTitle = $itemParts[0];
 					$opt[] = '<option value="' . htmlspecialchars(rawurldecode($itemParts[0])) . '">' . htmlspecialchars(basename(rawurldecode($itemParts[0]))) . '</option>';
 				}
 			break;
 			case 'folder':
 				while(list(,$pp)=each($this->items))	{
 					$pParts = explode('|',$pp);
-					$uidList[]=$pUid=$pTitle = $pParts[0];
+					$this->uidList[] = $pUid = $pTitle = $pParts[0];
 					$opt[]='<option value="'.htmlspecialchars(rawurldecode($pParts[0])).'">'.htmlspecialchars(rawurldecode($pParts[0])).'</option>';
 				}
 			break;
