@@ -1,10 +1,5 @@
 <?php
 
-require_once (PATH_t3lib.'tceforms/class.t3lib_tceforms_record.php');
-require_once (PATH_t3lib.'interfaces/interface.t3lib_tceforms_context.php');
-require_once (PATH_t3lib.'tca/class.t3lib_tca_datastructure.php');
-require_once (PATH_t3lib.'tca/datastructure/class.t3lib_tca_datastructure_tcaresolver.php');
-
 // TODO: check if docLarge is needed
 class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 

@@ -1,8 +1,5 @@
 <?php
 
-require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_element.php');
-require_once(PATH_t3lib.'tceforms/container/class.t3lib_tceforms_container_palette.php');
-
 abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element {
 	/**
 	 * The container containing this element (may be a sheet, a palette, ...).

@@ -1,6 +1,5 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/container/class.t3lib_tceforms_container_sheet.php');
 
 class t3lib_TCEforms_FormBuilder {
 
@@ -179,7 +178,6 @@ class t3lib_TCEforms_FormBuilder {
 			if (!@file_exists(PATH_t3lib.'tceforms/element/class.'.strtolower($className).'.php')) {
 				return $this->createElementObject('unknown', $theField, $fieldConf);
 			}
-			include_once PATH_t3lib.'tceforms/element/class.'.strtolower($className).'.php';
 		}
 
 		$elementObject = t3lib_div::makeInstance($className, $theField, $fieldConf);#

@@ -26,14 +26,6 @@
 ***************************************************************/
 
 /**
- * Contains the record abstraction class for TCEforms.
- *
- * @author  Andreas Wolf <andreas.wolf@ikt-werk.de>
- */
-
-require_once(PATH_t3lib.'tca/class.t3lib_tca_datastructure.php');
-
-/**
  * This class serves as a record abstraction for TCEforms. Is instantiated by a form object and
  * responsible for creating and rendering its own HTML form.
  *

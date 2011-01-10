@@ -1,8 +1,5 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.php');
-//require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_flexform.php');
-
 
 class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 

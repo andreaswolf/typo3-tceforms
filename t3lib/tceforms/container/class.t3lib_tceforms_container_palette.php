@@ -1,7 +1,5 @@
 <?php
 
-require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_container.php');
-
 class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	/**
 	 * The name of this palette, as used as key in the palettes array of the TCA configuration

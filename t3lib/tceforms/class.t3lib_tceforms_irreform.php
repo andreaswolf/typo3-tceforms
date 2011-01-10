@@ -1,8 +1,5 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_form.php');
-require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_nestableform.php');
-
 /*
  * TODO check if inlineFirstPid may be replaced by a call to context object to get the pid
  */
