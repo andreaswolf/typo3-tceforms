@@ -17,7 +17,16 @@
 </f:section>
 
 <f:section name="paletteelement">
-	<f:escape value="{element.contents}" type="none"/>
+	<span class="t3-form-palette-field-container">
+		<label {f:escape(value: palette.labelAttributes, type: none)}>
+			<f:escape value="{element.label}" type="none"/>
+			<img name="req_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-form-palette-icon-required" alt="" />
+			<img name="cm_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-form-palette-icon-contentchanged" alt="" />
+		</label>
+		<span {f:escape(value: palette.fieldAttributes, type: none)}>
+			<f:escape value="{element.contents}" type="none"/>
+		</span>
+	</span>
 </f:section>
 
 <f:section name="palette">

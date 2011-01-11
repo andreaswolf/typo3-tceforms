@@ -134,7 +134,11 @@ class t3lib_TCEforms_FormBuilder {
 		$paletteObject = $this->createPaletteContainerObject($paletteDataStructureObject);
 
 		foreach ($dataStructureElements as $element) {
-			$fieldObject = $this->createFieldObjectFromDefinition($element);
+			if (is_a($element, 't3lib_TCA_DataStructure_LinebreakElement')) {
+				$fieldObject = new t3lib_TCEforms_Element_Linebreak('--linebreak--');
+			} else {
+				$fieldObject = $this->createFieldObjectFromDefinition($element);
+			}
 
 			$paletteObject->addElement($fieldObject);
 		}
