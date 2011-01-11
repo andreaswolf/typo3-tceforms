@@ -62,22 +62,6 @@ class t3lib_TCEforms_FormBuilder {
 		return new t3lib_TCEforms_Formbuilder($recordObject);
 	}
 
-	/**
-	 * @deprecated
-	 */
-	public function getFormFieldNamePrefix() {
-		return $this->formFieldNamePrefix;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function setFormFieldNamePrefix($prefix) {
-		$this->formFieldNamePrefix = $prefix;
-
-		return $this;
-	}
-
 	public function setContextObject(t3lib_TCEforms_Form $contextObject) {
 		$this->contextObject = $contextObject;
 
@@ -165,7 +149,6 @@ class t3lib_TCEforms_FormBuilder {
 	 * @param  string  $type  The type of record to create - directly taken from TCA
 	 * @return t3lib_TCEforms_Element_Abstract  The element object
 	 */
-	// TODO: refactor this as soon as the autoloader is available in core
 	protected function createElementObject($type, $theField = '', $fieldConf = array()) {
 		switch ($type) {
 			default:
@@ -175,9 +158,7 @@ class t3lib_TCEforms_FormBuilder {
 
 		if (!class_exists($className)) {
 				// if class(file) does not exist, resolve to type "unknown"
-			if (!@file_exists(PATH_t3lib.'tceforms/element/class.'.strtolower($className).'.php')) {
-				return $this->createElementObject('unknown', $theField, $fieldConf);
-			}
+			return $this->createElementObject('unknown', $theField, $fieldConf);
 		}
 
 		$elementObject = t3lib_div::makeInstance($className, $theField, $fieldConf);#
@@ -264,49 +245,6 @@ class t3lib_TCEforms_FormBuilder {
 		              ->init();
 
 		return $paletteObject;
-	}
-
-	/**
-	 * Creates objects for all main palettes (palettes existing side-by-side with normal elements,
-	 * in contrast to palettes that are tied to an element). These palettes are defined in the control
-	 * section of TCA, key "mainpalette". Multiple palettes are separated by commas.
-	 *
-	 * @return void
-	 *
-	 * @deprecated
-	 */
-	protected function resolveMainPalettes() {
-		t3lib_div::devLog('Building top-level palette elements for ' . $this->recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
-
-		$mainPalettesArray = t3lib_div::trimExplode(',', $this->dataStructure->getControlValue('mainpalette'), TRUE);
-
-		$i = 0;
-		foreach ($mainPalettesArray as $paletteNumber) {
-			++$i;
-
-			if ($this->recordObject->isPaletteCreated($paletteNumber)) {
-				t3lib_div::devLog("Palette no $paletteNumber in record from table " . $this->recordObject->getTable() . ' has already been created, so it won\'t be created a second time. Please check the TCA definition for any wrong/double palette assignments.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_WARNING);
-
-				continue;
-			}
-			$label = $i==1 ? t3lib_TCEforms_Helper::getLL('l_generalOptions') : t3lib_TCEforms_Helper::getLL('l_generalOptions_more');
-
-			$paletteFieldObject = $this->createPaletteElement($paletteNumber, $label);
-
-			$paletteFieldObject->setContextObject($this->contextObject)
-			                   ->setRecordObject($this->recordObject)
-			                   ->setParentFormObject($this->recordObject->getParentFormObject())
-			                   ->setTable($this->recordObject->getTable())
-			                   ->setRecord($this->recordObject->getRecordData())
-			                   ->injectFormBuilder($this)
-			                   ->init();
-
-			$this->currentSheet->addChildObject($paletteFieldObject);
-			/*$this->wrapBorder($out_array[$out_sheet],$out_pointer);
-			if ($this->renderDepth)	{
-				$this->renderDepth--;
-			}*/
-		}
 	}
 }
 
