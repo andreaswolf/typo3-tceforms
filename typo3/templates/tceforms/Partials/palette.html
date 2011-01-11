@@ -4,12 +4,12 @@
 	<fieldset class="t3-form-palette-fieldset">
 		<f:for each="{palette.elements}" as="pelement">
 			<span class="t3-form-palette-field-container">
-				<label {palette.labelAttributes}>
+				<label {f:escape(value: palette.labelAttributes, type: none)}>
 					<f:escape value="{pelement.label}" type="none"/>
-						<img name="req_{record.table}_{record.uid}_{pelement.fieldname}" src="clear.gif" class="t3-form-palette-icon-required" alt="" />
+					<img name="req_{record.table}_{record.uid}_{pelement.fieldname}" src="clear.gif" class="t3-form-palette-icon-required" alt="" />
 					<img name="cm_{record.table}_{record.uid}_{pelement.fieldname}" src="clear.gif" class="t3-form-palette-icon-contentchanged" alt="" />
 				</label>
-				<span {palette.fieldAttributes}>
+				<span {f:escape(value: palette.fieldAttributes, type: none)}>
 					<tceforms:element element="{pelement}" record="{record}" inpalette="true"/>
 				</span>
 			</span>
