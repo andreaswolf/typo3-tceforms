@@ -109,7 +109,7 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 		}
 
 		$this->paramsList = "'" . $this->formFieldName . "','" . implode(',', $evalList) . "','" . trim($config['is_in']) . "',".(isset($config['checkbox']) ? 1 : 0) . ",'" . $config['checkbox'] . "'";
-		if (isset($config['checkbox'])) {
+		if (!empty($config['checkbox'])) {
 				// Setting default "click-checkbox" values for eval types "date" and "datetime":
 			$thisMidnight = gmmktime(0,0,0);
 			if (in_array('date', $evalList)) {
