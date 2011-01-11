@@ -81,8 +81,8 @@ class t3lib_TCEforms_Element_Select extends t3lib_TCEforms_Element_AbstractSelec
 				'itemFormElName' => $this->formFieldName
 			);
 			/** @var t3lib_TCEforms_Tree $treeClass */
-			$treeClass = t3lib_div::makeInstance('t3lib_TCEforms_Tree');
-			$item = $treeClass->renderField($this->table, $this->field, $this->record, $PA, $this);
+			$treeClass = t3lib_div::makeInstance('t3lib_TCEforms_Tree', this);
+			$item = $treeClass->renderField($this->table, $this->field, $this->record, $PA, $this->fieldSetup, $this->selectItems, $this->nonMatchingValueLabel);
 		} else {
 			// Traditional multiple selector box:
 			$item = $this->initSubtypeMultiple();
