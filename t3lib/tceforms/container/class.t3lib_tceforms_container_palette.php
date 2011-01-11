@@ -143,6 +143,10 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 		return $parts;
 	}
 
+	/**
+	 * needs to be removed, not called anymore
+	 * @deprecated
+	 */
 	public function render() {
 		if (count($this->paletteElements) == 0) {
 			return '';
