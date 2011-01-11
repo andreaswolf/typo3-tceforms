@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This class holds all information neccessary for
+ * This class holds all information necessary for
  * e.g. building a complete editing form for a record.
  *
  * A display configuration holds the right information of a record
