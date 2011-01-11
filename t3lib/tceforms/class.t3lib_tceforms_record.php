@@ -215,8 +215,8 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 	 * @return void
 	 */
 	protected function buildFormFieldPrefixes() {
-		$this->formFieldNamePrefix = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'name');
-		$this->formFieldIdPrefix = $this->contextObject->createElementIdentifier($this->elementIdentifierStack, 'id');
+		$this->formFieldNamePrefix = $this->contextObject->createElementIdentifier($this, 'name');
+		$this->formFieldIdPrefix = $this->contextObject->createElementIdentifier($this, 'id');
 	}
 
 	/**
@@ -374,14 +374,6 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 		$this->fieldList = $fieldList;
 
 		return $this;
-	}
-
-	public function getFormFieldNamePrefix() {
-		return $this->formFieldNamePrefix;
-	}
-
-	public function getFormFieldIdPrefix() {
-		return $this->formFieldIdPrefix;
 	}
 
 	/**

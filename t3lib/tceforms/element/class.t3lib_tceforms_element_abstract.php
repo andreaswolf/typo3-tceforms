@@ -249,8 +249,8 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 		// code mainly copied/moved from t3lib_tceforms::getSingleField
 
-		$this->formFieldName = $this->fileFormFieldName = $this->parentFormObject->createElementIdentifier($this->elementIdentifierStack, 'name');
-		$this->formFieldId = $this->parentFormObject->createElementIdentifier($this->elementIdentifierStack, 'id');
+		$this->formFieldName = $this->fileFormFieldName = $this->parentFormObject->createElementIdentifier($this, 'name');
+		$this->formFieldId = $this->parentFormObject->createElementIdentifier($this, 'id');
 		$this->itemFormElValue = $this->record[$this->field]; // The value to show in the form field.
 
 			// Hook: getSingleField_preProcess
@@ -394,34 +394,6 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$this->_hasPalette = TRUE;
 	}
 
-	/**
-	 * @deprecated
-	 */
-	public function setItemFormElementName($itemFormElementName) {
-		$this->formFieldName = $itemFormElementName;
-		$this->fileFormFieldName = $itemFormElementName;
-
-		return $this;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function setItemFormElementID($itemFormElementID) {
-		$this->formFieldId = $itemFormElementID;
-
-		return $this;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function setItemFormElementValue($formElementValue) {
-		$this->itemFormElValue = $formElementValue;
-
-		return $this;
-	}
-
 	public function setIsInPalette($inPalette) {
 		$this->isInPalette = $inPalette;
 
@@ -437,9 +409,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	public function setElementIdentifierStack(array $elementIdentifierStack) {
 		$this->elementIdentifierStack = $elementIdentifierStack;
 
-		$this->elementIdentifierStack[] = $this->field;
-
 		return $this;
+	}
+
+	public function getElementIdentifierStack() {
+		return $this->elementIdentifierStack;
 	}
 
 	/**

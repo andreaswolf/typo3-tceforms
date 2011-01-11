@@ -216,10 +216,7 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	public function createElementIdentifier($object, $type) {
 		$elementIdentifier = $this->elementIdentifierPrefix;
 
-		$elementIdentifierStack = $this->elementIdentifierStack;
-		if (is_a($object, 't3lib_TCEforms_Element_Abstract')) {
-			$elementIdentifierStack[] = $object->getFieldName();
-		}
+		$elementIdentifierStack = $object->getElementIdentifierStack();
 
 		switch($type) {
 			case 'name':

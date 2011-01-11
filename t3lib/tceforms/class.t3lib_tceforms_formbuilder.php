@@ -168,10 +168,16 @@ class t3lib_TCEforms_FormBuilder {
 		              ->setParentFormObject($this->recordObject->getParentFormObject())
 		              ->setTable($this->recordObject->getTable())
 		              ->setRecord($this->recordObject->getRecordData())
-		              ->setElementIdentifierStack($this->elementIdentifierStack)
+		              ->setElementIdentifierStack($this->extendIdentifierStackForField($elementObject))
 		              ->injectFormBuilder($this);
 
 		return $elementObject;
+	}
+
+	protected function extendIdentifierStackForField(t3lib_TCEforms_Element $field) {
+		$stack = $this->elementIdentifierStack;
+		$stack[] = $field->getFieldname();
+		return $stack;
 	}
 
 
@@ -201,6 +207,10 @@ class t3lib_TCEforms_FormBuilder {
 				$sheetObject->addChildObject($paletteElementObject);
 			}
 		}
+	}
+
+	protected function extendIdentifierStackForSheet(t3lib_TCEforms_Container_Sheet $sheet) {
+		return $this->elementIdentifierStack;
 	}
 
 	/**

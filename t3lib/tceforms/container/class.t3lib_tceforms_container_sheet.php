@@ -103,16 +103,15 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 	public function setElementIdentifierStack(array $elementIdentifierStack) {
 		$this->elementIdentifierStack = $elementIdentifierStack;
 
-		if ($this->name != '') {
-			$this->elementIdentifierStack[] = $this->name;
-		}
-
 		return $this;
 	}
 
+	public function getElementIdentifierStack(array $elementIdentifierStack) {
+		return $this->elementIdentifierStack;
+	}
+
 	public function addChildObject(t3lib_TCEforms_Element $childObject) {
-		$childObject->setElementIdentifierStack($this->elementIdentifierStack)
-		            ->setContainer($this);
+		$childObject->setContainer($this);
 		$this->childObjects[] = $childObject;
 	}
 
@@ -240,22 +239,6 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 			'tab',
 			$this->identString
 		);
-	}
-
-	public function getFormFieldNamePrefix() {
-		if ($this->name == '') {
-			return $this->recordObject->getFormFieldNamePrefix();
-		} else {
-			return $this->recordObject->getFormFieldNamePrefix() . "[$this->name]";
-		}
-	}
-
-	public function getFormFieldIdPrefix() {
-		if ($this->name == '') {
-			return $this->recordObject->getFormFieldIdPrefix();
-		} else {
-			return $this->recordObject->getFormFieldIdPrefix() . "_$this->name";
-		}
 	}
 }
 
