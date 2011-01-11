@@ -1,7 +1,5 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/class.t3lib_tceforms_abstractform.php');
-
 
 class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEforms_NestableForm {
 	/**

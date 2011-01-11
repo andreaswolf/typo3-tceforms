@@ -1,10 +1,5 @@
 <?php
 
-require_once (PATH_t3lib.'tceforms/class.t3lib_tceforms_record.php');
-require_once (PATH_t3lib.'interfaces/interface.t3lib_tceforms_context.php');
-require_once (PATH_t3lib.'tca/class.t3lib_tca_datastructure.php');
-require_once (PATH_t3lib.'tca/datastructure/class.t3lib_tca_datastructure_tcaresolver.php');
-
 // TODO: check if docLarge is needed
 class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
@@ -550,8 +545,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		TBE_EDITOR.doSaveFieldName = "' . ($this->doSaveFieldName ? addslashes($this->doSaveFieldName) : '') . '";
 		TBE_EDITOR.labels.fieldsChanged = ' . $GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.fieldsChanged')) . ';
 		TBE_EDITOR.labels.fieldsMissing = ' . $GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.fieldsMissing')) . ';
-		TBE_EDITOR.labels.refresh_login = ' . $GLOBALS['LANG']->JScharCode($this->getLL('m_refresh_login')) . ';
-		TBE_EDITOR.labels.onChangeAlert = ' . $GLOBALS['LANG']->JScharCode($this->getLL('m_onChangeAlert')) . ';
+		TBE_EDITOR.labels.refresh_login = ' . $GLOBALS['LANG']->JScharCode(t3lib_TCEforms_Helper::getLL('m_refresh_login')) . ';
+		TBE_EDITOR.labels.onChangeAlert = ' . $GLOBALS['LANG']->JScharCode(t3lib_TCEforms_Helper::getLL('m_onChangeAlert')) . ';
 		evalFunc.USmode = ' . ($GLOBALS['TYPO3_CONF_VARS']['SYS']['USdateFormat']?'1':'0').';
 		TBE_EDITOR.backend_interface = "' . $GLOBALS['BE_USER']->uc['interfaceSetup'] . '";
 		';
@@ -754,29 +749,6 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	// TODO: refactor the method name
 	protected function sL($str) {
 		return $GLOBALS['LANG']->sL($str);
-	}
-
-	/**
-	 * Returns language label from locallang_core.php
-	 * Labels must be prefixed with either "l_" or "m_".
-	 * The prefix "l_" maps to the prefix "labels." inside locallang_core.php
-	 * The prefix "m_" maps to the prefix "mess." inside locallang_core.php
-	 *
-	 * @param   string  The label key
-	 * @return  string  The value of the label, fetched for the current backend language.
-	 */
-	protected function getLL($str) {
-		$content = '';
-
-		switch(substr($str, 0, 2)) {
-			case 'l_':
-				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.' . substr($str,2));
-			break;
-			case 'm_':
-				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:mess.' . substr($str,2));
-			break;
-		}
-		return $content;
 	}
 
 	/**

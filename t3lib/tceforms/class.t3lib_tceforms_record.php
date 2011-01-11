@@ -26,14 +26,6 @@
 ***************************************************************/
 
 /**
- * Contains the record abstraction class for TCEforms.
- *
- * @author  Andreas Wolf <andreas.wolf@ikt-werk.de>
- */
-
-require_once(PATH_t3lib.'tca/class.t3lib_tca_datastructure.php');
-
-/**
  * This class serves as a record abstraction for TCEforms. Is instantiated by a form object and
  * responsible for creating and rendering its own HTML form.
  *
@@ -554,37 +546,6 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 
 	public function getSheetCount() {
 		return count($this->sheetObjects);
-	}
-
-
-
-	/********************************************
-	 *
-	 * Localization functions
-	 *
-	 ********************************************/
-
-	/**
-	 * Returns language label from locallang_core.php
-	 * Labels must be prefixed with either "l_" or "m_".
-	 * The prefix "l_" maps to the prefix "labels." inside locallang_core.php
-	 * The prefix "m_" maps to the prefix "mess." inside locallang_core.php
-	 *
-	 * @param   string  The label key
-	 * @return  string  The value of the label, fetched for the current backend language.
-	 */
-	protected function getLL($str) {
-		$content = '';
-
-		switch(substr($str, 0, 2)) {
-			case 'l_':
-				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.' . substr($str,2));
-			break;
-			case 'm_':
-				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:mess.' . substr($str,2));
-			break;
-		}
-		return $content;
 	}
 
 

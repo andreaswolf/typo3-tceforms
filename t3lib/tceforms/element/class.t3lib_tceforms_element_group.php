@@ -1,7 +1,5 @@
 <?php
 
-require_once(PATH_t3lib.'tceforms/element/class.t3lib_tceforms_element_abstract.php');
-
 
 class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelector {
 	protected function renderField() {
@@ -149,7 +147,7 @@ class t3lib_TCEforms_Element_Group extends t3lib_TCEforms_Element_AbstractSelect
 				if (!strcmp(trim($tempFT[0]), '*')) {
 					$onlySingleTableAllowed = false;
 					$info.='<span class="nobr">&nbsp;&nbsp;&nbsp;&nbsp;'.
-							htmlspecialchars($this->getLL('l_allTables')).
+							htmlspecialchars(t3lib_TCEforms_Helper::getLL('l_allTables')).
 							'</span><br />';
 				} elseif ($tempFT) {
 					$onlySingleTableAllowed = (count($tempFT) == 1);

@@ -1,7 +1,5 @@
 <?php
 
-require_once(PATH_t3lib.'interfaces/interface.t3lib_tceforms_container.php');
-
 class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 	/**
 	 * @var array  The sub-elements of this sheet
