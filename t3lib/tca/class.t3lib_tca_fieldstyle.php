@@ -24,7 +24,14 @@ class t3lib_TCA_FieldStyle {
 
 	protected $borderStyle;
 
-	protected function __construct(array $color_style_parts) {
+	public function __construct() {
+		$this->colorScheme = self::$defaultColorScheme;
+		$this->borderStyle = self::$defaultBorderStyle;
+		$this->classScheme = self::$defaultClassScheme;
+		$this->fieldStyle = self::$defaultFieldStyle;
+	}
+
+	protected function updateStyles(array $color_style_parts) {
 		// TODO check if the (!isset...) clauses may be replaced/removed because of the default styles
 		if (strcmp($color_style_parts[0], '')) {
 			$this->setColorScheme($GLOBALS['TBE_STYLES']['colorschemes'][intval($color_style_parts[0])]);
@@ -69,11 +76,12 @@ class t3lib_TCA_FieldStyle {
 		if (!self::$instances[$key]) {
 			if ($currentFieldStyle instanceof t3lib_TCA_FieldStyle) {
 				if ($styleDefinition !== '') {
-					$fieldStyle = new t3lib_TCA_FieldStyle($color_style_parts);
+					$fieldStyle = new t3lib_TCA_FieldStyle();
 					$fieldStyle->colorScheme = $currentFieldStyle->colorScheme;
 					$fieldStyle->classScheme = $currentFieldStyle->classScheme;
 					$fieldStyle->borderStyle = $currentFieldStyle->borderStyle;
 					$fieldStyle->fieldStyle = $currentFieldStyle->fieldStyle;
+					$fieldStyle->updateStyles($color_style_parts);
 				} else {
 					$fieldStyle = $currentFieldStyle;
 				}

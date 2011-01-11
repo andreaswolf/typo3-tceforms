@@ -59,6 +59,8 @@ class t3lib_TCA_DataStructure_Field extends t3lib_TCA_DataStructure_Element {
 		$this->configuration = $configuration;
 
 		$this->label = $this->configuration['label'];
+
+		$this->setStyle(new t3lib_TCA_FieldStyle());
 	}
 
 	/**
