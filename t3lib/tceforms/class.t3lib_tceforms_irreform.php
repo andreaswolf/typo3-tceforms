@@ -27,7 +27,7 @@ class t3lib_TCEforms_IrreForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	}
 
 	public function init() {
-		$this->formBuilder = clone($this->formBuilder);
+		parent::init();
 
 			// Register this element with the context
 		$this->contextObject->registerInlineElement($this);

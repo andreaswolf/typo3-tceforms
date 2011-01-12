@@ -30,7 +30,6 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 		$this->formObject->setContextObject($this->contextObject)
 		                 ->setContextRecordObject($this->contextRecordObject)
 		                 ->setContainingElement($this)
-		                 ->injectFormBuilder($this->formBuilder)
 		                 ->setFieldConfig($this->fieldSetup)
 		                 ->init();
 
