@@ -1,3 +1,29 @@
+2011-01-12  Jigal van Hemert  <jigal@xs4all.nl>
+
+	* Follow-up to #16986: Grid wizard miss tooltips and localization
+
+2011-01-12  Steffen Kamper  <steffen@typo3.org>
+
+	* Fixed issue #16986: Grid wizard miss tooltips and localization
+
+2011-01-12  Ingo Renner  <ingo@typo3.org>
+
+	* Fixed issue #16985: Rename Sysfolder to Folder
+	* Follow-up to #16857: Changed label "Include Subpages" to "Extend to Subpages"
+
+2011-01-12  Sebastian Kurfuerst  <sebastian@typo3.org>
+
+	* Raised Extbase and Fluid versions to 1.3.0beta4
+
+2011-01-12  Jigal van Hemert  <jigal@xs4all.nl>
+
+	* Fixed bug #16982: be_layout and be_layout_next_level got misleading labels and no CSH (Thanks to Jo Hasenau)
+
+2011-01-12  Steffen Gebert  <steffen@steffen-gebert.de>
+
+	* Fixed bug #16939: ExtJS Tooltip / CSH styling
+	* Fixed bug #16977: show_item shows wrong icon for files (Thanks to Georg Ringer)
+
 2011-01-12  Benjamin Mack  <benjamin.mack@typo3.org>
 
 	* Synchronized external repositories of version (tag 4.5.0beta4) and workspaces (tag 4.5.0beta4)
