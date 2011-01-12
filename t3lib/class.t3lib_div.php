@@ -251,6 +251,13 @@ final class t3lib_div {
 	 */
 	protected static $nonSingletonInstances = array();
 
+	/**
+	 * Register for makeInstance with given class name and final class names to reduce number of class_exists() calls
+	 *
+	 * @var array Given class name => final class name
+	 */
+	protected static $finalClassNameRegister = array();
+
 	/*************************
 	 *
 	 * GET/POST Variables
@@ -488,8 +495,15 @@ final class t3lib_div {
 		$returnCode = '';
 		if ($gfxConf['gif_compress'] && strtolower(substr($theFile, -4, 4)) == '.gif') { // GIF...
 			if (($type == 'IM' || !$type) && $gfxConf['im'] && $gfxConf['im_path_lzw']) { // IM
-				$cmd = self::imageMagickCommand('convert', '"' . $theFile . '" "' . $theFile . '"', $gfxConf['im_path_lzw']);
-				t3lib_utility_Command::exec($cmd);
+					// use temporary file to prevent problems with read and write lock on same file on network file systems
+				$temporaryName  =  dirname($theFile) . '/' . md5(uniqid()) . '.gif';
+					// rename could fail, if a simultaneous thread is currently working on the same thing
+				if (@rename($theFile, $temporaryName)) {
+					$cmd = self::imageMagickCommand('convert', '"' . $temporaryName . '" "' . $theFile . '"', $gfxConf['im_path_lzw']);
+					t3lib_utility_Command::exec($cmd);
+					unlink($temporaryName);
+				}
+
 				$returnCode = 'IM';
 				if (@is_file($theFile)) {
 					self::fixPermissions($theFile);
@@ -3131,13 +3145,19 @@ final class t3lib_div {
 	/**
 	 * Sets the file system mode and group ownership of a file or a folder.
 	 *
-	 * @param   string   Absolute filepath of file or folder, must not be escaped.
+	 * @param   string   Path of file or folder, must not be escaped. Path can be absolute or relative
 	 * @param   boolean  If set, also fixes permissions of files and folders in the folder (if $path is a folder)
 	 * @return  mixed	TRUE on success, FALSE on error, always TRUE on Windows OS
 	 */
 	public static function fixPermissions($path, $recursive = FALSE) {
 		if (TYPO3_OS != 'WIN') {
 			$result = FALSE;
+
+				// Make path absolute
+			if (!self::isAbsPath($path)) {
+				$path = self::getFileAbsFileName($path, FALSE);
+			}
+
 			if (self::isAllowedAbsPath($path)) {
 				if (@is_file($path)) {
 						// "@" is there because file is not necessarily OWNED by the user
@@ -5405,7 +5425,12 @@ final class t3lib_div {
 			throw new InvalidArgumentException('$classname must not be empty.', 1288965219);
 		}
 
-		$finalClassName = self::getClassName($className);
+			// Determine final class name which must be instantiated, this takes XCLASS handling
+			// into account. Cache in a local array to save some cycles for consecutive calls.
+		if (!isset(self::$finalClassNameRegister[$className])) {
+			self::$finalClassNameRegister[$className] = self::getClassName($className);
+		}
+		$finalClassName = self::$finalClassNameRegister[$className];
 
 			// Return singleton instance if it is already registered
 		if (isset(self::$singletonInstances[$finalClassName])) {

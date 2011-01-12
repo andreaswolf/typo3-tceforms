@@ -14,8 +14,8 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	 */
 	protected $relationList = array();
 
-	public function __construct($field, $fieldConfig, $alternativeName='', $extra='') {
-		parent::__construct($field, $fieldConfig, $alternativeName, $extra);
+	public function __construct($field, $fieldConfig, $label='', $extra='') {
+		parent::__construct($field, $fieldConfig, $label, $extra);
 
 		$this->initHookObjects();
 

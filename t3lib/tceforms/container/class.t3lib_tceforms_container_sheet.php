@@ -240,6 +240,10 @@ class t3lib_TCEforms_Container_Sheet implements t3lib_TCEforms_Container {
 			$this->identString
 		);
 	}
+
+	public function getName() {
+		return $this->name;
+	}
 }
 
 ?>

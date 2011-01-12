@@ -39,10 +39,10 @@ class t3lib_TCA_DataStructure_Palette extends t3lib_TCA_DataStructure_Element {
 	/**
 	 * Adds a datastructure definition for a field to this palette
 	 *
-	 * @param t3lib_TCA_DataStructure_Field $element
+	 * @param t3lib_TCA_DataStructure_Element $element
 	 * @return void
 	 */
-	public function addElement(t3lib_TCA_DataStructure_Field $element) {
+	public function addElement(t3lib_TCA_DataStructure_Element $element) {
 		$this->elements[] = $element;
 	}
 

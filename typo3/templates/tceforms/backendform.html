@@ -1,14 +1,7 @@
-<f:for each="{records}" as="record">
-	<f:render partial="record" arguments="{record: record}"/>
-	<div class="typo3-TCEforms-recHeaderRow">
-		<f:escape value="{record.icon}" type="none"/> <span class="typo3-TCEforms-recHeader"></span>
-		<f:if condition="{record.new}"><f:then>NEW</f:then>
-			<f:else>[{record.uid}]</f:else>
-		</f:if>
-	</div>
-</f:for>
+<f:render partial="records" section="records" arguments="{records:records}" />
 
 {context.HtmlForHiddenFields}
+
 <script language="javascript">
 /*<![CDATA[*/
 	Ext.onReady(function(){

@@ -44,7 +44,9 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	public function init() {
 		parent::init();
 
-		$this->setFormFieldNamePrefix($this->containingElement->getFormFieldName() . '[data]');
+		$this->view->setTemplatePathAndFilename(PATH_typo3 . 'templates/tceforms/flexform.html');
+
+		//$this->setFormFieldNamePrefix($this->containingElement->getFormFieldName() . '[data]');
 
 		if ($this->localizationEnabled) {
 			$languages = $this->getAvailableLanguages();
@@ -52,48 +54,6 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 				$this->languages[] = $language['ISOcode'];
 			}
 		}
-	}
-
-	/**
-	 * Creates an identifier for an element from a given element identifier stack.
-	 *
-	 * @param  object $object  The element the identifier should be generated for
-	 * @param  string $type  'name': all parts wrapped in []; 'id': elements separated by '-'
-	 * @return string
-	 */
-	public function createElementIdentifier($object, $type) {
-		$elementIdentifier = $this->elementIdentifierPrefix;
-
-		$elementIdentifierStack = $this->elementIdentifierStack;
-		if (is_a($object, 't3lib_TCEforms_Element_Abstract')) {
-			$sheetName = $object->getContainer()->getName();
-			if ($this->localizationMethod == 0) {
-				$languagePart = 'l' . $object->getRecordObject()->getLanguage();
-				$valuePart = 'vDEF';
-			} else {
-				$languagePart = 'lDEF';
-				$valuePart = 'v' . $object->getRecordObject()->getLanguage();
-			}
-			$elementIdentifierStack[] = $sheetName;
-			$elementIdentifierStack[] = $languagePart;
-			$elementIdentifierStack[] = $object->getFieldName();
-			$elementIdentifierStack[] = $valuePart;
-		}
-
-		switch($type) {
-			case 'name':
-				if (count($elementIdentifierStack) > 0) {
-					$elementIdentifier .= '[' . implode('][', $elementIdentifierStack) . ']';
-				}
-
-				break;
-			case 'id':
-				$elementIdentifier .= '-' . implode('-', $elementIdentifierStack);
-
-				break;
-		}
-
-		return $elementIdentifier;
 	}
 
 	/**
@@ -127,20 +87,45 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	public function addRecord($recordData) {
 		t3lib_div::devLog('Added flex record to form in element ' . $this->containingElement->getIdentifier(), 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		if ($this->localizationEnabled) {
-			if ($this->localizationMethod == 0) {
-				foreach ($this->languages as $lang) {
-					$recordObject = new t3lib_TCEforms_FlexRecord($recordData, $this->dataStructure, $lang);
+		$this->dataStructure->getFieldNames();
 
-					$this->insertRecordObject($recordObject);
+		if ($this->localizationEnabled) {
+			$languageRecords = array();
+			foreach ($this->languages as $lang) {
+				$languageRecords[$lang] = array();
+				foreach ($this->dataStructure->getFieldNames() as $fieldName) {
+					$languageRecords[$lang][$fieldName] = '';
+				}
+			}
+
+			if ($this->localizationMethod == 0) {
+				foreach ($recordData as $sheetName => $sheet) {
+					foreach ($sheet as $lang => $fields) {
+						$languageRecords[$sheetName] = array();
+						$lang = substr($lang, 1); // lDEF
+						foreach ($fields as $fieldName => $fieldValueArray) {
+							$languageRecords[$lang][$sheetName][$fieldName] = $fieldValueArray['vDEF'];
+						}
+					}
 				}
 			} else {
-				$recordObject = new t3lib_TCEforms_FlexRecord($recordData, $this->dataStructure, $this->languages);
+				echo "hier";
+			}
+
+			foreach ($this->languages as $lang) {
+				$recordObject = new t3lib_TCEforms_FlexRecord($languageRecords[$lang], $this->dataStructure, $lang);
 
 				$this->insertRecordObject($recordObject);
 			}
 		} else {
-			$recordObject = new t3lib_TCEforms_FlexRecord($recordData, $this->dataStructure);
+			$extractedData = array();
+			foreach ($recordData as $sheetName => $sheet) {
+				$extractedData[$sheetName] = array();
+				foreach ($sheet['lDEF'] as $fieldName => $fieldValueArray) {
+					$extractedData[$sheetName][$fieldName] = $fieldValueArray['vDEF'];
+				}
+			}
+			$recordObject = new t3lib_TCEforms_FlexRecord($extractedData, $this->dataStructure);
 
 			$this->insertRecordObject($recordObject);
 		}
@@ -155,6 +140,7 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 
 		$recordObject->setParentFormObject($this)
 		             ->setContextObject($this->contextObject)
+		             ->setElementIdentifierStack($this->elementIdentifierStack)
 		             ->init();
 
 		$this->recordObjects[] = $recordObject;
@@ -208,6 +194,10 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	public function setLocalizationMethod($localizationMethod) {
 		$this->localizationMethod = $localizationMethod;
 		return $this;
+	}
+
+	public function getLocalizationMethod() {
+		return $this->localizationMethod;
 	}
 }
 

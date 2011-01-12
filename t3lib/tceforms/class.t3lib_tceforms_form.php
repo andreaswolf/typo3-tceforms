@@ -165,6 +165,11 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 */
 	protected $inlineElementObjects = array();
 
+	/**
+	 * @var Tx_Fluid_View_StandaloneView
+	 */
+	protected $view;
+
 
 	// TODO implement variable defaultStyle + getter/setter (replacement for defStyle of old tceforms)
 
@@ -236,21 +241,17 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 	public function init() {
 		$this->pageRenderer = $GLOBALS['SOBE']->doc->getPageRenderer();
+
+		$this->view = t3lib_div::makeInstance('Tx_Fluid_View_StandaloneView');
+		$this->view->setTemplatePathAndFilename(PATH_typo3 . 'templates/tceforms/backendform.html');
+		$this->view->assign('context', $this->contextObject);
 	}
 
 	public function render() {
 		t3lib_div::devLog('Started rendering TCEforms form.', 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		/*foreach ($this->recordObjects as $recordObject) {
-			$content .= $this->renderRecordObject($recordObject);
-		}*/
-
-		/** @var $view Tx_Fluid_View_StandaloneView */
-		$view = t3lib_div::makeInstance('Tx_Fluid_View_StandaloneView');
-		$view->setTemplatePathAndFilename(PATH_typo3 . 'templates/tceforms/backendform.html');
-		$view->assign('records', $this->recordObjects);
-		$view->assign('context', $this->contextObject);
-		$content = $view->render() . $content;
+		$this->view->assign('records', $this->recordObjects);
+		$content = $this->view->render();
 
 		return $content;
 	}
@@ -614,10 +615,34 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		return $this->palettesCollapsed;
 	}
 
+	/**
+	 * Limits the display of records in this form to a list of fields.
+	 *
+	 * @param array $fieldList The list of fields to display. Either a comma separated list or an array of comma separated lists (for multiple tables)
+	 * @return void
+	 */
 	public function setFieldList($fieldList) {
-		$this->fieldList = array_unique(t3lib_div::trimExplode(',', $fieldList, 1));
+		if (is_array($fieldList)) {
+			$this->fieldList = array();
+			foreach ($fieldList as $table => $fields) {
+				$this->fieldList[$table] = array_unique(t3lib_div::trimExplode(',', $fields, 1));
+			}
+		} else {
+			$this->fieldList = array_unique(t3lib_div::trimExplode(',', $fieldList, 1));
+		}
 
 		return $this;
+	}
+
+	/**
+	 * Returns a list of fields to display for a record
+	 *
+	 * @return array
+	 *
+	 * @TODO Check if we should use the table as a parameter here
+	 */
+	public function getFieldList() {
+		return $this->fieldList;
 	}
 
 	public function addHtmlForHiddenField($elementName, $code) {

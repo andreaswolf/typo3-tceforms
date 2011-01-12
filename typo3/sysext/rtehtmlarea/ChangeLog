@@ -1,3 +1,16 @@
+2011-01-07  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #16945: htmlArea RTE: Incorrect default tab label in image insertion dialogue
+	* Fixed bug #16946: htmlArea RTE: Mouse cursor should be move cursor in drag an drop tab
+	* Fixed bug #16948: htmlArea RTE: Temporary files folder should not be expanded in drag & drop tab
+	* Fixed bug #16904: htmlArea RTE: Trailing slash stripped from href of autolinks
+	* Fixed bug #16750: htmlArea RTE: Popup layer for editing links is not resizeable in IE
+
+2011-01-06  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed issue #16940: htmlArea RTE: Log magic image creation failures to syslog
+	* Fixed bug #16893: htmlArea RTE: Fatal error on invoking the RTE
+
 2010-12-22  Stanislas Rolland  <typo3@sjbr.ca>
 
 	* Fixed bug #16823: htmlArea RTE: Abbreviation dialogue and table lack contextual help
