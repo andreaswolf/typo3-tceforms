@@ -1,3 +1,124 @@
+2011-01-12  Benjamin Mack  <benjamin.mack@typo3.org>
+
+	* Synchronized external repositories of version (tag 4.5.0beta4) and workspaces (tag 4.5.0beta4)
+
+2011-01-12  Oliver Hader  <oliver.hader@typo3.org>
+
+	* Cleanup: Fixed last synchronized targets of external SVN repositories
+
+2011-01-12  Xavier Perseguers  <typo3@perseguers.ch>
+
+	* Follow-up of changeset 9949: Fixed typo in class name
+
+2011-01-12  Ernesto Baschny  <ernst@cron-it.de>
+
+	* Fixed bug #16970: Backwards compatibility in PHP_SCRIPT and accessing $this-> methods
+	* Fixed bug #16966: be_layout setting "none" is not working and be_layout should not be inherited automatically (Thanks to Jo Hasenau)
+	* Added feature #13319: Add plupload support for uploading files in fileadmin
+
+2011-01-11  Steffen Kamper  <steffen@typo3.org>
+
+	* Fixed bug #16941: Change mask color
+
+2011-01-11  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Fixed bug #16967: [Caching framework] Remove not exising "GlobalsBackend" from config_default.php
+
+2011-01-11  Ernesto Baschny  <ernst@cron-it.de>
+
+	* Fixed bug #16878: Make t3lib_utility_Client::getBrowserInfo() aware of more operating systems (Thanks to Andreas Lappe)
+	* Fixed bug #16630: migrateWorkspaces in Install-Tool does not work, if extbase is not installed
+	* Fixed bug #16961: When the title length is changed in the user setup module the pagetree needs to be updated (Thanks to Stefan Galinski)
+
+2011-01-11  Jeff Segars  <jeff@webempoweredchurch.org>
+
+	* Follow-up to #15853: Add z-index to admin panel
+
+2011-01-10  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Fixed bug #16951: [Performance] Speed up makeInstance() by caching getClassName() results
+	* Fixed bug #15133: Rendering images with ImageMagick fails to set file permissions (Thanks to Alexander Grein)
+
+2011-01-10  Ernesto Baschny  <ernst@cron-it.de>
+
+	* Fixed bug #16172: Accessing FE in fresh install fails with RuntimeException "No database selected" (Thanks to Lars Peipmann)
+
+2011-01-09  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #13695: Image output in frontend is not xhtml valid
+
+2011-01-07  Steffen Gebert  <steffen@steffen-gebert.de>
+
+	* Added feature #16493: Editable FlexForms require a possibility to update group access lists within update wizard (Thanks to Kai Vogel)
+
+2011-01-07  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #16945: htmlArea RTE: Incorrect default tab label in image insertion dialogue
+	* Fixed bug #16946: htmlArea RTE: Mouse cursor should be move cursor in drag an drop tab
+	* Fixed bug #16948: htmlArea RTE: Temporary files folder should not be expanded in drag & drop tab
+	* Fixed bug #16904: htmlArea RTE: Trailing slash stripped from href of autolinks
+	* Fixed bug #16750: htmlArea RTE: Popup layer for editing links is not resizeable in IE
+
+2011-01-07  Ernesto Baschny  <ernst@cron-it.de>
+
+	* Follow-up to #16857: Reverted the "renderInverted" feature and its use in the negated checkboxes
+
+2011-01-06  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed issue #16940: htmlArea RTE: Log magic image creation failures to syslog
+	* Fixed bug #16893: htmlArea RTE: Fatal error on invoking the RTE
+
+2011-01-06  Steffen Gebert  <steffen@steffen-gebert.de>
+
+	* Fixed bug #16828: missing XCLASS statement in t3lib/class.t3lib_compressor.php
+
+2011-01-06  Christian Kuhn  <lolli@schwarzbu.ch>
+
+	* Fixed bug #16933: Remove XCLASS definition from t3lib_autoload
+	* Fixed bug #16931: [Caching framework] APC backend test setRemovesTagsFromPreviousSet() fails
+
+2011-01-06  Steffen Kamper  <steffen@typo3.org>
+
+	* Fixed bug #16918: Edit Permissions Link in List View does not work (Thanks to Sebastian Michaelsen)
+	* Fixed bug #16930: Module menu lose selection on collapse section
+
+2011-01-05  Steffen Gebert  <steffen@steffen-gebert.de>
+
+	* Fixed bug #16920: Adjust ExtJS context-menu styling
+
+2011-01-05  Steffen Kamper  <steffen@typo3.org>
+
+	* Fixed bug #16922: RowExpander icon is cut in expand mode
+	* Fixed bug #16900: [Cache] Filebackend fails on windows
+	* Fixed bug #16901: [test] t3lib_db_PreparedStatement fails
+
+2011-01-05  Benjamin Mack  <benni@typo3.org>
+
+	* Fixed bug #7837: Remove option if icon generation is needed
+
+2011-01-04  Jeff Segars  <jeff@webempoweredchurch.org>
+
+	* Follow-up to #15853: Make admin panel styling more bulletproof and remove duplicate styles
+	* Fixed bug #16906: Link from Install Tool to User Settings should make User Settings active in the module menu (Thanks to Georg Ringer)
+	* Fixed bug #15466: meaningfulTempFilePrefix does not convert Umlauts and special characters (Thanks to Sebastian Michaelsen)
+
+2011-01-03  Jigal van Hemert  <jigal@xs4all.nl>
+
+	* Follow-up to #16780: PHP warning in any system BE module
+
+2011-01-03  Jigal van Hemert  <jigal@xs4all.nl>
+
+	* Fixed bug #15712: Headline in non latin charsets will break after 100 - substr is not multibyte safe
+	* Fixed bug #16707: Read from and write to same file hangs GM on network file system
+
+2011-01-01  Oliver Hader  <oliver.hader@typo3.org>
+
+	* Follow-up to bug #16846: Allow external objects to modify the remapAction stack
+
+2011-01-01  Susanne Moog  <typo3@susanne-moog.de>
+
+	* Fixed bug #16308: displayEditIcons expects array, null given (Thanks to Daniel Müller)
+
 2010-12-31  Christian Kuhn  <lolli@schwarzbu.ch>
 
 	* Fixed bug #16231: Mail not sent if safe mode is on (Thanks to Boris Gulay)
