@@ -188,6 +188,7 @@ $t3libClasses = array(
 	't3lib_tceforms_element_linebreak' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_linebreak.php',
 	't3lib_tceforms_element_none' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_none.php',
 	't3lib_tceforms_element_palette' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_palette.php',
+	't3lib_tceforms_element_passthrough' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_passthrough.php',
 	't3lib_tceforms_element_radio' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_radio.php',
 	't3lib_tceforms_element_select' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_select.php',
 	't3lib_tceforms_element_text' => PATH_t3lib . 'tceforms/element/class.t3lib_tceforms_element_text.php',
