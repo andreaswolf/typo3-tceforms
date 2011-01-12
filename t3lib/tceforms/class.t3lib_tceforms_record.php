@@ -202,12 +202,16 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 	}
 
 	public function init() {
-		$this->formBuilder = t3lib_TCEforms_Formbuilder::createInstanceForRecordObject($this);
+		$this->createFormBuilderInstance();
 
 		$this->buildFormFieldPrefixes();
 		$this->registerDefaultLanguageData();
 
 		$this->formBuilder->buildObjectStructure($this);
+	}
+
+	protected function createFormBuilderInstance() {
+		$this->formBuilder = t3lib_TCEforms_FormBuilder::createInstanceForRecordObject($this);
 	}
 
 	/**

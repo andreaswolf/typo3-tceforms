@@ -165,6 +165,11 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 	 */
 	protected $inlineElementObjects = array();
 
+	/**
+	 * @var Tx_Fluid_View_StandaloneView
+	 */
+	protected $view;
+
 
 	// TODO implement variable defaultStyle + getter/setter (replacement for defStyle of old tceforms)
 
@@ -236,21 +241,17 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 	public function init() {
 		$this->pageRenderer = $GLOBALS['SOBE']->doc->getPageRenderer();
+
+		$this->view = t3lib_div::makeInstance('Tx_Fluid_View_StandaloneView');
+		$this->view->setTemplatePathAndFilename(PATH_typo3 . 'templates/tceforms/backendform.html');
+		$this->view->assign('context', $this->contextObject);
 	}
 
 	public function render() {
 		t3lib_div::devLog('Started rendering TCEforms form.', 't3lib_TCEforms', t3lib_div::SYSLOG_SEVERITY_INFO);
 
-		/*foreach ($this->recordObjects as $recordObject) {
-			$content .= $this->renderRecordObject($recordObject);
-		}*/
-
-		/** @var $view Tx_Fluid_View_StandaloneView */
-		$view = t3lib_div::makeInstance('Tx_Fluid_View_StandaloneView');
-		$view->setTemplatePathAndFilename(PATH_typo3 . 'templates/tceforms/backendform.html');
-		$view->assign('records', $this->recordObjects);
-		$view->assign('context', $this->contextObject);
-		$content = $view->render() . $content;
+		$this->view->assign('records', $this->recordObjects);
+		$content = $this->view->render();
 
 		return $content;
 	}

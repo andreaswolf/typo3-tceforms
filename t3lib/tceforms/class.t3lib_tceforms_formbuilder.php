@@ -47,6 +47,13 @@ class t3lib_TCEforms_FormBuilder {
 	 */
 	protected $sheetCounter;
 
+	/**
+	 * The last built sheet
+	 *
+	 * @var t3lib_TCEforms_Container_Sheet
+	 */
+	protected $currentSheetObject;
+
 
 	protected function __construct(t3lib_TCEforms_Record $recordObject) {
 		t3lib_div::devLog('Created new formbuilder object for record ' . $recordObject->getIdentifier() . '.', 't3lib_TCEforms_FormBuilder', t3lib_div::SYSLOG_SEVERITY_INFO);
@@ -105,7 +112,7 @@ class t3lib_TCEforms_FormBuilder {
 		// Using "form_type" locally in this script
 		$fieldType = $fieldConf['config']['form_type'] ? $fieldConf['config']['form_type'] : $fieldConf['config']['type'];
 
-		$elementObject = $this->createElementObject($fieldType, $fieldName, $fieldConf);
+		$elementObject = $this->createElementObject($fieldType, $fieldName, $fieldConf, $fieldDefinition->getLabel());
 		$elementObject->setStyle($fieldDefinition->getStyle());
 
 		if ($fieldDefinition->hasPalette()) {
@@ -153,7 +160,7 @@ class t3lib_TCEforms_FormBuilder {
 	 * @param  string  $type  The type of record to create - directly taken from TCA
 	 * @return t3lib_TCEforms_Element_Abstract  The element object
 	 */
-	protected function createElementObject($type, $theField = '', $fieldConf = array()) {
+	protected function createElementObject($type, $theField, $fieldConf = array(), $label = '') {
 		switch ($type) {
 			default:
 				$className = 't3lib_TCEforms_Element_'.$type;
@@ -166,7 +173,7 @@ class t3lib_TCEforms_FormBuilder {
 		}
 
 		/** @var $elementObject t3lib_TCEforms_Element_Abstract */
-		$elementObject = t3lib_div::makeInstance($className, $theField, $fieldConf);
+		$elementObject = t3lib_div::makeInstance($className, $theField, $fieldConf, $label);
 		$elementObject->setContextObject($this->contextObject)
 		              ->setContextRecordObject($this->recordObject->getContextRecordObject())
 		              ->setRecordObject($this->recordObject)
@@ -191,14 +198,13 @@ class t3lib_TCEforms_FormBuilder {
 	 ***********************************/
 
 	protected function createSheetObjectFromDefinition(t3lib_TCA_DataStructure_Sheet $sheetDefinition) {
-		$sheetObject = $this->createSheetObject($sheetDefinition);
+		$this->currentSheetObject = $sheetObject = $this->createSheetObject($sheetDefinition);
 		$this->recordObject->addSheetObject($sheetObject);
 
 		foreach ($sheetDefinition->getElements() as $fieldObject) {
 			if (is_a($fieldObject, 't3lib_TCA_DataStructure_Field')) {
 				/** @var $element t3lib_TCA_DataStructure_Field */
 				$elementObject = $this->createFieldObjectFromDefinition($fieldObject);
-				$elementObject->init();
 
 				$sheetObject->addChildObject($elementObject);
 			} elseif (is_a($fieldObject, 't3lib_TCA_DataStructure_Palette')) {
@@ -245,7 +251,7 @@ class t3lib_TCEforms_FormBuilder {
 	 ***********************************/
 
 	public function createPaletteElement($paletteNumber, $label) {
-		return $this->createElementObject('palette');
+		return $this->createElementObject('palette', '');
 	}
 
 	/**

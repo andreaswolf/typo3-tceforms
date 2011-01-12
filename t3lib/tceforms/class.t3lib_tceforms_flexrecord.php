@@ -9,15 +9,38 @@ class t3lib_TCEforms_FlexRecord extends t3lib_TCEforms_Record {
 	 */
 	protected $language;
 
+	/**
+	 * @var t3lib_TCEforms_Flexform
+	 */
+	protected $parentFormObject;
+
+	protected $localizationMethod;
+
 	public function __construct(array $recordData, t3lib_TCA_FlexFormDataStructure $dataStructure, $language = 'DEF') {
 		// TODO check for localization type
 		// TODO create some kind of identifier for using instead of a table name
 
 		$this->dataStructure = $dataStructure;
 
-		parent::__construct('', $recordData, array(), $dataStructure);
+		parent::__construct('', $recordData, $dataStructure);
 
 		$this->language = $language;
+	}
+
+	public function setElementIdentifierStack(array $elementIdentifierStack) {
+		$this->elementIdentifierStack = $elementIdentifierStack;
+
+		return $this;
+	}
+
+	public function init() {
+		parent::init();
+
+		$this->localizationMethod = $this->parentFormObject->getLocalizationMethod();
+	}
+
+	protected function createFormBuilderInstance() {
+		$this->formBuilder = t3lib_TCEforms_FlexFormBuilder::createInstanceForRecordObject($this);
 	}
 
 	public function hasLanguage() {
@@ -26,16 +49,6 @@ class t3lib_TCEforms_FlexRecord extends t3lib_TCEforms_Record {
 
 	public function getLanguage() {
 		return $this->language;
-	}
-
-	/**
-	 * Build the
-	 *
-	 * @see t3lib/tceforms/t3lib_TCEforms_Record#buildFormFieldPrefixes()
-	 */
-	protected function buildFormFieldPrefixes() {
-		$this->formFieldNamePrefix = $this->parentFormObject->getFormFieldNamePrefix();
-		$this->formFieldIdPrefix = $this->parentFormObject->getFormFieldIdPrefix();
 	}
 
 	protected function buildSheetIdentifiers() {

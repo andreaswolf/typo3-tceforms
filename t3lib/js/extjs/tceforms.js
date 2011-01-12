@@ -36,6 +36,7 @@ TYPO3.TCEFORMS = {
 
 		this.convertDateFieldsToDatePicker();
 		this.convertTextareasResizable();
+		this.initRecords();
 	},
 
 	convertDateFieldsToDatePicker: function() {

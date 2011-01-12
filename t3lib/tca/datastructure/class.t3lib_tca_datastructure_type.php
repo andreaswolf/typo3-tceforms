@@ -153,7 +153,7 @@ class t3lib_TCA_DataStructure_Type {
 
 			foreach ($sheet['elements'] as $element) {
 				$elementObject = $this->createElementObject($element, '',
-				  $this->dataStructure->getFieldConfiguration($element));
+				  $this->dataStructure->getFieldConfiguration($element), array());
 				$currentSheet->addElement($elementObject);
 			}
 

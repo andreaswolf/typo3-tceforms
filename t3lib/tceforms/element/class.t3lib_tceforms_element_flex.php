@@ -14,13 +14,18 @@ class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 	protected $recordData = array();
 
 	/**
+	 * @var t3lib_TCA_DataStructure_FlexFormsResolver
+	 */
+	protected $dataStructureResolver;
+
+	/**
 	 * @var t3lib_TCEforms_FlexForm
 	 */
 	protected $formObject;
 
 	/**
 	 *
-	 * @var t3lib_TCA_DataStructure
+	 * @var t3lib_TCA_FlexFormDataStructure
 	 */
 	protected $dataStructure;
 
@@ -38,12 +43,16 @@ class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 		$this->dataStructureResolver = new t3lib_TCA_DataStructure_FlexFormsResolver();
 		$this->dataStructure = $this->dataStructureResolver->resolveDataStructure($this);
 
+		$elementIdentifierStack = $this->elementIdentifierStack;
+		$elementIdentifierStack[] = 'data';
+
 		$this->formObject = new t3lib_TCEforms_Flexform();
 		$this->formObject->setContainingElement($this)
 		                 ->setDataStructure($this->dataStructure)
 		                 ->setContextObject($this->contextObject)
-		                 ->setLocalizationEnabled(!(boolean)$this->dataStructure->getMetaValue('langDisable'))
-		                 ->setLocalizationMethod((int)$this->dataStructure->getMetaValue('langChildren'))
+		                 ->setLocalizationEnabled($this->dataStructure->isLocalizationEnabled())
+		                 ->setLocalizationMethod($this->dataStructure->getLocalizationMethod())
+		                 ->setElementIdentifierStack($elementIdentifierStack)
 		                 ->init();
 
 		// Code copied from t3lib_TCEforms::getSingleField_typeFlex()
@@ -69,12 +78,11 @@ class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 			//$this->records[] = new t3lib_TCEforms_Record($this->table . ':' . $this->field, array(), array(), $this->dataStructure);
 			$this->formObject->addRecord($emptyRecord);
 		} else {
-			print_r($editData);
-			throw new RuntimeException('Editing existing flex records is not implemented yet.');
+			//$flexRecord = new t3lib_TCEforms_FlexRecord($editData, $this->dataStructure);
+			$this->formObject->addRecord($editData['data']);
+			//throw new RuntimeException('Editing existing flex records is not implemented yet.');
 			// Traverse records and create objects for them
 		}
-
-		print_r($editData);
 	}
 
 	protected function renderField() {

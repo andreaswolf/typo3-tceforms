@@ -9,11 +9,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	protected $container;
 
 	/**
-	 * An alternative label given at the second position of an entry in a type or palette configuration
+	 * The label of this element.
 	 *
 	 * @var string
 	 */
-	protected $alternativeName;
+	protected $label;
 
 	/**
 	 * The TCA config for the field
@@ -215,14 +215,14 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 
 
-	public function __construct($field, $fieldConfig, $alternativeName='', $extra='') {
+	public function __construct($field, $fieldConfig, $label='', $extra='') {
 		global $TYPO3_CONF_VARS;
 
 			// Field config is the same as $PA['fieldConf'] below
 		$this->fieldSetup = $fieldConfig;
 		$this->field = $field;
 		$this->extra = $extra;
-		$this->alternativeName = $alternativeName;
+		$this->label = $label;
 
 		if (count(self::$hookObjects) == 0) {
 				// Prepare user defined objects (if any) for hooks which extend this function:
@@ -256,7 +256,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			// Hook: getSingleField_preProcess
 		foreach (self::$hookObjects['getSingleFields'] as $hookObj)	{
 			if (method_exists($hookObj,'getSingleField_preProcess'))	{
-				$hookObj->getSingleField_preProcess($this->table, $this->field, $this->record, $this->alternativeName, $this->palette, $this->extra, $this->pal, $this);
+				$hookObj->getSingleField_preProcess($this->table, $this->field, $this->record, $this->label, $this->palette, $this->extra, $this->pal, $this);
 			}
 		}
 
@@ -292,7 +292,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 		// TODO check if the label works correctly under all circumstances
 		if (!$this->doNotRender) {
-			$this->label = ($this->alternativeName ? $this->alternativeName : $this->fieldSetup['label']);
+			$this->label = ($this->label ? $this->label : $this->fieldSetup['label']);
 			$this->label = ($this->fieldTSConfig['label'] ? $this->fieldTSConfig['label'] : $this->label);
 			$this->label = ($this->fieldTSConfig['label.'][$GLOBALS['LANG']->lang] ? $this->fieldTSConfig['label.'][$GLOBALS['LANG']->lang] : $this->label);
 			$this->label = $this->sL($this->label);
@@ -566,7 +566,7 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			// Hook: getSingleField_postProcess
 		foreach (self::$hookObjects['getSingleFields'] as $hookObj)	{
 			if (method_exists($hookObj,'getSingleField_postProcess'))	{
-				$hookObj->getSingleField_postProcess($this->table, $this->field, $this->record, $this->alternativeName, $this->palette, $this->extra, $this->pal, $this);
+				$hookObj->getSingleField_postProcess($this->table, $this->field, $this->record, $this->label, $this->palette, $this->extra, $this->pal, $this);
 			}
 		}
 

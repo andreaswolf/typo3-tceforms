@@ -1,7 +1,11 @@
 
 <f:section name="default">
 	<tr class="class-main2" ###BGCOLOR_HEAD######CLASSATTR_2###>
-		<td class="formField-header"><span style="color:###FONTCOLOR_HEAD###;"###CLASSATTR_4###><b><f:escape value="{element.label}" type="none"/></b></span><img name="req_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-TCEforms-reqImg" alt="" /><img name="cm_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-TCEforms-contentchangedImg" alt="" /></td>
+		<td class="formField-header">
+			<span style="color:###FONTCOLOR_HEAD###;"###CLASSATTR_4###><b><f:escape value="{element.label}" type="none"/></b></span>
+			<img name="req_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-TCEforms-reqImg" alt="" />
+			<img name="cm_{record.table}_{record.uid}_{element.fieldname}" src="clear.gif" class="t3-TCEforms-contentchangedImg" alt="" />
+		</td>
 	</tr>
 	<tr class="class-main1" ###BGCOLOR######CLASSATTR_1###>
 		<td class="formField-field"><f:escape value="{element.contents}" type="none"/>
@@ -31,7 +35,7 @@
 
 <f:section name="palette">
 	<tr class="class-main2">
-		<td class="palette-header"><strong>{element.label}</strong></td>
+		<td class="palette-header"><strong><f:escape value="{element.label}" type="none"/></strong></td>
 	</tr>
 	<tr class="class-main1">
 		<td>

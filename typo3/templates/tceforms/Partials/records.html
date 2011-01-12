@@ -1,0 +1,36 @@
+{namespace tceforms=t3lib_TCEforms_ViewHelpers}
+
+<f:section name="singlerecord">
+	<script type="text/javascript">
+	/*<![CDATA[*/
+			Ext.onReady(function(){
+	/*]]>*/
+				TYPO3.TCEFORMS.registerRecord('{record.table}', '{record.uid}', '{record.shortSheetIdentifier}');
+	/*<![CDATA[*/
+			});
+	/*]]>*/
+	</script>
+	<div id="record-{record.shortSheetIdentifier}">
+		<f:for each="{record.sheets}" as="sheet" iteration="iteration">
+			<div class="c-tablayer x-hide-display typo3-dyntabmenu-divs" style="border-top:none;" id="{record.shortSheetIdentifier}-{iteration.index}-DIV" title="{sheet.header}">
+				<table class="wrapperTable typo3-TCEforms" border="0" cellspacing="0" cellpadding="0" width="100%">
+					<f:for each="{sheet.elements}" as="element">
+						<tceforms:element element="{element}" record="{record}" />
+					</f:for>
+				</table>
+			</div>
+		</f:for>
+	</div>
+</f:section>
+
+<f:section name="records">
+	<f:for each="{records}" as="record">
+		<f:render section="singlerecord" arguments="{record: record}"/>
+		<div class="typo3-TCEforms-recHeaderRow">
+			<f:escape value="{record.icon}" type="none"/> <span class="typo3-TCEforms-recHeader"></span>
+			<f:if condition="{record.new}"><f:then>NEW</f:then>
+				<f:else>[{record.uid}]</f:else>
+			</f:if>
+		</div>
+	</f:for>
+</f:section>
