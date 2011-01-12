@@ -73,7 +73,7 @@ class t3lib_TCA_DisplayConfiguration {
 		$obj = t3lib_div::makeInstance('t3lib_TCA_DisplayConfiguration', $dataStructure);
 		$obj->typeConfiguration = $typeConfiguration;
 		$obj->excludeFieldList = $excludeFieldList;
-		if (isset($fieldList)) {
+		if (count($fieldList) > 0) {
 			$currentSheet = $obj->createSheetObject('');
 			foreach ($fieldList as $field) {
 				if ($dataStructure->hasField($field)) {
