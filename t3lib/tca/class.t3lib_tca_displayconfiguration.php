@@ -40,6 +40,13 @@ class t3lib_TCA_DisplayConfiguration {
 	 */
 	protected $excludeFieldList;
 
+	/**
+	 * The list of fields this display configuration contains
+	 *
+	 * @var array
+	 */
+	protected $fieldList;
+
 
 	/**
 	 * constructor, should not be used publicly, although has to be public due to
@@ -58,14 +65,27 @@ class t3lib_TCA_DisplayConfiguration {
 	/**
 	 * Factory method to create a new display configuration
 	 * based on the data structure and a single entry of the typeConfiguration
+	 *
+	 * @param array $fieldList The list of fields to display
 	 */
-	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, t3lib_TCA_DataStructure_Type $typeConfiguration, array $addFieldList, array $excludeFieldList) {
+	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, t3lib_TCA_DataStructure_Type $typeConfiguration, array $addFieldList, array $excludeFieldList, array $fieldList = NULL) {
 		/** @var $obj t3lib_TCA_DisplayConfiguration */
 		$obj = t3lib_div::makeInstance('t3lib_TCA_DisplayConfiguration', $dataStructure);
 		$obj->typeConfiguration = $typeConfiguration;
 		$obj->excludeFieldList = $excludeFieldList;
-		$obj->resolveConfiguration($typeConfiguration);
-		$obj->addElements($addFieldList);
+		if (isset($fieldList)) {
+			$currentSheet = $obj->createSheetObject('');
+			foreach ($fieldList as $field) {
+				if ($dataStructure->hasField($field)) {
+					$elementObject = $dataStructure->getFieldObject($field);
+					$currentSheet->addElement($elementObject);
+					$obj->fieldList[] = $elementObject;
+				}
+		    }
+		} else {
+			$obj->resolveConfiguration();
+			$obj->addElements($addFieldList);
+		}
 
 		return $obj;
 	}
@@ -82,7 +102,7 @@ class t3lib_TCA_DisplayConfiguration {
 		return $obj;
 	}
 
-	protected function resolveConfiguration($configuration) {
+	protected function resolveConfiguration() {
 		// TODO store styling information from the showitem subarray
 		$fields = $this->typeConfiguration->getShowitemString();
 

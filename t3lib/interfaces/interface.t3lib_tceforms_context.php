@@ -28,6 +28,23 @@ interface t3lib_TCEforms_Context {
 	 */
 	public function isFieldHidden($table, $fieldName);
 
+	/**
+	 * Limits the display of records in this form to a list of fields.
+	 *
+	 * @param array $fieldList The list of fields to display. Either a comma separated list or an array of comma separated lists (for multiple tables)
+	 * @return void
+	 */
+	public function setFieldList($fieldList);
+
+	/**
+	 * Returns a list of fields to display for a record
+	 *
+	 * @return array
+	 *
+	 * @TODO Check if we should use the table as a parameter here
+	 */
+	public function getFieldList();
+
 	//public function registerRequiredField(t3lib_TCEforms_Element_Abstract $fields);
 
 	/**

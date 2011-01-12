@@ -615,10 +615,34 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		return $this->palettesCollapsed;
 	}
 
+	/**
+	 * Limits the display of records in this form to a list of fields.
+	 *
+	 * @param array $fieldList The list of fields to display. Either a comma separated list or an array of comma separated lists (for multiple tables)
+	 * @return void
+	 */
 	public function setFieldList($fieldList) {
-		$this->fieldList = array_unique(t3lib_div::trimExplode(',', $fieldList, 1));
+		if (is_array($fieldList)) {
+			$this->fieldList = array();
+			foreach ($fieldList as $table => $fields) {
+				$this->fieldList[$table] = array_unique(t3lib_div::trimExplode(',', $fields, 1));
+			}
+		} else {
+			$this->fieldList = array_unique(t3lib_div::trimExplode(',', $fieldList, 1));
+		}
 
 		return $this;
+	}
+
+	/**
+	 * Returns a list of fields to display for a record
+	 *
+	 * @return array
+	 *
+	 * @TODO Check if we should use the table as a parameter here
+	 */
+	public function getFieldList() {
+		return $this->fieldList;
 	}
 
 	public function addHtmlForHiddenField($elementName, $code) {

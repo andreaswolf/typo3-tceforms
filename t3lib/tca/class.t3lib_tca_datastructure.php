@@ -85,7 +85,7 @@ class t3lib_TCA_DataStructure {
 		$this->definedTypeValues = array_keys($this->rawTypes);
 	}
 
-	public function getDisplayConfigurationForRecord(t3lib_TCEforms_Record $record) {
+	public function getDisplayConfigurationForRecord(t3lib_TCEforms_Record $record, array $fieldList = NULL) {
 		// TODO: check if record has a field list (hasFieldList()/getFieldList()) - if yes, create a display
 		// config for this
 		$fieldAddList = array();
@@ -102,7 +102,7 @@ class t3lib_TCA_DataStructure {
 			$typeValue = $this->getDefaultTypeForRecord($record);
 		}
 
-		/* @var $typeConfiguration t3lib_TCA_DataStructure_Type */
+		/** @var $typeConfiguration t3lib_TCA_DataStructure_Type */
 		$typeConfiguration = $this->getTypeConfiguration($typeValue);
 
 		if ($typeConfiguration->hasSubtypeValueField()) {
@@ -113,7 +113,7 @@ class t3lib_TCA_DataStructure {
 			$bitmaskValue = $record->getValue($typeConfiguration->bitmaskValueField());
 		}
 
-		$displayConfigurationHash = md5($typeValue . ';' . $subtypeValue . ';' . $bitmaskValue);
+		$displayConfigurationHash = md5($typeValue . ';' . $subtypeValue . ';' . $bitmaskValue . ';' . implode(',', (array)$fieldList));
 		if (array_key_exists($displayConfigurationHash, $this->displayConfigurations)) {
 			return $this->displayConfigurations[$displayConfigurationHash];
 		}
@@ -129,7 +129,7 @@ class t3lib_TCA_DataStructure {
 
 		$fieldExcludeList = array_merge($subtypeExcludeList, $bitmaskExcludeList);
 
-		$displayConfiguration = t3lib_TCA_DisplayConfiguration::createFromConfiguration($this, $typeConfiguration, $fieldAddList, $fieldExcludeList);
+		$displayConfiguration = t3lib_TCA_DisplayConfiguration::createFromConfiguration($this, $typeConfiguration, $fieldAddList, $fieldExcludeList, $fieldList);
 
 		$this->displayConfigurations[$displayConfigurationHash] = $displayConfiguration;
 		//print_r($displayConfiguration);

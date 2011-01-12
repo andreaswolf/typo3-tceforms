@@ -61,7 +61,13 @@ class t3lib_TCEforms_FormBuilder {
 		$this->recordObject = $recordObject;
 		$this->contextObject = $recordObject->getContextObject();
 		$this->dataStructure = $recordObject->getDataStructure();
-		$this->displayConfiguration = $this->dataStructure->getDisplayConfigurationForRecord($this->recordObject);
+
+		$fieldList = $this->contextObject->getFieldList();
+		if (isset($fieldList[$this->recordObject->getTable()])) {
+			$fieldList = $fieldList[$this->recordObject->getTable()];
+		}
+
+		$this->displayConfiguration = $this->dataStructure->getDisplayConfigurationForRecord($this->recordObject, $fieldList);
 		$this->elementIdentifierStack = $this->recordObject->getElementIdentifierStack();
 	}
 
