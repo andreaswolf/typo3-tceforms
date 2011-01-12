@@ -440,3 +440,10 @@ TCEforms Sections
 	background-repeat:no-repeat;
 	padding:1px 1px 1px 24px;
 }
+
+/* - - - - - - - - - - - - - - - - - - - - -
+ * TCEforms Additions for 4.6
+- - - - - - - - - - - - - - - - - - - - - */
+.t3-tceforms-field-error {
+	border: 1px solid #c00000;
+}

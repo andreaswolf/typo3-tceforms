@@ -2,7 +2,21 @@
 
 
 class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
+
+	/** the entry for <input type="..." /> */
+	protected $inputType = 'text';
+
+	/** @var array an associative array of additional attributes for the HTML input field  */
+	protected $additionalAttributes = array();
+
+	/**
+	 * renders the input field, depending on the configuration
+	 * @return string
+	 */
 	protected function renderField() {
+		// this will be returned
+		$item = '';
+
 		$config = $this->fieldSetup['config'];
 
 		$specConf = $this->getSpecConfFromString($this->extra, $this->fieldSetup['defaultExtras']);
@@ -11,13 +25,18 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 		$classAndStyleAttributes = $this->formWidthAsArray($size);
 
 		$fieldAppendix = '';
-		$cssClasses    = array($classAndStyleAttributes['class']);
+		$cssClasses    = array($classAndStyleAttributes['class'], 'tceforms-textfield');
 		$cssStyle      = $classAndStyleAttributes['style'];
+
+		$this->additionalAttributes['style'] = $cssStyle;
+		$this->additionalAttributes['maxlength'] = ($config['max'] ? $config['max'] : 256);
+
 
 	        // css class and id will show the kind of field
 		if (in_array('date', $evalList)) {
+			$this->inputType = 'date';
 			$inputId = uniqid('tceforms-datefield-');
-			$cssClasses[] = 'tceforms-textfield tceforms-datefield';
+			$cssClasses[] = 'tceforms-datefield';
 			$fieldAppendix = t3lib_iconWorks::getSpriteIcon(
 				'actions-edit-pick-date',
 				array(
@@ -25,10 +44,13 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 					'id' => 'picker-' . $inputId
 				)
 			);
+			$this->treatZeroAsNull();
+			unset($this->additionalAttributes['maxlength']);
 
 		} elseif (in_array('datetime', $evalList)) {
+			$this->inputType = 'datetime';
 			$inputId = uniqid('tceforms-datetimefield-');
-			$cssClasses[] = 'tceforms-textfield tceforms-datetimefield';
+			$cssClasses[] = 'tceforms-datetimefield';
 			$fieldAppendix = t3lib_iconWorks::getSpriteIcon(
 				'actions-edit-pick-date',
 				array(
@@ -36,33 +58,74 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 					'id' => 'picker-' . $inputId
 				)
 			);
+			$this->treatZeroAsNull();
+			unset($this->additionalAttributes['maxlength']);
 
 		} elseif (in_array('timesec', $evalList)) {
+			$this->inputType = 'time';
 			$inputId = uniqid('tceforms-timesecfield-');
-			$cssClasses[] = 'tceforms-textfield tceforms-timesecfield';
+			$cssClasses[] = 'tceforms-timesecfield';
+			$this->treatZeroAsNull();
+			unset($this->additionalAttributes['maxlength']);
+
 		} elseif (in_array('year', $evalList)) {
+				// TODO: use the input type "date" with a custom format
 			$inputId = uniqid('tceforms-yearfield-');
-			$cssClasses[] = 'tceforms-textfield tceforms-yearfield';
+			$cssClasses[] = 'tceforms-yearfield';
+			$this->treatZeroAsNull();
+			unset($this->additionalAttributes['maxlength']);
+
 		} elseif (in_array('time', $evalList)) {
+			// TODO: only show the time without the seconds
+			$this->inputType = 'time';
 			$inputId = uniqid('tceforms-timefield-');
-			$cssClasses[] = 'tceforms-textfield tceforms-timefield';
+			$cssClasses[] = 'tceforms-timefield';
+			$this->treatZeroAsNull();
+			unset($this->additionalAttributes['maxlength']);
+
 		} elseif (in_array('int', $evalList)) {
+			$this->inputType = 'number';
 			$inputId = uniqid('tceforms-intfield-');
-			$cssClasses[] = 'tceforms-textfield tceforms-intfield';
+			$cssClasses[] = 'tceforms-intfield';
+
 		} elseif (in_array('double2', $evalList)) {
 			$inputId = uniqid('tceforms-double2field-');
-			$cssClasses[] = 'tceforms-textfield tceforms-double2field';
+			$cssClasses[] = 'tceforms-double2field';
+
+		} elseif (in_array('email', $evalList)) {
+			$this->inputType = 'email';
+			$inputId = uniqid('tceforms-emailfield-');
+			$cssClasses[] = 'tceforms-emailfield';
+
 		} else {
 			$inputId = uniqid('tceforms-textfield-');
 			$cssClasses[] = 'tceforms-textfield';
 		}
+
 		if (isset($config['wizards']['link'])) {
+			$this->inputType = 'url';
 			$inputId = uniqid('tceforms-linkfield-');
-			$cssClasses[] = 'tceforms-textfield tceforms-linkfield';
+			$cssClasses[] = 'tceforms-linkfield';
+
 		} elseif (isset($config['wizards']['color'])) {
+			$this->inputType = 'color';
 			$inputId = uniqid('tceforms-colorfield-');
-			$cssClasses[] = 'tceforms-textfield tceforms-colorfield';
+			$cssClasses[] = 'tceforms-colorfield';
 		}
+
+
+		if (is_array($config['range'])) {
+			if (isset($config['range']['lower'])) {
+				$this->additionalAttributes['min'] = $config['range']['lower'];
+				if (isset($config['range']['step'])) {
+					$this->additionalAttributes['step'] = $config['range']['step'];
+				}
+			}
+			if (isset($config['range']['upper'])) {
+				$this->additionalAttributes['max'] = $config['range']['upper'];
+			}
+		}
+
 
 		if($this->contextObject->isReadOnly() || $config['readOnly'])  {
 			$itemFormElValue = $this->itemFormElValue;
@@ -84,14 +147,16 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 		foreach ($evalList as $func) {
 			switch ($func) {
 				case 'required':
-					//$this->container->registerRequiredProperty('field', $this->table.'_'.$this->record['uid'].'_'.$this->field, $this->itemFormElName);
-					$this->contextObject->registerRequiredField($this->table.'_'.$this->record['uid'].'_'.$this->field, $this->formFieldName);
+						// TODO: do this differently, via "$this->isRequired()"
+					$this->additionalAttributes['required'] = 'required';
 						// Mark this field for date/time disposal:
-					if (array_intersect($evalList, array('date', 'datetime', 'time'))) {
+						// TODO: add this as an attribute
+/*					if (array_intersect($evalList, array('date', 'datetime', 'time'))) {
 						 $this->TCEformsObject->requiredAdditional[$this->formFieldName]['isPositiveNumber'] = true;
-					}
+					}*/
 					break;
 				default:
+					// TODO: not checked yet if this would work
 					if (substr($func, 0, 3) == 'tx_')	{
 						// Pair hook to the one in t3lib_TCEmain::checkValue_input_Eval()
 						$evalObj = t3lib_div::getUserObj($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tce']['formevals'][$func].':&'.$func);
@@ -105,6 +170,7 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 					break;
 			}
 		}
+
 
 		$this->paramsList = "'" . $this->formFieldName . "','" . implode(',', $evalList) . "','" . trim($config['is_in']) . "',".(isset($config['checkbox']) ? 1 : 0) . ",'" . $config['checkbox'] . "'";
 		if (!empty($config['checkbox'])) {
@@ -126,17 +192,18 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 		}
 
 		$fieldChangeFunc = array_merge(array('typo3form.fieldGet'=>'typo3form.fieldGet('.$this->paramsList.');'), $this->fieldChangeFunc);
-		$mLgd = ($config['max'] ? $config['max'] : 256);
-		$iOnChange = implode('', $fieldChangeFunc);
+
+			// compile the additional HTML attributes for the input field that is visible
+		$this->additionalAttributes['class'] = implode(' ', $cssClasses);
+		$this->additionalAttributes['onchange'] = htmlspecialchars(implode('', $fieldChangeFunc));
+		$additionalAttributes = t3lib_div::implodeAttributes($this->additionalAttributes);
 
 			// This is the EDITABLE form field.
-		$item.='<input type="text" id="' . $inputId . '" class="' . implode(' ', $cssClasses) . '" name="' . $this->formFieldName . '_hr" value="" style="' . $cssStyle . '" maxlength="' . $mLgd . '" onchange="' . htmlspecialchars($iOnChange) . '"' . $this->onFocus . ' />';
+		$item .= '<input type="' . $this->inputType . '" id="' . $inputId . '" name="' . $this->formFieldName . '_hr" value="' . htmlspecialchars($this->itemFormElValue) . '" ' . $additionalAttributes . $this->onFocus . ' />';
 			// This is the ACTUAL form field - values from the EDITABLE field must be transferred to
 			// this field which is the one that is written to the database.
-		$item.='<input type="hidden" name="'.$this->formFieldName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
+		$item .= '<input type="hidden" name="'.$this->formFieldName.'" value="'.htmlspecialchars($this->itemFormElValue).'" />';
 		$item .= $fieldAppendix;
-
-		$this->contextObject->addToEvaluationJS('typo3form.fieldSet('.$this->paramsList.');');
 
 			// going through all custom evaluations configured for this field
 		foreach ($evalList as $evalData) {
@@ -155,6 +222,15 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 
 			// Wrap a wizard around the item?
 		return $this->renderWizards(array($item,$altItem),$config['wizards'],$this->formFieldName.'_hr',$specConf);
+	}
+
+	/**
+	 * separate helper function to check if it's allowed to have "0" as value (not usable for date or timefields
+	 */
+	protected function treatZeroAsNull() {
+		if (is_numeric($this->itemFormElValue) && $this->itemFormElValue == 0) {
+			$this->itemFormElValue = '';
+		}
 	}
 }
 

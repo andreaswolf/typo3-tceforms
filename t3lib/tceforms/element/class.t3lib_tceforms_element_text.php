@@ -89,7 +89,7 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 					$wrap = ($config['wrap'] ? $config['wrap'] : 'virtual');
 				}
 
-				$classes = array();
+				$classes = array('tceforms-textarea');
 				if ($specConf['fixed-font']) {
 					$classes[] = 'fixed-font';
 				}
@@ -97,27 +97,16 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 					$classes[] = 'enable-tab';
 				}
 
-				$formWidthText = $this->formWidthText($cols,$wrap);
+				$this->additionalAttributes = $this->formWidthAsArray($cols, TRUE);
 
-					// Extract class attributes from $formWidthText (otherwise it would be added twice to the output)
-				$res = array();
-				if (preg_match('/ class="(.+?)"/', $formWidthText, $res)) {
-					$formWidthText = str_replace(' class="'.$res[1].'"', '', $formWidthText);
-					$classes = array_merge($classes, explode(' ', $res[1]));
+				if ($this->isRequired()) {
+					$this->additionalAttributes['required'] = 'required';
 				}
-
-				if (count($classes)) {
-					$class = ' class="tceforms-textarea '.implode(' ',$classes).'"';
-				} else {
-					$class='tceforms-textarea';
-				}
+				$this->additionalAttributes['class'] = array_merge(array($this->additionalAttributes['class']), $classes);
 
 				$evalList = t3lib_div::trimExplode(',',$config['eval'],1);
 				foreach ($evalList as $func) {
 					switch ($func) {
-						case 'required':
-							$this->contextObject->registerRequiredField($this->table.'_'.$this->record['uid'].'_'.$this->field, $this->formFieldName);
-							break;
 						default:
 							if (substr($func, 0, 3) == 'tx_')	{
 								// Pair hook to the one in t3lib_TCEmain::checkValue_input_Eval() and t3lib_TCEmain::checkValue_text_Eval()
@@ -133,9 +122,13 @@ class t3lib_TCEforms_Element_Text extends t3lib_TCEforms_Element_Abstract {
 					}
 				}
 
-				$iOnChange = implode('', $this->fieldChangeFunc);
+				$this->additionalAttributes['rows'] = $rows;
+				$this->additionalAttributes['wrap'] = $wrap;
+				$this->additionalAttributes['onchange'] = htmlspecialchars(implode('', $this->fieldChangeFunc));
+				$additionalAttributes = t3lib_div::implodeAttributes($this->additionalAttributes);
+
 				$item.= '
-					<textarea id="' . uniqid('tceforms-textarea-') . '" name="' . $this->formFieldName . '"' . $formWidthText.$class.' rows="'.$rows.'" wrap="'.$wrap.'" onchange="'.htmlspecialchars($iOnChange).'"'.$this->PA['onFocus'].'>'.
+					<textarea id="' . uniqid('tceforms-textarea-') . '" name="' . $this->formFieldName . '" ' . $additionalAttributes . $this->PA['onFocus'].'>'.
 					t3lib_div::formatForTextarea($this->itemFormElValue).
 					'</textarea>';
 				$item = $this->renderWizards(array($item, $altItem), $config['wizards'], $this->formFieldName, $specConf, $RTEwouldHaveBeenLoaded);
