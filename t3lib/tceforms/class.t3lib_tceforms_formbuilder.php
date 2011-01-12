@@ -196,7 +196,9 @@ class t3lib_TCEforms_FormBuilder {
 
 	protected function extendIdentifierStackForField(t3lib_TCEforms_Element $field) {
 		$stack = $this->elementIdentifierStack;
-		$stack[] = $field->getFieldname();
+		$lastEntry = array_pop($stack);
+		$lastEntry[] = $field->getFieldname();
+		$stack[] = $lastEntry;
 		return $stack;
 	}
 
