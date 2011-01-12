@@ -29,14 +29,23 @@ Ext.ns('TYPO3');
 
 	// class to manipulate TCEFORMS
 TYPO3.TCEFORMS = {
-	records: [],
+	contextId: 't3-tceforms-context',
+
+	records: {},
 
 	init: function() {
 		Ext.QuickTips.init();
 
 		this.convertDateFieldsToDatePicker();
 		this.convertTextareasResizable();
-		this.initRecords();
+
+		Ext.get(this.contextId).on('submit', function(evt) {
+			var isValidForm = this.Validation.isValidForm();
+			if (!isValidForm) {
+				evt.stopEvent();
+			}
+			// old school: return TBE_EDITOR.checkSubmit(1);
+		}, this);
 	},
 
 	convertDateFieldsToDatePicker: function() {
@@ -104,11 +113,11 @@ TYPO3.TCEFORMS = {
 	},
 
 	registerRecord: function(table, uid, sheetIdentifier) {
-		this.records.push({
+		this.records[sheetIdentifier] = {
 			'table': table,
 			'uid': uid,
 			'sheetIdentifier': sheetIdentifier
-		});
+		};
 	},
 
 	createTabMenu: function(identifier) {
@@ -129,11 +138,163 @@ TYPO3.TCEFORMS = {
 		});
 	},
 
+
 	initRecords: function() {
-		this.records.each(function(recordInfo) {
-			var tabMenu = TYPO3.TCEFORMS.createTabMenu(recordInfo.sheetIdentifier);
-		});
+		Ext.iterate(this.records, function(recordIdentifier, recordInfo) {
+			this.records[recordIdentifier].tabMenu = this.createTabMenu(recordIdentifier);
+		}, this);
+	},
+
+	findRecordInfoFromElement: function(element) {
+		var parentElement = Ext.get(element).parent('.x-tab-panel');
+		if (parentElement) {
+			return this.records[parentElement.id.substr(7)];
+		} else {
+			return false;
+		}
 	}
 	
 }
+
+
 Ext.onReady(TYPO3.TCEFORMS.init, TYPO3.TCEFORMS);
+
+
+/** our validation manager and registration handler **/
+TYPO3.TCEFORMS.Validation = {
+	errorMarkup: '<span class="t3-icon t3-icon-actions t3-icon-dialog-warning"></span>',
+	errorClass: 't3-tceforms-field-error',
+	init: function() {
+		Ext.iterate(this.Validators, function(validatorName, validatorObject) {
+			validatorObject.init();
+		});
+	},
+
+		/** should be triggered on trying to submit the form **/
+	isValidForm: function() {
+		var isValidForm = true;
+		Ext.iterate(this.Validators, function(validatorName, validatorObject) {
+			if (Ext.type(validatorObject.validateOnFormSubmission)) {
+				if (validatorObject.validateOnFormSubmission() == false) {
+					isValidForm = false;
+				}
+			}
+		});
+		return isValidForm;
+	}
+
+};
+
+TYPO3.TCEFORMS.Validation.Validators = {};
+
+
+/** default implementation of a validator **/
+TYPO3.TCEFORMS.Validation.Validators.Required = {
+	elementSelector: 'input[required=required]',
+	elements: [],
+
+	init: function() {
+		// register all required fields
+		this.elements = Ext.query(this.elementSelector);
+		Ext.each(this.elements, function(element) {
+			var fn = function(evt, element) {
+				this.validate(Ext.get(element));
+			};
+			Ext.get(element).on('blur', fn, this).on('keyup', fn, this);
+		}, this);
+
+	},
+
+	/**
+	 * @access public	part of the public API that does the magic when submitting the form
+	 * @return if this returns false, the form will not get submitted
+	 */
+	// loop through each field and see if it is valid
+	// if it's validate
+	validateOnFormSubmission: function() {
+		isValid = true;
+		Ext.each(this.elements, function(element) {
+			if (!this.validate(Ext.get(element))) {
+				isValid = false;
+			}
+		}, this);
+		return isValid;
+	},
+
+	/**
+	 * validate function to validate a single element
+	 * this method also takes the necessary actions on what to do
+	 * @param element
+	 * @api
+	 */
+	validate: function(element) {
+		if (this.isValid(element)) {
+			this.markAsValid(element);
+			return true;
+		} else {
+			this.markAsInvalid(element);
+			return false;
+		}
+	},
+
+		// implementation to see if the required field is not empty
+	/**
+	 * validate function to validate a single element
+	 * only lets you know if an element is valid or not
+	 * @visible private
+	 * @param element
+	 */
+	isValid: function(element) {
+		if (element.getValue().length == 0) {
+			return false;
+		} else {
+			return true;
+		}
+	},
+
+
+		// various helper functions
+	markAsInvalid: function(element) {
+		element.addClass(TYPO3.TCEFORMS.Validation.errorClass);
+		this.markContainerAsInvalid(element);
+		return element;
+	},
+
+	markAsValid: function(element) {
+		element.removeClass(TYPO3.TCEFORMS.Validation.errorClass);
+		this.markContainerAsValid(element);
+		return element;
+	},
+
+	findParentContainerPosition: function(container) {
+		var containerPosition = 0;
+		while (container = container.prev()) containerPosition++;
+		return containerPosition;
+	},
+
+	markContainerAsValid: function(element) {
+		// find parent tab for that element
+		var recordInfo = TYPO3.TCEFORMS.findRecordInfoFromElement(element);
+		var containerRecord = element.parent('.x-panel');
+		var containerPosition = this.findParentContainerPosition(containerRecord);
+		var tab = recordInfo.tabMenu.getTabEl(containerPosition);
+		var tabtext = Ext.get(tab).child('.x-tab-strip-text');
+		if (tabtext.child('.t3-icon')) {
+			tabtext.last().remove();
+		}
+	},
+
+	markContainerAsInvalid: function(element) {
+		// find parent tab for that element
+		var recordInfo = TYPO3.TCEFORMS.findRecordInfoFromElement(element);
+		var containerRecord = element.parent('.x-panel');
+		var containerPosition = this.findParentContainerPosition(containerRecord);
+		var tab = recordInfo.tabMenu.getTabEl(containerPosition);
+		var tabtext = Ext.get(tab).child('.x-tab-strip-text');
+		if (!tabtext.child('.t3-icon')) {
+			tabtext.createChild(TYPO3.TCEFORMS.Validation.errorMarkup);
+		}
+	}
+}
+
+Ext.onReady(TYPO3.TCEFORMS.Validation.init, TYPO3.TCEFORMS.Validation);

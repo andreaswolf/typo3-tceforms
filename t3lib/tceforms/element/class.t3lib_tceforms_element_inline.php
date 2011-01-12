@@ -4,7 +4,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 	/**
 	 * The IRRE form object
 	 *
-	 * @var t3lib_TCEforms_IRREForm
+	 * @var t3lib_TCEforms_IrreForm
 	 */
 	protected $formObject;
 
@@ -19,7 +19,7 @@ class t3lib_TCEforms_Element_Inline extends t3lib_TCEforms_Element_Abstract {
 
 		$this->initHookObjects();
 
-		$this->formObject = new t3lib_TCEforms_IRREForm();
+		$this->formObject = t3lib_div::makeInstance('t3lib_TCEforms_IrreForm');
 	}
 
 	public function init() {

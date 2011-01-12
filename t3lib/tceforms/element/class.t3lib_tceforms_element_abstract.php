@@ -212,6 +212,13 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	protected $formFieldId;
 
+	/**
+	 * Additional attributes for the HTML element
+	 *
+	 * @var array
+	 */
+	protected $additionalAttributes = array();
+
 
 
 
@@ -422,6 +429,15 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	 */
 	protected function isReadOnly() {
 		return ($this->contextObject->isReadOnly() || $this->fieldSetup['config']['readOnly']);
+	}
+
+	/**
+	 * Returns TRUE if this field is required, means: it must not be empty.
+	 *
+	 * @return boolean
+	 */
+	protected function isRequired() {
+		return t3lib_div::inList('required', $this->fieldSetup['config']['eval']);
 	}
 
 	/**
@@ -1845,16 +1861,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 		$widthAndStyleAttributes = '';
 		$fieldWidthAndStyle = $this->formWidthAsArray($size, $textarea);
 
-		if (!$GLOBALS['CLIENT']['FORMSTYLE']) {
-				// If not setting the width by style-attribute
-			$widthAndStyleAttributes = ' ' . $fieldWidthAndStyle['width'];
-		} else {
-				// Setting width by style-attribute. 'cols' MUST be avoided with NN6+
-			$widthAndStyleAttributes = ' style="' . htmlspecialchars($fieldWidthAndStyle['style']) . '"';
+			// Setting width by style-attribute. 'cols' MUST be avoided with NN6+
+		$widthAndStyleAttributes = ' style="' . htmlspecialchars($fieldWidthAndStyle['style']) . '"';
 
-			if ($fieldWidthAndStyle['class']) {
-				$widthAndStyleAttributes .= ' class="' . htmlspecialchars($fieldWidthAndStyle['class']) . '"';
-			}
+		if ($fieldWidthAndStyle['class']) {
+			$widthAndStyleAttributes .= ' class="' . htmlspecialchars($fieldWidthAndStyle['class']) . '"';
 		}
 
 		return $widthAndStyleAttributes;
@@ -1874,39 +1885,16 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 			$size = round($size * $this->form_largeComp);
 		}
 
-		$widthAttribute = $textarea ? 'cols' : 'size';
-		if (!$GLOBALS['CLIENT']['FORMSTYLE']) {
-				// If not setting the width by style-attribute
-			$fieldWidthAndStyle['width'] = $widthAttribute . '="' . $size . '"';
-		} else {
-				// Setting width by style-attribute. 'cols' MUST be avoided with NN6+
-			$widthInPixels = ceil($size * $this->form_rowsToStylewidth);
-			$fieldWidthAndStyle['style'] = 'width: ' . $widthInPixels . 'px; '
-				. $this->defStyle
-				. $this->formElStyle($textarea ? 'text' : 'input');
+			// Setting width by style-attribute
+		$widthInPixels = ceil($size * $this->form_rowsToStylewidth);
+		$fieldWidthAndStyle['style'] = 'width: ' . $widthInPixels . 'px; '
+			. $this->defStyle
+			. $this->formElStyle($textarea ? 'text' : 'input');
 
-			$fieldWidthAndStyle['class'] = $this->formElClass($textarea ? 'text' : 'input');
-		}
+		$fieldWidthAndStyle['class'] = $this->formElClass($textarea ? 'text' : 'input');
 
 		return $fieldWidthAndStyle;
     }
-
-	/**
-	 * Returns parameters to set width for a textarea field
-	 *
-	 * @param	integer		The abstract width (1-48)
-	 * @param	string		Empty or "off" (text wrapping in the field or not)
-	 * @return	string		The "cols" attribute string (or style from formWidth())
-	 * @see formWidth()
-	 */
-	function formWidthText($size=48, $wrap='') {
-		$wTags = $this->formWidth($size, 1);
-			// Netscape 6+ seems to have this ODD problem where there WILL ALWAYS be wrapping with the cols-attribute set and NEVER without the col-attribute...
-		if (strtolower(trim($wrap)) != 'off' && $GLOBALS['CLIENT']['BROWSER'] == 'net' && $GLOBALS['CLIENT']['VERSION'] >= 5) {
-			$wTags .= ' cols="' . $size . '"';
-		}
-		return $wTags;
-	}
 
 	/**
 	 * Wrapping labels

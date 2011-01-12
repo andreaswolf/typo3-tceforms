@@ -491,7 +491,6 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 
 			// Regular direct output:
 		if (!$update) {
-			$spacer . implode($spacer, $jsFile);
 			$out  = $spacer . implode($spacer, $javaScriptFiles) . t3lib_div::wrapJS($out);
 		}
 
