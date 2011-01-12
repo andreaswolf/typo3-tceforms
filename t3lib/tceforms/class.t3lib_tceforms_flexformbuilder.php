@@ -37,4 +37,8 @@ class t3lib_TCEforms_FlexFormBuilder extends t3lib_TCEforms_FormBuilder {
 		}
 		return $stack;
 	}
+
+	protected function setFieldValue(t3lib_TCEforms_Element_Abstract $elementObject) {
+		$elementObject->setValue($this->recordObject->getValue($this->currentSheetObject->getName() . '.' . $elementObject->getFieldname()));
+	}
 }

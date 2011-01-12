@@ -99,11 +99,12 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 			}
 
 			if ($this->localizationMethod == 0) {
-				foreach ($recordData as $sheet) {
+				foreach ($recordData as $sheetName => $sheet) {
 					foreach ($sheet as $lang => $fields) {
-						$lang = substr($lang, 1);
-						foreach ($fields as $fieldName => $fieldValue) {
-							$languageRecords[$lang][$fieldName] = $fieldValue['vDEF'];
+						$languageRecords[$sheetName] = array();
+						$lang = substr($lang, 1); // lDEF
+						foreach ($fields as $fieldName => $fieldValueArray) {
+							$languageRecords[$lang][$sheetName][$fieldName] = $fieldValueArray['vDEF'];
 						}
 					}
 				}
@@ -117,7 +118,14 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 				$this->insertRecordObject($recordObject);
 			}
 		} else {
-			$recordObject = new t3lib_TCEforms_FlexRecord($recordData, $this->dataStructure);
+			$extractedData = array();
+			foreach ($recordData as $sheetName => $sheet) {
+				$extractedData[$sheetName] = array();
+				foreach ($sheet['lDEF'] as $fieldName => $fieldValueArray) {
+					$extractedData[$sheetName][$fieldName] = $fieldValueArray['vDEF'];
+				}
+			}
+			$recordObject = new t3lib_TCEforms_FlexRecord($extractedData, $this->dataStructure);
 
 			$this->insertRecordObject($recordObject);
 		}

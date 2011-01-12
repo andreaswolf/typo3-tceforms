@@ -183,6 +183,8 @@ class t3lib_TCEforms_FormBuilder {
 		              ->setElementIdentifierStack($this->extendIdentifierStackForField($elementObject))
 		              ->injectFormBuilder($this);
 
+		$this->setFieldValue($elementObject);
+
 		return $elementObject;
 	}
 
@@ -190,6 +192,10 @@ class t3lib_TCEforms_FormBuilder {
 		$stack = $this->elementIdentifierStack;
 		$stack[] = $field->getFieldname();
 		return $stack;
+	}
+
+	protected function setFieldValue(t3lib_TCEforms_Element_Abstract $elementObject) {
+		$elementObject->setValue($this->recordObject->getValue($elementObject->getFieldname()));
 	}
 
 

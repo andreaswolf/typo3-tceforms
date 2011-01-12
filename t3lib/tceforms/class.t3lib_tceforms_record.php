@@ -413,6 +413,21 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 		return t3lib_BEfunc::getRecordTitle($this->table, $this->recordData);
 	}
 
+	/**
+	 * Returns the value of a field from this record.
+	 *
+	 * @param  mixed $field May be a string (fieldname) or an element object. In the second case, the object is examined to determine the field value
+	 * @return array
+	 */
+	public function getValue($field) {
+		if (is_string($field)) {
+			return $this->recordData[$field];
+		} elseif (is_a($field, 't3lib_TCEforms_Element_Abstract')) {
+			/** @var $field t3lib_TCEforms_Element_Abstract */
+			return $this->recordData[$field->getFieldname()];
+		}
+	}
+
 	public function isNew() {
 		return $this->new;
 	}

@@ -251,7 +251,6 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 		$this->formFieldName = $this->fileFormFieldName = $this->parentFormObject->createElementIdentifier($this, 'name');
 		$this->formFieldId = $this->parentFormObject->createElementIdentifier($this, 'id');
-		$this->itemFormElValue = $this->record[$this->field]; // The value to show in the form field.
 
 			// Hook: getSingleField_preProcess
 		foreach (self::$hookObjects['getSingleFields'] as $hookObj)	{
@@ -611,6 +610,14 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 	public function getLabel() {
 		return $this->label;
+	}
+
+	public function setValue($value) {
+		$this->itemFormElValue = $value;
+	}
+
+	public function getValue() {
+		return $this->itemFormElValue;
 	}
 
 	/**
