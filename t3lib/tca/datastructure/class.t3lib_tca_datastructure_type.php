@@ -261,49 +261,10 @@ class t3lib_TCA_DataStructure_Type {
 		}
 
 		$sheets = $this->sheets;
-		$this->addSubtypeElementsToSheets($sheets, $subtypeNumber);
-		$this->removeSubtypeExcludedElementsFromSheets($sheets, $subtypeNumber);
 
 		$this->sheetsForSubtype[$subtypeNumber] = $sheets;
 
 		return $sheets;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	protected function addSubtypeElementsToSheets(&$sheets, $subtypeNumber) {
-		if (!empty($this->subtypesAddList[$subtypeNumber])) {
-			$addElements = t3lib_div::trimExplode(',', $this->subtypesAddList[$subtypeNumber], TRUE);
-			$subtypeValueFieldSheet = clone $this->subtypeValueFieldSheet;
-
-			$subtypeValueFieldIndex = $subtypeValueFieldSheet->getElementIndex($this->subtypeValueField);
-			$lastElement = $subtypeValueFieldIndex + 1;
-			foreach ($addElements as $field) {
-				$fieldObject = $this->createElementObject($field, '', $this->dataStructure->getFieldConfiguration($field));
-				$subtypeValueFieldSheet->addElement($fieldObject, $lastElement);
-				++$lastElement;
-			}
-
-			$sheets[array_search($this->subtypeValueFieldSheet, $sheets)] = $subtypeValueFieldSheet;
-		}
-	}
-
-	/**
-	 * @deprecated
-	 */
-	protected function removeSubtypeExcludedElementsFromSheets(&$sheets, $subtypeNumber) {
-		if (!empty($this->subtypesExcludeList[$subtypeNumber])) {
-			$excludeElements = t3lib_div::trimExplode(',', $this->subtypesExcludeList[$subtypeNumber], TRUE);
-
-			foreach ($sheets as &$sheet) {
-				foreach ($sheet->getElements() as $element) {
-					if (in_array($element->getName(), $excludeElements)) {
-						$sheet->removeElement($element);
-					}
-				}
-			}
-		}
 	}
 
 	public function getShowitemString() {
