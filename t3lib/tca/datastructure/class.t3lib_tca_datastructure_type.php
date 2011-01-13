@@ -359,8 +359,8 @@ class t3lib_TCA_DataStructure_Type {
 			$bit = substr($bitKey, 1);
 			if (t3lib_div::testInt($bit)) {
 				$bit = t3lib_div::intInRange($bit, 0, 30);
-				if ((substr($bitKey, 0, 1) == '-' && !($sTValue & pow(2, $bit))) ||
-				    (substr($bitKey, 0, 1) == '+' &&  ($sTValue & pow(2, $bit)))
+				if ((substr($bitKey, 0, 1) == '-' && !($bitmaskValue & pow(2, $bit))) ||
+				    (substr($bitKey, 0, 1) == '+' &&  ($bitmaskValue & pow(2, $bit)))
 				    ) {
 
 					$excludedList = array_merge($excludedList, t3lib_div::trimExplode(',', $fieldList, 1));
