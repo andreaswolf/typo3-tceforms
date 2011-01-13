@@ -169,7 +169,7 @@ class t3lib_TCA_DataStructure {
 	 * Returns the configuration object for a field
 	 *
 	 * @param string $fieldName
-	 * @return t3lib_TCA_DataStructure_Field
+	 * @return array
 	 */
 	public function getFieldConfiguration($fieldName) {
 		return $this->fields[$fieldName];
@@ -181,7 +181,7 @@ class t3lib_TCA_DataStructure {
 	 * This is only the bare variant of this field, as defined in the TCA columns section. Any special
 	 * configuration added in type configurations has to be applied separately
 	 *
-	 * @param t3lib_TCA_DataStructure_Field $fieldName
+	 * @param string $fieldName
 	 * @return t3lib_TCA_DataStructure_Field
 	 *
 	 * @access package
@@ -311,6 +311,12 @@ class t3lib_TCA_DataStructure {
 
 	protected function createTypeObject($typeNum) {
 		$this->types[$typeNum] = t3lib_TCA_DataStructure_Type::createFromConfiguration($this, $typeNum, $this->rawTypes[$typeNum]);
+	}
+
+	public function createElementObject($name, $label, $specialConfiguration) {
+		$object = new t3lib_TCA_DataStructure_Field($this, $name);
+
+		return $object;
 	}
 }
 

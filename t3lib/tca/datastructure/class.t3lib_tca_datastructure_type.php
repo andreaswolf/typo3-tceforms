@@ -152,8 +152,7 @@ class t3lib_TCA_DataStructure_Type {
 			$currentSheet = $this->createSheetObject($sheet['title'], $sheet['name']);
 
 			foreach ($sheet['elements'] as $element) {
-				$elementObject = $this->createElementObject($element, '',
-				  $this->dataStructure->getFieldConfiguration($element), array());
+				$elementObject = $this->dataStructure->createElementObject($element, '', array());
 				$currentSheet->addElement($elementObject);
 			}
 
@@ -196,10 +195,8 @@ class t3lib_TCA_DataStructure_Type {
 	 * @param $specialConfiguration
 	 * @return t3lib_TCA_DataStructure_Field
 	 */
-	protected function createElementObject($name, $label, $configuration, $specialConfiguration) {
-		$object = new t3lib_TCA_DataStructure_Field($this->dataStructure, $name, $configuration);
-
-		return $object;
+	protected function createElementObject($name, $label, $specialConfiguration) {
+		return $this->dataStructure->createElementObject($name, $label, $specialConfiguration);
 	}
 
 	/**
