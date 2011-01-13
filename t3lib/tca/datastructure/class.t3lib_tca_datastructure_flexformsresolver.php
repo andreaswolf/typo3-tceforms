@@ -1,8 +1,5 @@
 <?php
 
-require_once(PATH_t3lib.'tca/datastructure/class.t3lib_tca_datastructure_resolver.php');
-require_once(PATH_t3lib.'tca/class.t3lib_tca_datastructure.php');
-
 /**
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
