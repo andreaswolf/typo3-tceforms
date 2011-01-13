@@ -3,7 +3,7 @@
 /*
  * TODO check if inlineFirstPid may be replaced by a call to context object to get the pid
  */
-class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEforms_NestableForm {
+class t3lib_TCEforms_IrreForm extends t3lib_TCEforms_Form implements t3lib_TCEforms_NestableForm {
 
 	/**
 	 * The element object containing this form.
@@ -27,7 +27,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	}
 
 	public function init() {
-		$this->formBuilder = clone($this->formBuilder);
+		parent::init();
 
 			// Register this element with the context
 		$this->contextObject->registerInlineElement($this);
@@ -200,7 +200,7 @@ class t3lib_TCEforms_IRREForm extends t3lib_TCEforms_Form implements t3lib_TCEfo
 	 * The configuration of this field
 	 *
 	 * @param $fieldConfig
-	 * @return t3lib_TCEforms_IRREForm $this
+	 * @return t3lib_TCEforms_IrreForm $this
 	 */
 	public function setFieldConfig(&$fieldConfig) {
 		$this->fieldConfig =& $fieldConfig;

@@ -18,23 +18,35 @@ class t3lib_TCEforms_FlexFormBuilder extends t3lib_TCEforms_FormBuilder {
 
 	public function extendIdentifierStackForField(t3lib_TCEforms_Element $field) {
 		$stack = $this->elementIdentifierStack;
-		$stack[] = $this->currentSheetObject->getName();
+		$stackEntrySheet = array(
+			'data',
+			$this->currentSheetObject->getName()
+		);
 
 		if ($this->dataStructure->isLocalizationEnabled()) {
 			if ($this->dataStructure->getLocalizationMethod() == 0) {
-				$stack[] = 'l' . $this->recordObject->getLanguage();
-				$stack[] = $field->getFieldname();
-				$stack[] = 'vDEF';
+				$stackEntrySheet[] = 'l' . $this->recordObject->getLanguage();
+				$stackEntryField = array(
+					$field->getFieldname(),
+					'vDEF'
+				);
 			} else {
-				$stack[] = 'lDEF';
-				$stack[] = $field->getFieldname();
-				$stack[] = 'v' . $this->recordObject->getLanguage();
+				$stackEntrySheet[] = 'lDEF';
+				$stackEntryField = array(
+					$field->getFieldname(),
+					'v' . $this->recordObject->getLanguage()
+				);
 			}
 		} else {
-			$stack[] = 'lDEF';
-			$stack[] = $field->getFieldname();
-			$stack[] = 'vDEF';
+			$stackEntrySheet[] = 'lDEF';
+			$stackEntryField = array(
+				$field->getFieldname(),
+				'vDEF'
+			);
 		}
+		$stack[] = $stackEntrySheet;
+		$stack[] = $stackEntryField;
+
 		return $stack;
 	}
 

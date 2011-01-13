@@ -211,6 +211,15 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		return $this;
 	}
 
+
+	private function _createElementIdentifier_callback_name(array $stackEntry) {
+		return '[' . implode('][', $stackEntry) . ']';
+	}
+
+	private function _createElementIdentifier_callback_id(array $stackEntry) {
+		return implode('-', $stackEntry);
+	}
+
 	/**
 	 * Creates an identifier for an element from a given element identifier stack.
 	 *
@@ -226,12 +235,12 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 		switch($type) {
 			case 'name':
 				if (count($elementIdentifierStack) > 0) {
-					$elementIdentifier .= '[' . implode('][', $elementIdentifierStack) . ']';
+					$elementIdentifier .= implode('', array_map(array($this, '_createElementIdentifier_callback_name'), $elementIdentifierStack));
 				}
 
 				break;
 			case 'id':
-				$elementIdentifier .= '-' . implode('-', $elementIdentifierStack);
+				$elementIdentifier .= implode('', array_map(array($this, '_createElementIdentifier_callback_id'), $elementIdentifierStack));
 
 				break;
 		}

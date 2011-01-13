@@ -186,8 +186,10 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 	public function setElementIdentifierStack(array $elementIdentifierStack) {
 		$this->elementIdentifierStack = $elementIdentifierStack;
 
-		$this->elementIdentifierStack[] = $this->getTable();
-		$this->elementIdentifierStack[] = $this->recordData['uid'];
+		$this->elementIdentifierStack[] = array(
+			$this->getTable(),
+			$this->recordData['uid']
+		);
 
 		return $this;
 	}

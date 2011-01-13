@@ -43,16 +43,13 @@ class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 		$this->dataStructureResolver = new t3lib_TCA_DataStructure_FlexFormsResolver();
 		$this->dataStructure = $this->dataStructureResolver->resolveDataStructure($this);
 
-		$elementIdentifierStack = $this->elementIdentifierStack;
-		$elementIdentifierStack[] = 'data';
-
 		$this->formObject = new t3lib_TCEforms_Flexform();
 		$this->formObject->setContainingElement($this)
 		                 ->setDataStructure($this->dataStructure)
 		                 ->setContextObject($this->contextObject)
 		                 ->setLocalizationEnabled($this->dataStructure->isLocalizationEnabled())
 		                 ->setLocalizationMethod($this->dataStructure->getLocalizationMethod())
-		                 ->setElementIdentifierStack($elementIdentifierStack)
+		                 ->setElementIdentifierStack($this->elementIdentifierStack)
 		                 ->init();
 
 		// Code copied from t3lib_TCEforms::getSingleField_typeFlex()

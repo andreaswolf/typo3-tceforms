@@ -47,6 +47,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 	protected $field;
 
 	/**
+	 * @var mixed
+	 */
+	protected $itemFormElValue;
+
+	/**
 	 * The record data this field belongs to
 	 *
 	 * @var array
