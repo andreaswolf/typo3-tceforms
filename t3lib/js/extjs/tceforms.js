@@ -39,12 +39,11 @@ TYPO3.TCEFORMS = {
 		this.convertDateFieldsToDatePicker();
 		this.convertTextareasResizable();
 
+		// initialize validation
 		Ext.get(this.contextId).on('submit', function(evt) {
-			var isValidForm = this.Validation.isValidForm();
-			if (!isValidForm) {
+			if (!this.Validation.isValidForm()) {
 				evt.stopEvent();
 			}
-			// old school: return TBE_EDITOR.checkSubmit(1);
 		}, this);
 	},
 
@@ -154,19 +153,17 @@ TYPO3.TCEFORMS = {
 		}
 	}
 	
-}
-
-
+};
 Ext.onReady(TYPO3.TCEFORMS.init, TYPO3.TCEFORMS);
+
+
 
 
 /** our validation manager and registration handler **/
 TYPO3.TCEFORMS.Validation = {
-	errorMarkup: '<span class="t3-icon t3-icon-actions t3-icon-dialog-warning"></span>',
-	errorClass: 't3-tceforms-field-error',
 	init: function() {
 		Ext.iterate(this.Validators, function(validatorName, validatorObject) {
-			validatorObject.init();
+			new validatorObject();
 		});
 	},
 
@@ -181,36 +178,52 @@ TYPO3.TCEFORMS.Validation = {
 			}
 		});
 		return isValidForm;
-	}
+	},
 
+		// will be populated below and through extensions
+	Validators: {}
 };
 
-TYPO3.TCEFORMS.Validation.Validators = {};
 
+Ext.onReady(function() {
 
-/** default implementation of a validator **/
-TYPO3.TCEFORMS.Validation.Validators.Required = {
-	elementSelector: 'input[required=required]',
+		// base object that will be used to "subclass"
+TYPO3.TCEFORMS.Validation.DefaultValidator = Ext.extend(Ext.util.Observable, {
+	errorMarkup: '<span class="t3-icon t3-icon-actions t3-icon-dialog-warning"></span>',
+	errorClass: 't3-tceforms-field-error',
+
+		// the elements that will be used, something like: "input[required=required]"
+	elementSelector: '',
 	elements: [],
+	registeredEvents: ['blur', 'keyup'],
 
-	init: function() {
-		// register all required fields
+	/**
+	 * register all fields that need to be validated
+	 * @access public
+	 */
+	constructor: function() {
 		this.elements = Ext.query(this.elementSelector);
-		Ext.each(this.elements, function(element) {
-			var fn = function(evt, element) {
-				this.validate(Ext.get(element));
-			};
-			Ext.get(element).on('blur', fn, this).on('keyup', fn, this);
-		}, this);
+			// callback function that is called when the event gets triggered
+		var fn = function(evt, element) {
+			this.validate(Ext.get(element));
+		};
 
+		Ext.each(this.elements, function(element) {
+			var visibleElement = element;
+			Ext.each(this.registeredEvents, function(eventName) {
+				Ext.fly(visibleElement).on(eventName, fn, this);
+			}, this);
+		}, this);
 	},
 
 	/**
-	 * @access public	part of the public API that does the magic when submitting the form
+	 * loop through each field and see if it is valid
+	 *
+	 * part of the public API that does the magic when submitting the form
+	 *
+	 * @access public
 	 * @return if this returns false, the form will not get submitted
 	 */
-	// loop through each field and see if it is valid
-	// if it's validate
 	validateOnFormSubmission: function() {
 		isValid = true;
 		Ext.each(this.elements, function(element) {
@@ -222,10 +235,14 @@ TYPO3.TCEFORMS.Validation.Validators.Required = {
 	},
 
 	/**
-	 * validate function to validate a single element
+	 * validate function to check for a single element
+	 *
 	 * this method also takes the necessary actions on what to do
+	 * when a field is invalid, valid or
+	 *
 	 * @param element
-	 * @api
+	 * @return if this returns false, an element is invalid
+	 * @access private
 	 */
 	validate: function(element) {
 		if (this.isValid(element)) {
@@ -237,33 +254,28 @@ TYPO3.TCEFORMS.Validation.Validators.Required = {
 		}
 	},
 
-		// implementation to see if the required field is not empty
 	/**
 	 * validate function to validate a single element
-	 * only lets you know if an element is valid or not
-	 * @visible private
+	 * only lets you know if an element is valid or not, does nothing else
+	 *
 	 * @param element
+	 * @return if this returns false, an element is invalid
+	 * @access private
 	 */
 	isValid: function(element) {
-		if (element.getValue().length == 0) {
-			return false;
-		} else {
-			return true;
-		}
+		return true;
 	},
 
 
 		// various helper functions
 	markAsInvalid: function(element) {
-		element.addClass(TYPO3.TCEFORMS.Validation.errorClass);
+		element.addClass(this.errorClass);
 		this.markContainerAsInvalid(element);
-		return element;
 	},
 
 	markAsValid: function(element) {
-		element.removeClass(TYPO3.TCEFORMS.Validation.errorClass);
+		element.removeClass(this.errorClass);
 		this.markContainerAsValid(element);
-		return element;
 	},
 
 	findParentContainerPosition: function(container) {
@@ -292,9 +304,204 @@ TYPO3.TCEFORMS.Validation.Validators.Required = {
 		var tab = recordInfo.tabMenu.getTabEl(containerPosition);
 		var tabtext = Ext.get(tab).child('.x-tab-strip-text');
 		if (!tabtext.child('.t3-icon')) {
-			tabtext.createChild(TYPO3.TCEFORMS.Validation.errorMarkup);
+			tabtext.createChild(this.errorMarkup);
 		}
+	}
+});
+
+/** Implementation of the Required Validator**/
+TYPO3.TCEFORMS.Validation.Validators.Required = Ext.extend(TYPO3.TCEFORMS.Validation.DefaultValidator, {
+	elementSelector: 'input[required=required]',
+
+	/**
+	 * validate function to see if an element is empty or not
+	 *
+	 * @param element
+	 * @return if this returns false, an element is invalid
+	 * @access private
+	 */
+	isValid: function(element) {
+		return (element.getValue().length > 0);
+	}
+});
+
+
+TYPO3.TCEFORMS.Validation.init();
+
+});
+
+
+
+
+/***********
+ * Filter
+ **********/
+
+/**
+ * a manager for filtering values within
+ **/
+TYPO3.TCEFORMS.Filters = {
+		// will be populated below and through extensions
+	Filters: {},
+
+	init: function() {
+		Ext.iterate(this.Filters, function(filterName, filterObject) {
+			new filterObject();
+		});
 	}
 }
 
-Ext.onReady(TYPO3.TCEFORMS.Validation.init, TYPO3.TCEFORMS.Validation);
+
+Ext.onReady(function() {
+
+	TYPO3.TCEFORMS.Filters.DefaultFilter = Ext.extend(Ext.util.Observable, {
+			// the elements that will be used, something like: "input[required=required]"
+		elementSelector: '',
+		registeredEvents: ['blur'],
+
+		/**
+		 * register all fields that need to be filtered with this filter
+		 * @access public
+		 */
+		constructor: function(config) {
+			Ext.applyIf(this, config);
+
+				// callback function on what to do when an event was triggered
+			var fn = function(evt, visibleElement) {
+					// the input field that the user sees
+				var visibleElement = Ext.get(visibleElement);
+
+					// the hidden element that carries the value
+				var valueElement = visibleElement.next('input[type=hidden]');
+				this.filter(visibleElement, valueElement);
+			};
+
+			Ext.query(this.elementSelector).each(function(element) {
+				var visibleElement = element;
+				Ext.each(this.registeredEvents, function(eventName) {
+					Ext.fly(visibleElement).on(eventName, fn, this);
+				}, this);
+			}, this);
+
+		},
+
+
+		/**
+		 * filter function that filters the value of a single element
+		 *
+		 * @param visibleElement	the HTML element that is used as the input field for the user
+		 * @param valueElement	the hidden HTML element that is used as the input field for the user
+		 * @return void
+		 * @access public
+		 */
+		filter: function(visibleElement, valueElement) {
+			// here follows the implementation logic
+		}
+	});
+
+		/** Implementation of the a default filter **/
+	TYPO3.TCEFORMS.Filters.RegexpFilter = Ext.extend(TYPO3.TCEFORMS.Filters.DefaultFilter, {
+		regularExpression: '',
+
+		filter: function(visibleElement, valueElement) {
+			var newValue = visibleElement.getValue().replace(this.regularExpression, '');
+			visibleElement.dom.value = valueElement.dom.value = newValue;
+		}
+	});
+
+
+	TYPO3.TCEFORMS.Filters.Filters.Uppercase = Ext.extend(TYPO3.TCEFORMS.Filters.DefaultFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-upper]',
+		filter: function(visibleElement, valueElement) {
+			var newValue = visibleElement.getValue().toUpperCase();
+			visibleElement.dom.value = valueElement.dom.value = newValue;
+		}
+	});
+
+	TYPO3.TCEFORMS.Filters.Filters.Lowercase = Ext.extend(TYPO3.TCEFORMS.Filters.DefaultFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-lower]',
+		filter: function(visibleElement, valueElement) {
+			var newValue = visibleElement.getValue().toLowerCase();
+			visibleElement.dom.value = valueElement.dom.value = newValue;
+		}
+	});
+
+
+		/** Implementation of the Trim Filter **/
+	TYPO3.TCEFORMS.Filters.Filters.Trim = Ext.extend(TYPO3.TCEFORMS.Filters.RegexpFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-trim]',
+		regularExpression: /^\s+|\s+$/g
+	});
+
+	TYPO3.TCEFORMS.Filters.Filters.Nospace = Ext.extend(TYPO3.TCEFORMS.Filters.RegexpFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-nospace]',
+		regularExpression: /\s+/g
+	});
+
+	/** implementation to only allow a_Z characters **/
+	TYPO3.TCEFORMS.Filters.Filters.Alpha = Ext.extend(TYPO3.TCEFORMS.Filters.RegexpFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-alpha]',
+		regularExpression: /[^A-Za-z]+/g
+	});
+
+	/** implementation to only allow a_Z + numbers **/
+	TYPO3.TCEFORMS.Filters.Filters.Alphanumeric = Ext.extend(TYPO3.TCEFORMS.Filters.RegexpFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-alphanum]',
+		regularExpression: /\W+/g	// match all *non* alphanumeric numbers, because they need to be replaced, shorthand for /[^0-9A-Za-z]+/g
+
+	});
+
+	/** implementation to only allow a_Z + numbers + "_" and "-" **/
+	TYPO3.TCEFORMS.Filters.Filters.AlphanumericExtended = Ext.extend(TYPO3.TCEFORMS.Filters.RegexpFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-alphanum_x]',
+		regularExpression: /[^0-9A-Za-z_-]+/g
+	});
+
+	/** implementation to only allow numbers (difference to "Integer" is that "007" would be possible) **/
+	TYPO3.TCEFORMS.Filters.Filters.Numeric = Ext.extend(TYPO3.TCEFORMS.Filters.RegexpFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-num]',
+		regularExpression: /\D+/g	// shorthand for [^0-9]
+	});
+
+	// TODO: test
+	TYPO3.TCEFORMS.Filters.Filters.Integer = Ext.extend(TYPO3.TCEFORMS.Filters.DefaultFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-int]',
+		filter: function(visibleElement, valueElement) {
+			var newValue = parseInt(visibleElement.getValue());
+			if (newValue == NaN) {
+				newValue = 0;
+			}
+			visibleElement.dom.value = valueElement.dom.value = newValue;
+		}
+	});
+
+	/** implementation to filter to a double value with two decimals (e.g. "284.20") **/
+	TYPO3.TCEFORMS.Filters.Filters.Double2 = Ext.extend(TYPO3.TCEFORMS.Filters.DefaultFilter, {
+		elementSelector: 'input[class*=t3-tceforms-filter-double2]',
+		filter: function(visibleElement, valueElement) {
+			var oldValue = visibleElement.getValue();
+
+			// the following code was copied from: evalFunc_parseDouble(value);
+			var newValue = "" + oldValue;
+			newValue = newValue.replace(/[^0-9,\.-]/g, "");
+			var negative = newValue.substring(0, 1) === '-';
+			newValue = newValue.replace(/-/g, "");
+			newValue = newValue.replace(/,/g, ".");
+			if (newValue.indexOf(".") == -1) {
+				newValue += ".0";
+			}
+			var parts = newValue.split(".");
+			var dec = parts.pop();
+			newValue = Number(parts.join("") + "." + dec);
+			if (negative) {
+				newValue *= -1;
+			}
+			visibleElement.dom.value = valueElement.dom.value = newValue.toFixed(2);
+		}
+	});
+
+	// TODO: implement "is_in"
+	// TODO: implement "md5"
+});
+
+Ext.onReady(TYPO3.TCEFORMS.Filters.init, TYPO3.TCEFORMS.Filters);

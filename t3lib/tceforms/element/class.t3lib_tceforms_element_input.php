@@ -171,6 +171,10 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 			}
 		}
 
+		foreach ($evalList as $evalOption) {
+			// what we could do: $evalOption => isFilterOption($evalOption)
+			$cssClasses[] = 't3-tceforms-filter-' . $evalOption;
+		}
 
 		$this->paramsList = "'" . $this->formFieldName . "','" . implode(',', $evalList) . "','" . trim($config['is_in']) . "',".(isset($config['checkbox']) ? 1 : 0) . ",'" . $config['checkbox'] . "'";
 		if (!empty($config['checkbox'])) {
@@ -195,7 +199,7 @@ class t3lib_TCEforms_Element_Input extends t3lib_TCEforms_Element_Abstract {
 
 			// compile the additional HTML attributes for the input field that is visible
 		$this->additionalAttributes['class'] = implode(' ', $cssClasses);
-		$this->additionalAttributes['onchange'] = htmlspecialchars(implode('', $fieldChangeFunc));
+		//$this->additionalAttributes['onchange'] = htmlspecialchars(implode('', $fieldChangeFunc));
 		$additionalAttributes = t3lib_div::implodeAttributes($this->additionalAttributes);
 
 			// This is the EDITABLE form field.
