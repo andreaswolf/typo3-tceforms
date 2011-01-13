@@ -1,15 +1,29 @@
+2011-01-13  Ernesto Baschny  <ernesto.baschny@typo3.org>
+
+	* Release of TYPO3 4.5.0beta4
+
+2011-01-12  Jeff Segars  <jeff@webempoweredchurch.org>
+
+	* Fixed bug #16988: Update Context Sensitive Help for pages and tt_content to match new labels
+	* Fixed bug #16989: Update page and tt_content labels to use title case
+
 2011-01-12  Jigal van Hemert  <jigal@xs4all.nl>
 
+	* Fixed issue #16806: pages_language_overlay does not fit new page layout
 	* Follow-up to #16986: Grid wizard miss tooltips and localization
 
 2011-01-12  Steffen Kamper  <steffen@typo3.org>
 
+	* Follow-up to Merged Extension Manager: fixed repository / icon directory independent from t3skin
+	* Merged Extension Manager (version for TYPO3 4.5 Beta 4)
 	* Fixed issue #16986: Grid wizard miss tooltips and localization
 
 2011-01-12  Ingo Renner  <ingo@typo3.org>
 
 	* Fixed issue #16985: Rename Sysfolder to Folder
 	* Follow-up to #16857: Changed label "Include Subpages" to "Extend to Subpages"
+	* Reverted changes in CSH where SysFolder was renamed to to Folder - will be re-added with updated CSH
+	* Reverted page type label from Folder to SysFolder as it affected old versions, introduced a new label "Folder" for versions 4.5+
 
 2011-01-12  Sebastian Kurfuerst  <sebastian@typo3.org>
 
@@ -38,9 +52,14 @@
 
 2011-01-12  Ernesto Baschny  <ernst@cron-it.de>
 
+	* Merged Linkvalidator (tagged as 4.5beta4)
+	* Merged Pagetree (tagged as 45b4)
 	* Fixed bug #16970: Backwards compatibility in PHP_SCRIPT and accessing $this-> methods
 	* Fixed bug #16966: be_layout setting "none" is not working and be_layout should not be inherited automatically (Thanks to Jo Hasenau)
 	* Added feature #13319: Add plupload support for uploading files in fileadmin
+	* Fixed bug #16236: Garbled char in description of All Configuration "[MAIL][transport]" (Thanks to Marc Wöhlken)
+	* Added feature #16987: Language labels for the new pagetree (Thanks to Stefan Galinski)
+	* Fixed bug #16249: Field php_tree_stop is not displayed any more in page form
 
 2011-01-11  Steffen Kamper  <steffen@typo3.org>
 
