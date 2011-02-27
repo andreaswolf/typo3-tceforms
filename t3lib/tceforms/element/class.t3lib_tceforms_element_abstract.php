@@ -227,12 +227,11 @@ abstract class t3lib_TCEforms_Element_Abstract implements t3lib_TCEforms_Element
 
 
 
-	public function __construct($field, $fieldConfig, $label='', $extra='') {
+	public function __construct($fieldName, $fieldConfig, $label='', $extra='') {
 		global $TYPO3_CONF_VARS;
 
-			// Field config is the same as $PA['fieldConf'] below
 		$this->fieldSetup = $fieldConfig;
-		$this->field = $field;
+		$this->field = $fieldName;
 		$this->extra = $extra;
 		$this->label = $label;
 
