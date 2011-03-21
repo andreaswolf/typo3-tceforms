@@ -132,6 +132,7 @@ class t3lib_tca_datastructure_fieldTest extends tx_phpunit_testcase {
 
 	/**
 	 * @test
+	 * @covers t3lib_TCA_DataStructure_Field::getLocalizationMode
 	 */
 	public function getLocalizationModeReturnsCorrectValueIfLocalizationModeIsPresent() {
 		$fieldConfiguration = array(
@@ -149,13 +150,11 @@ class t3lib_tca_datastructure_fieldTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
-	public function invalidLocalizationModesAreNotReturned() {
-		$fieldConfiguration = array('l10n_mode' => 'invalidValue');
-		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure', array('hasControlValue'));
-		$mockedDataStructure->expects($this->any())->method('hasControlValue')->with('languageField')->will($this->returnValue(TRUE));
-		$field = new t3lib_TCA_DataStructure_Field($mockedDataStructure, uniqid(), $fieldConfiguration);
+	public function getLocalizationModeChecksIfLocalizationModeIsPresent() {
+		$fieldMock = $this->getMock('t3lib_TCA_DataStructure_Field', array('hasLocalizationMode'), array(), '', FALSE);
+		$fieldMock->expects($this->once())->method('hasLocalizationMode');
 
-		$this->assertEquals('', $field->getLocalizationMode());
+		$fieldMock->getLocalizationMode();
 	}
 }
 
