@@ -64,7 +64,7 @@ class t3lib_TCA_DataStructure_Sheet {
 				}
 			}
 		} else {
-			throw new InvalidArgumentException('Element was neither an object nor a field name. Cannot determine index.');
+			throw new InvalidArgumentException('Element was neither an object nor a field name. Cannot determine index.', 1300741441);
 		}
 
 		return -1;
