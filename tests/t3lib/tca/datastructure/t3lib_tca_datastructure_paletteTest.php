@@ -33,7 +33,7 @@
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCA_DataStructure_PaletteTest extends tx_phpunit_testcase {
+class t3lib_TCA_DataStructure_PaletteTest extends Tx_Phpunit_TestCase {
 	/**
 	 * @test
 	 */
