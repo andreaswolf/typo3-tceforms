@@ -589,6 +589,14 @@ t3lib_div::devLog('foreignUid: ' . $foreignUid, 't3lib_TCEforms_IrreAjax');
 	public function render() {
 
 	}
+
+	public function getFieldname() {
+		// TODO: Implement getFieldname() method.
+	}
+
+	public function setContainer(t3lib_TCEforms_Container $container) {
+		// TODO: Implement setContainer() method.
+	}
 }
 
 ?>
