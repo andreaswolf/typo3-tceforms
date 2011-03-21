@@ -40,7 +40,7 @@ class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 		 *  - take care of initializing the FlexForm object and hand our records to it
 		 */
 
-		$this->dataStructureResolver = new t3lib_TCA_DataStructure_FlexFormsResolver();
+		$this->dataStructureResolver = t3lib_div::makeInstance('t3lib_TCA_DataStructure_FlexFormsResolver');
 		$this->dataStructure = $this->dataStructureResolver->resolveDataStructure($this);
 
 		$this->formObject = new t3lib_TCEforms_Flexform();

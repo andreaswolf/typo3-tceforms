@@ -77,7 +77,10 @@ class t3lib_TCEforms_IrreAjax implements t3lib_TCEforms_Element {
 			// edited record is contained in, perhaps within other inline elements
 		$contextLevel = $this->getStructureLevel(0);
 		$contextRecord = t3lib_BEfunc::getRecord($contextLevel['table'], $contextLevel['uid']);
-		$dataStructure = t3lib_TCA_DataStructure_TCAResolver::resolveDataStructure($contextLevel['table']);
+
+		/** @var $resolver t3lib_TCA_DataStructure_TCAResolver */
+		$resolver = t3lib_div::makeInstance('t3lib_TCA_DataStructure_TCAResolver');
+		$dataStructure = $resolver->resolveDataStructure($contextLevel['table']);
 		$contextRecordObject = new t3lib_TCEforms_Record($contextLevel['table'], $contextRecord, $dataStructure);
 
 		$this->TCEforms->setContextRecordObject($contextRecordObject);
