@@ -116,7 +116,7 @@ class t3lib_TCA_DataStructure_Type {
 	 * @param array $configuration
 	 */
 	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, $typeNum, array $configuration) {
-		$obj = new t3lib_TCA_DataStructure_Type($dataStructure, $typeNum);
+		$obj = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Type', $dataStructure, $typeNum);
 		$obj->resolveConfiguration($configuration);
 
 		return $obj;

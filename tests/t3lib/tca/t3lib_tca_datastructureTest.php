@@ -100,6 +100,121 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 		$this->assertSame($obj1, $obj2);
 		$this->assertNotSame($obj1, $obj3);
 	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCA_DataStructure::hasTypeField
+	 * @covers t3lib_TCA_DataStructure::getTypeField
+	 */
+	public function typeFieldIsCorrectlyHandled() {
+		$TcaFixture = array(
+			'ctrl' => array(
+				'type' => uniqid()
+			)
+		);
+
+		$fixture = new t3lib_TCA_DataStructure($TcaFixture);
+
+		$this->assertTrue($fixture->hasTypeField());
+		$this->assertEquals($TcaFixture['ctrl']['type'], $fixture->getTypeField());
+	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCA_DataStructure::hasLanguageField
+	 * @covers t3lib_TCA_DataStructure::getLanguageField
+	 */
+	public function languageFieldIsCorrectlyHandled() {
+		$TcaFixture = array(
+			'ctrl' => array(
+				'languageField' => uniqid()
+			)
+		);
+
+		$fixture = new t3lib_TCA_DataStructure($TcaFixture);
+
+		$this->assertTrue($fixture->hasLanguageField());
+		$this->assertEquals($TcaFixture['ctrl']['languageField'], $fixture->getLanguageField());
+	}
+
+	/**
+	 * @test
+	 */
+	public function hasFieldReturnsProperValues() {
+		$TcaFixture = array(
+			'columns' => array(
+				'some' => array('foo' => uniqid()),
+				'random' => array('bar' => uniqid()),
+				'columns' => array('baz' => uniqid())
+			)
+		);
+
+		$fixture = new t3lib_TCA_DataStructure($TcaFixture);
+
+		foreach (array_keys($TcaFixture['columns']) as $fieldName) {
+			$this->assertTrue($fixture->hasField($fieldName));
+		}
+
+		$this->assertFalse($fixture->hasField(uniqid('foo')));
+	}
+
+	/**
+	 * @test
+	 */
+	public function fieldConfigurationsCanBeRetrievedFromDataStructure() {
+		$TcaFixture = array(
+			'columns' => array(
+				'some' => array('foo' => uniqid()),
+				'random' => array('bar' => uniqid()),
+				'columns' => array('baz' => uniqid())
+			)
+		);
+
+		$fixture = new t3lib_TCA_DataStructure($TcaFixture);
+
+		$fieldConfigurations = $fixture->getFieldConfigurations();
+		foreach ($TcaFixture['columns'] as $fieldName => $configuration) {
+			$this->assertArrayHasKey($fieldName, $fieldConfigurations);
+			$this->assertEquals($configuration, $fieldConfigurations[$fieldName]);
+			$this->assertEquals($configuration, $fixture->getFieldConfiguration($fieldName));
+		}
+	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCA_DataStructure::getTypeConfiguration
+	 */
+	public function getTypeConfigurationFallsBackToDefaultTypeNumberForInvalidTypeNumbers() {
+		/** @var $fixture t3lib_TCA_DataStructure */
+		$fixture = $this->getMock('t3lib_TCA_DataStructure', array('typeExists', 'createTypeObject'), array(), '', FALSE);
+		$fixture->expects($this->once())->method('typeExists')->will($this->returnValue(FALSE));
+		$fixture->expects($this->once())->method('createTypeObject')->with($this->equalTo(1));
+
+		$fixture->getTypeConfiguration(0);
+	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCA_DataStructure::getTypeConfiguration
+	 * @covers t3lib_TCA_DataStructure::createTypeObject
+	 */
+	public function getTypeConfiurationCachesCreatedObjects() {
+		$mockedType = $this->getMock('t3lib_TCA_DataStructure_Type', array(), array(), '', FALSE);
+		t3lib_div::addInstance('t3lib_TCA_DataStructure_Type', $mockedType);
+
+		$mockedTca = array('types' => array(
+			'1' => array()
+		));
+
+		/** @var $fixture t3lib_TCA_DataStructure */
+		$fixture = $this->getMock('t3lib_TCA_DataStructure', array('typeExists'), array($mockedTca));
+		$fixture->expects($this->any())->method('typeExists')->will($this->returnValue(FALSE));
+
+		$obj1 = $fixture->getTypeConfiguration(1);
+		$obj2 = $fixture->getTypeConfiguration(1);
+
+		$this->assertSame($obj1, $obj2);
+	}
 }
 
 ?>
