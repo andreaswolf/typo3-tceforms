@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -65,7 +65,7 @@
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
- * @see t3lib_tstemplate, t3lib_matchcondition, t3lib_BEfunc::getPagesTSconfig(), t3lib_userAuthGroup::fetchGroupData(), t3lib_TStemplate::generateConfig()
+ * @see t3lib_tstemplate, t3lib_BEfunc::getPagesTSconfig(), t3lib_userAuthGroup::fetchGroupData(), t3lib_TStemplate::generateConfig()
  */
 class t3lib_TSparser {
 	var $strict = 1; // If set, then key names cannot contain characters other than [:alnum:]_\.-
@@ -118,7 +118,7 @@ class t3lib_TSparser {
 	 * Start parsing the input TypoScript text piece. The result is stored in $this->setup
 	 *
 	 * @param	string		The TypoScript text
-	 * @param	object		If is object (instance of t3lib_matchcondition), then this is used to match conditions found in the TypoScript code. If matchObj not specified, then no conditions will work! (Except [GLOBAL])
+	 * @param	object		If is object, then this is used to match conditions found in the TypoScript code. If matchObj not specified, then no conditions will work! (Except [GLOBAL])
 	 * @return	void
 	 */
 	function parse($string, $matchObj = '') {
@@ -713,15 +713,15 @@ class t3lib_TSparser {
 
 						// some file checks
 					if (empty($realFileName)) {
-						throw new Exception(sprintf('"%s" is not a valid file location.', $fileName));
+						throw new UnexpectedValueException(sprintf('"%s" is not a valid file location.', $fileName), 1294586441);
 					}
 
 					if (!is_writable($realFileName)) {
-						throw new Exception(sprintf('"%s" is not writable.', $fileName));
+						throw new RuntimeException(sprintf('"%s" is not writable.', $fileName), 1294586442);
 					}
 
 					if (in_array($realFileName, $extractedFileNames)) {
-						throw new Exception(sprintf('Recursive/multiple inclusion of file "%s"', $realFileName));
+						throw new RuntimeException(sprintf('Recursive/multiple inclusion of file "%s"', $realFileName), 1294586443);
 					}
 					$extractedFileNames[] = $realFileName;
 
@@ -729,7 +729,7 @@ class t3lib_TSparser {
 					$fileContentString = self::extractIncludes($fileContentString, ++$cycle_counter, $extractedFileNames);
 
 					if (!t3lib_div::writeFile($realFileName, $fileContentString)) {
-						throw new Exception(sprintf('Could not write file "%s"', $realFileName));
+						throw new RuntimeException(sprintf('Could not write file "%s"', $realFileName), 1294586444);
 					}
 
 						// insert reference to the file in the rest content

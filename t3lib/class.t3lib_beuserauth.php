@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -74,7 +74,6 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 	var $userident_column = 'password'; // Column for password
 	var $userid_column = 'uid'; // Column for user-id
 	var $lastLogin_column = 'lastlogin';
-	var $notifyHeader = 'From: TYPO3 Login notify <no_reply@no_reply.no_reply>';
 
 	var $enablecolumns = Array(
 		'rootLevel' => 1,
@@ -91,8 +90,6 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 
 	var $writeStdLog = 1; // Decides if the writelog() function is called at login and logout
 	var $writeAttemptLog = 1; // If the writelog() functions is called if a login-attempt has be tried without success
-
-	var $auth_include = ''; // this is the name of the include-file containing the login form. If not set, login CAN be anonymous. If set login IS needed.
 
 	var $auth_timeout_field = 6000; // if > 0 : session-timeout in seconds. if false/<0 : no timeout. if string: The string is fieldname from the usertable where the timeout can be found.
 	var $lifetime = 0; // 0 = Session-cookies. If session-cookies, the browser will stop session when the browser is closed. Else it keeps the session for $lifetime seconds.
@@ -147,28 +144,6 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 	}
 
 	/**
-	 * If flag is set and the extensions 'beuser_tracking' is loaded, this will insert a table row with the REQUEST_URI of current script - thus tracking the scripts the backend users uses...
-	 * This function works ONLY with the "beuser_tracking" extension and is deprecated since it does nothing useful.
-	 *
-	 * @param	boolean		Activate insertion of the URL.
-	 * @return	void
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6.
-	 */
-	function trackBeUser($flag) {
-		t3lib_div::logDeprecatedFunction();
-
-		if ($flag && t3lib_extMgm::isLoaded('beuser_tracking')) {
-			$insertFields = array(
-				'userid' => intval($this->user['uid']),
-				'tstamp' => $GLOBALS['EXEC_TIME'],
-				'script' => t3lib_div::getIndpEnv('REQUEST_URI')
-			);
-
-			$GLOBALS['TYPO3_DB']->exec_INSERTquery('sys_trackbeuser', $insertFields);
-		}
-	}
-
-	/**
 	 * If TYPO3_CONF_VARS['BE']['enabledBeUserIPLock'] is enabled and an IP-list is found in the User TSconfig objString "options.lockToIP", then make an IP comparison with REMOTE_ADDR and return the outcome (true/false)
 	 *
 	 * @return	boolean		True, if IP address validates OK (or no check is done at all)
@@ -206,10 +181,10 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 					$this->backendSetUC(); // Setting the UC array. It's needed with fetchGroupData first, due to default/overriding of values.
 					$this->emailAtLogin(); // email at login - if option set.
 				} else {
-					throw new RuntimeException('Login Error: TYPO3 is in maintenance mode at the moment. Only administrators are allowed access.');
+					throw new RuntimeException('Login Error: TYPO3 is in maintenance mode at the moment. Only administrators are allowed access.', 1294585860);
 				}
 			} else {
-				throw new RuntimeException('Login Error: IP locking prevented you from being authorized. Can\'t proceed, sorry.');
+				throw new RuntimeException('Login Error: IP locking prevented you from being authorized. Can\'t proceed, sorry.', 1294585861);
 			}
 		}
 	}
@@ -348,21 +323,27 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 					$prefix = '[AdminLoginWarning]';
 				}
 				if ($warn) {
-					t3lib_utility_Mail::mail($GLOBALS['TYPO3_CONF_VARS']['BE']['warning_email_addr'],
-							$prefix . ' ' . $subject,
-						$msg,
-						$this->notifyHeader
-					);
+					$from = t3lib_utility_Mail::getSystemFrom();
+					/** @var $mail t3lib_mail_Message */
+					$mail = t3lib_div::makeInstance('t3lib_mail_Message');
+					$mail->setTo($GLOBALS['TYPO3_CONF_VARS']['BE']['warning_email_addr'])
+							->setFrom($from)
+							->setSubject($prefix . ' ' . $subject)
+							->setBody($msg);
+					$mail->send();
 				}
 			}
 
 				// If An email should be sent to the current user, do that:
 			if ($this->uc['emailMeAtLogin'] && strstr($this->user['email'], '@')) {
-				t3lib_utility_Mail::mail($this->user['email'],
-					$subject,
-					$msg,
-					$this->notifyHeader
-				);
+				$from = t3lib_utility_Mail::getSystemFrom();
+				/** @var $mail t3lib_mail_Message */
+				$mail = t3lib_div::makeInstance('t3lib_mail_Message');
+				$mail->setTo($this->user['email'])
+						->setFrom($from)
+						->setSubject($subject)
+						->setBody($msg);
+				$mail->send();
 			}
 		}
 	}
@@ -397,9 +378,7 @@ class t3lib_beUserAuth extends t3lib_userAuthGroup {
 	 */
 	public function logoff() {
 		if (isset($GLOBALS['BE_USER'])) {
-			t3lib_formProtection_Factory::get(
-				't3lib_formprotection_BackendFormProtection'
-			)->clean();
+			t3lib_formProtection_Factory::get()->clean();
 		}
 		parent::logoff();
 	}

@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Ernesto Baschny <ernst@cron-it.de>
+ *  (c) 2010-2011 Ernesto Baschny <ernst@cron-it.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -99,7 +99,7 @@ class t3lib_mail_Mailer extends Swift_Mailer {
 				if ($port === '') {
 					$port = '25';
 				}
-				$useEncryption = ($mailSettings['transport_smtp_encrypt'] ? TRUE : FALSE);
+				$useEncryption = ($mailSettings['transport_smtp_encrypt'] ? $mailSettings['transport_smtp_encrypt'] : NULL);
 
 					// Create our transport
 				$this->transport = Swift_SmtpTransport::newInstance($host, $port, $useEncryption);
@@ -130,7 +130,7 @@ class t3lib_mail_Mailer extends Swift_Mailer {
 			case 'mbox':
 				$mboxFile = $mailSettings['transport_mbox_file'];
 				if ($mboxFile == '') {
-					throw new t3lib_exception('$TYPO3_CONF_VARS[\'MAIL\'][\'transport_mbox_file\'] needs to be set when transport is set to "mbox"');
+					throw new t3lib_exception('$TYPO3_CONF_VARS[\'MAIL\'][\'transport_mbox_file\'] needs to be set when transport is set to "mbox"', 1294586645);
 				}
 					// Create our transport
 				$this->transport = t3lib_div::makeInstance('t3lib_mail_mboxtransport', $mboxFile);

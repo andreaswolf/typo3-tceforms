@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -274,7 +274,6 @@ final class t3lib_div {
 	/**
 	 * Returns the 'GLOBAL' value of incoming data from POST or GET, with priority to POST (that is equalent to 'GP' order)
 	 * Strips slashes from all output, both strings and arrays.
-	 * This function substitutes t3lib_div::GPvar()
 	 * To enhancement security in your scripts, please consider using t3lib_div::_GET or t3lib_div::_POST if you already know by which method your data is arriving to the scripts!
 	 * Usage: 537
 	 *
@@ -404,48 +403,6 @@ final class t3lib_div {
 			$_GET = $inputGet;
 			$GLOBALS['HTTP_GET_VARS'] = $inputGet;
 		}
-	}
-
-	/**
-	 * Returns the  value of incoming data from globals variable $_POST or $_GET, with priority to $_POST (that is equalent to 'GP' order).
-	 * Strips slashes of string-outputs, but not arrays UNLESS $strip is set. If $strip is set all output will have escaped characters unescaped.
-	 * Usage: 2
-	 *
-	 * @param	string		GET/POST var to return
-	 * @param	boolean		If set, values are stripped of return values that are *arrays!* - string/integer values returned are always strip-slashed()
-	 * @return	mixed		POST var named $var and if not set, the GET var of the same name.
-	 * @deprecated since TYPO3 3.6, will be removed in TYPO3 4.6 - Use t3lib_div::_GP instead (ALWAYS delivers a value with un-escaped values!)
-	 * @see _GP()
-	 */
-	public static function GPvar($var, $strip = 0) {
-		self::logDeprecatedFunction();
-
-		if (empty($var)) {
-			return;
-		}
-		$value = isset($_POST[$var]) ? $_POST[$var] : $_GET[$var];
-		if (isset($value) && is_string($value)) {
-			$value = stripslashes($value);
-		} // Originally check '&& get_magic_quotes_gpc() ' but the values of $_GET are always slashed regardless of get_magic_quotes_gpc() because HTTP_POST/GET_VARS are run through addSlashesOnArray in the very beginning of index_ts.php eg.
-		if ($strip && isset($value) && is_array($value)) {
-			self::stripSlashesOnArray($value);
-		}
-		return $value;
-	}
-
-	/**
-	 * Returns the global arrays $_GET and $_POST merged with $_POST taking precedence.
-	 * Usage: 1
-	 *
-	 * @param	string		Key (variable name) from GET or POST vars
-	 * @return	array		Returns the GET vars merged recursively onto the POST vars.
-	 * @deprecated since TYPO3 3.7, will be removed in TYPO3 4.6 - Use t3lib_div::_GPmerged instead
-	 * @see _GP()
-	 */
-	public static function GParrayMerged($var) {
-		self::logDeprecatedFunction();
-
-		return self::_GPmerged($var);
 	}
 
 	/**
@@ -584,52 +541,6 @@ final class t3lib_div {
 	 *************************/
 
 	/**
-	 * Truncates string.
-	 * Returns a new string of max. $chars length.
-	 * If the string is longer, it will be truncated and appended with '...'.
-	 * Usage: 39
-	 *
-	 * @param	string		string to truncate
-	 * @param	integer		must be an integer with an absolute value of at least 4. if negative the string is cropped from the right end.
-	 * @param	string		String to append to the output if it is truncated, default is '...'
-	 * @return	string		new string
-	 * @deprecated since TYPO3 4.1, will be removed in TYPO3 4.6 - Works ONLY for single-byte charsets! Use t3lib_div::fixed_lgd_cs() instead
-	 * @see fixed_lgd_pre()
-	 */
-	public static function fixed_lgd($string, $origChars, $preStr = '...') {
-		self::logDeprecatedFunction();
-
-		$chars = abs($origChars);
-		if ($chars >= 4) {
-			if (strlen($string) > $chars) {
-				return $origChars < 0 ?
-						$preStr . trim(substr($string, -($chars - 3))) :
-						trim(substr($string, 0, $chars - 3)) . $preStr;
-			}
-		}
-		return $string;
-	}
-
-	/**
-	 * Truncates string.
-	 * Returns a new string of max. $chars length.
-	 * If the string is longer, it will be truncated and prepended with '...'.
-	 * This works like fixed_lgd(), but is truncated in the start of the string instead of the end
-	 * Usage: 6
-	 *
-	 * @param	string		string to truncate
-	 * @param	integer		must be an integer of at least 4
-	 * @return	string		new string
-	 * @deprecated since TYPO3 4.1, will be removed in TYPO3 4.6 - Use t3lib_div::fixed_lgd_cs() instead (with negative input value for $chars)
-	 * @see fixed_lgd()
-	 */
-	public static function fixed_lgd_pre($string, $chars) {
-		self::logDeprecatedFunction();
-
-		return strrev(self::fixed_lgd(strrev($string), $chars));
-	}
-
-	/**
 	 * Truncates a string with appended/prepended "..." and takes current character set into consideration.
 	 * Usage: 75
 	 *
@@ -652,27 +563,6 @@ final class t3lib_div {
 	}
 
 	/**
-	 * Breaks up the text for emails
-	 * Usage: 1
-	 *
-	 * @param	string		The string to break up
-	 * @param	string		The string to implode the broken lines with (default/typically \n)
-	 * @param	integer		The line length
-	 * @deprecated since TYPO3 4.1, will be removed in TYPO3 4.6 - Use PHP function wordwrap()
-	 * @return	string
-	 */
-	public static function breakTextForEmail($str, $implChar = LF, $charWidth = 76) {
-		self::logDeprecatedFunction();
-
-		$lines = explode(LF, $str);
-		$outArr = array();
-		foreach ($lines as $lStr) {
-			$outArr[] = self::breakLinesForEmail($lStr, $implChar, $charWidth);
-		}
-		return implode(LF, $outArr);
-	}
-
-	/**
 	 * Breaks up a single line of text for emails
 	 * Usage: 5
 	 *
@@ -680,7 +570,6 @@ final class t3lib_div {
 	 * @param	string		The string to implode the broken lines with (default/typically \n)
 	 * @param	integer		The line length
 	 * @return	string
-	 * @see breakTextForEmail()
 	 */
 	public static function breakLinesForEmail($str, $implChar = LF, $charWidth = 76) {
 		$lines = array();
@@ -1289,56 +1178,6 @@ final class t3lib_div {
 	}
 
 	/**
-	 * strtoupper which converts danish (and other characters) characters as well
-	 * Usage: 0
-	 *
-	 * @param	string		String to process
-	 * @return	string
-	 * @deprecated since TYPO3 3.5, will be removed in TYPO3 4.6 - Use t3lib_cs::conv_case() instead or for HTML output, wrap your content in <span class="uppercase">...</span>)
-	 * @ignore
-	 */
-	public static function danish_strtoupper($string) {
-		self::logDeprecatedFunction();
-
-		$value = strtoupper($string);
-		return strtr($value, array(
-			chr(225) => chr(193),
-			chr(233) => chr(201),
-			chr(250) => chr(218),
-			chr(237) => chr(205),
-			chr(226) => chr(196),
-			chr(234) => chr(203),
-			chr(251) => chr(220),
-			chr(244) => chr(214),
-			chr(238) => chr(207),
-			chr(230) => chr(198),
-			chr(248) => chr(216),
-			chr(229) => chr(197),
-			chr(228) => chr(196),
-			chr(246) => chr(214),
-			chr(252) => chr(220),
-		));
-	}
-
-	/**
-	 * Change umlaut characters to plain ASCII with normally two character target
-	 * Only known characters will be converted, so don't expect a result for any character.
-	 *
-	 * ä => ae, Ö => Oe
-	 *
-	 * @param	string		String to convert.
-	 * @deprecated since TYPO3 4.1, will be removed in TYPO3 4.6 - Works only for western europe single-byte charsets! Use t3lib_cs::specCharsToASCII() instead!
-	 * @return	string
-	 */
-	public static function convUmlauts($str) {
-		self::logDeprecatedFunction();
-
-		$pattern = array(chr(228), chr(196), chr(246), chr(214), chr(252), chr(220), chr(223), chr(229), chr(197), chr(248), chr(216), chr(230), chr(198));
-		$replace = array('ae', 'Ae', 'oe', 'Oe', 'ue', 'Ue', 'ss', 'aa', 'AA', 'oe', 'OE', 'ae', 'AE');
-		return str_replace($pattern, $replace, $str);
-	}
-
-	/**
 	 * Tests if the input can be interpreted as integer.
 	 *
 	 * @param mixed Any input variable to test
@@ -1911,21 +1750,6 @@ final class t3lib_div {
 	}
 
 	/**
-	 * Remove duplicate values from an array
-	 * Usage: 0
-	 *
-	 * @param	array		Array of values to make unique
-	 * @return	array
-	 * @ignore
-	 * @deprecated since TYPO3 3.5, will be removed in TYPO3 4.6 - Use the PHP function array_unique instead
-	 */
-	public static function uniqueArray(array $valueArray) {
-		self::logDeprecatedFunction();
-
-		return array_unique($valueArray);
-	}
-
-	/**
 	 * Removes the value $cmpValue from the $array if found there. Returns the modified array
 	 * Usage: 3
 	 *
@@ -2236,20 +2060,6 @@ final class t3lib_div {
 	}
 
 	/**
-	 * Creates recursively a JSON literal from a multidimensional associative array.
-	 * Uses native function of PHP >= 5.2.0
-	 *
-	 * @param	array		$jsonArray: The array to be transformed to JSON
-	 * @return	string		JSON string
-	 * @deprecated since TYPO3 4.3, will be removed in TYPO3 4.6 - use PHP native function json_encode() instead, will be removed in TYPO3 4.5
-	 */
-	public static function array2json(array $jsonArray) {
-		self::logDeprecatedFunction();
-
-		return json_encode($jsonArray);
-	}
-
-	/**
 	 * Removes dots "." from end of a key identifier of TypoScript styled array.
 	 * array('key.' => array('property.' => 'value')) --> array('key' => array('property' => 'value'))
 	 *
@@ -2388,22 +2198,6 @@ final class t3lib_div {
 			}
 		}
 		return implode(' ', $list);
-	}
-
-	/**
-	 * Implodes attributes in the array $arr for an attribute list in eg. and HTML tag (with quotes)
-	 *
-	 * @param	array		See implodeAttributes()
-	 * @param	boolean		See implodeAttributes()
-	 * @param	boolean		See implodeAttributes()
-	 * @return	string		See implodeAttributes()
-	 * @deprecated since TYPO3 3.7, will be removed in TYPO3 4.6 - Name was changed into implodeAttributes
-	 * @see implodeAttributes()
-	 */
-	public static function implodeParams(array $arr, $xhtmlSafe = FALSE, $dontOmitBlankAttribs = FALSE) {
-		self::logDeprecatedFunction();
-
-		return self::implodeAttributes($arr, $xhtmlSafe, $dontOmitBlankAttribs);
 	}
 
 	/**
@@ -3206,7 +3000,7 @@ final class t3lib_div {
 	 *
 	 * @param	string		Absolute filepath to write to inside "typo3temp/". First part of this string must match PATH_site."typo3temp/"
 	 * @param	string		Content string to write
-	 * @return	string		Returns false on success, otherwise an error string telling about the problem.
+	 * @return	string		Returns NULL on success, otherwise an error string telling about the problem.
 	 */
 	public static function writeFileToTypo3tempDir($filepath, $content) {
 
@@ -3678,6 +3472,9 @@ final class t3lib_div {
 	 *
 	 *************************/
 
+	/* Deprecated since 4.5, use t3lib_utility_Debug */
+
+
 	/**
 	 * Returns a string with a list of ascii-values for the first $characters characters in $string
 	 * Usage: 0
@@ -3685,15 +3482,11 @@ final class t3lib_div {
 	 * @param	string		String to show ASCII value for
 	 * @param	integer		Number of characters to show
 	 * @return	string		The string with ASCII values in separated by a space char.
+	 * @deprecated since TYPO3 4.5 - Use t3lib_utility_Debug::ordinalValue instead
 	 */
 	public static function debug_ordvalue($string, $characters = 100) {
-		if (strlen($string) < $characters) {
-			$characters = strlen($string);
-		}
-		for ($i = 0; $i < $characters; $i++) {
-			$valuestring .= ' ' . ord(substr($string, $i, 1));
-		}
-		return trim($valuestring);
+		self::logDeprecatedFunction();
+		return t3lib_utility_Debug::ordinalValue($string, $characters);
 	}
 
 	/**
@@ -3704,49 +3497,11 @@ final class t3lib_div {
 	 *
 	 * @param	mixed		Array to view
 	 * @return	string		HTML output
+	 * @deprecated since TYPO3 4.5 - Use t3lib_utility_Debug::viewArray instead
 	 */
 	public static function view_array($array_in) {
-		if (is_array($array_in)) {
-			$result = '
-			<table border="1" cellpadding="1" cellspacing="0" bgcolor="white">';
-			if (count($array_in) == 0) {
-				$result .= '<tr><td><font face="Verdana,Arial" size="1"><strong>EMPTY!</strong></font></td></tr>';
-			} else {
-				foreach ($array_in as $key => $val) {
-					$result .= '<tr>
-						<td valign="top"><font face="Verdana,Arial" size="1">' . htmlspecialchars((string) $key) . '</font></td>
-						<td>';
-					if (is_array($val)) {
-						$result .= self::view_array($val);
-					} elseif (is_object($val)) {
-						$string = '';
-						if (method_exists($val, '__toString')) {
-							$string .= get_class($val) . ': ' . (string) $val;
-						} else {
-							$string .= print_r($val, TRUE);
-						}
-						$result .= '<font face="Verdana,Arial" size="1" color="red">' . nl2br(htmlspecialchars($string)) . '<br /></font>';
-					} else {
-						if (gettype($val) == 'object') {
-							$string = 'Unknown object';
-						} else {
-							$string = (string) $val;
-						}
-						$result .= '<font face="Verdana,Arial" size="1" color="red">' . nl2br(htmlspecialchars($string)) . '<br /></font>';
-					}
-					$result .= '</td>
-					</tr>';
-				}
-			}
-			$result .= '</table>';
-		} else {
-			$result = '<table border="1" cellpadding="1" cellspacing="0" bgcolor="white">
-				<tr>
-					<td><font face="Verdana,Arial" size="1" color="red">' . nl2br(htmlspecialchars((string) $array_in)) . '<br /></font></td>
-				</tr>
-			</table>'; // Output it as a string.
-		}
-		return $result;
+		self::logDeprecatedFunction();
+		return t3lib_utility_Debug::viewArray($array_in);
 	}
 
 	/**
@@ -3756,9 +3511,11 @@ final class t3lib_div {
 	 * @param	mixed		Array to print visually (in a table).
 	 * @return	void
 	 * @see view_array()
+	 * @deprecated since TYPO3 4.5 - Use t3lib_utility_Debug::printArray instead
 	 */
 	public static function print_array($array_in) {
-		echo self::view_array($array_in);
+		self::logDeprecatedFunction();
+		t3lib_utility_Debug::printArray($array_in);
 	}
 
 	/**
@@ -3772,122 +3529,22 @@ final class t3lib_div {
 	 * @param	string		The header.
 	 * @param	string		Group for the debug console
 	 * @return	void
+	 * @deprecated since TYPO3 4.5 - Use t3lib_utility_Debug::debug instead
 	 */
 	public static function debug($var = '', $header = '', $group = 'Debug') {
-			// buffer the output of debug if no buffering started before
-		if (ob_get_level() == 0) {
-			ob_start();
-		}
-		$debug = '';
-
-		if ($header) {
-			$debug .= '
-			<table class="typo3-debug" border="0" cellpadding="0" cellspacing="0" bgcolor="white" style="border:0px; margin-top:3px; margin-bottom:3px;">
-				<tr>
-					<td style="background-color:#bbbbbb; font-family: verdana,arial; font-weight: bold; font-size: 10px;">' .
-					htmlspecialchars((string) $header) .
-					'</td>
-				</tr>
-				<tr>
-					<td>';
-		}
-
-		if (is_array($var)) {
-			$debug .= self::view_array($var);
-		} elseif (is_object($var)) {
-			$debug .= '<strong>|Object:<pre>';
-			$debug .= print_r($var, TRUE);
-			$debug .= '</pre>|</strong>';
-		} elseif ((string) $var !== '') {
-			$debug .= '<strong>|' . htmlspecialchars((string) $var) . '|</strong>';
-		} else {
-			$debug .= '<strong>| debug |</strong>';
-		}
-
-		if ($header) {
-			$debug .= '
-					</td>
-				</tr>
-			</table>';
-		}
-
-		if (TYPO3_MODE === 'BE') {
-			$group = htmlspecialchars($group);
-
-			if ($header !== '') {
-				$tabHeader = htmlspecialchars($header);
-			} else {
-				$tabHeader = 'Debug';
-			}
-
-			if (is_object($var)) {
-				$debug = str_replace(
-					array('"', '/', '<', "\n", "\r"),
-					array('\"', '\/', '\<', '<br />', ''),
-					$debug
-				);
-			} else {
-				$debug = str_replace(
-					array('"', '/', '<', "\n", "\r"),
-					array('\"', '\/', '\<', '', ''),
-					$debug
-				);
-			}
-
-			$script = '
-				(function debug() {
-					var debugMessage = "' . $debug . '";
-					var header = "' . $tabHeader . '";
-					var group = "' . $group . '";
-
-					if (typeof Ext !== "object" && (top && typeof top.Ext !== "object")) {
-						document.write(debugMessage);
-						return;
-					}
-
-					if (top && typeof Ext !== "object") {
-						Ext = top.Ext;
-					}
-
-					Ext.onReady(function() {
-						var TYPO3ViewportInstance = null;
-
-						if (top && top.TYPO3 && typeof top.TYPO3.Backend === "object") {
-							TYPO3ViewportInstance = top.TYPO3.Backend;
-						} else if (typeof TYPO3 === "object" && typeof TYPO3.Backend === "object") {
-							TYPO3ViewportInstance = TYPO3.Backend;
-						}
-
-						if (TYPO3ViewportInstance !== null) {
-							TYPO3ViewportInstance.DebugConsole.addTab(debugMessage, header, group);
-						} else {
-							document.write(debugMessage);
-						}
-					});
-				})();
-			';
-			echo self::wrapJS($script);
-		} else {
-			echo $debug;
-		}
+		self::logDeprecatedFunction();
+		t3lib_utility_Debug::debug($var, $header, $group);
 	}
 
 	/**
 	 * Displays the "path" of the function call stack in a string, using debug_backtrace
 	 *
 	 * @return	string
+	 * @deprecated since TYPO3 4.5 - Use t3lib_utility_Debug::debugTrail instead
 	 */
 	public static function debug_trail() {
-		$trail = debug_backtrace();
-		$trail = array_reverse($trail);
-		array_pop($trail);
-
-		$path = array();
-		foreach ($trail as $dat) {
-			$path[] = $dat['class'] . $dat['type'] . $dat['function'] . '#' . $dat['line'];
-		}
-
-		return implode(' // ', $path);
+		self::logDeprecatedFunction();
+		return t3lib_utility_Debug::debugTrail();
 	}
 
 	/**
@@ -3897,52 +3554,11 @@ final class t3lib_div {
 	 * @param	string		Table header
 	 * @param	boolean		If TRUE, will return content instead of echo'ing out.
 	 * @return	void		Outputs to browser.
+	 * @deprecated since TYPO3 4.5 - Use t3lib_utility_Debug::debugRows instead
 	 */
 	public static function debugRows($rows, $header = '', $returnHTML = FALSE) {
-		if (is_array($rows)) {
-			reset($rows);
-			$firstEl = current($rows);
-			if (is_array($firstEl)) {
-				$headerColumns = array_keys($firstEl);
-				$tRows = array();
-
-					// Header:
-				$tRows[] = '<tr><td colspan="' . count($headerColumns) . '" style="background-color:#bbbbbb; font-family: verdana,arial; font-weight: bold; font-size: 10px;"><strong>' . htmlspecialchars($header) . '</strong></td></tr>';
-				$tCells = array();
-				foreach ($headerColumns as $key) {
-					$tCells[] = '
-							<td><font face="Verdana,Arial" size="1"><strong>' . htmlspecialchars($key) . '</strong></font></td>';
-				}
-				$tRows[] = '
-						<tr>' . implode('', $tCells) . '
-						</tr>';
-
-					// Rows:
-				foreach ($rows as $singleRow) {
-					$tCells = array();
-					foreach ($headerColumns as $key) {
-						$tCells[] = '
-							<td><font face="Verdana,Arial" size="1">' . (is_array($singleRow[$key]) ? self::debugRows($singleRow[$key], '', TRUE) : htmlspecialchars($singleRow[$key])) . '</font></td>';
-					}
-					$tRows[] = '
-						<tr>' . implode('', $tCells) . '
-						</tr>';
-				}
-
-				$table = '
-					<table border="1" cellpadding="1" cellspacing="0" bgcolor="white">' . implode('', $tRows) . '
-					</table>';
-				if ($returnHTML) {
-					return $table;
-				} else {
-					echo $table;
-				}
-			} else {
-				debug('Empty array of rows', $header);
-			}
-		} else {
-			debug('No array of rows', $header);
-		}
+		self::logDeprecatedFunction();
+		t3lib_utility_Debug::debugRows($rows, $header, $returnHTML);
 	}
 
 
@@ -5272,7 +4888,7 @@ final class t3lib_div {
 		) {
 			$errorMsg = "Function/class '$funcRef' was not prepended with '$checkPrefix'";
 			if ($errorMode == 2) {
-				throw new Exception($errorMsg);
+				throw new InvalidArgumentException($errorMsg, 1294585864);
 			} elseif (!$errorMode) {
 				debug($errorMsg, 't3lib_div::callUserFunction');
 			}
@@ -5311,17 +4927,17 @@ final class t3lib_div {
 						array(&$params, &$ref)
 					);
 				} else {
-					$errorMsg = "<strong>ERROR:</strong> No method name '" . $parts[1] . "' in class " . $parts[0];
+					$errorMsg = "No method name '" . $parts[1] . "' in class " . $parts[0];
 					if ($errorMode == 2) {
-						throw new Exception($errorMsg);
+						throw new InvalidArgumentException($errorMsg, 1294585865);
 					} elseif (!$errorMode) {
 						debug($errorMsg, 't3lib_div::callUserFunction');
 					}
 				}
 			} else {
-				$errorMsg = "<strong>ERROR:</strong> No class named: " . $parts[0];
+				$errorMsg = 'No class named ' . $parts[0];
 				if ($errorMode == 2) {
-					throw new Exception($errorMsg);
+					throw new InvalidArgumentException($errorMsg, 1294585866);
 				} elseif (!$errorMode) {
 					debug($errorMsg, 't3lib_div::callUserFunction');
 				}
@@ -5330,9 +4946,9 @@ final class t3lib_div {
 			if (function_exists($funcRef)) {
 				$content = call_user_func_array($funcRef, array(&$params, &$ref));
 			} else {
-				$errorMsg = "<strong>ERROR:</strong> No function named: " . $funcRef;
+				$errorMsg = 'No function named: ' . $funcRef;
 				if ($errorMode == 2) {
-					throw new Exception($errorMsg);
+					throw new InvalidArgumentException($errorMsg, 1294585867);
 				} elseif (!$errorMode) {
 					debug($errorMsg, 't3lib_div::callUserFunction');
 				}
@@ -5464,21 +5080,6 @@ final class t3lib_div {
 	}
 
 	/**
-	 * Return classname for new instance
-	 * Takes the class-extensions API of TYPO3 into account
-	 * Usage: 17
-	 *
-	 * @param	string		Base Class name to evaluate
-	 * @return	string		Final class name to instantiate with "new [classname]"
-	 * @deprecated since TYPO3 4.3, will be removed in TYPO3 4.6 - Use t3lib_div::makeInstance('myClass', $arg1, $arg2,  ..., $argN)
-	 */
-	public static function makeInstanceClassName($className) {
-		self::logDeprecatedFunction();
-
-		return (class_exists($className) && class_exists('ux_' . $className, FALSE) ? self::makeInstanceClassName('ux_' . $className) : $className);
-	}
-
-	/**
 	 * Returns the class name for a new instance, taking into account the
 	 * class-extension API.
 	 *
@@ -5486,7 +5087,13 @@ final class t3lib_div {
 	 * @return	string		Final class name to instantiate with "new [classname]"
 	 */
 	protected function getClassName($className) {
-		return (class_exists($className) && class_exists('ux_' . $className, FALSE) ? self::getClassName('ux_' . $className) : $className);
+		if (class_exists($className)) {
+			while (class_exists('ux_' . $className, FALSE)) {
+				$className = 'ux_' . $className;
+			}
+		}
+
+		return $className;
 	}
 
 	/**
@@ -5615,7 +5222,7 @@ final class t3lib_div {
 					if (is_object($obj)) {
 						if (!@is_callable(array($obj, 'init'))) {
 								// use silent logging??? I don't think so.
-							die ('Broken service:' . self::view_array($info));
+							die ('Broken service:' . t3lib_utility_Debug::viewArray($info));
 						}
 						$obj->info = $info;
 						if ($obj->init()) { // service available?
@@ -6038,13 +5645,20 @@ final class t3lib_div {
 				// send message per mail
 			elseif ($type == 'mail') {
 				list($to, $from) = explode('/', $destination);
-				t3lib_utility_Mail::mail($to, 'Warning - error in TYPO3 installation',
-						'Host: ' . $TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLogHost'] . LF .
+				if (!t3lib_div::validEmail($from)) {
+					$from = t3lib_utility_Mail::getSystemFrom();
+				}
+				/** @var $mail t3lib_mail_Message */
+				$mail = t3lib_div::makeInstance('t3lib_mail_Message');
+				$mail->setTo($to)
+						->setFrom($from)
+						->setSubject('Warning - error in TYPO3 installation')
+						->setBody('Host: ' . $TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_div.php']['systemLogHost'] . LF .
 								'Extension: ' . $extKey . LF .
 								'Severity: ' . $severity . LF .
-								LF . $msg,
-					($from ? 'From: ' . $from : '')
+								LF . $msg
 				);
+				$mail->send();
 			}
 				// use the PHP error log
 			elseif ($type == 'error_log') {
@@ -6123,7 +5737,7 @@ final class t3lib_div {
 
 			// do not use console in login screen
 		if (stripos($log, 'console') !== FALSE && isset($GLOBALS['BE_USER']->user['uid'])) {
-			self::debug($msg, $date, 'Deprecation Log');
+			t3lib_utility_Debug::debug($msg, $date, 'Deprecation Log');
 		}
 	}
 
@@ -6173,7 +5787,7 @@ final class t3lib_div {
 
 			// write a longer message to the deprecation log: <function> <annotion> - <trace> (<source>)
 		$logMsg = $trail[1]['class'] . $trail[1]['type'] . $trail[1]['function'];
-		$logMsg .= '() - ' . $msg . ' - ' . self::debug_trail();
+		$logMsg .= '() - ' . $msg.' - ' . t3lib_utility_Debug::debugTrail();
 		$logMsg .= ' (' . substr($function->getFileName(), strlen(PATH_site)) . '#' . $function->getStartLine() . ')';
 		self::deprecationLog($logMsg);
 	}

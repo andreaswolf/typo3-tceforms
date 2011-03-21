@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -97,7 +97,6 @@
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tslib
- * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=377&cHash=e00ac666f3
  */
 class tslib_gifBuilder extends t3lib_stdGraphic {
 
@@ -184,17 +183,12 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 					: explode('|', trim($this->setup['transparentColor']));
 			}
 
- 				// Transparency does not properly work when, GIFs or 8-bit PNGs are generated or reduceColors is set -- disable truecolor flag so they get generated "natively" in 8-bit.
- 				// not working with reduceColors and truecolor images
 			if(isset($this->setup['transparentBackground.'])) {
 				$this->setup['transparentBackground'] = $this->cOjb->stdWrap($this->setup['transparentBackground'], $this->setup['transparentBackground.']);
 			}
 			if(isset($this->setup['reduceColors.'])) {
 				$this->setup['reduceColors'] = $this->cOjb->stdWrap($this->setup['reduceColors'], $this->setup['reduceColors.']);
 			}
- 			if (($this->setup['transparentBackground'] || is_array($this->setup['transparentColor_array'])) && ($this->gifExtension=='gif' || !$this->png_truecolor || $this->setup['reduceColors']))	{
- 				$this->truecolor = false;
- 			}
 
 				// Set default dimensions
 			if (isset($this->setup['XY.'])) {
@@ -386,7 +380,6 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 	 * @return	void
 	 * @access private
 	 * @see gifBuild()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=378&cHash=3c2ae4a1ab
 	 */
 	function make()	{
 			// Get trivial data
@@ -511,7 +504,7 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 						case 'ELLIPSE':
 							$this->makeEllipse($this->im, $conf, $this->workArea);
 						break;
-					}					
+					}
 				}
 			}
 		}
@@ -683,8 +676,6 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 	 * @return	array		Returns an array with file information if an image was returned. Otherwise false.
 	 * @access private
 	 * @see tslib_cObj::getImgResource()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=315&cHash=63b593a934
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=282&cHash=831a95115d
 	 */
 	function getResource($file,$fileArray)	{
 		if (!t3lib_div::inList($this->imageFileExt, $fileArray['ext']))	{
@@ -719,10 +710,11 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 		$meaningfulPrefix = '';
 
 		if ($GLOBALS['TSFE']->config['config']['meaningfulTempFilePrefix']) {
+			/** @var $basicFileFunctions t3lib_basicFileFunctions */
+			$basicFileFunctions = t3lib_div::makeInstance('t3lib_basicFileFunctions');
+			
 			$meaningfulPrefix = implode('_', array_merge($this->combinedTextStrings, $this->combinedFileNames));
-				// Convert raw string to a nice ASCII-only string without spaces
-			$meaningfulPrefix = $GLOBALS['TSFE']->csConvObj->specCharsToASCII($GLOBALS['TSFE']->renderCharset, $meaningfulPrefix);
-			$meaningfulPrefix = str_replace(' ', '_', $meaningfulPrefix);
+			$meaningfulPrefix = $basicFileFunctions->cleanFileName($meaningfulPrefix);
 			$meaningfulPrefix = substr($meaningfulPrefix, 0, intval($GLOBALS['TSFE']->config['config']['meaningfulTempFilePrefix'])) . '_';
 		}
 

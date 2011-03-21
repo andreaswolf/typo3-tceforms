@@ -49,7 +49,8 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 					plain: true,
 					activeTab: 0,
 					defaults: {
-						autoHeight: true
+						autoHeight: true,
+						autoWidth: true
 					},
 					record: record,
 					items:[
@@ -82,17 +83,21 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 				{name:'category', type: 'int'},
 				{name:'version'},
 				{name:'alldownloadcounter', type: 'int'},
+				{name:'downloadcounter', type: 'int'},
 				{name:'statevalue'},
 				{name:'state'},
+				{name:'stateCls'},
 				{name:'icon'},
 				{name:'description'},
-				{name:'lastuploaddate'},
+				{name:'lastuploaddate', type: 'date', dateFormat: 'timestamp'},
 				{name:'authorname'},
 				{name:'authoremail'},
 				{name:'versions', type: 'int'},
 				{name:'installed', type: 'int'},
 				{name:'versionislower', type: 'bool'},
-				{name:'exists', type: 'int'}
+				{name:'existingVersion'},
+				{name:'exists', type: 'int'},
+				{name:'relevance', type: 'int'}
 			],
 			paramNames: {
 				start : 'start',
@@ -102,7 +107,7 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 				query: 'query'
 			},
 			baseParams: {
-				query: '*',
+				query: '',
 				repository: 1,
 				start: 0,
 				limit: 50
@@ -115,6 +120,10 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 			},
 			listeners: {
 				beforeload: function(store, records){
+					var control = Ext.getCmp('rsearchField');
+					if (control.getValue == '') {
+						return false;
+					}
 					store.setBaseParam('rep', Ext.getCmp('repCombo').getValue());
 					store.setBaseParam('installedOnly', this.showInstalledOnly);
 					if (!this.showInstalledOnly) {
@@ -136,8 +145,27 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 					} else {
 						this.doClearFilters.hide();
 					}
+					if (records.length === 0) {
+
+					} else {
+
+					}
 				},
 				scope: this
+			},
+			highlightSearch: function(value) {
+				var control = Ext.getCmp('rsearchField');
+				if (control) {
+					var filtertext = control.getRawValue();
+					if (filtertext) {
+						var re = new RegExp(Ext.escapeRe(filtertext), 'gi');
+						var result = re.exec(value) || [];
+						if (result.length) {
+							return value.replace(result[0], '<span class="filteringList-highlight">' + result[0] + '</span>');
+						}
+					}
+				}
+				return value;
 			}
 
 		});
@@ -155,7 +183,9 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 		var searchField = new Ext.ux.form.SearchField({
 			id: 'rsearchField',
 			store: this.repositoryListStore,
-			width: 200
+			width: 260,
+			specialKeyOnly: true,
+			emptyText: TYPO3.lang.msg_startTyping
 		});
 
 		var cm = new Ext.grid.ColumnModel({
@@ -167,6 +197,8 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 				TYPO3.EM.GridColumns.ExtensionCategoryRemote,
 				TYPO3.EM.GridColumns.ExtensionRemoteAuthor,
 				TYPO3.EM.GridColumns.ExtensionType,
+				TYPO3.EM.GridColumns.Relevance,
+				TYPO3.EM.GridColumns.ExtensionDownloads,
 				TYPO3.EM.GridColumns.ExtensionStateValue
 			],
 			defaults: {
@@ -195,7 +227,7 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 				' ',
 				{
 					text: TYPO3.lang.cmd_filter,
-					qTip: TYPO3.lang.help_remoteFilter,
+					tooltip: TYPO3.lang.help_remoteFilter,
 					scale: 'small',
 					iconAlign: 'right',
 					ref: '../filterMenuButton',
@@ -322,7 +354,7 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 									installAction: 'import',
 									listeners: {
 										close: function() {
-											TYPO3.EM.Tools.refreshMenu();
+											TYPO3.EM.Tools.refreshMenu(record, 'import');
 										}
 									}
 								}).show(true, function(){
@@ -337,7 +369,12 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 		});
 
 		this.on('rowdblclick',function(grid, rowIndex, event) {
-			if (TYPO3.settings.EM.inlineToWindow) {
+			if (TYPO3.settings.EM.inlineToWindow == 1) {
+				this.showExtInfoInWindow(rowIndex);
+			}
+		});
+		this.on('cellclick',function(grid, rowIndex, columnIndex, event) {
+			if (TYPO3.settings.EM.inlineToWindow == 1 && columnIndex == 2) {
 				this.showExtInfoInWindow(rowIndex);
 			}
 		});
@@ -345,7 +382,12 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 
 	repositoryUpdate: function() {
 		var m = Ext.MessageBox.wait(TYPO3.lang.msg_longwait, TYPO3.lang.repository_update);
-		TYPO3.EM.ExtDirect.repositoryUpdate(1, function(response) {
+		var index = TYPO3.EM.RepositoryCombo.getValue();
+		if (!index) {
+			return;
+		}
+		var record = this.repositoryStore.getAt(index - 1);
+		TYPO3.EM.ExtDirect.repositoryUpdate(index, function(response) {
 			if (!response.success) {
 				if (response.rep == 0) {
 					TYPO3.Flashmessage.display(TYPO3.Severity.error, TYPO3.lang.msg_error, response.errormsg, 15);
@@ -354,21 +396,29 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 				}
 			} else {
 				TYPO3.Flashmessage.display(TYPO3.Severity.information, TYPO3.lang.repository_updated, String.format(TYPO3.lang.repository_extensions_count, response.data.count), 10);
-				this.repositoryListStore.load();
+				record.set('count', response.data.count);
+				record.set('updated', response.data.updated);
+				Ext.getCmp('repListInfo').update(TYPO3.EM.Layouts.repositoryInfo().applyTemplate(record.data));
 			}
 			m.hide();
 		}, this);
-
 	},
 
 	showExtInfoInWindow: function(index) {
-		record = this.store.getAt(index);
-		var w = new Ext.Window({
-			title: TYPO3.EM.Tools.renderExtensionTitle(record),
-			width: 600,
-			height: 250,
-			items : this.expander.createExpandingRowPanelItems(record,index)
-		}).show();
+		var record = this.store.getAt(index);
+		var id = 'window-extinfo-' + record.data.extkey;
+		if (Ext.WindowMgr.get(id)) {
+			Ext.WindowMgr.bringToFront(id);
+		} else {
+			new Ext.Window({
+				title: TYPO3.EM.Tools.renderExtensionTitle(record),
+				layout: 'fit',
+				width: 600,
+				height: 350,
+				items : this.expander.createExpandingRowPanelItems(record,index),
+				id: id
+			}).show();
+		}
 	}
 });
 

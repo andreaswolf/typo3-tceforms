@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2009-2010 Oliver Hader <oliver@typo3.org>
+ *  (c) 2009-2011 Oliver Hader <oliver@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -113,7 +113,6 @@ class t3lib_matchCondition_backend extends t3lib_matchCondition_abstract {
 	 * @param	string		Identifier
 	 * @return	mixed		The value of the variable pointed to.
 	 * @access private
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=311&cHash=487cbd5cdf
 	 */
 	protected function getVariable($var) {
 		$vars = explode(':', $var, 2);

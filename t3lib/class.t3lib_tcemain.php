@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -1352,7 +1352,7 @@ class t3lib_TCEmain {
 		}
 
 			// Checking range of value:
-		if ($tcaFieldConf['range'] && $value != $tcaFieldConf['checkbox']) { // If value is not set to the allowed checkbox-value then it is checked against the ranges
+		if ($tcaFieldConf['range'] && $value != $tcaFieldConf['checkbox'] && $value != $tcaFieldConf['default']) {
 			if (isset($tcaFieldConf['range']['upper']) && $value > $tcaFieldConf['range']['upper']) {
 				$value = $tcaFieldConf['range']['upper'];
 			}

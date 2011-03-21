@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Steffen Gebert (steffen@steffen-gebert.de)
+ *  (c) 2010-2011 Steffen Gebert (steffen@steffen-gebert.de)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -43,6 +43,14 @@ class t3lib_Compressor {
 		// default compression level is -1
 	protected $gzipCompressionLevel = -1;
 
+	protected $htaccessTemplate = '<FilesMatch "\.(js|css)(\.gzip)?$">
+	<IfModule mod_expires.c>
+		ExpiresActive on
+		ExpiresDefault "access plus 7 days"
+	</IfModule>
+	FileETag MTime Size
+</FilesMatch>';
+
 	/**
 	 * Constructor
 	 */
@@ -51,6 +59,15 @@ class t3lib_Compressor {
 			// we check for existance of our targetDirectory
 		if (!is_dir(PATH_site . $this->targetDirectory)) {
 			t3lib_div::mkdir(PATH_site . $this->targetDirectory);
+		}
+
+			// if enabled, we check whether we should auto-create the .htaccess file
+		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['generateApacheHtaccess']) {
+				// check whether .htaccess exists
+			$htaccessPath = PATH_site . $this->targetDirectory . '.htaccess';
+			if (!file_exists($htaccessPath)) {
+				t3lib_div::writeFile($htaccessPath, $this->htaccessTemplate);
+			}
 		}
 
 			// decide whether we should create gzipped versions or not
@@ -115,9 +132,11 @@ class t3lib_Compressor {
 	 */
 	private function getFilenameFromMainDir($filename) {
 			// if the file exists in the typo3/ folder or the BACK_PATH is empty, just return the $filename
-		$file = str_replace($GLOBALS['BACK_PATH'], '', $filename);
-		if (is_file(PATH_typo3 . $file) || empty($GLOBALS['BACK_PATH'])) {
-			return $file;
+		if (substr($filename, 0, strlen($GLOBALS['BACK_PATH'])) === $GLOBALS['BACK_PATH']) {
+			$file = str_replace($GLOBALS['BACK_PATH'], '', $filename);
+			if (is_file(PATH_typo3 . $file) || empty($GLOBALS['BACK_PATH'])) {
+				return $file;
+			}
 		}
 
 			// build the file path relatively to the PATH_site

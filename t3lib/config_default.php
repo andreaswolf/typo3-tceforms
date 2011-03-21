@@ -22,6 +22,9 @@ define('FILE_DENY_PATTERN_DEFAULT', '\.(php[3-6]?|phpsh|phtml)(\..*)?$|^\.htacce
 //Security related constant: Comma separated list of file extensions that should be registered as php script file extensions
 define('PHP_EXTENSIONS_DEFAULT', 'php,php3,php4,php5,php6,phpsh,inc,phtml');
 
+// Defines a list that are basically required by a TYPO3 system.
+define('REQUIRED_EXTENSIONS', 'cms,lang,sv,em,recordlist');
+
 $TYPO3_CONF_VARS = array(
 	'GFX' => array(		// Configuration of the image processing features in TYPO3. 'IM' and 'GD' are short for ImageMagick and GD library respectively.
 		'image_processing' => TRUE,				// Boolean: Enables image processing features. Disabling this means NO image processing with either GD or IM!
@@ -51,7 +54,6 @@ $TYPO3_CONF_VARS = array(
 		'im_useStripProfileByDefault' => TRUE,	// Boolean: If set, the im_stripProfileCommand is used with all IM Image operations by default. See tsRef for setting this parameter explocit for IMAGE generation.
 		'jpg_quality' => 70,					// Integer: Default JPEG generation quality
 		'enable_typo3temp_db_tracking' => FALSE,	// Boolean: If set, then all files in typo3temp will be logged in a database table. In addition to being a log of the files with original filenames, it also serves to secure that the same image is not rendered simultaneously by two different processes.
-		'TTFLocaleConv' => '',					// String: Enter locale conversion string used to recode input to TrueType functions. Eg. 'cp1250..UTF-8'. Deprecated from ver. 3.6.0 of TYPO3. Set up <a href="#BE-forceCharset">[BE][forceCharset]</a> as strings are automatically converted from database charset to UTF-8.
 		'TTFdpi' => 72,							// Integer: Enter how many dpi the FreeType module uses. Freetype1 should be set to 72. Freetype2 should be set to 96 (otherwise fonts are rendered way bigger than FreeType1). This works as a global scaling factor for Freetype.
 		'png_truecolor' => FALSE,				// Boolean: If set PNGs will get created as truecolor PNGs. If you use GDlib2 you can create truecolor images if they look not well currently. Note that this results in an increased image size. JPEGs get always created in truecolor now (GDlib2 required)
 	),
@@ -86,12 +88,12 @@ $TYPO3_CONF_VARS = array(
 		'binSetup' => '', 						// String (textarea): List of programs (separated by newline or comma). By default programs will be searched in default paths and the special paths defined by 'binPath'. When PHP has openbasedir enabled the programs can not be found and have to be configured here. Example: <code>perl=/usr/bin/perl,unzip=/usr/local/bin/unzip</code>
 		't3lib_cs_convMethod' => '',			// String (values: "iconv", "recode", "mbstring", default is homemade PHP-code). Defines which of these PHP-features to use for various charset conversion functions in t3lib_cs. Will speed up charset conversion radically.
 		't3lib_cs_utils' => '',					// String (values: "iconv", "mbstring", default is homemade PHP-code). Defines which of these PHP-features to use for various charset processing functions in t3lib_cs. Will speed up charset functions radically.
-		'no_pconnect' => FALSE,					// Boolean: If true, "connect" is used instead of "pconnect" when connecting to the database!
+		'no_pconnect' => TRUE,					// Boolean: If true, "connect" is used instead of "pconnect" when connecting to the database!
 		'multiplyDBfieldSize' => 1,				// Double: 1-5: Amount used to multiply the DB field size when the install tool is evaluating the database size (eg. "2.5"). This is only useful e.g. if your database is ISO-8859-1 encoded but you want to use UTF-8 for your site. For Western European sites using UTF-8 the need should not be for more than twice the normal single-byte size (2) and for Chinese / Asian languages 3 should suffice. NOTICE: It is recommended to change the native database charset instead! (see <a href="http://wiki.typo3.org/index.php/UTF-8_support" target="_blank">TYPO3 wiki: UTF-8 support</a> for more information). NOTICE: This option is deprecated since TYPO3 4.5, and will not be used anymore in 4.7+. Please use proper tools to set your installation to native UTF-8.
 		'setDBinit' => '-1',						// String (textarea): Commands to send to database right after connecting, separated by newline. Ignored by the DBAL extension except for the 'native' type!
 		'dbClientCompress' => FALSE,			// Boolean: if true, data exchange between TYPO3 and database server will be compressed. This may improve performance if (1) database serever is on the different server and (2) network connection speed to database server is 100mbps or less. CPU usage will be higher if this option is used but database operations will be executed faster due to much less (up to 3 times) database network traffic. This option has no effect if MySQL server is localhost.
 		'setMemoryLimit' => 0,					// Integer: memory_limit in MB: If more than 16, TYPO3 will try to use ini_set() to set the memory limit of PHP to the value. This works only if the function ini_set() is not disabled by your sysadmin.
-		'forceReturnPath' => FALSE,				// Boolean: Force return path to be applied in mail() calls. If this is set, all calls to mail() done by t3lib_htmlmail will be called with '-f&lt;return_path&gt; as the 5th parameter. This will make the return path correct on almost all Unix systems. There is a known problem with Postfix below version 2: Mails are not sent if this option is set and Postfix is used. On Windows platforms, the return path is set via a call to ini_set. This has no effect if safe_mode in PHP is on.
+		'forceReturnPath' => FALSE,				// Boolean: <em>Note: This option is deprecated as of TYPO3 4.5 together with t3lib_htmlmail. This behaviour is the default using the new t3lib_mail methods.</em> Force return path to be applied in mail() calls. If this is set, all calls to mail() done by t3lib_htmlmail will be called with '-f&lt;return_path&gt; as the 5th parameter. This will make the return path correct on almost all Unix systems. There is a known problem with Postfix below version 2: Mails are not sent if this option is set and Postfix is used. On Windows platforms, the return path is set via a call to ini_set. This has no effect if safe_mode in PHP is on.
 		'serverTimeZone' => 1,					// Integer: GMT offset of servers time (from time()). Default is "1" which is "GMT+1" (central european time). This value can be used in extensions that are GMT aware and wants to convert times to/from other timezones.
 		'phpTimeZone' => '',					// String: timezone to force for all date() and mktime() functions. A list of supported values can be found at <a href="http://php.net/manual/en/timezones.php" target="_blank">php.net</a>. If this is not set, a valid fallback will be searched for by PHP (php.ini's <a href="http://www.php.net/manual/en/datetime.configuration.php#ini.date.timezone" target="_blank">date.timezone</a> setting, server defaults, etc); and if no fallback is found, the value of "UTC" is used instead.
 		'systemLog' => '',						// <p>String: semi-colon separated list. Defines one or more logging methods. Possible methods:</p><dl><dt>file,&lt;abs-path-to-file&gt;[,&lt;level&gt;]</dt><dd>logs to a file</dd><dt>mail,&lt;to&gt;[/&lt;from&gt;][,&lt;level&gt;]</dt><dd>sends the log entries via mail</dd><dt>syslog,&lt;facility&gt;,[,&lt;level&gt;]</dt><dd>uses the operating system's log. Facility may be one of LOCAL0..LOCAL7, USER (on Windows USER is the only valid type).</dd><dt>error_log[,,&lt;level&gt;]</dt><dd>uses the PHP error log</dd></dl><p>The &lt;level&gt; is the individual logging level (see <a href="#SYS-systemLogLevel">[SYS][systemLogLevel]</a>).</p>
@@ -161,6 +163,7 @@ $TYPO3_CONF_VARS = array(
 		'syslogErrorReporting' => E_ALL ^ E_NOTICE,	// Integer: Configures which PHP errors should be logged to the configured syslogs (see: [SYS][systemLog]). If set to "0" no PHP errors are logged to the syslog. Default is "E_ALL ^ E_NOTICE" (6135).
 		'belogErrorReporting' => E_ALL ^ E_NOTICE,	// Integer: Configures which PHP errors should be logged to the "syslog" table (extension: belog). If set to "0" no PHP errors are logged to the sys_log table. Default is "E_ALL ^ E_NOTICE" (6135).
 		'locallangXMLOverride' => array(),				// For extension/overriding of the arrays in 'locallang' files in frontend and backend. See 'Inside TYPO3' for more information.
+		'generateApacheHtaccess' => 1,			// Boolean: TYPO3 can create <em>.htaccess</em> files which are used by Apache Webserver. They are useful for access protection or performance improvements. Currently <em>.htaccess</em> files in the following directories are created, if they do not exist: <ul><li>typo3temp/compressor/</li></ul>You want to disable this feature, if you are not running Apache or want to use own rulesets.
 	),
 	'EXT' => array (	// Options related to the Extension Management
 		'noEdit' => TRUE,						// Boolean: If set, the Extension Manager does NOT allow extension files to be edited! (Otherwise both local and global extensions can be edited.)
@@ -170,7 +173,8 @@ $TYPO3_CONF_VARS = array(
 		'em_wsdlURL' => 'http://typo3.org/wsdl/tx_ter_wsdl.php',				// The SOAP URL for uploading extensions to the TER2. Usually doesn't need to be changed.
 		'em_mirrorListURL' => 'http://repositories.typo3.org/mirrors.xml.gz',				// Allows to preset the URL for fetching the extension repository mirror list from. Used in the Extension Manager.
 
-		'requiredExt' => 'cms,lang,sv,em,list,pagetree',		// String (exclude). List of extensions which are REQUIRED and cannot be unloaded by the Extension Manager!
+		'requiredExt' => '',		// String. List of additional extensions which are REQUIRED and cannot be unloaded by the Extension Manager!
+		'ignoredExt' => '',			// String. List of extensions to be ignored (not loaded), e.g. "em" can be disabled this way.
 		'excludeForPackaging' => '(CVS|\..*|.*~|.*\.bak)',		// String: List of directories and files which will not be packaged into extensions nor taken into account otherwise by the Extension Manager. Perl regular expression syntax!
 		'extCache' => 1,						// <p>Integer (0, 1, 2, 3)</p><dl><dt>0</dt><dd>ext-scripts (ext_localconf.php and ext_tables.php) are NOT cached, but included every time</dd><dt>1</dt><dd>scripts cached to typo3conf/temp_CACHED_[sitePathHash]* (saves some milliseconds even with PHP accelerators)</dd><dt>2</dt><dd>scripts cached and prefix includes a hash based on the 'extList' string</dd><dt>3</dt><dd>scripts cached to typo3conf/temp_CACHED_* (no hash included at all...)</dd></dl>
 		'extList' => 'filelist,version,tsconfig_help,context_help,extra_page_cm_options,impexp,belog,about,cshmanual,aboutmodules,setup,opendocs,install,t3editor,felogin,feedit,recycler',						// String (exclude) List of extensions which are enabled for this install. Use the Extension Manager (EM) to manage this!
@@ -203,21 +207,246 @@ $TYPO3_CONF_VARS = array(
 		'lockSSL' => 0,							// <p>Integer (0, 1, 2, 3). If &gt;0, If set (1,2,3), the backend can only be operated from an SSL-encrypted connection (https)</p><dl><dt>0</dt><dd>no locking (default)</dd><dt>1</dt><dd>only allow access via SSL</dd><dt>2</dt><dd>redirect user trying to access non-https admin-urls to SSL URLs instead</dd><dt>3</dt><dd>only the login is forced to SSL, then the user switches back to non-SSL-mode</dd></dl>
 		'lockSSLPort' => 0,						// Integer: Use a non-standard HTTPS port for lockSSL. Set this value if you use lockSSL and the HTTPS port of your webserver is not 443.
 		'enabledBeUserIPLock' => TRUE,			// Boolean: If set, the User/Group TSconfig option 'option.lockToIP' is enabled.
+		'lockHashKeyWords' => 'useragent',		// Keyword list (Strings comma separated). Currently only "useragent"; If set, then the BE user session is locked to the value of HTTP_USER_AGENT. This lowers the risk of session hi-jacking. However in some cases (like during development) you might need to switch the user agent while keeping the session. In this case you can disable that feature (e.g. with a blank string).
 		'cookieDomain' => '',					// Same as <a href="#SYS-cookieDomain">$TYPO3_CONF_VARS['SYS']['cookieDomain']</a> but only for BE cookies. If empty, $TYPO3_CONF_VARS['SYS']['cookieDomain'] value will be used.
 		'loginSecurityLevel' => '',				// String: Keywords that determines the security level of login to the backend. "normal" means the password from the login form is sent in clear-text, "challenged" means the password is not sent but hashed with some other values, "superchallenged" (default) means the password is first hashed before being hashed with the challenge values again (means the password is stored as a hashed string in the database also), "rsa" uses RSA password encryption (only if the rsaauth extension is installed). DO NOT CHANGE this value manually; without an alternative authentication service it will only prevent logins in TYPO3 since the "superchallenged" method is hardcoded in the default authentication system.
 		'showRefreshLoginPopup' => FALSE,		// Boolean: If set, the Ajax relogin will show a real popup window for relogin after the count down. Some auth services need this as they add custom validation to the login form. If it's not set, the Ajax relogin will show an inline relogin window.
 		'adminOnly' => 0,						// <p>Integer (-1, 0, 1, 2)</p><dl><dt>-1</dt><dd>total shutdown for maintenance purposes</dd><dt>0</dt><dd>normal operation, everyone can login (default)</dd><dt>1</dt><dd>only admins can login</dd><dt>2</dt><dd>only admins and regular CLI users can login</dd></dl>
 		'disable_exec_function' => FALSE,		// Boolean: Don't use exec() function (except for ImageMagick which is disabled by <a href="#GFX-im">[GFX][im]</a>=0). If set, all fileoperations are done by the default PHP-functions. This is nescessary under Windows! On Unix the system commands by exec() can be used, unless this is disabled.
 		'usePHPFileFunctions' => TRUE,			// Boolean: If set, all fileoperations are done by the default PHP-functions. Default on Unix is using the system commands by exec(). You need to set this flag under safe_mode.
-		'compressionLevel' => 0,				// Determines output compression of BE output. Makes output smaller but slows down the page generation depending on the compression level. Requires a) zlib in your PHP installation and b) special rewrite rules for .css.gzip and .js.gzip (please see misc/advanced.htacces for an example). Range 1-9, where 1 is least compression and 9 is greatest compression. 'true' as value will set the compression based on the PHP default settings (usually 5). Suggested and most optimal value is 5.
+		'compressionLevel' => 0,				// Determines output compression of BE output. Makes output smaller but slows down the page generation depending on the compression level. Requires a) zlib in your PHP installation and b) special rewrite rules for .css.gzip and .js.gzip (please see _.htacces for an example). Range 1-9, where 1 is least compression and 9 is greatest compression. 'true' as value will set the compression based on the PHP default settings (usually 5). Suggested and most optimal value is 5.
 		'maxFileSize' => '10240',				// Integer: If set this is the max filesize in KB's for file operations in the backend. Can be overridden through $TCA per table field separately.
 		'forceCharset' => '-1',					// String: Normally the charset of the backend users language selection is used. If you set this value to a charset found in t3lib/csconvtbl/ (or "utf-8") the backend (and database) will ALWAYS use this charset. Always use a lowercase value. NOTICE: This option is deprecated since TYPO3 4.5, and will be removed in 4.7. Please use proper tools to set your installation to native UTF-8.
 		'installToolPassword' => '',			// String: This is the md5-hashed password for the Install Tool. Set this to '' and access will be totally denied. PLEASE consider to externally password protect the typo3/install/ folder, eg. with a .htaccess file.
+		'pageTree' => array(
+			'preloadLimit' => 50,				// Integer: Count of pages that will be preloaded in pagetree. Big amount makes collapsing new branches faster but requires more SQL queries.
+		),
 		'defaultUserTSconfig' => 'options.enableBookmarks=1
 			options.enableShowPalettes=1
 			options.file_list.enableDisplayBigControlPanel=selectable
 			options.file_list.enableDisplayThumbnails=selectable
-			options.file_list.enableClipBoard=selectable',	// String (exclude). Enter lines of default backend user/group TSconfig.
+			options.file_list.enableClipBoard=selectable
+			options.pageTree {
+				doktypesToShowInNewPageDragArea = 1,6,4,7,3,254,255,199
+			}
+
+			options.contextMenu.options.leftIcons = 1
+			options.contextMenu {
+				table {
+					pages_root {
+						disableItems =
+
+						items {
+							100 = ITEM
+							100 {
+								name = view
+								label = LLL:EXT:lang/locallang_core.xml:cm.view
+								spriteIcon = actions-document-view
+								displayCondition = canBeViewed != 0
+								callbackAction = viewPage
+							}
+
+							200 = ITEM
+							200 {
+								name = new
+								label = LLL:EXT:lang/locallang_core.xml:cm.new
+								spriteIcon = actions-page-new
+								displayCondition = canCreateNewPages != 0
+								callbackAction = newPageWizard
+							}
+
+							300 = DIVIDER
+
+							400 = ITEM
+							400 {
+								name = history
+								label = LLL:EXT:lang/locallang_misc.xml:CM_history
+								spriteIcon = actions-document-history-open
+								displayCondition = canShowHistory != 0
+								callbackAction = openHistoryPopUp
+							}
+						}
+					}
+
+					pages {
+						disableItems =
+
+						items {
+							100 = ITEM
+							100 {
+								name = view
+								label = LLL:EXT:lang/locallang_core.xml:cm.view
+								spriteIcon = actions-document-view
+								displayCondition = canBeViewed != 0
+								callbackAction = viewPage
+							}
+
+							200 = DIVIDER
+
+							300 = ITEM
+							300 {
+								name = disable
+								label = LLL:EXT:lang/locallang_common.xml:disable
+								spriteIcon = actions-edit-hide
+								displayCondition = getRecord|hidden = 0 && canBeDisabledAndEnabled != 0
+								callbackAction = disablePage
+							}
+
+							400 = ITEM
+							400 {
+								name = enable
+								label = LLL:EXT:lang/locallang_common.xml:enable
+								spriteIcon = actions-edit-unhide
+								displayCondition = getRecord|hidden = 1 && canBeDisabledAndEnabled != 0
+								callbackAction = enablePage
+							}
+
+							500 = ITEM
+							500 {
+								name = edit
+								label = LLL:EXT:lang/locallang_core.xml:cm.edit
+								spriteIcon = actions-document-open
+								displayCondition = canBeEdited != 0
+								callbackAction = editPageProperties
+							}
+
+							600 = ITEM
+							600 {
+								name = info
+								label = LLL:EXT:lang/locallang_core.xml:cm.info
+								spriteIcon = actions-document-info
+								displayCondition = canShowInfo != 0
+								callbackAction = openInfoPopUp
+							}
+
+							700 = ITEM
+							700 {
+								name = history
+								label = LLL:EXT:lang/locallang_misc.xml:CM_history
+								spriteIcon = actions-document-history-open
+								displayCondition = canShowHistory != 0
+								callbackAction = openHistoryPopUp
+							}
+
+							800 = DIVIDER
+
+							900 = SUBMENU
+							900 {
+								label = LLL:EXT:lang/locallang_core.xml:cm.copyPasteActions
+
+								100 = ITEM
+								100 {
+									name = new
+									label = LLL:EXT:lang/locallang_core.xml:cm.new
+									spriteIcon = actions-page-new
+									displayCondition = canCreateNewPages != 0
+									callbackAction = newPageWizard
+								}
+
+								200 = DIVIDER
+
+								300 = ITEM
+								300 {
+									name = cut
+									label = LLL:EXT:lang/locallang_core.xml:cm.cut
+									spriteIcon = actions-edit-cut
+									displayCondition = isInCutMode = 0 && canBeCut != 0 && isMountPoint != 1
+									callbackAction = enableCutMode
+								}
+
+								400 = ITEM
+								400 {
+									name = cut
+									label = LLL:EXT:lang/locallang_core.xml:cm.cut
+									spriteIcon = actions-edit-cut-release
+									displayCondition = isInCutMode = 1 && canBeCut != 0
+									callbackAction = disableCutMode
+								}
+
+								500 = ITEM
+								500 {
+									name = copy
+									label = LLL:EXT:lang/locallang_core.xml:cm.copy
+									spriteIcon = actions-edit-copy
+									displayCondition = isInCopyMode = 0 && canBeCopied != 0
+									callbackAction = enableCopyMode
+								}
+
+								600 = ITEM
+								600 {
+									name = copy
+									label = LLL:EXT:lang/locallang_core.xml:cm.copy
+									spriteIcon = actions-edit-copy-release
+									displayCondition = isInCopyMode = 1 && canBeCopied != 0
+									callbackAction = disableCopyMode
+								}
+
+								700 = ITEM
+								700 {
+									name = pasteInto
+									label = LLL:EXT:lang/locallang_core.xml:cm.pasteinto
+									spriteIcon = actions-document-paste-into
+									displayCondition = getContextInfo|inCopyMode = 1 || getContextInfo|inCutMode = 1 && canBePastedInto != 0
+									callbackAction = pasteIntoNode
+								}
+
+								800 = ITEM
+								800 {
+									name = pasteAfter
+									label = LLL:EXT:lang/locallang_core.xml:cm.pasteafter
+									spriteIcon = actions-document-paste-after
+									displayCondition = getContextInfo|inCopyMode = 1 || getContextInfo|inCutMode = 1 && canBePastedAfter != 0
+									callbackAction = pasteAfterNode
+								}
+
+								900 = DIVIDER
+
+								1000 = ITEM
+								1000 {
+									name = delete
+									label = LLL:EXT:lang/locallang_core.xml:cm.delete
+									spriteIcon = actions-edit-delete
+									displayCondition = canBeRemoved != 0 && isMountPoint != 1
+									callbackAction = removeNode
+								}
+							}
+
+							1000 = SUBMENU
+							1000 {
+								label = LLL:EXT:lang/locallang_core.xml:cm.branchActions
+
+								100 = ITEM
+								100 {
+									name = mountAsTreeroot
+									label = LLL:EXT:lang/locallang_core.xml:cm.tempMountPoint
+									spriteIcon = actions-system-extension-documentation
+									displayCondition = canBeTemporaryMountPoint != 0 && isMountPoint = 0
+									callbackAction = mountAsTreeRoot
+								}
+
+								200 = DIVIDER
+
+								300 = ITEM
+								300 {
+									name = expandBranch
+									label = LLL:EXT:lang/locallang_core.xml:cm.expandBranch
+									displayCondition =
+									callbackAction = expandBranch
+								}
+
+								400 = ITEM
+								400 {
+									name = collapseBranch
+									label = LLL:EXT:lang/locallang_core.xml:cm.collapseBranch
+									displayCondition =
+									callbackAction = collapseBranch
+								}
+							}
+						}
+					}
+				}
+			}
+		',	// String (exclude). Enter lines of default backend user/group TSconfig.
 		'defaultPageTSconfig' => 'mod.web_list.enableDisplayBigControlPanel=selectable
 			mod.web_list.enableClipBoard=selectable
 			mod.web_list.enableLocalizationView=selectable',			// String (exclude).Enter lines of default Page TSconfig.
@@ -256,9 +485,8 @@ $TYPO3_CONF_VARS = array(
 		'flexformForceCDATA' => 0,				// Boolean:  If set, will add CDATA to Flexform XML. Some versions of libxml have a bug that causes HTML entities to be stripped from any XML content and this setting will avoid the bug by adding CDATA.
 		'explicitConfirmationOfTranslation' => FALSE,	// If set, then the diff-data of localized records is not saved automatically when updated but requires that a translator clicks the special finish_translation/save/close button that becomes available.
 		'elementVersioningOnly' => TRUE,		// If true, only element versioning is allowed in the backend (see option newPagesVersioningType). Setting this flag is recommended for new installations of TYPO3 4.2+ since "page" and "branch" versioning types are known for the drawbacks of loosing ids and "element" type versions supports moving now. Please note that "page" and "branch" types are deprecated since TYPO3 4.2 and will be unsupported in TYPO3 4.6. Thus, this option will be removed in TYPO3 4.6.
-		'versionNumberInFilename' => FALSE,	// <p>Boolean: If true, included CSS and JS files will have the timestamp embedded in the filename, ie. filename.1269312081.js. This will make browsers and proxies reload the files if they change (thus avoiding caching issues). IMPORTANT: this feature requires extra .htaccess rules to work (please refer to misc/advanced.htaccess or the _.htaccess file from the dummy package)</p><p>If false the filemtime will be appended as a query-string.</p>
+		'versionNumberInFilename' => FALSE,	// <p>Boolean: If true, included CSS and JS files will have the timestamp embedded in the filename, ie. filename.1269312081.js. This will make browsers and proxies reload the files if they change (thus avoiding caching issues). IMPORTANT: this feature requires extra .htaccess rules to work (please refer to _.htaccess or the _.htaccess file from the dummy package)</p><p>If false the filemtime will be appended as a query-string.</p>
 		'spriteIconGenerator_handler' => '',	// String: Used to register own/other spriteGenerating Handler, they have to implement the interface t3lib_spritemanager_SpriteIconGenerator. If set to "t3lib_spritemanager_SpriteBuildingHandler" icons from extensions will automatically merged into sprites.
-		'allowDonateWindow' => TRUE,			// Boolean: Defines whether to display a TYPO3 donate window to admin users that have been working with the system for more than three months.
 		'debug' => FALSE,			// Boolean: If set, the loginrefresh is disabled and pageRenderer is set to debug mode. Use this to debug the backend only!
 		'AJAX' => array(				// array of key-value pairs for a unified use of AJAX calls in the TYPO3 backend. Keys are the unique ajaxIDs where the value will be resolved to call a method in an object. See ajax.php and the classes/class.typo3ajax.php for more information.
 			'SC_alt_db_navframe::expandCollapse'                => 'typo3/alt_db_navframe.php:SC_alt_db_navframe->ajaxExpandCollapse',
@@ -284,8 +512,7 @@ $TYPO3_CONF_VARS = array(
 			'BackendLogin::refreshLogin'		=> 'typo3/classes/class.ajaxlogin.php:AjaxLogin->refreshLogin',
 			'BackendLogin::isTimedOut'		 	=> 'typo3/classes/class.ajaxlogin.php:AjaxLogin->isTimedOut',
 			'BackendLogin::getChallenge'	 	=> 'typo3/classes/class.ajaxlogin.php:AjaxLogin->getChallenge',
-			'DonateWindow::disable'				=> 'typo3/classes/class.donatewindow.php:DonateWindow->disable',
-			'DonateWindow::postpone'			=> 'typo3/classes/class.donatewindow.php:DonateWindow->postpone',
+			'BackendLogin::refreshTokens'	 	=> 'typo3/classes/class.ajaxlogin.php:AjaxLogin->refreshTokens',
 			'ExtDirect::getAPI' => 't3lib/extjs/class.t3lib_extjs_extdirectapi.php:t3lib_extjs_ExtDirectApi->getAPI',
 			'ExtDirect::route' => 't3lib/extjs/class.t3lib_extjs_extdirectrouter.php:t3lib_extjs_ExtDirectRouter->route',
 		),
@@ -344,17 +571,20 @@ $TYPO3_CONF_VARS = array(
 		'eID_include' => array(),				// Array of key/value pairs where key is "tx_[ext]_[optional suffix]" and value is relative filename of class to include. Key is used as "?eID=" for index_ts.php to include the code file which renders the page from that point. (Useful for functionality that requires a low initialization footprint, eg. frontend ajax applications)
 		'disableNoCacheParameter' => FALSE,		// Boolean: If set, the no_cache request parameter will become ineffective. This is currently still an experimental feature and will require a website only with plugins that don't use this parameter. However, using "&amp;no_cache=1" should be avoided anyway because there are better ways to disable caching for a certain part of the website (see COA_INT/USER_INT documentation in TSref).
 		'workspacePreviewLogoutTemplate' => '',	// If set, points to an HTML file relative to the TYPO3_site root which will be read and outputted as template for this message. Example: fileadmin/templates/template_workspace_preview_logout.html. Inside you can put the marker %1$s to insert the URL to go back to. Use this in &lt;a href="%1$s"&gt;Go back...&lt;/a&gt; links
-		'versionNumberInFilename' => 'querystring',	// String: embed,querystring,''. Allows to automatically include a version number (timestamp of the file) to referred CSS and JS filenames on the rendered page. This will make browsers and proxies reload the files if they change (thus avoiding caching issues). Set to 'embed' will have the timestamp embedded in the filename, ie. filename.1269312081.js. IMPORTANT: 'embed' requires extra .htaccess rules to work (please refer to misc/advanced.htaccess or the _.htaccess file from the dummy package)<p>Set to 'querystring' (default setting) to append the version number as a query parameter (doesn't require mod_rewrite). Set to '' will turn this functionality off (behaves like TYPO3 &lt; v4.4).</p>
+		'versionNumberInFilename' => 'querystring',	// String: embed,querystring,''. Allows to automatically include a version number (timestamp of the file) to referred CSS and JS filenames on the rendered page. This will make browsers and proxies reload the files if they change (thus avoiding caching issues). Set to 'embed' will have the timestamp embedded in the filename, ie. filename.1269312081.js. IMPORTANT: 'embed' requires extra .htaccess rules to work (please refer to _.htaccess or the _.htaccess file from the dummy package)<p>Set to 'querystring' (default setting) to append the version number as a query parameter (doesn't require mod_rewrite). Set to '' will turn this functionality off (behaves like TYPO3 &lt; v4.4).</p>
 		'XCLASS' => array(),					// See 'Inside TYPO3' document for more information.
 	),
 	'MAIL' => array(		// Mail configurations to tune how t3lib_mail classes will send their mails.
 		'transport' => 'mail',					// <p>String:</p><dl><dt>mail</dt><dd>Sends messages by delegating to PHP's internal mail() function. No further settings required. This is the most unreliable option. If you are serious about sending mails, consider using "smtp" or "sendmail".</dd><dt>smtp</dt><dd>Sends messages over the (standardized) Simple Message Transfer Protocol. It can deal with encryption and authentication. Most flexible option, requires a mail server and configurations in transport_smtp_* settings below. Works the same on Windows, Unix and MacOS.</dd><dt>sendmail</dt><dd>Sends messages by communicating with a locally installed MTA - such as sendmail. See setting transport_sendmail_command bellow.<dd><dt>mbox</dt><dd>This doesn't send any mail out, but instead will write every outgoing mail to a file adhering to the RFC 4155 mbox format, which is a simple text file where the mails are concatenated. Useful for debugging the mail sending process and on development machines which cannot send mails to the outside. Configure the file to write to in the 'transport_mbox_file' setting below</dd></dl>
 		'transport_smtp_server' => 'localhost:25',			// String: <em>only with transport=smtp</em>: &lt;server:port> of mailserver to connect to. &lt;port> defaults to "25".
-		'transport_smtp_encrypt' => FALSE,		// Boolean: <em>only with transport=smtp</em>: Connect to the server using encryption and TLS. Requires openssl library.
+		'transport_smtp_encrypt' => '',		// String: <em>only with transport=smtp</em>: Connect to the server using the specified transport protocol. Requires openssl library. Usually available: <em>ssl, sslv2, sslv3, tls</em>. Check <a href="http://www.php.net/stream_get_transports" target="_blank">stream_get_transports()</a>.
 		'transport_smtp_username' => '',		// String: <em>only with transport=smtp</em>: If your SMTP server requires authentication, enter your username here.
 		'transport_smtp_password' => '',		// String: <em>only with transport=smtp</em>: If your SMTP server requires authentication, enter your password here.
 		'transport_sendmail_command' => '/usr/sbin/sendmail -bs',	// String: <em>only with transport=sendmail</em>: The command to call to send a mail locally. The default works on most modern UNIX based mail server (sendmail, postfix, exim)
 		'transport_mbox_file' => '',	// String: <em>only with transport=mbox</em>: The file where to write the mails into. This file will be conforming the mbox format described in RFC 4155. It is a simple text file with a concatenation of all mails. Path must be absolute.
+		'substituteOldMailAPI' => 1,	// Boolean: If this is set, old calls to t3lib_utility_mail::Mail() will be translated to new t3lib_mail calls. This should work on most cases and thus respect the above transport settings. If you get garbled emails (or no attachments), consider setting this off. Ask the extension author to upgrade their code to make use of t3lib_mail (instead of the deprecated t3lib_htmlmail).
+		'defaultMailFromAddress' => '',			// String: This default email address is used when no other "from" address is set for a TYPO3-generated email. You can specify an email address only (ex. info@example.org).
+		'defaultMailFromName' => '',			// String: This default name is used when no other "from" name is set for a TYPO3-generated email.
 	),
 	'MODS' => array(		// Backend Module Configuration (obsolete, make extension instead)
 	),
@@ -388,6 +618,9 @@ $TYPO3_CONF_VARS = array(
 			'TYPO3.LiveSearchActions.ExtDirect' => 't3lib/extjs/dataprovider/class.extdirect_dataprovider_backendlivesearch.php:extDirect_DataProvider_BackendLiveSearch',
 			'TYPO3.BackendUserSettings.ExtDirect' => 't3lib/extjs/dataprovider/class.extdirect_dataprovider_beusersettings.php:extDirect_DataProvider_BackendUserSettings',
 			'TYPO3.ExtDirectStateProvider.ExtDirect' => 't3lib/extjs/dataprovider/class.extdirect_dataprovider_state.php:extDirect_DataProvider_State',
+			'TYPO3.Components.PageTree.DataProvider' => 't3lib/tree/pagetree/extdirect/class.t3lib_tree_pagetree_extdirect_tree.php:t3lib_tree_pagetree_extdirect_Tree',
+			'TYPO3.Components.PageTree.Commands' => 't3lib/tree/pagetree/extdirect/class.t3lib_tree_pagetree_extdirect_tree.php:t3lib_tree_pagetree_extdirect_Commands',
+			'TYPO3.Components.PageTree.ContextMenuDataProvider' => 't3lib/contextmenu/pagetree/extdirect/class.t3lib_contextmenu_pagetree_extdirect_contextmenu.php:t3lib_contextmenu_pagetree_extdirect_ContextMenu',
 		),
 	),
 	'EXTCONF' => array(		// Here you may add manually set configuration options for your extensions. Eg. $TYPO3_CONF_VARS['EXTCONF']['my_extension_key']['my_option'] = 'my_value';
@@ -402,10 +635,10 @@ $TYPO3_CONF_VARS = array(
 $T3_VAR = array();	// Initialize.
 
 	// TYPO3 version
-$TYPO_VERSION = '4.5-dev';	// deprecated: use the constants defined below
+$TYPO_VERSION = '4.6-dev';	// deprecated: use the constants defined below
 define('TYPO3_version', $TYPO_VERSION);
-define('TYPO3_branch', '4.5');
-define('TYPO3_copyright_year', '1998-2010');
+define('TYPO3_branch', '4.6');
+define('TYPO3_copyright_year', '1998-2011');
 define('TYPO3_user_agent', 'User-Agent: TYPO3/'.TYPO3_version);
 
 // Database-variables are cleared!
@@ -415,6 +648,23 @@ $typo_db_password = '';			// The database password
 $typo_db_host = '';				// The database host
 $typo_db_tables_script = '';	// The filename of the tables.php script in typo3conf/ folder IF the default t3lib/stddb/tables.php should NOT be used for some reason. It's recommended to use the default and modify it through the extTableDef-script, see below.
 $typo_db_extTableDef_script = '';	// The filename of an additional script in typo3conf/-folder which is included after tables.php. Code in this script should modify the tables.php-configuration only, and this provides a good way to extend the standard-distributed tables.php file.
+
+// TYPO3 links
+define('TYPO3_URL_GENERAL', 'http://typo3.com/');
+define('TYPO3_URL_ORG', 'http://typo3.org/');
+define('TYPO3_URL_LICENSE', 'http://typo3.org/license');
+define('TYPO3_URL_EXCEPTION', 'http://typo3.org/go/exception/');
+define('TYPO3_URL_MAILINGLISTS', 'http://lists.typo3.org/cgi-bin/mailman/listinfo');
+define('TYPO3_URL_DOCUMENTATION', 'http://typo3.org/documentation/');
+define('TYPO3_URL_DOCUMENTATION_TSREF', 'http://typo3.org/documentation/document-library/references/doc_core_tsref/current/view/');
+define('TYPO3_URL_DOCUMENTATION_TSCONFIG', 'http://typo3.org/documentation/document-library/references/doc_core_tsconfig/current/view/');
+define('TYPO3_URL_CONSULTANCY', 'http://typo3.com/Consultancies.1248.0.html');
+define('TYPO3_URL_CONTRIBUTE', 'http://typo3.org/community/participate/');
+define('TYPO3_URL_DONATE', 'http://typo3.com/Donations.1261.0.html');
+define('TYPO3_URL_SECURITY', 'http://typo3.org/teams/security/');
+define('TYPO3_URL_DOWNLOAD', 'http://typo3.org/download/packages/');
+define('TYPO3_URL_SYSTEMREQUIREMENTS', 'http://typo3.org/1275.0.html');
+define('TYPO3_URL_DONATE', 'http://typo3.org/donate/');
 
 	// Include localconf.php. Use this file to configure TYPO3 for your needs and database
 if (!@is_file(PATH_typo3conf . 'localconf.php')) {
@@ -596,7 +846,9 @@ $TYPO3_CONF_VARS['SC_OPTIONS']['errors']['exceptionHandler'] = $TYPO3_CONF_VARS[
 $TYPO3_CONF_VARS['SC_OPTIONS']['errors']['exceptionalErrors'] = $TYPO3_CONF_VARS['SYS']['exceptionalErrors'];
 
 	// Mail sending via Swift Mailer
-$TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/utility/class.t3lib_utility_mail.php']['substituteMailDelivery'][] = 'tx_t3lib_mail_hooks->sendMail';
+if ($TYPO3_CONF_VARS['MAIL']['substituteOldMailAPI']) {
+	$TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/utility/class.t3lib_utility_mail.php']['substituteMailDelivery'][] = 't3lib_mail_SwiftMailerAdapter';
+}
 
 	// Turn error logging on/off.
 if (($displayErrors = intval($TYPO3_CONF_VARS['SYS']['displayErrors'])) != '-1')	{
@@ -681,7 +933,6 @@ define('TYPO3_EXCEPTION_DLOG', $GLOBALS['TYPO3_CONF_VARS']['SYS']['enable_except
 	// Those which are/can be set in "stddb/tables.php" files:
 unset($PAGES_TYPES);
 unset($ICON_TYPES);
-unset($LANG_GENERAL_LABELS);
 unset($TCA);
 unset($TBE_MODULES);
 unset($TBE_STYLES);

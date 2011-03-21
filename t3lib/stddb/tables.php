@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,7 +27,7 @@
 /**
  * Contains the initialization of global TYPO3 variables among which $TCA is the most significant.
  *
- * The list in order of apperance is: $PAGES_TYPES, $ICON_TYPES, $LANG_GENERAL_LABELS, $TCA, $TBE_MODULES, $TBE_STYLES, $FILEICONS
+ * The list in order of apperance is: $PAGES_TYPES, $ICON_TYPES, $TCA, $TBE_MODULES, $TBE_STYLES, $FILEICONS
  * These variables are first of all used in the backend but to some degree in the frontend as well. (See references)
  * See the document "Inside TYPO3" for a description of each variable in addition to the comment associated with each.
  *
@@ -46,7 +46,6 @@
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @see tslib_fe::includeTCA(), typo3/init.php, t3lib/stddb/load_ext_tables.php
- * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=262&cHash=4f12caa011
  */
 
 
@@ -97,23 +96,6 @@ $PAGES_TYPES = array(
  * @deprecated since TYPO3 4.4, use t3lib_SpriteManager::addTcaTypeIcon instead
  */
 $ICON_TYPES = array();
-
-
-/**
- * Commonly used language labels which can be used in the $TCA array and elsewhere.
- * Obsolete - just use the values of each entry directly.
- * @todo turn into an object with magic getters and setter so we can make use of the deprecation logging
- * @deprecated since TYPO3 3.6
- */
-$LANG_GENERAL_LABELS = array(
-	'endtime' => 'LLL:EXT:lang/locallang_general.php:LGL.endtime',
-	'hidden' => 'LLL:EXT:lang/locallang_general.php:LGL.hidden',
-	'starttime' => 'LLL:EXT:lang/locallang_general.php:LGL.starttime',
-	'fe_group' => 'LLL:EXT:lang/locallang_general.php:LGL.fe_group',
-	'hide_at_login' => 'LLL:EXT:lang/locallang_general.php:LGL.hide_at_login',
-	'any_login' => 'LLL:EXT:lang/locallang_general.php:LGL.any_login',
-	'usergroups' => 'LLL:EXT:lang/locallang_general.php:LGL.usergroups',
-);
 
 
 /**
@@ -375,6 +357,10 @@ $TBE_MODULES = array(
 	'help' => '',
 );
 
+	// register the pagetree core navigation component
+t3lib_extMgm::addCoreNavigationComponent('web', 'typo3-pagetree', array(
+	'TYPO3.Components.PageTree'
+));
 
 /**
  * $TBE_STYLES configures backend styles and colors; Basically this contains all the values that can be used to create new skins for TYPO3.
@@ -400,7 +386,6 @@ t3lib_extMgm::addLLrefForTCAdescr('be_groups', 'EXT:lang/locallang_csh_be_groups
 t3lib_extMgm::addLLrefForTCAdescr('sys_filemounts', 'EXT:lang/locallang_csh_sysfilem.xml');
 t3lib_extMgm::addLLrefForTCAdescr('sys_language', 'EXT:lang/locallang_csh_syslang.xml');
 t3lib_extMgm::addLLrefForTCAdescr('sys_news', 'EXT:lang/locallang_csh_sysnews.xml');
-t3lib_extMgm::addLLrefForTCAdescr('sys_workspace', 'EXT:lang/locallang_csh_sysws.xml');
 t3lib_extMgm::addLLrefForTCAdescr('xMOD_csh_corebe', 'EXT:lang/locallang_csh_corebe.xml'); // General Core
 t3lib_extMgm::addLLrefForTCAdescr('_MOD_tools_em', 'EXT:lang/locallang_csh_em.xml'); // Extension manager
 t3lib_extMgm::addLLrefForTCAdescr('_MOD_web_info', 'EXT:lang/locallang_csh_web_info.xml'); // Web > Info
@@ -592,6 +577,7 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'apps-filetree-folder-locked',
 	'apps-filetree-folder-media',
 	'apps-filetree-folder-news',
+	'apps-filetree-folder-opened',
 	'apps-filetree-folder-recycler',
 	'apps-filetree-folder-temp',
 	'apps-filetree-folder-user',
@@ -599,6 +585,10 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'apps-filetree-root',
 	'apps-pagetree-backend-user',
 	'apps-pagetree-backend-user-hideinmenu',
+	'apps-pagetree-drag-copy-above',
+	'apps-pagetree-drag-copy-below',
+	'apps-pagetree-drag-move-above',
+	'apps-pagetree-drag-move-below',
 	'apps-pagetree-drag-move-between',
 	'apps-pagetree-drag-move-into',
 	'apps-pagetree-drag-new-between',
@@ -687,8 +677,7 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'mimetypes-x-sys_language',
 	'mimetypes-x-sys_news',
 	'mimetypes-x-sys_workspace',
-	'places-folder-closed',
-	'places-folder-opened',
+	'mimetypes-x_belayout',
 	'status-dialog-error',
 	'status-dialog-information',
 	'status-dialog-notification',
@@ -775,7 +764,10 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 );
 
 
+
+
 $GLOBALS['TBE_STYLES']['spriteIconApi']['spriteIconRecordOverlayPriorities'] = array(
+	'deleted',
 	'hidden',
 	'starttime',
 	'endtime',

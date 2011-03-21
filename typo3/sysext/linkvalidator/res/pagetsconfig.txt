@@ -6,11 +6,10 @@ mod.linkvalidator {
 	}
 	linktypes = db,file,external
 	checkhidden = 0
-	showUpdateButton = 1
-	mail{
-		encoding = utf-8
-		fromname =
-		fromemail =
+	showCheckLinkTab = 1
+	mail {
+		fromname = Linkvalidator
+		fromemail = Linkvalidator@example.com
 		replytoname =
 		replytoemail =
 		subject = TYPO3 Linkvalidator report

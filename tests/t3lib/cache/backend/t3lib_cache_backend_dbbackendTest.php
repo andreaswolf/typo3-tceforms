@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2010 Ingo Renner <ingo@typo3.org>
+*  (c) 2009-2011 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -103,16 +103,6 @@ class t3lib_cache_backend_DbBackendTest extends tx_phpunit_testcase {
 			'DROP TABLE ' . $this->testingTagsTable . ';'
 		);
 	}
-
-	/**
-	 * @test
-	 * @expectedException t3lib_cache_Exception
-	 * @author Ingo Renner <ingo@typo3.org>
-	 */
-# deactivated as the according check in the DB backend causes trouble during TYPO3's initialization
-#	public function setCacheTableThrowsExceptionOnNonExistentTable() {
-#		$this->backend->setCacheTable('test_cache_non_existent_table');
-#	}
 
 	/**
 	 * @test

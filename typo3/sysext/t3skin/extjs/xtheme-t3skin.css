@@ -497,9 +497,16 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 	filter:alpha(opacity=75);
 }
 
-.ext-el-mask-msg div {
-	background-image: url(images/grid/loading.gif);
-	background-color: #fff;
+.x-mask-loading {
+	border: none;
+}
+
+.x-mask-loading div {
+	background-image: url("../images/spinner/big-f0f0f0.gif");
+	background-position: top center;
+	border: none;
+	color: #828282;
+	padding-top: 40px;
 }
 
 /* mask while loading */
@@ -570,7 +577,7 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 
 .loading-indicator {
 	font-size: 10px;
-	background-image: url(images/grid/loading.gif);
+	background-image: url('../images/spinner/ffffff.gif');
 }
 
 .x-spotlight {
@@ -815,12 +822,6 @@ ul.x-tab-strip-bottom{
 	color: #1e1e1e;
 }
 
-.x-btn-click {
-	position: relative;
-	top: 1px;
-	left: 1px;
-}
-
 .x-btn-disabled *{
 	color:gray !important;
 }
@@ -950,7 +951,7 @@ ul.x-tab-strip-bottom{
 }
 
 .x-item-disabled .x-tbar-loading{
-	background-image: url(images/grid/loading.gif) !important;
+	background-image: url('../images/spinner/ffffff.gif') !important;
 }
 
 .x-item-disabled .x-tbar-page-first{
@@ -978,7 +979,7 @@ ul.x-tab-strip-bottom{
 }
 
 .x-statusbar .x-status-busy {
-	background-image: url(images/grid/loading.gif);
+	background-image: url('../images/spinner/ffffff.gif');
 }
 
 .x-statusbar .x-status-text-panel {
@@ -1090,9 +1091,23 @@ td.sort-desc, td.sort-asc  {
 td.x-grid3-hd-over, td.x-grid3-hd-menu-open {
 	border-left-color: #5b5b5b;
 	border-right-color: transparent;
-	background-image: -moz-linear-gradient(center bottom, #7f7f7f 10%, #5b5b5b 100%);
-	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0.1, #5b5b5b), color-stop(0.1, #7f7f7f));
-	background-image: linear-gradient(center bottom, #7f7f7f 10%, #5b5b5b 100%);
+	background-image: -moz-linear-gradient(
+		center bottom,
+		#7f7f7f 10%,
+		#5b5b5b 100%
+	);
+	background-image: -webkit-gradient(
+		linear,
+		left bottom,
+		left top,
+		color-stop(0.1, #7f7f7f),
+		color-stop(1.0, #5b5b5b)
+	);
+	background-image: linear-gradient(
+		center bottom,
+		#7f7f7f 10%,
+		#5b5b5b 100%
+	);
 }
 
 .sort-asc .x-grid3-sort-icon {
@@ -1193,7 +1208,6 @@ td.x-grid3-hd-over, td.x-grid3-hd-menu-open {
 }
 
 .x-grid3-hd-btn {
-	background-color:#d8d8d8;
 	background-image:url(images/grid/grid3-hd-btn.gif);
 }
 
@@ -1303,7 +1317,7 @@ td.x-grid3-hd-over, td.x-grid3-hd-menu-open {
 }
 
 .x-tree-node-expanded .x-tree-node-icon{
-	background-image:url(images/tree/folder-open.gif);
+	background-image:url(../images/icons/apps/filetree-folder-opened.png);
 }
 
 .x-tree-node-leaf .x-tree-node-icon{
@@ -1311,11 +1325,11 @@ td.x-grid3-hd-over, td.x-grid3-hd-menu-open {
 }
 
 .x-tree-node-collapsed .x-tree-node-icon{
-	background-image:url(images/tree/folder.gif);
+	background-image:url(../images/icons/apps/filetree-folder-default.png);
 }
 
 .x-tree-node-loading .x-tree-node-icon{
-	background-image:url(images/tree/loading.gif) !important;
+	background-image: url('../images/spinner/ffffff.gif') !important;
 }
 
 .x-tree-node .x-tree-node-inline-icon {
@@ -1332,32 +1346,50 @@ td.x-grid3-hd-over, td.x-grid3-hd-menu-open {
 	height:15px;
 }
 
+.x-tree-node-el {
+	line-height: 18px;
+	height: 18px;
+	margin-right: 0;
+}
+
+.x-tree-lines .x-tree-elbow-end,
+.x-tree-lines .x-tree-elbow-end-minus,
+.x-tree-lines .x-tree-elbow-end-plus,
+.x-tree-lines .x-tree-elbow-line,
+.x-tree-lines .x-tree-elbow,
+.x-tree-lines .x-tree-elbow-plus,
+.x-tree-lines .x-tree-elbow-minus {
+	background-repeat: repeat-y;
+	background-position: 0 1px;
+	height: 20px;
+}
+
 .x-tree-lines .x-tree-elbow{
-	background-image:url(images/tree/elbow.gif);
+	background-image: url('../icons/gfx/ol/join.gif');
 }
 
-.x-tree-lines .x-tree-elbow-plus{
-	background-image:url(images/tree/elbow-plus.gif);
+.x-tree-lines .x-tree-elbow-plus {
+	background-image: url('../icons/gfx/ol/plus.gif');
 }
 
-.x-tree-lines .x-tree-elbow-minus{
-	background-image:url(images/tree/elbow-minus.gif);
+.x-tree-lines .x-tree-elbow-minus {
+	background-image: url('../icons/gfx/ol/minus.gif');
 }
 
-.x-tree-lines .x-tree-elbow-end{
-	background-image:url(images/tree/elbow-end.gif);
+.x-tree-lines .x-tree-elbow-end-minus {
+	background: url('../icons/gfx/ol/minusbottom.gif') left top no-repeat;
+}
+
+.x-tree-lines .x-tree-elbow-end {
+	background: url('../icons/gfx/ol/joinbottom.gif') left top no-repeat;
 }
 
 .x-tree-lines .x-tree-elbow-end-plus{
-	background-image:url(images/tree/elbow-end-plus.gif);
-}
-
-.x-tree-lines .x-tree-elbow-end-minus{
-	background-image:url(images/tree/elbow-end-minus.gif);
+	background: url('../icons/gfx/ol/plusbottom.gif') left top no-repeat;
 }
 
 .x-tree-lines .x-tree-elbow-line{
-	background-image:url(images/tree/elbow-line.gif);
+	background-image: url('../icons/gfx/ol/line.gif');
 }
 
 .x-tree-no-lines .x-tree-elbow-plus{
@@ -1397,12 +1429,15 @@ td.x-grid3-hd-over, td.x-grid3-hd-menu-open {
 	font: normal 10px verdana, arial, tahoma, helvetica, sans-serif;
 }
 
-.x-tree-node a, .x-dd-drag-ghost a{
-	color:#000;
+.x-tree-node a, .x-dd-drag-ghost a {
+	color: #000;
+	vertical-align: -1px;
+	font-size: 11px;
+	display: inline-block;
 }
 
-.x-tree-node a span, .x-dd-drag-ghost a span{
-	color:#000;
+.x-tree-node a span, .x-dd-drag-ghost a span {
+	color: #000;
 }
 
 .x-tree-node .x-tree-node-disabled a span{
@@ -1469,11 +1504,11 @@ td.x-grid3-hd-over, td.x-grid3-hd-menu-open {
 }
 
 .x-date-middle .x-btn .x-btn-text {
-	color:#fff;
+	color:#000;
 }
 
 .x-date-middle .x-btn-mc em.x-btn-arrow {
-	background-image:url(images/toolbar/btn-arrow-light.gif);
+	background-image:url(images/toolbar/btn-arrow.gif);
 }
 
 .x-date-right a {
@@ -2148,7 +2183,7 @@ body.x-body-masked .x-window-plain .x-window-mc {
 }
 
 .x-window-dlg .x-msg-box-wait {
-	background-image:url(images/grid/loading.gif);
+	background-image: url('../images/spinner/ffffff.gif');
 }
 
 .x-window-dlg .ext-mb-info {
@@ -2253,9 +2288,9 @@ body.x-body-masked .x-window-plain .x-window-mc {
  */
 .x-layout-mini-wrapper {
 	height: 100%;
-	left: 0;
+	left: -5px;
 	position: absolute;
-	width: 1px;
+	width: 10px;
 }
 
 .x-splitbar-proxy.x-splitbar-proxy-h {
@@ -2320,11 +2355,6 @@ body.x-body-masked .x-window-plain .x-window-mc {
 .t3-window .x-btn button {
 	padding-left: 3px;
 	padding-right: 3px;
-}
-
-#donateWindow.t3-window .x-window-body.x-window-body-noborder {
-	padding-left: 100px;
-	background: url(../images/general/donate_teaser.png) no-repeat 25px 10px !important;
 }
 
 .icon-collapse-all {

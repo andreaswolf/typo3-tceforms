@@ -4,11 +4,13 @@ TCEforms
 $Id$
 - - - - - - - - - - - - - - - - - - - - - */
 img.t3-TCEforms-reqImg {
-	display: inline-block;
+	display: block;
+	position: absolute;
+	left: 14px;
+	top: 28%;
+	z-index: 3000;
 	height: 16px;
-	margin-left: 3px;
-	margin-right: 3px;
-	margin-top: 4px;
+	margin-right: 2px;
 	width: 16px;
 }
 
@@ -20,30 +22,51 @@ img.t3-TCEforms-reqTabImg {
 }
 
 img.t3-TCEforms-contentchangedImg {
-	display: inline-block;
-	margin-bottom: 2px;
+	display: block;
+	position: absolute;
+	left: 4px;
+	top: 32%;
+	z-index: 4000;
 	width: 7px;
 }
 
 .t3-form-palette-icon-required {
-	display: inline-block;
+	display: block;
+	position: absolute;
+	left: 4px;
+	top: 26%;
+	z-index: 3000;
 	height: 16px;
 	margin-right: 2px;
 	width: 16px;
 }
 /* renamed to .t3-form-palette-icon-required, lines below kept for backwards-compatibility */
 img.t3-TCEforms-reqPaletteImg {
-	display: inline-block;
+	display: block;
+	position: absolute;
+	left: 14px;
+	top: 30%;
+	z-index: 3000;
 	height: 16px;
 	margin-right: 2px;
 	width: 16px;
 }
 
 .t3-form-palette-icon-contentchanged {
+	display: block;
+	position: absolute;
+	left: -6px;
+	top: 30%;
+	z-index: 4000;
 	width: 7px;
 }
 /* renamed to .t3-form-palette-icon-contentchanged, lines below kept for backwards-compatibility */
 img.t3-TCEforms-contentchangedPaletteImg {
+	display: block;
+	position: absolute;
+	left: 4px;
+	top: 30%;
+	z-index: 4000;
 	width: 7px;
 }
 
@@ -88,32 +111,34 @@ table.typo3-TCEforms select.icon-select option {
 
 table.typo3-TCEforms table.typo3-TCEforms-select-checkbox {
 	margin-bottom: 10px;
-	width: 98%;
+}
+
+table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tbody {
+	display: block;
+	max-height: 300px;
+	overflow-y: scroll;
 }
 
 table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr td {
-	padding: 1px 3px 1px 3px;
+	vertical-align: middle;
+}
+
+table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr.c-header td,
+table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr td.c-checkbox,
+table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr td.c-labelCell {
+	padding: 1px 3px;
 }
 
 table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr td.c-labelCell {
-	padding-right: 30px;
+	min-width: 300px;
 }
 
-table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr td.c-labelCell P.c-descr {
-	margin-left: 30px;
+table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr td.c-labelCell img {
+	margin-right: 5px;
 }
 
-table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr.c-header td {
-	padding-left: 4px;
-	padding-top: 10px;
-}
-
-table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr.c-header-checkbox-controls td {
-	padding-right: 16px;
-}
-
-table.typo3-TCEforms table.typo3-TCEforms-select-checkbox tr.c-header-checkbox-controls td a {
-	padding-left: 16px;
+table.typo3-TCEforms table.typo3-TCEforms-select-checkbox td.c-descr {
+	width: 40px;
 }
 
 table.typo3-TCEforms table.typo3-TCEforms-select-checkbox td.c-descr img {
@@ -132,6 +157,8 @@ table.typo3-TCEforms div.typo3-dyntabmenu-tabs {
 .checkbox,
 .checkbox:hover {
 	margin: 4px 0 4px 2px;
+	position: relative;
+	z-index: 3500;
 }
 
 table.typo3-TCEforms .class-main1 td,
@@ -163,6 +190,8 @@ table.typo3-TCEforms .class-main53 {
 
 table.typo3-TCEforms td.formField-header,
 table.typo3-TCEforms td.formField-field {
+	display: block;
+	position: relative;
 	padding-left: 10px;
 }
 
@@ -175,6 +204,16 @@ table.typo3-TCEforms .formField5 {
 	margin: 4px 2px 4px 1px;
 	padding: 1px;
 	vertical-align: middle;
+	position: relative;
+}
+
+table.typo3-TCEforms .formField:focus,
+table.typo3-TCEforms .formField1:focus,
+table.typo3-TCEforms .formField2:focus,
+table.typo3-TCEforms .formField3:focus,
+table.typo3-TCEforms .formField4:focus,
+table.typo3-TCEforms .formField5:focus {
+	z-index: 3500;
 }
 
 table.typo3-TCEforms .wrapperTable,
@@ -240,10 +279,6 @@ table.typo3-TCEforms span.filetypes {
 	width: 250px;
 }
 
-.typo3-TCEforms select.tceforms-multiselect {
-	min-height: 85px;
-}
-
 .typo3-TCEforms-palette .typo3-csh-link img {
 	padding-top: 3px;
 	vertical-align: top;
@@ -251,7 +286,7 @@ table.typo3-TCEforms span.filetypes {
 
 .typo3-TCEforms-palette select.select,
 .t3-form-palette-field-container select.select {
-	margin-top: 2px;
+	margin: 4px 2px 4px 1px;
 }
 
 .t3-form-palette-field-container {
@@ -260,8 +295,10 @@ table.typo3-TCEforms span.filetypes {
 	vertical-align: top;
 }
 
-.t3-form-palette-field-container .t3-form-palette-field-label, .t3-form-palette-field-container .t3-form-palette-field {
-	display:block;
+.t3-form-palette-field-container .t3-form-palette-field-label,
+.t3-form-palette-field-container .t3-form-palette-field {
+	display: block;
+	position: relative;
 }
 
 .typo3-TCEforms .typo3-csh-link {

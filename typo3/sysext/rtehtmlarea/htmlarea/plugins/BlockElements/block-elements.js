@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2007-2011 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,17 +29,11 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-HTMLArea.BlockElements = HTMLArea.Plugin.extend({
-		
-	constructor : function(editor, pluginName) {
-		this.base(editor, pluginName);
-	},
-	
+HTMLArea.BlockElements = Ext.extend(HTMLArea.Plugin, {
 	/*
 	 * This function gets called by the class constructor
 	 */
-	configurePlugin : function (editor) {
-		
+	configurePlugin: function (editor) {
 		/*
 		 * Setting up some properties from PageTSConfig
 		 */
@@ -101,12 +95,11 @@ HTMLArea.BlockElements = HTMLArea.Plugin.extend({
 				this.formatBlockItems[tagName].classList = new RegExp( "^(" + this.formatBlockItems[tagName].classList.join("|") + ")$");
 			}
 		}
-		
 		/*
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: '1.5',
+			version		: '2.0',
 			developer	: 'Stanislas Rolland',
 			developerUrl	: 'http://www.sjbr.ca/',
 			copyrightOwner	: 'Stanislas Rolland',
@@ -278,7 +271,7 @@ HTMLArea.BlockElements = HTMLArea.Plugin.extend({
 					try {
 						this.editor._doc.execCommand(buttonId, false, element);
 					} catch(e) {
-						this.appendToLog("applyBlockElement", e + "\n\nby execCommand(" + buttonId + ");");
+						this.appendToLog('applyBlockElement', e + '\n\nby execCommand(' + buttonId + ');', 'error');
 					}
 					this.addClassOnBlockElements(tagName, className);
 			}
@@ -328,7 +321,7 @@ HTMLArea.BlockElements = HTMLArea.Plugin.extend({
 						try {
 							this.editor._doc.execCommand(buttonId, false, null);
 						} catch(e) {
-							this.appendToLog("onButtonPress", e + "\n\nby execCommand(" + buttonId + ");");
+							this.appendToLog('onButtonPress', e + '\n\nby execCommand(' + buttonId + ');', 'error');
 						}
 						this.indentedList = parentElement;
 						this.makeNestedList(parentElement);
@@ -371,7 +364,7 @@ HTMLArea.BlockElements = HTMLArea.Plugin.extend({
 					try {
 						this.editor._doc.execCommand(buttonId, false, null);
 					} catch(e) {
-						this.appendToLog("onButtonPress", e + "\n\nby execCommand(" + buttonId + ");");
+						this.appendToLog('onButtonPress', e + '\n\nby execCommand(' + buttonId + ');', 'error');
 					}
 				} else if (this.isAllowedBlockElement("div")) {
 					if (/^div$/i.test(parentElement.nodeName) && !HTMLArea.DOM.hasClass(parentElement, this.useClass[buttonId])) {
@@ -394,7 +387,7 @@ HTMLArea.BlockElements = HTMLArea.Plugin.extend({
 							try {
 								this.editor._doc.execCommand(buttonId, false, null);
 							} catch(e) {
-								this.appendToLog("onButtonPress", e + "\n\nby execCommand(" + buttonId + ");");
+								this.appendToLog('onButtonPress', e + '\n\nby execCommand(' + buttonId + ');', 'error');
 							}
 						} else {
 							this.outdentSelectedListElements(parentElement, range);
@@ -430,7 +423,7 @@ HTMLArea.BlockElements = HTMLArea.Plugin.extend({
 					try {
 						this.editor._doc.execCommand(buttonId, false, null);
 					} catch(e) {
-						this.appendToLog("onButtonPress", e + "\n\nby execCommand(" + buttonId + ");");
+						this.appendToLog('onButtonPress', e + '\n\nby execCommand(' + buttonId + ');', 'error');
 					}
 				} else if (this.isAllowedBlockElement("div")) {
 					for (var i = blockAncestors.length; --i >= 0;) {
@@ -534,7 +527,7 @@ HTMLArea.BlockElements = HTMLArea.Plugin.extend({
 					try {
 						this.editor._doc.execCommand(buttonId, false, null);
 					} catch(e) {
-						this.appendToLog("onButtonPress", e + "\n\nby execCommand(" + buttonId + ");");
+						this.appendToLog('onButtonPress', e + '\n\nby execCommand(' + buttonId + ');', 'error');
 					}
 				} else {
 					this.addClassOnBlockElements(buttonId);
@@ -756,7 +749,7 @@ HTMLArea.BlockElements = HTMLArea.Plugin.extend({
 			try {
 				this.editor._doc.execCommand(buttonId, false, null);
 			} catch(e) {
-				this.appendToLog("onButtonPress", e + "\n\nby execCommand(" + buttonId + ");");
+				this.appendToLog('onButtonPress', e + '\n\nby execCommand(' + buttonId + ');', 'error');
 			}
 			if (Ext.isWebKit) {
 				this.editor.cleanAppleStyleSpans(parentNode);

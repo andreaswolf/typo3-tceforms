@@ -2,8 +2,8 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Sebastian Kurfürst <sebastian@typo3.org>
- *  (c) 2010 Stefan Galinski <stefan.galinski@gmail.com>
+ *  (c) 2010-2011 Sebastian Kurfürst <sebastian@typo3.org>
+ *  (c) 2010-2011 Stefan Galinski <stefan.galinski@gmail.com>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -51,6 +51,7 @@ class t3lib_extjs_ExtDirectRouter {
 		$namespace = t3lib_div::_GET('namespace');
 		$response = array();
 		$request = NULL;
+		$isValidRequest = TRUE;
 
 		if (!empty($postParameters['extAction'])) {
 			$isForm = TRUE;
@@ -60,39 +61,58 @@ class t3lib_extjs_ExtDirectRouter {
 			$request->action = $postParameters['extAction'];
 			$request->method = $postParameters['extMethod'];
 			$request->tid = $postParameters['extTID'];
+
+			unset($_POST['securityToken']);
 			$request->data = array($_POST + $_FILES);
+			$request->data[] = $postParameters['securityToken'];
 		} elseif (!empty($rawPostData)) {
 			$request = json_decode($rawPostData);
 		} else {
 			$response[] = array(
 				'type' => 'exception',
-				'message' => 'Something went wrong with an ExtDirect call!'
+				'message' => 'Something went wrong with an ExtDirect call!',
+				'code' => 'router',
 			);
+			$isValidRequest = FALSE;
 		}
 
 		if (!is_array($request)) {
 			$request = array($request);
 		}
 
-		foreach ($request as $index => $singleRequest) {
-			$response[$index] = array(
-				'tid' => $singleRequest->tid,
-				'action' => $singleRequest->action,
-				'method' => $singleRequest->method
-			);
+		if ($isValidRequest) {
+			$validToken = FALSE;
+			$firstCall = TRUE;
+			foreach ($request as $index => $singleRequest) {
+				$response[$index] = array(
+					'tid' => $singleRequest->tid,
+					'action' => $singleRequest->action,
+					'method' => $singleRequest->method
+				);
 
-			try {
-				$response[$index]['type'] = 'rpc';
-				$response[$index]['result'] = $this->processRpc($singleRequest, $namespace);
-				$response[$index]['debug'] = $GLOBALS['error']->toString();
+				$token = array_pop($singleRequest->data);
+				if ($firstCall) {
+					$firstCall = FALSE;
+					$formprotection = t3lib_formprotection_Factory::get();
+					$validToken = $formprotection->validateToken($token, 'extDirect');
+				}
 
-			} catch (Exception $exception) {
-				$response[$index]['type'] = 'exception';
-				$response[$index]['message'] = $exception->getMessage();
-				$response[$index]['where'] = $exception->getTraceAsString();
+				try {
+					if (!$validToken) {
+						throw new t3lib_formprotection_InvalidTokenException('ExtDirect: Invalid Security Token!');
+					}
+
+					$response[$index]['type'] = 'rpc';
+					$response[$index]['result'] = $this->processRpc($singleRequest, $namespace);
+					$response[$index]['debug'] = $GLOBALS['error']->toString();
+
+				} catch (Exception $exception) {
+					$response[$index]['type'] = 'exception';
+					$response[$index]['message'] = $exception->getMessage();
+					$response[$index]['code'] = 'router';
+				}
 			}
 		}
-
 		if ($isForm && $isUpload) {
 			$ajaxObj->setContentFormat('plain');
 			$response = json_encode($response);
@@ -127,7 +147,7 @@ class t3lib_extjs_ExtDirectRouter {
 			// theoretically this can never happen, because of an javascript error on
 			// the client side due the missing namespace/endpoint
 		if (!isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'][$endpointName])) {
-			throw new UnexpectedValueException('ExtDirect: Call to undefined endpoint: ' . $endpointName);
+			throw new UnexpectedValueException('ExtDirect: Call to undefined endpoint: ' . $endpointName, 1294586450);
 		}
 
 		$endpointObject = t3lib_div::getUserObj(

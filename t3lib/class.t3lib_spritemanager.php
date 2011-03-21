@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Steffen Ritter <info@steffen-ritter.net>
+ *  (c) 2010-2011 Steffen Ritter <info@steffen-ritter.net>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -92,9 +92,11 @@ class t3lib_SpriteManager {
 
 					// Throw exception if handler class does not implement required interface
 				if (!$this->handler || !($this->handler instanceof t3lib_spritemanager_SpriteIconGenerator)) {
-					throw new Exception(
-						"class in TYPO3_CONF_VARS[BE][spriteIconGenerator_handler] does not exist,
-						or does not implement t3lib_spritemanager_SpriteIconGenerator"
+					throw new RuntimeException(
+						'Class in $TYPO3_CONF_VARS[BE][spriteIconGenerator_handler] (' .
+						$GLOBALS['TYPO3_CONF_VARS']['BE']['spriteIconGenerator_handler'] .
+						') does not exist or does not implement t3lib_spritemanager_SpriteIconGenerator.',
+						1294586333
 					);
 				}
 

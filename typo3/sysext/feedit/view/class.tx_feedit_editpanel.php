@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2010 Jeff Segars <jeff@webempoweredchurch.org>
-*  (c) 2008-2010 David Slayback <dave@webempoweredchurch.org>
+*  (c) 2008-2011 Jeff Segars <jeff@webempoweredchurch.org>
+*  (c) 2008-2011 David Slayback <dave@webempoweredchurch.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -64,7 +64,6 @@ class tx_feedit_editpanel {
 	 * @param	string		The "table:uid" of the record being shown. If empty string then $this->currentRecord is used. For new records (set by $conf['newRecordFromTable']) it's auto-generated to "[tablename]:NEW"
 	 * @param	array		Alternative data array to use. Default is $this->data
 	 * @return	string		The input content string with the editPanel appended. This function returns only an edit panel appended to the content string if a backend user is logged in (and has the correct permissions). Otherwise the content string is directly returned.
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=375&cHash=7d8915d508
 	 */
 	public function editPanel($content, array $conf, $currentRecord='', array $dataArr=array(), $table='', $allow='', $newUID=0, array $hiddenFields=array()) {
 			// Special content is about to be shown, so the cache must be disabled.
@@ -354,6 +353,7 @@ class tx_feedit_editpanel {
 	 */
 	protected function editContent($formTag, $formName, $theCmd, $newUID, array $dataArray, $table, $currentRecord, $blackLine) {
 		$tceforms = t3lib_div::makeInstance('t3lib_TCEforms_FE');
+		$tceforms->initDefaultBEMode();
 		$tceforms->prependFormFieldNames = 'TSFE_EDIT[data]';
 		$tceforms->prependFormFieldNames_file = 'TSFE_EDIT_file';
 		$tceforms->doSaveFieldName = 'TSFE_EDIT[doSave]';

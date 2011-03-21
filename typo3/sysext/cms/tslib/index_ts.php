@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -161,7 +161,9 @@ $TT->pull();
 // *******************************
 // Checking environment
 // *******************************
-if (isset($_POST['GLOBALS']) || isset($_GET['GLOBALS']))	die('You cannot set the GLOBALS-array from outside the script.');
+if (isset($_POST['GLOBALS']) || isset($_GET['GLOBALS'])) {
+	throw new Exception('You cannot set the GLOBALS-array from outside the script.', 1294585200);
+}
 if (!get_magic_quotes_gpc())	{
 	$TT->push('Add slashes to GET/POST arrays','');
 	t3lib_div::addSlashesOnArray($_GET);
@@ -527,8 +529,7 @@ $TSFE->storeSessionData();
 $TYPO3_MISC['microtime_end'] = microtime(true);
 $TSFE->setParseTime();
 if ($TSFE->isOutputting() && (!empty($TSFE->TYPO3_CONF_VARS['FE']['debug']) || !empty($TSFE->config['config']['debug']))) {
-	echo '
-<!-- Parsetime: '.$TSFE->scriptParseTime.' ms-->';
+	$TSFE->content .=  LF . '<!-- Parsetime: ' . $TSFE->scriptParseTime . 'ms -->';
 }
 $TSFE->statistics();
 

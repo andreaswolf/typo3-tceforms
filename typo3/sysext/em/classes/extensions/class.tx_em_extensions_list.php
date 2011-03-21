@@ -187,12 +187,17 @@ class tx_em_Extensions_List {
 			$directLink = 'mod.php?M=tools_em';
 			$emConf = tx_em_Tools::includeEMCONF($path . $extKey . '/ext_emconf.php', $extKey);
 			$manual = $path . $extKey . '/doc/manual.sxw';
+			$manualRelPath = $relPath . $extKey . '/doc/manual.sxw';
+
 			if ($type === '') {
 				$type = tx_em_Tools::getExtTypeFromPath($path);
 			}
+
 			if (is_array($emConf)) {
 				$key = count($list);
 				$loaded = t3lib_extMgm::isLoaded($extKey);
+
+
 
 				$exist = $this->findIndex($extKey, $list);
 				if ($exist !== FALSE) {
@@ -209,14 +214,25 @@ class tx_em_Extensions_List {
 				$list[$key]['doubleInstall'] = $list[$key]['doubleInstall'] ? $list[$key]['doubleInstall'] . '/' . $this->types[$type] : $this->types[$type];
 				$list[$key]['doubleInstallShort'] .= $type;
 
+				$list[$key] = t3lib_div::array_merge_recursive_overrule($list[$key], $emConf);
+
+				if (@is_file($path . $extKey . '/class.ext_update.php')) {
+					$list[$key]['updateModule'] = TRUE;
+				} else {
+					$list[$key]['updateModule'] = FALSE;
+				}
 				$list[$key]['type'] = $this->types[$type];
 				$list[$key]['typeShort'] = $type;
 				$list[$key]['installed'] = $loaded ? 1 : 0;
-				// FIXME: raises PHP warning
-				// "Core: Error handler (BE): PHP Warning: htmlspecialchars() expects parameter 1 to be string, array given in [...]/typo3/mod/tools/em/classes/class.tx_em_extensions_list.php line 185
-				$list[$key] = t3lib_div::array_merge_recursive_overrule($list[$key], $emConf);
+
+
+				$state = htmlspecialchars($emConf['state']);
+				$list[$key]['state'] = $this->states[$state];
+				$list[$key]['stateCls'] = 'state-' . $state;
 				$list[$key]['title'] = htmlspecialchars($list[$key]['title']);
 				$list[$key]['description'] = htmlspecialchars($list[$key]['description']);
+				$list[$key]['author'] = htmlspecialchars($list[$key]['author']);
+				$list[$key]['author_email'] = htmlspecialchars($list[$key]['author_email']);
 				$list[$key]['files'] = t3lib_div::getFilesInDir($path . $extKey, '', 0, '', $this->excludeForPackaging);
 				$list[$key]['reviewstate'] = $this->xmlHandler->getReviewState($extKey, $list[$key]['version']);
 
@@ -226,20 +242,98 @@ class tx_em_Extensions_List {
 					t3lib_iconWorks::getSpriteIcon('actions-system-extension-download') . '</a>';
 
 				$list[$key]['doc'] = '';
+				if ($list[$key]['docPath']) {
+					$manual = $path . $extKey . '/' . $list[$key]['docPath'] . '/manual.sxw';
+					$manualRelPath = $relPath . $extKey . '/' .  $list[$key]['docPath'] . '/manual.sxw';
+				}
+
 				if (@is_file($manual)) {
-					$list[$key]['doc'] = '<a href="' . htmlspecialchars($relPath . $extKey . '/doc/manual.sxw') . '" target="_blank">'
+					$list[$key]['doc'] = '<a href="' . htmlspecialchars($manualRelPath) . '" target="_blank">'
 						. t3lib_iconWorks::getSpriteIcon('actions-system-extension-documentation') . '</a>';
 				}
 				$list[$key]['icon'] = @is_file($path . $extKey . '/ext_icon.gif') ? '<img src="' . $relPath . $extKey . '/ext_icon.gif" alt="" height="16" />' : '<img src="clear.gif" alt="" width="16" height="16" />';
 
 				$list[$key]['categoryShort'] = $list[$key]['category'];
 				$list[$key]['category'] = isset($this->categories[$list[$key]['category']]) ? $this->categories[$list[$key]['category']] : $list[$key]['category'];
-				$list[$key]['required'] = t3lib_div::inList($GLOBALS['EXT']['requiredExt'], $extKey);
+				$list[$key]['required'] = t3lib_div::inList(t3lib_extMgm::getRequiredExtensionList(), $extKey);
+
+				$constraints = $this->humanizeConstraints($list[$key]['constraints']);
+				$list[$key]['depends'] = $constraints['depends'];
+				$list[$key]['conflicts'] = $constraints['conflicts'];
+				$list[$key]['suggests'] = $constraints['suggests'];
+
+
 				unset($list[$key]['_md5_values_when_last_written']);
 			}
 		}
 	}
 
+	/**
+	 * Make constraints readable
+	 *
+	 * @param  array $constraints
+	 * @return array
+	 */
+	public function humanizeConstraints($constraints) {
+		$depends = $conflicts = $suggests = array();
+		$result = array(
+			'depends' => '',
+			'conflicts' => '',
+			'suggests' => ''
+		);
+
+		if (is_array($constraints) && count($constraints)) {
+			if (is_array($constraints['depends']) && count($constraints['depends'])) {
+				foreach ($constraints['depends'] as $key => $value) {
+					if ($value) {
+						$tmp = t3lib_div::trimExplode('-', $value, TRUE);
+						if (trim($tmp[1]) && trim($tmp[1]) !== '0.0.0') {
+							$value = $tmp[0] . ' - ' . $tmp[1];
+						} else {
+							$value = $tmp[0];
+						}
+					}
+					$depends[] = $key . ($value ? ' (' . $value . ')' : '');
+				}
+			}
+			if (is_array($constraints['conflicts']) && count($constraints['conflicts'])) {
+				foreach ($constraints['conflicts'] as $key => $value) {
+					if ($value) {
+						$tmp = t3lib_div::trimExplode('-', $value, TRUE);
+						if (trim($tmp[1]) && trim($tmp[1]) !== '0.0.0') {
+							$value = $tmp[0] . ' - ' . $tmp[1];
+						} else {
+							$value = $tmp[0];
+						}
+					}
+					$conflicts[] = $key . ($value ? ' (' . $value . ')' : '');
+				}
+			}
+			if (is_array($constraints['suggests']) && count($constraints['suggests'])) {
+				foreach ($constraints['suggests'] as $key => $value) {
+					if ($value) {
+						$tmp = t3lib_div::trimExplode('-', $value, TRUE);
+						if (trim($tmp[1]) && trim($tmp[1]) !== '0.0.0') {
+							$value = $tmp[0] . ' - ' . $tmp[1];
+						} else {
+							$value = $tmp[0];
+						}
+					}
+					$suggests[] = $key . ($value ? ' (' . $value . ')' : '');
+				}
+			}
+			if (count($depends)) {
+				$result['depends'] = htmlspecialchars(implode(', ', $depends));
+			}
+			if (count($conflicts)) {
+				$result['conflicts'] = htmlspecialchars(implode(', ', $conflicts));
+			}
+			if (count($suggests)) {
+				$result['suggests'] = htmlspecialchars(implode(', ', $suggests));
+			}
+		}
+		return $result;
+	}
 
 	/**
 	 * Listing of loaded (installed) extensions
@@ -547,11 +641,15 @@ EXTENSION KEYS:
 						'</a></td>';
 
 				// Manual download
-				$fileP = tx_em_Tools::typePath($extInfo['type']) . $extKey . '/doc/manual.sxw';
+				$manual = tx_em_Tools::typePath($extInfo['type']) . $extKey . '/doc/manual.sxw';
+				$manualRelPath = t3lib_div::resolveBackPath($this->parentObject->doc->backPath . tx_em_Tools::typeRelPath($extInfo['type'])) . $extKey . '/doc/manual.sxw';
+				if ($extInfo['EM_CONF']['docPath']) {
+					$manual = tx_em_Tools::typePath($extInfo['type']) . $extKey . '/' . $extInfo['EM_CONF']['docPath'] . '/manual.sxw';
+					$manualRelPath = t3lib_div::resolveBackPath($this->parentObject->doc->backPath . tx_em_Tools::typeRelPath($extInfo['type'])) . $extKey . '/' . $extInfo['EM_CONF']['docPath'] . '/manual.sxw';
+				}
 				$cells[] = '<td nowrap="nowrap">' .
-						(tx_em_Tools::typePath($extInfo['type']) && @is_file($fileP) ?
-								'<a href="' . htmlspecialchars(t3lib_div::resolveBackPath($this->parentObject->doc->backPath . '../' .
-									tx_em_Tools::typeRelPath($extInfo['type']) . $extKey . '/doc/manual.sxw')) . '" target="_blank" title="' . $GLOBALS['LANG']->getLL('listRow_local_manual') . '">' .
+						(tx_em_Tools::typePath($extInfo['type']) && @is_file($manual) ?
+								'<a href="' . htmlspecialchars($manualRelPath) . '" target="_blank" title="' . $GLOBALS['LANG']->getLL('listRow_local_manual') . '">' .
 										t3lib_iconWorks::getSpriteIcon('actions-system-extension-documentation') . '</a>' : '') .
 						'</td>';
 
@@ -628,7 +726,7 @@ EXTENSION KEYS:
 		global $LANG;
 		$extList = $this->getInstalledExtensions();
 
-		$content = '<table cellspacing="1" class="t3-em-extension-list t3-em-extension-list-to-update">>' .
+		$content = '<table cellspacing="1" class="t3-em-extension-list t3-em-extension-list-to-update">' .
 				'<tr class="t3-row-header">' .
 				'<td></td>' .
 				'<td>' . $LANG->sL('LLL:EXT:lang/locallang_mod_tools_em.xml:tab_mod_name') . '</td>' .
@@ -840,7 +938,7 @@ EXTENSION KEYS:
 	 * @see removeExtFromList(), addExtToList()
 	 */
 	function removeRequiredExtFromListArr($listArr) {
-		$requiredExtensions = t3lib_div::trimExplode(',', $GLOBALS['TYPO3_CONF_VARS']['EXT']['requiredExt'], 1);
+		$requiredExtensions = t3lib_div::trimExplode(',', t3lib_extMgm::getRequiredExtensionList(), 1);
 		foreach ($listArr as $k => $ext) {
 			if (in_array($ext, $requiredExtensions) || !strcmp($ext, '_CACHEFILE')) {
 				unset($listArr[$k]);

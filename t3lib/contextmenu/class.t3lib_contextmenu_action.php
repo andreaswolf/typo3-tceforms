@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 TYPO3 Tree Team <http://forge.typo3.org/projects/typo3v4-extjstrees>
+ *  (c) 2010-2011 TYPO3 Tree Team <http://forge.typo3.org/projects/typo3v4-extjstrees>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -81,6 +81,13 @@ class t3lib_contextmenu_Action {
 	 * @var t3lib_contextmenu_ActionCollection
 	 */
 	protected $childActions = NULL;
+
+	/**
+	 * Custom Action Attributes
+	 *
+	 * @var array
+	 */
+	protected $customAttributes = array();
 
 	/**
 	 * Returns the label
@@ -225,6 +232,25 @@ class t3lib_contextmenu_Action {
 	}
 
 	/**
+	 * Sets the custom attributes
+	 *
+	 * @param array $customAttributes
+	 * @return void
+	 */
+	public function setCustomAttributes(array $customAttributes) {
+		$this->customAttributes = $customAttributes;
+	}
+
+	/**
+	 * Returns the custom attributes
+	 * 
+	 * @return array
+	 */
+	public function getCustomAttributes() {
+		return $this->customAttributes;
+	}
+
+	/**
 	 * Returns the action as an array
 	 *
 	 * @return array
@@ -237,6 +263,7 @@ class t3lib_contextmenu_Action {
 			'class' => $this->getClass(),
 			'callbackAction' => $this->getCallbackAction(),
 			'type' => $this->getType(),
+			'customAttributes' => $this->getCustomAttributes()
 		);
 
 		$arrayRepresentation['childActions'] = '';

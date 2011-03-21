@@ -1,7 +1,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Steffen Kamper <steffen@typo3.org>
+ *  (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -214,8 +214,7 @@ TYPO3.Components.Tree.TcaCheckChangeHandler = function(checkedNode, checked) {
 	if (this.countSelectedNodes >= this.tcaMaxItems) {
 		checkedNode.attributes.checked = false;
 		checkedNode.getUI().toggleCheck(false);
-		this.resumeEvents();
-		return false;
+		checked = false;
 	}
 	if (checked) {
 		checkedNode.getUI().addClass('complete');

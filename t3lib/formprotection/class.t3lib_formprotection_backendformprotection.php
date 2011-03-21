@@ -2,7 +2,7 @@
 /***************************************************************
  * Copyright notice
  *
- * (c) 2010 Oliver Klee <typo3-coding@oliverklee.de>
+ * (c) 2010-2011 Oliver Klee <typo3-coding@oliverklee.de>
  * All rights reserved
  *
  * This script is part of the TYPO3 project. The TYPO3 project is
@@ -116,17 +116,53 @@ class t3lib_formprotection_BackendFormProtection extends t3lib_formprotection_Ab
 	protected $maximumNumberOfTokens = 20000;
 
 	/**
+	 * Keeps the instance of the user which existed during creation
+	 * of the object.
+	 *
+	 * @var t3lib_beUserAuth
+	 */
+	protected $backendUser;
+
+	/**
 	 * Only allow construction if we have a backend session
 	 */
 	public function __construct() {
-		if (!isset($GLOBALS['BE_USER'])) {
+		if (!$this->isAuthorizedBackendSession()) {
 			throw new t3lib_error_Exception(
 				'A back-end form protection may only be instantiated if there' .
 				' is an active back-end session.',
 				1285067843
 			);
 		}
+		$this->backendUser = $GLOBALS['BE_USER'];
 		parent::__construct();
+	}
+
+	/**
+	 * Overrule the method in the absract class, because we can drop the
+	 * whole locking procedure, which is done in persistTokens, if we
+	 * simply want to delete all tokens.
+	 *
+	 * @see t3lib/formprotection/t3lib_formprotection_Abstract::clean()
+	 */
+	public function clean() {
+		$this->tokens = array();
+		$this->backendUser->setAndSaveSessionData('formTokens', $this->tokens);
+		$this->resetPersistingRequiredStatus();
+	}
+
+	/**
+	 * Override the abstract class to be able to strip out
+	 * the token id from the POST variable.
+	 *
+	 * @see t3lib/formprotection/t3lib_formprotection_Abstract::validateToken()
+	 */
+	public function validateToken(
+		$token, $formName, $action = '', $formInstanceName = ''
+	) {
+		list($tokenId, $_) = explode('-', (string)$token);
+
+		return parent::validateToken($tokenId, $formName, $action, $formInstanceName);
 	}
 
 	/**
@@ -142,7 +178,8 @@ class t3lib_formprotection_BackendFormProtection extends t3lib_formprotection_Ab
 				'LLL:EXT:lang/locallang_core.xml:error.formProtection.tokenInvalid'
 			),
 			'',
-			t3lib_FlashMessage::ERROR
+			t3lib_FlashMessage::ERROR,
+			TRUE
 		);
 		t3lib_FlashMessageQueue::addMessage($message);
 	}
@@ -154,12 +191,30 @@ class t3lib_formprotection_BackendFormProtection extends t3lib_formprotection_Ab
 	 *		 the saved tokens as, will be empty if no tokens have been saved
 	 */
 	protected function retrieveTokens() {
-		$tokens = $GLOBALS['BE_USER']->getSessionData('formTokens');
+		$tokens = $this->backendUser->getSessionData('formTokens');
 		if (!is_array($tokens)) {
 			$tokens = array();
 		}
 
-		$this->tokens = $tokens;
+		return $tokens;
+	}
+
+	/**
+	 * It might be that two (or more) scripts are executed at the same time,
+	 * which would lead to a race condition, where both (all) scripts retrieve
+	 * the same tokens from the session, so the script that is executed
+	 * last will overwrite the tokens generated in the first scripts.
+	 * So before writing all tokens back to the session we need to get the
+	 * current tokens from the session again.
+	 *
+	 */
+	protected function updateTokens() {
+		$this->backendUser->user = $this->backendUser->fetchUserSession(TRUE);
+		$tokens = $this->retrieveTokens();
+		$this->tokens = array_merge($tokens, $this->addedTokens);
+		foreach ($this->droppedTokenIds as $tokenId) {
+			unset($this->tokens[$tokenId]);
+		}
 	}
 
 	/**
@@ -169,7 +224,60 @@ class t3lib_formprotection_BackendFormProtection extends t3lib_formprotection_Ab
 	 * @return void
 	 */
 	public function persistTokens() {
-		$GLOBALS['BE_USER']->setAndSaveSessionData('formTokens', $this->tokens);
+		if ($this->isPersistingRequired()) {
+			$lockObject = $this->acquireLock();
+
+			$this->updateTokens();
+			$this->backendUser->setAndSaveSessionData('formTokens', $this->tokens);
+			$this->resetPersistingRequiredStatus();
+
+			$this->releaseLock($lockObject);
+		}
+	}
+
+	/**
+	 * Tries to acquire a lock to not allow a race condition.
+	 *
+	 * @return t3lib_lock|FALSE The lock object or FALSE
+	 */
+	protected function acquireLock() {
+		$identifier = 'persistTokens' . $this->backendUser->id;
+		try {
+			/** @var t3lib_lock $lockObject */
+			$lockObject = t3lib_div::makeInstance('t3lib_lock', $identifier, 'simple');
+			$lockObject->setEnableLogging(FALSE);
+			$success = $lockObject->acquire();
+		} catch (Exception $e) {
+			t3lib_div::sysLog('Locking: Failed to acquire lock: '.$e->getMessage(), 't3lib_formprotection_BackendFormProtection', t3lib_div::SYSLOG_SEVERITY_ERROR);
+			$success = FALSE;	// If locking fails, return with false and continue without locking
+		}
+
+		return $success ? $lockObject : FALSE;
+	}
+
+	/**
+	 * Releases the lock if it was acquired before.
+	 *
+	 * @return boolean
+	 */
+	protected function releaseLock(&$lockObject) {
+		$success = FALSE;
+			// If lock object is set and was acquired, release it:
+		if (is_object($lockObject) && $lockObject instanceof t3lib_lock && $lockObject->getLockStatus()) {
+			$success = $lockObject->release();
+			$lockObject = NULL;
+		}
+
+		return $success;
+	}
+
+	/**
+	 * Checks if a user is logged in and the session is active.
+	 *
+	 * @return boolean
+	 */
+	protected function isAuthorizedBackendSession() {
+		return (isset($GLOBALS['BE_USER']) && $GLOBALS['BE_USER'] instanceof t3lib_beUserAuth && isset($GLOBALS['BE_USER']->user['uid']));
 	}
 }
 

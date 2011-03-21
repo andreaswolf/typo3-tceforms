@@ -39,16 +39,12 @@ TYPO3.EM.Tools = function() {
 				// select local extension list
 			Ext.getCmp('em-main').setActiveTab(0);
 			if (reload === true) {
+				TYPO3.EM.Filters.clearFilters();
 				localStore.showAction = extKey;
+				var search = Ext.getCmp('localSearchField');
+				search.setValue(extKey);
+				search.refreshTrigger();
 				localStore.load();
-			} else {
-				// find row and expand
-				/*var row = localStore.find('extkey', extKey);
-				 var grid = Ext.getCmp('em-local-extensions');
-
-				 grid.expander.expandRow(row);
-				 grid.getView().focusRow(row);
-				 grid.getSelectionModel().selectRow(row);*/
 			}
 		},
 
@@ -76,8 +72,12 @@ TYPO3.EM.Tools = function() {
 	   		TYPO3.EM.ImportWindow.close();
 		},
 
-		refreshMenu: function() {
-			if (top.TYPO3ModuleMenu) {
+		refreshMenu: function(record, installAction) {
+			if (installAction == 'import') {
+				Ext.StoreMgr.get('repositoryliststore').getById(record.extkey).set('exists', 1);
+				TYPO3.EM.Tools.displayLocalExtension(record.extkey, true);
+			}
+			if (top.TYPO3ModuleMenu && installAction == 'install') {
 				top.TYPO3ModuleMenu.refreshMenu();
 			}
 		}

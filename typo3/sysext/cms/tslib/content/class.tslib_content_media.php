@@ -2,8 +2,8 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Xavier Perseguers <typo3@perseguers.ch>
- *  (c) 2010 Steffen Kamper <steffen@typo3.org>
+ *  (c) 2010-2011 Xavier Perseguers <typo3@perseguers.ch>
+ *  (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -137,7 +137,7 @@ class tslib_content_Media extends tslib_content_Abstract {
 		} else {
 			$height = isset($conf['height.'])
 				? intval($this->cObj->stdWrap($conf['height'], $conf['height.']))
-				: intval($conf['width']);
+				: intval($conf['height']);
 			$conf['height'] = $height ? $height : $typeConf['defaultHeight'];
 		}
 
@@ -191,7 +191,7 @@ class tslib_content_Media extends tslib_content_Abstract {
 			if ($url == '' && !$conf['allowEmptyUrl']) {
 				return '<p style="background-color: yellow;">' . $GLOBALS['TSFE']->sL('LLL:EXT:cms/locallang_ttc.xml:media.noFile', TRUE) . '</p>';
 			}
-			$conf = array_merge($conf['mimeConf.']['swfobject.'], $conf);
+			$conf = array_merge((array) $conf['mimeConf.']['swfobject.'], $conf);
 			$conf[$conf['type'] . '.']['player'] = strpos($url, '://') === FALSE ? 'http://' . $url : $url;
 			$conf['installUrl'] = 'null';
 			$conf['flashvars'] = array_merge((array) $conf['flashvars'], $conf['predefined']);
@@ -199,8 +199,8 @@ class tslib_content_Media extends tslib_content_Abstract {
 
 		switch ($renderType) {
 			case 'swf' :
-				$conf[$conf['type'] . '.'] = array_merge($conf['mimeConf.']['swfobject.'][$conf['type'] . '.'], $typeConf);
-				$conf = array_merge($conf['mimeConf.']['swfobject.'], $conf);
+				$conf[$conf['type'] . '.'] = array_merge((array) $conf['mimeConf.']['swfobject.'][$conf['type'] . '.'], $typeConf);
+				$conf = array_merge((array) $conf['mimeConf.']['swfobject.'], $conf);
 				unset($conf['mimeConf.']);
 				$conf['flashvars.'] = array_merge((array) $conf['flashvars.'], $conf['predefined']);
 				$content = $this->cObj->SWFOBJECT($conf);

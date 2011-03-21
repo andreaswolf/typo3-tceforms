@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -34,6 +34,12 @@
  */
 
 
+
+if (!function_exists('user_sortPluginList')) {
+	function user_sortPluginList(array &$parameters) {
+			usort($parameters['items'], create_function('$item1,$item2', 'return strcasecmp($GLOBALS[\'LANG\']->sL($item1[0]),$GLOBALS[\'LANG\']->sL($item2[0]));'));
+	}
+}
 
 $TCA['tt_content'] = array(
 	'ctrl' => $TCA['tt_content']['ctrl'],
@@ -186,7 +192,6 @@ $TCA['tt_content'] = array(
 				'size' => '13',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 			),
 		),
@@ -198,7 +203,6 @@ $TCA['tt_content'] = array(
 				'size' => '13',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 				'range' => array(
 					'upper' => mktime(0,0,0,12,31,2020),
@@ -327,7 +331,6 @@ $TCA['tt_content'] = array(
 				'size' => '13',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 			),
 		),
@@ -339,7 +342,6 @@ $TCA['tt_content'] = array(
 				'type' => 'input',
 				'size' => '50',
 				'max' => '256',
-				'checkbox' => '',
 			),
 		),
 		'header_position' => array(
@@ -375,7 +377,6 @@ $TCA['tt_content'] = array(
 				'type' => 'input',
 				'size' => '50',
 				'max' => '256',
-				'checkbox' => '',
 				'eval' => 'trim',
 				'wizards' => array(
 					'_PADDING' => 2,
@@ -436,7 +437,6 @@ $TCA['tt_content'] = array(
 				'size' => '50',
 				'max' => '256',
 				'softref' => 'email[subst]',
-				'checkbox' => '',
 			),
 		),
 		'bodytext' => array(
@@ -479,6 +479,17 @@ $TCA['tt_content'] = array(
 						'script' => 'wizard_forms.php?special=formtype_mail',
 						'params' => array(
 							'xmlOutput' => 0,
+						),
+					),
+					't3editor' => array(
+						'enableByTypeConfig' => 1,
+						'type' => 'userFunc',
+						'userFunc' => 'EXT:t3editor/classes/class.tx_t3editor_tceforms_wizard.php:tx_t3editor_tceforms_wizard->main',
+						'title' => 't3editor',
+						'icon' => 'wizard_table.gif',
+						'script' => 'wizard_table.php',
+						'params' => array(
+							'format' => 'html',
 						),
 					),
 				),
@@ -702,7 +713,6 @@ $TCA['tt_content'] = array(
 				'size' => '4',
 				'max' => '4',
 				'eval' => 'int',
-				'checkbox' => '0',
 				'range' => array(
 					'upper' => '999',
 					'lower' => '25',
@@ -718,7 +728,6 @@ $TCA['tt_content'] = array(
 				'size' => '4',
 				'max' => '4',
 				'eval' => 'int',
-				'checkbox' => '0',
 				'range' => array(
 					'upper' => '700',
 					'lower' => '25',
@@ -819,11 +828,9 @@ $TCA['tt_content'] = array(
 			'exclude' => 1,
 			'label' => 'LLL:EXT:cms/locallang_ttc.xml:image_link',
 			'config' => array(
-				'type' => 'input',
-				'size' => '50',
-				'max' => '51200',
-				'checkbox' => '',
-				'eval' => 'trim',
+				'type' => 'text',
+				'cols' => '30',
+				'rows' => '3',
 				'wizards' => array(
 					'_PADDING' => 2,
 					'link' => array(
@@ -1287,6 +1294,7 @@ $TCA['tt_content'] = array(
 						'',
 					),
 				),
+				'itemsProcFunc' => 'user_sortPluginList',
 				'default' => '',
 				'authMode' => $GLOBALS['TYPO3_CONF_VARS']['BE']['explicitADmode'],
 				'iconsInOptionTags' => 1,
@@ -1361,7 +1369,6 @@ $TCA['tt_content'] = array(
 				'size' => '3',
 				'max' => '3',
 				'eval' => 'int',
-				'checkbox' => '0',
 				'range' => array(
 					'upper' => '20',
 					'lower' => '0',
@@ -1377,7 +1384,6 @@ $TCA['tt_content'] = array(
 				'size' => '3',
 				'max' => '3',
 				'eval' => 'int',
-				'checkbox' => '0',
 				'range' => array(
 					'upper' => '200',
 					'lower' => '0',
@@ -1393,7 +1399,6 @@ $TCA['tt_content'] = array(
 				'size' => '3',
 				'max' => '3',
 				'eval' => 'int',
-				'checkbox' => '0',
 				'range' => array(
 					'upper' => '200',
 					'lower' => '0',
@@ -1465,7 +1470,6 @@ $TCA['tt_content'] = array(
 				'size' => '5',
 				'max' => '5',
 				'eval' => 'int',
-				'checkbox' => '0',
 				'range' => array(
 					'lower' => '0',
 				),
@@ -1480,7 +1484,6 @@ $TCA['tt_content'] = array(
 				'size' => '5',
 				'max' => '5',
 				'eval' => 'int',
-				'checkbox' => '0',
 				'range' => array(
 					'lower' => '0',
 				),
@@ -1926,7 +1929,7 @@ $TCA['tt_content'] = array(
 			'showitem' =>
 					'--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.general;general,
 					header;LLL:EXT:cms/locallang_ttc.xml:header.ALT.html_formlabel,
-					bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.html_formlabel;;nowrap,
+					bodytext;LLL:EXT:cms/locallang_ttc.xml:bodytext.ALT.html_formlabel;;nowrap:wizards[t3editor],
 				--div--;LLL:EXT:cms/locallang_ttc.xml:tabs.access,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.visibility;visibility,
 					--palette--;LLL:EXT:cms/locallang_ttc.xml:palette.access;access,

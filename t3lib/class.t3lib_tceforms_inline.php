@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2006-2010 Oliver Hader <oliver@typo3.org>
+ *  (c) 2006-2011 Oliver Hader <oliver@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -958,21 +958,6 @@ class t3lib_TCEforms_inline {
 
 
 	/**
-	 * Creates a link/button to create new records
-	 *
-	 * @param	string		$objectPrefix: The "path" to the child record to create (e.g. 'data-parentPageId-partenTable-parentUid-parentField-childTable')
-	 * @param	array		$conf: TCA configuration of the parent(!) field
-	 * @return	string		The HTML code for the new record link
-	 * @deprecated	since TYPO3 4.2.0-beta1, this function will be removed in TYPO3 4.6.
-	 */
-	function getNewRecordLink($objectPrefix, $conf = array()) {
-		t3lib_div::logDeprecatedFunction();
-
-		return $this->getLevelInteractionLink('newRecord', $objectPrefix, $conf);
-	}
-
-
-	/**
 	 * Add Sortable functionality using script.acolo.us "Sortable".
 	 *
 	 * @param	string		$objectId: The container id of the object - elements inside will be sortable
@@ -1106,24 +1091,6 @@ class t3lib_TCEforms_inline {
 			// if TCEforms has some JavaScript code to be executed, just do it
 		if ($this->fObj->extJSCODE) {
 			$jsonArray['scriptCall'][] = $this->fObj->extJSCODE;
-		}
-	}
-
-
-	/**
-	 * Initialize environment for AJAX calls
-	 *
-	 * @param	string		$method: Name of the method to be called
-	 * @param	array		$arguments: Arguments to be delivered to the method
-	 * @return	void
-	 * @deprecated	since TYPO3 4.2.0-alpha3, this function will be removed in TYPO3 4.6.
-	 */
-	function initForAJAX($method, &$arguments) {
-		t3lib_div::logDeprecatedFunction();
-
-			// Set t3lib_TCEforms::$RTEcounter to the given value:
-		if ($method == 'createNewRecord') {
-			$this->fObj->RTEcounter = intval(array_shift($arguments));
 		}
 	}
 
@@ -2433,21 +2400,6 @@ class t3lib_TCEforms_inline {
 
 
 	/**
-	 * Creates recursively a JSON literal from a mulidimensional associative array.
-	 * Uses Services_JSON (http://mike.teczno.com/JSON/doc/)
-	 *
-	 * @param	array		$jsonArray: The array (or part of) to be transformed to JSON
-	 * @return	string		If $level>0: part of JSON literal; if $level==0: whole JSON literal wrapped with <script> tags
-	 * @deprecated			Since TYPO3 4.2: Moved to t3lib_div::array2json, will be removed in TYPO3 4.6
-	 */
-	function getJSON($jsonArray) {
-		t3lib_div::logDeprecatedFunction();
-
-		return json_encode($jsonArray);
-	}
-
-
-	/**
 	 * Checks if a uid of a child table is in the inline view settings.
 	 *
 	 * @param	string		$table: Name of the child table
@@ -2524,7 +2476,7 @@ class t3lib_TCEforms_inline {
 	 */
 	protected function getHeadTags() {
 		$headTags = array();
-		$headDataRaw = $this->fObj->JStop();
+		$headDataRaw = $this->fObj->JStop() . $this->getJavaScriptAndStyleSheetsOfPageRenderer();
 
 		if ($headDataRaw) {
 				// Create instance of the HTML parser:
@@ -2550,6 +2502,24 @@ class t3lib_TCEforms_inline {
 		}
 
 		return $headTags;
+	}
+
+	/**
+	 * Gets the JavaScript of the pageRenderer.
+	 * This can be used to extract newly added files which have been added
+	 * during an AJAX request. Due to the spread possibilities of the pageRenderer
+	 * to add JavaScript rendering and extracting seems to be the easiest way.
+	 *
+	 * @return string
+	 */
+	protected function getJavaScriptAndStyleSheetsOfPageRenderer() {
+		/** @var $pageRenderer t3lib_PageRenderer */
+		$pageRenderer = clone $GLOBALS['SOBE']->doc->getPageRenderer();
+
+		$pageRenderer->setTemplateFile(TYPO3_mainDir . 'templates/helper_javascript_css.html');
+		$javaScriptAndStyleSheets = $pageRenderer->render();
+
+		return $javaScriptAndStyleSheets;
 	}
 
 

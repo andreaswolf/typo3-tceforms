@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2009-2010 Ingo Renner <ingo@typo3.org>
+ *  (c) 2009-2011 Ingo Renner <ingo@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -66,7 +66,7 @@ class t3lib_error_DebugExceptionHandler extends t3lib_error_AbstractExceptionHan
 		 * either remove this line or let the link point to site that offers error information for TYPO3
 		 */
 
-			//		$moreInformationLink = ($exceptionCodeNumber != '') ? '(<a href="http://typo3.org/go/exception/' . $exception->getCode() . '">More information</a>)' : '';
+			//		$moreInformationLink = ($exceptionCodeNumber != '') ? '(<a href="' . TYPO3_URL_EXCEPTION . $exception->getCode() . '">More information</a>)' : '';
 		$backtraceCode = $this->getBacktraceCode($exception->getTrace());
 
 		$this->writeLogEntries($exception, self::CONTEXT_WEB);

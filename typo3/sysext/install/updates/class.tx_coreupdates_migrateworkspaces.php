@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Tolleiv Nietsch <info@tolleiv.de>
+*  (c) 2010-2011 Tolleiv Nietsch <info@tolleiv.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -33,7 +33,7 @@
  * @version $Id$
  */
 class tx_coreupdates_migrateworkspaces extends tx_coreupdates_installsysexts {
-	protected $title = 'Versioning and Workspaces: Migrate "draft" workspace';
+	protected $title = 'Versioning and Workspaces';
 
 	public $sqlQueries;
 
@@ -45,22 +45,53 @@ class tx_coreupdates_migrateworkspaces extends tx_coreupdates_installsysexts {
 	 */
 	public function checkForUpdate(&$description) {
 		$result = FALSE;
-		$description = 'Migrates the old hardcoded draft workspace to be a real workspace element,
-		updates workspace owner fields  to support either users or groups and
-		migrates the old-style workspaces with fixed workflow to a custom-stage workflow';
+		$description = 'Migrates the old hardcoded draft workspace to be a real workspace record,
+		updates workspace owner fields to support either users or groups and
+		migrates the old-style workspaces with fixed workflow to a custom-stage workflow. If required
+		the extbase, fluid, version and workspaces extensions are installed.';
 
+		$reason = '';
 			// TYPO3 version 4.5 and above
 		if ($this->versionNumber >= 4005000) {
-			$tables = array_keys($GLOBALS['TYPO3_DB']->admin_get_tables());
-				// sys_workspace table might not exists if version extension was never installed
-			if (in_array('sys_workspace', $tables)) {
-				$wsCount = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('uid', 'sys_workspace', '');
-				$result = $wsCount > 0;
-			}
+				// If neither version nor workspaces is installed, we're not doing a migration
+				// Present the user with the choice of activating versioning and workspaces
+			if (!t3lib_extMgm::isLoaded('version') && !t3lib_extMgm::isLoaded('workspaces')) {
+				$result = TRUE;
+					// Override the default description
+				$description = 'Activates the usage of workspaces in your installation. Workspaces let you edit elements
+					without the changes being visible on the live web site right away. Modified elements can then go
+					through a validation process and eventually be published.<br /><br />';
+				$description .= 'This wizard will install system extensions "version" and "workspaces" (and may
+					install "fluid" and "extbase" too, as they are used by the "workspaces" extension).';
+			} else {
 
-			if (!$result) {
 				$this->includeTCA();
-				$result = $this->isDraftWorkspaceUsed();
+
+				if (!t3lib_extMgm::isLoaded('version') || !t3lib_extMgm::isLoaded('workspaces')) {
+					$result = TRUE;
+					$reason .= ' Both extensions "version" and "workspaces" need to be
+						present to use the entire versioning and workflow featureset of TYPO3.';
+				}
+
+				$tables = array_keys($GLOBALS['TYPO3_DB']->admin_get_tables());
+					// sys_workspace table might not exists if version extension was never installed
+				if (!in_array('sys_workspace', $tables) || !in_array('sys_workspace_stage', $tables)) {
+					$result = TRUE;
+					$reason .= ' The database tables for the workspace functionality are missing.';
+				} elseif ($this->isOldStyleAdminFieldUsed() || $this->isOldStyleWorkspace()) {
+					$wsCount = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('uid', 'sys_workspace', '');
+					$result |= $wsCount > 0;
+					$reason .= ' The existing workspaces will be checked for compatibility with the new features.';
+				}
+
+				$draftWorkspaceTestResult = $this->isDraftWorkspaceUsed();
+				if ($draftWorkspaceTestResult) {
+					$reason .= ' The old style draft workspace is used.
+						Related records will be moved into a full featured workspace.';
+					$result = TRUE;
+				}
+
+				$description .= '<br /><strong>Why do you need this wizard?</strong><br />' . $reason;
 			}
 		}
 
@@ -68,16 +99,40 @@ class tx_coreupdates_migrateworkspaces extends tx_coreupdates_installsysexts {
 	}
 
 	/**
-	 * If there's any user-input which we'd love to process, this method allows to specify what
-	 * kind of input we need.
-	 *
-	 * Since we don't need input this is left empty. It's still here to avoid that this is inherited.
+	 * This method requests input from the user about the upgrade process, if needed
 	 *
 	 * @param string $inputPrefix
 	 * @return void
 	 */
 	public function getUserInput($inputPrefix) {
-		return;
+		$content = '';
+
+		if (!t3lib_extMgm::isLoaded('version') && !t3lib_extMgm::isLoaded('workspaces')) {
+				// We need feedback only if versioning is not activated at all
+				// In such a case we want to leave the user with the choice of not activating the stuff at all
+			$content = '
+				<fieldset>
+					<ol>
+			';
+
+			$content .= '
+				<li class="labelAfter">
+					<input type="checkbox" id="versioning" name="' . $inputPrefix . '[versioning]" value="1" checked="checked" />
+					<label for="versioning">Activate workspaces?</label>
+				</li>
+			';
+
+			$content .= '
+					</ol>
+				</fieldset>
+			';
+
+		} else {
+				// No feedback needed, just include the update flag as a hidden field
+			$content = '<input type="hidden" id="versioning" name="' . $inputPrefix . '[versioning]" value="1" />';
+		}
+
+		return $content;
 	}
 
 	/**
@@ -91,8 +146,12 @@ class tx_coreupdates_migrateworkspaces extends tx_coreupdates_installsysexts {
 		$result = TRUE;
 
 			// TYPO3 version below 4.5
-		if ($this->versionNumber < 4005000)	{
+		if ($this->versionNumber < 4005000) {
 			return FALSE;
+		}
+			// Wizard skipped by the user
+		if (empty($this->pObj->INSTALL['update']['migrateWorkspaces']['versioning'])) {
+			return TRUE;
 		}
 
 			// There's no TCA available yet
@@ -114,50 +173,23 @@ class tx_coreupdates_migrateworkspaces extends tx_coreupdates_installsysexts {
 			}
 		}
 
-		$workspaces = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('uid, reviewers', 'sys_workspace', '', '', '', '1');
+		$workspaces = $this->getWorkspacesWithoutStages();
 		$this->sqlQueries[] =  $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
 		$label = 'Review';
 		foreach($workspaces as $workspace) {
-			$where = 'parentid=' . $workspace['uid'] . ' AND parenttable="sys_workspace" AND deleted=0';
-			$stageCount = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('uid', 'sys_workspace_stage', $where);
-			$this->sqlQueries[] =  $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
-			if ($stageCount == 0) {
-					// Find all workspaces and add "review" stage record
-					// Add review users and groups to the new IRRE record
-				$reviewStageId = $this->createReviewStageForWorkspace($workspace['uid'], $label, $workspace['reviewers']);
-					// Update all "review" state records in the database to point to the new state
-				$this->migrateOldRecordsToStage($workspace['uid'], 1, $reviewStageId);
-					// Update all "ready to publish" records in the database to point to the new ready to publish state
-				$this->migrateOldRecordsToStage($workspace['uid'], 10, -99);
-			} else {
-				// this workspace has stages already at this point we might break something if we continue
-			}
+				// Find all workspaces and add "review" stage record
+				// Add review users and groups to the new IRRE record
+			$reviewStageId = $this->createReviewStageForWorkspace($workspace['uid'], $label, $workspace['reviewers']);
+				// Update all "review" state records in the database to point to the new state
+			$this->migrateOldRecordsToStage($workspace['uid'], 1, $reviewStageId);
+				// Update all "ready to publish" records in the database to point to the new ready to publish state
+			$this->migrateOldRecordsToStage($workspace['uid'], 10, -99);
 		}
 
 		if (is_array($this->sqlQueries) && is_array($databaseQueries)) {
 			$databaseQueries = array_merge($databaseQueries, $this->sqlQueries);
 		}
 
-		return $result;
-	}
-
-	/**
-	 * Install a extensions
-	 *
-	 * @param	array		List of extension keys
-	 * @return	boolean	Determines whether this was successful or not
-	 */
-	protected function installExtensions($extensionKeys) {
-		if (!is_array($extensionKeys)) {
-			return FALSE;
-		}
-
-		$result = FALSE;
-		$extList = $this->addExtToList($extensionKeys);
-		if ($extList) {
-			$this->writeNewExtensionList($extList);
-			$result = TRUE;
-		}
 		return $result;
 	}
 
@@ -181,6 +213,43 @@ class tx_coreupdates_migrateworkspaces extends tx_coreupdates_installsysexts {
 		}
 
 		return $foundDraftRecords;
+	}
+
+	/**
+	 * Find workspaces which have no sys_workspace_state(s) but have records using states
+	 * If "
+	 *
+	 * @return bool
+	 */
+	protected function isOldStyleWorkspace() {
+		$foundOldStyleStages = FALSE;
+		$workspaces = $this->getWorkspacesWithoutStages();
+		$workspacesWithReviewers = 0;
+		$workspaceUids = array();
+		foreach ($workspaces as $workspace) {
+			$workspaceUids[] = $workspace['uid'];
+			if ($workspace['reviewers']) {
+				$workspacesWithReviewers++;
+			}
+		}
+		if (!$workspacesWithReviewers && !empty($workspaceUids)) {
+			$tables = array_keys($GLOBALS['TCA']);
+			foreach ($tables as $table) {
+				$versioningVer = t3lib_div::intInRange($GLOBALS['TCA'][$table]['ctrl']['versioningWS'], 0, 2, 0);
+				if ($versioningVer > 0) {
+					$count = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
+						'uid',
+						$table,
+						't3ver_wsid IN (' . implode(',', $workspaceUids) . ') AND t3ver_stage IN (-1,1,10) AND pid = -1'
+					);
+					if ($count > 0) {
+						$foundOldStyleStages = TRUE;
+						break;
+					}
+				}
+			}
+		}
+		return $foundOldStyleStages || $workspacesWithReviewers;
 	}
 
 	/**
@@ -337,6 +406,22 @@ class tx_coreupdates_migrateworkspaces extends tx_coreupdates_installsysexts {
 		$this->sqlQueries[] =  $GLOBALS['TYPO3_DB']->debug_lastBuiltQuery;
 
 		return ($count > 0);
+	}
+
+	/**
+	 * Returns all sys_workspace records which are not referenced by any sys_workspace_stages record
+	 *
+	 * @return array
+	 */
+	protected function getWorkspacesWithoutStages() {
+		$stages = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('parentid', 'sys_workspace_stage', 'parenttable="sys_workspace"');
+		$wsWhitelist = array();
+		foreach ($stages as $stage) {
+			$wsWhitelist[] = $stage['parentid'];
+		}
+		$where = 'deleted=0';
+		$where .= (!empty($wsWhitelist) ? ' AND uid NOT IN (' . implode(',', $wsWhitelist) . ')' : '');
+		return $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', 'sys_workspace', $where);
 	}
 }
 ?>

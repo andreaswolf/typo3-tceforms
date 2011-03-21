@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -77,6 +77,8 @@ class tx_lowlevel_cleaner_core extends t3lib_cli {
 	var $cleanerModules = array();
 
 	var $performanceStatistics = array();
+
+	protected $workspaceIndex = array();
 
 
 	/**
@@ -332,7 +334,9 @@ class tx_lowlevel_cleaner_core extends t3lib_cli {
 		$pt = t3lib_div::milliseconds();$this->performanceStatistics['genTree()']='';
 
 			// Initialize:
-		$this->workspaceIndex = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('uid,title','sys_workspace','1=1'.t3lib_BEfunc::deleteClause('sys_workspace'),'','','','uid');
+		if (t3lib_extMgm::isLoaded('workspaces')) {
+			$this->workspaceIndex = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('uid,title','sys_workspace','1=1'.t3lib_BEfunc::deleteClause('sys_workspace'),'','','','uid');
+		}
 		$this->workspaceIndex[-1] = TRUE;
 		$this->workspaceIndex[0] = TRUE;
 

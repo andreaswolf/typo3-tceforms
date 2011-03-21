@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -150,7 +150,6 @@ require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_noti
 require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_mergeadvanced.php');
 require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_installsysexts.php');
 require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_imagescols.php');
-require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_installversioning.php');
 require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_installnewsysexts.php');
 require_once(t3lib_extMgm::extPath('install') . 'mod/class.tx_install_session.php');
 require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_statictemplates.php');
@@ -159,6 +158,7 @@ require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_co
 require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_migrateworkspaces.php');
 require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_flagsfromsprite.php');
 require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_addflexformstoacl.php');
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_imagelink.php');
 
 /**
  * Install Tool module
@@ -234,7 +234,7 @@ class tx_install extends t3lib_install {
 	var $menuitems = array(
 		'config' => 'Basic Configuration',
 		'database' => 'Database Analyser',
-		'update' => 'Update Wizard',
+		'update' => 'Upgrade Wizard',
 		'images' => 'Image Processing',
 		'extConfig' => 'All Configuration',
 		'cleanup' => 'Clean up',
@@ -271,7 +271,7 @@ class tx_install extends t3lib_install {
 		parent::t3lib_install();
 
 		if (!$GLOBALS['TYPO3_CONF_VARS']['BE']['installToolPassword']) {
-			$this->outputErrorAndExit('Install Tool deactivated.<br />You must enable it by setting a password in typo3conf/localconf.php. If you insert the line below, the password will be \'joh316\':<br /><br />\$TYPO3_CONF_VARS[\'BE\'][\'installToolPassword\'] = \'bacb98acf97e0b6112b1d1b650b84971\';', 'Fatal error');
+			$this->outputErrorAndExit('Install Tool deactivated.<br />You must enable it by setting a password in typo3conf/localconf.php. If you insert the line below, the password will be \'joh316\':<br /><br />$TYPO3_CONF_VARS[\'BE\'][\'installToolPassword\'] = \'bacb98acf97e0b6112b1d1b650b84971\';', 'Fatal error');
 		}
 
 		if ($this->sendNoCacheHeaders) {
@@ -308,7 +308,8 @@ class tx_install extends t3lib_install {
 			if (count($missingPhpModules) > 0) {
 				throw new RuntimeException('TYPO3 Installation Error: The following PHP module(s) is/are missing: <em>' .
 						implode(', ', $missingPhpModules) .
-						'</em><br /><br />You need to install and enable these modules first to be able to install TYPO3.'
+						'</em><br /><br />You need to install and enable these modules first to be able to install TYPO3.',
+					1294587482
 				);
 			}
 		}
@@ -826,7 +827,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 							fields in the database.
 						</p>
 						<p>
-							<strong>3: Update Wizard</strong>
+							<strong>3: Upgrade Wizard</strong>
 							<br />
 							Here you will find update methods taking care of
 							changes to the TYPO3 core which are not backwards
@@ -1081,6 +1082,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 
 						$dbArr = $this->getDatabaseList();
 						$dbIncluded = 0;
+						$step3DatabaseOptions = array();
 						foreach ($dbArr as $dbname) {
 								// Define the markers content for database options
 							$step3DatabaseOptionMarkers = array(
@@ -1118,7 +1120,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						$content = t3lib_parsehtml::substituteSubpart(
 							$step3SubPart,
 							'###DATABASEOPTIONS###',
-							implode(chr(10), $step3DatabaseOptions)
+							implode(LF, $step3DatabaseOptions)
 						);
 							// Define the markers content
 						$step3SubPartMarkers = array(
@@ -1169,7 +1171,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 								array_unshift($sFiles,'Default TYPO3 Tables');
 							}
 
-							$opt='';
+							$step4DatabaseTypeOptions = array();
 							foreach ($sFiles as $f) {
 								if ($f=='Default TYPO3 Tables')	$key='CURRENT_TABLES+STATIC';
 								else $key=htmlspecialchars($f);
@@ -1191,7 +1193,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 							$content = t3lib_parsehtml::substituteSubpart(
 								$step4SubPart,
 								'###DATABASETYPEOPTIONS###',
-								implode(chr(10), $step4DatabaseTypeOptions)
+								implode(LF, $step4DatabaseTypeOptions)
 							);
 								// Define the markers content
 							$step4SubPartMarkers = array(
@@ -1362,7 +1364,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					$save_fileContent = $this->INSTALL['FILE'][$save_to_file_md5];
 
 					if ($this->INSTALL['FILE']['win_to_unix_br']) {
-						$save_fileContent = str_replace(chr(13).chr(10),chr(10),$save_fileContent);
+						$save_fileContent = str_replace(CRLF, LF, $save_fileContent);
 					}
 
 					$backupFile = $this->getBackupFilename($save_to_file);
@@ -1520,7 +1522,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$fileListContent = t3lib_parsehtml::substituteSubpart(
 			$fileListContent,
 			'###FILES###',
-			implode(chr(10), $files)
+			implode(LF, $files)
 		);
 			// Define the markers content
 		$fileListMarkers = array(
@@ -1592,7 +1594,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 			// Define the markers content
 		$markers = array(
 			'explanation' => 'Please copy/paste the information from this text field into an email or bug-report as "Debug System Information" whenever you wish to get support or report problems. This information helps others to check if your system has some obvious misconfiguration and you\'ll get your help faster!',
-			'debugInfo' => t3lib_div::formatForTextarea(implode(chr(10), $debugInfo))
+			'debugInfo' => t3lib_div::formatForTextarea(implode(LF, $debugInfo))
 		);
 			// Fill the markers
 		$content = t3lib_parsehtml::substituteMarkerArray(
@@ -1728,7 +1730,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$content = t3lib_parsehtml::substituteSubpart(
 			$template,
 			'###CLEANUPOPTIONS###',
-			implode(chr(10), $cleanUpOptions)
+			implode(LF, $cleanUpOptions)
 		);
 			// Define the markers content
 		$markers = array(
@@ -1885,7 +1887,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$content = t3lib_parsehtml::substituteSubpart(
 			$template,
 			'###DELETEOPTIONS###',
-			implode(chr(10), $deleteOptions)
+			implode(LF, $deleteOptions)
 		);
 			// Get the subpart for 'Number of files at a time' dropdown
 		$actionOptionsSubpart = t3lib_parsehtml::getSubpart($template, '###ACTIONOPTIONS###');
@@ -1910,7 +1912,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$content = t3lib_parsehtml::substituteSubpart(
 			$content,
 			'###ACTIONOPTIONS###',
-			implode(chr(10), $actionOptions)
+			implode(LF, $actionOptions)
 		);
 			// Get the subpart for 'From sub-directory' dropdown
 		$subDirectoryOptionsSubpart = t3lib_parsehtml::getSubpart($template, '###SUBDIRECTORYOPTIONS###');
@@ -1936,7 +1938,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$content = t3lib_parsehtml::substituteSubpart(
 			$content,
 			'###SUBDIRECTORYOPTIONS###',
-			implode(chr(10), $subDirectoryOptions)
+			implode(LF, $subDirectoryOptions)
 		);
 			// Define the markers content
 		$markers = array(
@@ -2154,7 +2156,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 									$description = trim($commentArr[1][$k][$vk]);
 									if (preg_match('/^string \(textarea\)/i', $description)) {
 											// Force Unix linebreaks in textareas
-										$value = str_replace(chr(13), '', $value);
+										$value = str_replace(CR, '', $value);
 											// Preserve linebreaks
 										$value = str_replace(LF, "' . LF . '", $value);
 									}
@@ -2189,7 +2191,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 	 * @return array
 	 */
 	function getDefaultConfigArrayComments($string,$mainArray=array(),$commentArray=array()) {
-		$lines = explode(chr(10),$string);
+		$lines = explode(LF, $string);
 		$in=0;
 		$mainKey='';
 		foreach ($lines as $lc) {
@@ -2655,17 +2657,9 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 			case 'get_form':
 				$out = '
 					<p id="checkMailForm">
-						You can check the mail() function by entering your email
+						You can check the t3lib_mail functionality by entering your email
 						address here and press the button. You should then
-						receive a testmail from test@test.test.
-						<br />
-						Since almost all mails in TYPO3 are sent using the
-						t3lib_htmlmail class, sending with this class can be
-						tested by checking the box
-						<strong>Test t3lib_htmlmail</strong> below.
-						The return-path of the mail is set to null@' . t3lib_div::getIndpEnv('HTTP_HOST') . '.
-						Some mail servers won\'t send the mail if the host of
-						the return-path is not resolved correctly.
+						receive a testmail from "typo3installtool@example.org".
 					</p>
 				';
 					// Get the template file
@@ -2688,7 +2682,6 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					'message' => $this->mailMessage,
 					'enterEmail' => 'Enter the email address',
 					'actionUrl' => $this->action . '#checkMailForm',
-					'useHtmlMailLabel' => 'Test t3lib_htmlmail',
 					'submit' => 'Send test mail'
 				);
 					// Fill the markers
@@ -2705,20 +2698,14 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					$subject = 'TEST SUBJECT';
 					$email = trim($this->INSTALL['check_mail']);
 
-					if($this->INSTALL['use_htmlmail']) {
-					  	$emailObj = t3lib_div::makeInstance('t3lib_htmlmail');
-					  	/* @var $emailObj t3lib_htmlmail */
-						$emailObj->start();
-						$emailObj->subject = $subject;
-						$emailObj->from_email = 'test@test.test';
-						$emailObj->from_name = 'TYPO3 Install Tool';
-						$emailObj->returnPath = 'null@'.t3lib_div::getIndpEnv('HTTP_HOST');
-						$emailObj->addPlain('TEST CONTENT');
-						$emailObj->setHTML($emailObj->encodeMsg('<html><body>HTML TEST CONTENT</body></html>'));
-						$emailObj->send($email);
-					} else {
-						t3lib_div::plainMailEncoded($email,$subject,'TEST CONTENT','From: test@test.test');
-					}
+						/** @var $mailMessage t3lib_mail_Message */
+					$mailMessage = t3lib_div::makeInstance('t3lib_mail_Message');
+					$mailMessage->addTo($email)
+							->addFrom('typo3installtool@example.org', 'TYPO3 Install Tool')
+							->setSubject($subject)
+							->setBody('<html><body>HTML TEST CONTENT</body></html>');
+					$mailMessage->addPart('TEST CONTENT');
+					$mailMessage->send();
 					$this->mailMessage= 'Mail was sent to: ' . $email;
 				}
 			break;
@@ -2800,7 +2787,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						</p>
 					';
 				}
-				$this->message($ext, 'GIF / PNG issues', implode($msg, chr(10)), 1);
+				$this->message($ext, 'GIF / PNG issues', implode(LF, $msg), 1);
 			}
 			if (!$this->isTTF()) {
 				$this->message($ext, 'FreeType is apparently not installed', '
@@ -3026,6 +3013,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 				// Get the subpart for each ImageMagick version
 			$rowsSubPart = t3lib_parsehtml::getSubpart($theCode, '###ROWS###');
 
+			$rows = array();
 			foreach ($this->config_array['im_versions'] as $p => $v) {
 				$ka = array();
 				reset($v);
@@ -3049,7 +3037,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 			$theCode = t3lib_parsehtml::substituteSubpart(
 				$theCode,
 				'###ROWS###',
-				implode(chr(10), $rows)
+				implode(LF, $rows)
 			);
 				// Add the content to the message array
 			$this->message($ext, 'Available ImageMagick/GraphicsMagick installations:', $theCode, -1);
@@ -3328,8 +3316,8 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						// Get the subpart for each database table
 					$databaseItemSubpart = t3lib_parsehtml::getSubpart($databaseAvailableSubpart, '###DATABASEITEM###');
 					$dbArr = $this->getDatabaseList();
-					$options='';
 					$dbIncluded=0;
+					$databaseItems = array();
 					foreach ($dbArr as $dbname) {
 							// Define the markers content
 						$databaseItemMarkers = array(
@@ -3367,7 +3355,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					$databaseAvailableSubpart = t3lib_parsehtml::substituteSubpart(
 						$databaseAvailableSubpart,
 						'###DATABASEITEM###',
-						implode(chr(10), $databaseItems)
+						implode(LF, $databaseItems)
 					);
 				} else {
 						// Get the subpart when the database is not available
@@ -3498,6 +3486,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						$regularModeMarkers['strongGdLibPng'] = (string) current($gdLibPngLabels);
 						$regularModeMarkers['defaultGdLibPng'] = (integer) $GLOBALS['TYPO3_CONF_VARS']['GFX']['gdlib_png'];
 
+						$gdLibPngOptions = array();
 						foreach ($gdLibPngLabels as $k => $v) {
 							list($cleanV) = explode('|', $fA['gdlib_png'][$k]);
 							$gdLibPngMarker['value'] = htmlspecialchars($fA['gdlib_png'][$k]);
@@ -3518,7 +3507,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						$gdLibPngSubpart = t3lib_parsehtml::substituteSubpart(
 							$gdLibPngSubpart,
 							'###GDLIBPNGOPTION###',
-							implode(chr(10), $gdLibPngOptions)
+							implode(LF, $gdLibPngOptions)
 						);
 							// Fill the markers in the subpart
 						$gdLibPngSubpart = t3lib_parsehtml::substituteMarkerArray(
@@ -3629,6 +3618,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 								$regularModeMarkers['defaultImPathLzw'] = (string) $GLOBALS['TYPO3_CONF_VARS']['GFX']['im_path_lzw'];
 								$regularModeMarkers['ImPathLzw'] = (string) current($imPathLzw);
 
+								$imPathLzwOptions = array();
 								foreach ($labelImPathLzw as $k => $v) {
 									list($cleanV) = explode('|', $fA['im_path_lzw'][$k]);
 										// Define the markers content
@@ -3652,7 +3642,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 								$imPathLzwSubpart = t3lib_parsehtml::substituteSubpart(
 									$imPathLzwSubpart,
 									'###IMPATHLZWOPTION###',
-									implode(chr(10), $imPathLzwOptions)
+									implode(LF, $imPathLzwOptions)
 								);
 									// Fill the markers in the subpart
 								$imPathLzwSubpart = t3lib_parsehtml::substituteMarkerArray(
@@ -3929,7 +3919,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					$content = t3lib_parsehtml::substituteSubpart(
 						$template,
 						'###MESSAGES###',
-						implode(chr(10), $messages)
+						implode(LF, $messages)
 					);
 						// Define the markers content
 					$markers = array(
@@ -4288,7 +4278,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 				<a href="http://www.freetype.org/">http://www.freetype.org/</a>
 				<br />
 				Generally, TYPO3 packages are listed at
-				<a href="http://typo3.org/download/packages/">http://typo3.org/download/packages/</a>
+				<a href="' . TYPO3_URL_DOWNLOAD . '">' . TYPO3_URL_DOWNLOAD . '</a>
 			</p>
 		';
 	}
@@ -4312,7 +4302,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 			subsequently includes the localconf.php file in which you can then
 			override values.
 			<br />
-			See this page for <a href="http://typo3.org/1275.0.html">more
+			See this page for <a href="' . TYPO3_URL_SYSTEMREQUIREMENTS . '">more
 			information about system requirements.</a>
 		</p>';
 	}
@@ -5190,34 +5180,6 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 				'referenceInformation' => t3lib_div::formatSize($verifyImg['filesize']) . ', ' . $verifyImg[0] . 'x' . $verifyImg[1] . ' pixels'
 			);
 
-				// Display a warning if the generated image is more than 2KB larger than its reference...
-			if (($destImg['filesize']!=$verifyImg['filesize']) && (intval($destImg['filesize']) && ($destImg['filesize']-$verifyImg['filesize']) > 2048)) {
-					// Get the subpart for the different filesize message
-				$differentFileSizeSubpart = t3lib_parsehtml::getSubpart($imageSubpart, '###DIFFERENTFILESIZE###');
-					// Define the markers content
-				$differentFileSizeMarkers = array(
-					'message' => 'File size is very different from reference',
-					'yourServerFileSize' => $destImg['filesize'],
-					'referenceFileSize' => $verifyImg['filesize']
-				);
-					// Fill the markers in the subpart
-				$differentFileSizeSubpart = t3lib_parsehtml::substituteMarkerArray(
-					$differentFileSizeSubpart,
-					$differentFileSizeMarkers,
-					'###|###',
-					TRUE,
-					FALSE
-				);
-
-				$errorLevels[]=2;
-			}
-				// Substitute the subpart for different filesize message
-			$imageSubpart = t3lib_parsehtml::substituteSubpart(
-				$imageSubpart,
-				'###DIFFERENTFILESIZE###',
-				$differentFileSizeSubpart
-			);
-
 			if ($destImg[0]!=$verifyImg[0] || $destImg[1]!=$verifyImg[1]) {
 					// Get the subpart for the different pixel dimensions message
 				$differentPixelDimensionsSubpart = t3lib_parsehtml::getSubpart($imageSubpart, '###DIFFERENTPIXELDIMENSIONS###');
@@ -5275,7 +5237,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 				$imCommandsMarkers = array(
 					'message' => 'ImageMagick commands executed:',
 					'rows' => t3lib_div::intInRange(count($commands), 2, 10),
-					'commands' => htmlspecialchars(implode($commands, chr(10)))
+					'commands' => htmlspecialchars(implode(LF, $commands))
 				);
 					// Fill the markers in the subpart
 				$imCommandsSubpart = t3lib_parsehtml::substituteMarkerArray(
@@ -5312,7 +5274,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					// Define the markers content
 				$commandsMarkers = array(
 					'rows' => t3lib_div::intInRange(count($commands), 2, 10),
-					'commands' => htmlspecialchars(implode($commands, chr(10)))
+					'commands' => htmlspecialchars(implode(LF, $commands))
 				);
 					// Fill the markers in the subpart
 				$commandsSubpart = t3lib_parsehtml::substituteMarkerArray(
@@ -5403,6 +5365,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		);
 		$c = 0;
 
+		$items = array();
 		foreach ($menuitems as $k => $v) {
 				// Define the markers content
 			$markers = array(
@@ -5423,7 +5386,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$menuSubPart = t3lib_parsehtml::substituteSubpart(
 			$menuSubPart,
 			'###MENUITEM###',
-			implode(chr(10), $items)
+			implode(LF, $items)
 		);
 
 		return $menuSubPart;
@@ -5590,7 +5553,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$menu = t3lib_parsehtml::substituteSubpart(
 			$menu,
 			'###EXTRASQL###',
-			implode(chr(10), $extraSqlFiles)
+			implode(LF, $extraSqlFiles)
 		);
 			// Fill the markers
 		$menu = t3lib_parsehtml::substituteMarkerArray(
@@ -5660,7 +5623,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 
 						foreach ($GLOBALS['TYPO3_LOADED_EXT'] as $loadedExtConf) {
 							if (is_array($loadedExtConf) && $loadedExtConf['ext_tables.sql']) {
-								$tblFileContent.= chr(10).chr(10).chr(10).chr(10).t3lib_div::getUrl($loadedExtConf['ext_tables.sql']);
+								$tblFileContent .= LF . LF . LF . LF . t3lib_div::getUrl($loadedExtConf['ext_tables.sql']);
 							}
 						}
 					} elseif (@is_file($actionParts[1])) {
@@ -5668,7 +5631,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					}
 					if ($tblFileContent) {
 						$fileContent = implode(
-							chr(10),
+							LF,
 							$this->getStatementArray($tblFileContent,1,'^CREATE TABLE ')
 						);
 						$FDfile = $this->getFieldDefinitions_fileContent($fileContent);
@@ -5885,14 +5848,14 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 
 							foreach ($GLOBALS['TYPO3_LOADED_EXT'] as $loadedExtConf) {
 								if (is_array($loadedExtConf) && $loadedExtConf['ext_tables.sql']) {
-									$tblFileContent.= chr(10).chr(10).chr(10).chr(10).t3lib_div::getUrl($loadedExtConf['ext_tables.sql']);
+									$tblFileContent.= LF . LF . LF . LF . t3lib_div::getUrl($loadedExtConf['ext_tables.sql']);
 								}
 							}
 						}
 						if (!strcmp($actionParts[1],'CURRENT_STATIC') || !strcmp($actionParts[1],'CURRENT_TABLES+STATIC')) {
 							foreach ($GLOBALS['TYPO3_LOADED_EXT'] as $loadedExtConf) {
 								if (is_array($loadedExtConf) && $loadedExtConf['ext_tables_static+adt.sql']) {
-									$tblFileContent.= chr(10).chr(10).chr(10).chr(10).t3lib_div::getUrl($loadedExtConf['ext_tables_static+adt.sql']);
+									$tblFileContent.= LF . LF . LF . LF . t3lib_div::getUrl($loadedExtConf['ext_tables_static+adt.sql']);
 								}
 							}
 						}
@@ -5918,8 +5881,8 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 								// not been created at this point. This applies to the "pages.*"
 								// fields defined in sysext/cms/ext_tables.sql for example.
 							$fileContent = implode(
-								$this->getStatementArray($tblFileContent,1,'^CREATE TABLE '),
-								chr(10)
+								LF,
+								$this->getStatementArray($tblFileContent,1,'^CREATE TABLE ')
 							);
 							$FDfile = $this->getFieldDefinitions_fileContent($fileContent);
 							$FDdb = $this->getFieldDefinitions_database();
@@ -6056,7 +6019,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 									$regularModeSubpart = t3lib_parsehtml::substituteSubpart(
 										$regularModeSubpart,
 										'###ROWS###',
-										implode(chr(10), $tables)
+										implode(LF, $tables)
 									);
 								}
 									// Substitute the subpart for the regular mode
@@ -6334,7 +6297,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						$emptiedTablesSubpart = t3lib_parsehtml::substituteSubpart(
 							$emptiedTablesSubpart,
 							'###TABLE###',
-							implode(chr(10), $qList)
+							implode(LF, $qList)
 						);
 
 						if (count($qList)) {
@@ -6362,7 +6325,6 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						'sys_products_orders_mm_tt_products' => 'relations between tt_products and sys_products_orders'
 					);
 
-					$checkBoxes=array();
 					$countEntries=array();
 					reset($tableListArr);
 						// Get the template file
@@ -6373,7 +6335,6 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					$groupSubpart = t3lib_parsehtml::getSubpart($tableListSubpart, '###GROUP###');
 						// Get the subpart for a single table
 					$singleTableSubpart = t3lib_parsehtml::getSubpart($tableListSubpart, '###SINGLETABLE###');
-					$group = array();
 					$checkBoxes = array();
 					foreach ($tableListArr as $table) {
 						if ($table!='--div--') {
@@ -6414,7 +6375,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					$content = t3lib_parsehtml::substituteSubpart(
 						$tableListSubpart,
 						'###SINGLETABLE###',
-						implode(chr(10), $checkBoxes)
+						implode(LF, $checkBoxes)
 					);
 						// Substitute the subpart for the group separator
 					$content = t3lib_parsehtml::substituteSubpart(
@@ -6522,7 +6483,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						$updateWizardBoxesSubpart = t3lib_parsehtml::substituteSubpart(
 							$updateWizardBoxesSubpart,
 							'###SINGLEUPDATEWIZARDBOX###',
-							implode(chr(10), $singleUpdate)
+							implode(LF, $singleUpdate)
 						);
 						$updateWizardBoxesMarkers = array(
 							'action' => $this->action
@@ -6608,6 +6569,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 				} else {
 					// update methods might need to get custom data
 					$updatesAvailableSubpart = t3lib_parsehtml::getSubpart($getUserInputSubpart, '###UPDATESAVAILABLE###');
+					$updateItems = array();
 					foreach ($this->INSTALL['update'] as $identifier => $tmp) {
 						$updateMarkers = array();
 
@@ -6630,7 +6592,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 							TRUE
 						);
 					}
-					$updatesAvailableSubpart = implode(chr(10), $updateItems);
+					$updatesAvailableSubpart = implode(LF, $updateItems);
 				}
 
 				$content = t3lib_parsehtml::substituteSubpart(
@@ -6688,6 +6650,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						if (method_exists($tmpObj,'performUpdate')) {
 							$customOutput = '';
 							$dbQueries = array();
+							$databaseQueries = array();
 							if ($tmpObj->performUpdate($dbQueries, $customOutput)) {
 								$performUpdateMarkers['updateStatus'] = 'Update successful!';
 							} else {
@@ -6722,7 +6685,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 							$updatePerformed = t3lib_parsehtml::substituteSubpart(
 								$updatePerformedSubpart,
 								'###DATABASEQUERIES###',
-								implode(chr(10), $databaseQueries)
+								implode(LF, $databaseQueries)
 							);
 							$updatePerformed = t3lib_parsehtml::substituteSubpart(
 								$updatePerformed,
@@ -6765,7 +6728,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					$updateItem = t3lib_parsehtml::substituteSubpart(
 						$updateItem,
 						'###UPDATEITEMS###',
-						implode(chr(10), $updateItems)
+						implode(LF, $updateItems)
 					);
 					$updateItems[] = t3lib_parsehtml::substituteMarkerArray(
 						$updateItem,
@@ -6778,10 +6741,10 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 				$content = t3lib_parsehtml::substituteSubpart(
 					$performUpdateSubpart,
 					'###UPDATEITEMS###',
-					implode(chr(10), $updateItems)
+					implode(LF, $updateItems)
 				);
 				$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = FALSE;
-				
+
 				// also render the link to the next update wizard, if available
 				$nextUpdateWizard = $this->getNextUpdadeWizardInstance($tmpObj);
 				if ($nextUpdateWizard) {
@@ -6800,10 +6763,10 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						''
 					);
 				}
-				
+
 			break;
 		}
-		$this->message('Update Wizard', $title, $content);
+		$this->message('Upgrade Wizard', $title, $content);
 	}
 
 	/**
@@ -7005,7 +6968,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$template = t3lib_parsehtml::substituteSubpart(
 			$template,
 			'###ROWS###',
-			implode(chr(10), $rows)
+			implode(LF, $rows)
 		);
 			// Fill the markers
 		$template = t3lib_parsehtml::substituteMarkerArray(
@@ -7076,7 +7039,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$template = t3lib_parsehtml::substituteSubpart(
 			$template,
 			'###ROWS###',
-			implode(chr(10), $rows)
+			implode(LF, $rows)
 		);
 			// Fill the markers
 		$out = t3lib_parsehtml::substituteMarkerArray(
@@ -7157,7 +7120,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$template = t3lib_parsehtml::substituteSubpart(
 			$template,
 			'###ROWS###',
-			implode(chr(10), $rows)
+			implode(LF, $rows)
 		);
 			// Fill the markers
 		$out = t3lib_parsehtml::substituteMarkerArray(
@@ -7669,7 +7632,7 @@ $out="
 				// Define the markers content
 			$sectionMarkers = array(
 				'header' => $header . ':',
-				'sectionContent' => implode(chr(10), $valArray)
+				'sectionContent' => implode(LF, $valArray)
 			);
 				// Fill the markers in the subpart
 			$sections[] = t3lib_parsehtml::substituteMarkerArray(
@@ -7684,7 +7647,7 @@ $out="
 		$content = t3lib_parsehtml::substituteSubpart(
 			$template,
 			'###SECTIONS###',
-			implode(chr(10), $sections)
+			implode(LF, $sections)
 		);
 
 		return $content;
@@ -7780,8 +7743,8 @@ $out="
 			';
 		}
 		$this->markers['title'] = 'TYPO3 ' . TYPO3_version;
-		$this->markers['javascript'] = implode(chr(10), $this->javascript);
-		$this->markers['stylesheets'] = implode(chr(10), $this->stylesheets);
+		$this->markers['javascript'] = implode(LF, $this->javascript);
+		$this->markers['stylesheets'] = implode(LF, $this->stylesheets);
 		$this->markers['llErrors'] = 'The following errors occured';
 		$this->markers['copyright'] = $this->copyright();
 		$this->markers['charset'] = $GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'] ? $GLOBALS['TYPO3_CONF_VARS']['BE']['forceCharset'] : 'iso-8859-1';
@@ -7823,7 +7786,7 @@ $out="
 			$errorMessagesSubPart = t3lib_parsehtml::substituteSubpart(
 				$errorMessagesSubPart,
 				'###MESSAGES###',
-				implode(chr(10), $errors)
+				implode(LF, $errors)
 			);
 		}
 
@@ -7973,7 +7936,7 @@ $out="
 			$menuSubPart = t3lib_parsehtml::substituteSubpart(
 				$menuSubPart,
 				'###MENUITEM###',
-				implode(chr(10), $items)
+				implode(LF, $items)
 			);
 
 			return $menuSubPart;
@@ -8022,7 +7985,7 @@ $out="
 		$content = t3lib_parsehtml::substituteSubpart(
 			$template,
 			'###STEPITEM###',
-			implode(chr(10), $steps)
+			implode(LF, $steps)
 		);
 
 		return $content;
@@ -8097,16 +8060,16 @@ $out="
 			<p>
 				<strong>TYPO3 CMS.</strong> Copyright &copy; 1998-' . date('Y') . '
 				Kasper Sk&#229;rh&#248;j. Extensions are copyright of their respective
-				owners. Go to <a href="http://typo3.com/">http://typo3.com/</a>
+				owners. Go to <a href="' . TYPO3_URL_GENERAL . '">' . TYPO3_URL_GENERAL . '</a>
 				for details. TYPO3 comes with ABSOLUTELY NO WARRANTY;
-				<a href="http://typo3.com/1316.0.html">click</a> for details.
+				<a href="' . TYPO3_URL_LICENSE . '">click</a> for details.
 				This is free software, and you are welcome to redistribute it
-				under certain conditions; <a href="http://typo3.com/1316.0.html">click</a>
+				under certain conditions; <a href="' . TYPO3_URL_LICENSE . '">click</a>
 				for details. Obstructing the appearance of this notice is prohibited by law.
 			</p>
 			<p>
-				<a href="http://typo3.org/donate"><strong>Donate</strong></a> |
-				<a href="http://typo3.org">TYPO3.org</a>
+				<a href="' . TYPO3_URL_DONATE . '"><strong>Donate</strong></a> |
+				<a href="' . TYPO3_URL_ORG . '">TYPO3.org</a>
 			</p>
 		';
 
@@ -8339,7 +8302,7 @@ $out="
 			$content = t3lib_parsehtml::substituteSubpart(
 				$content,
 				'###ROWS###',
-				implode(chr(10), $rows)
+				implode(LF, $rows)
 			);
 
 			if (count($warnings)) {
@@ -8365,7 +8328,7 @@ $out="
 				$warningsSubpart = t3lib_parsehtml::substituteSubpart(
 					$warningsSubpart,
 					'###WARNINGITEM###',
-					implode(chr(10), $warningItems)
+					implode(LF, $warningItems)
 				);
 			}
 				// Substitute the subpart for warnings
@@ -8437,7 +8400,7 @@ $out="
 			$content = t3lib_parsehtml::substituteSubpart(
 				$content,
 				'###ITEM###',
-				implode(chr(10), $items)
+				implode(LF, $items)
 			);
 		}
 		return $content;
@@ -8462,7 +8425,7 @@ $out="
 	 */
 	public function addErrorMessage($messageText) {
 		if ($messageText == '') {
-			throw new InvalidArgumentException('$messageText must not be empty.');
+			throw new InvalidArgumentException('$messageText must not be empty.', 1294587483);
 		}
 
 		$this->errorMessages[] = $messageText;

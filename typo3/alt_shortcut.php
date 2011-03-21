@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -736,11 +736,13 @@ class SC_alt_shortcut {
 		}
 
 			// Add custom workspaces (selecting all, filtering by BE_USER check):
-		$workspaces = $TYPO3_DB->exec_SELECTgetRows('uid,title,adminusers,members,reviewers','sys_workspace','pid=0'.t3lib_BEfunc::deleteClause('sys_workspace'),'','title');
-		if (count($workspaces))	{
-			foreach ($workspaces as $rec)	{
-				if ($BE_USER->checkWorkspace($rec))	{
-					$options[$rec['uid']] = $rec['uid'].': '.$rec['title'];
+		if (t3lib_extMgm::isLoaded('workspaces')) {
+			$workspaces = $TYPO3_DB->exec_SELECTgetRows('uid,title,adminusers,members,reviewers','sys_workspace','pid=0'.t3lib_BEfunc::deleteClause('sys_workspace'),'','title');
+			if (count($workspaces))	{
+				foreach ($workspaces as $rec)	{
+					if ($BE_USER->checkWorkspace($rec))	{
+						$options[$rec['uid']] = $rec['uid'].': '.$rec['title'];
+					}
 				}
 			}
 		}

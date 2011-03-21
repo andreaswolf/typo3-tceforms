@@ -2,7 +2,7 @@
 /***************************************************************
  * Copyright notice
  *
- * (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ * (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  * All rights reserved
  *
  * This script is part of the TYPO3 project. The TYPO3 project is
@@ -228,7 +228,6 @@
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tslib
- * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&cHash=4ad9d7acb4
  */
 class tslib_cObj {
 
@@ -729,7 +728,6 @@ class tslib_cObj {
 	 * @param	array		The array with TypoScript properties for the content object
 	 * @param	string		A string label used for the internal debugging tracking.
 	 * @return	string		cObject output
-	 * @example http://typo3.org/doc.0.html?&encryptionKey=&tx_extrepmgm_pi1[extUid]=267&tx_extrepmgm_pi1[tocEl]=153&cHash=7e74f4d331
 	 */
 	function cObjGetSingle($name, $conf, $TSkey = '__') {
 		global $TYPO3_CONF_VARS;
@@ -836,6 +834,7 @@ class tslib_cObj {
 			'SEARCHRESULT' => 'SearchResult',
 			'PHP_SCRIPT' => 'PhpScript',
 			'PHP_SCRIPT_INT' => 'PhpScriptInternal',
+			'PHP_SCRIPT_EXT' => 'PhpScriptExternal',
 			'TEMPLATE' => 'Template',
 			'FLUIDTEMPLATE' => 'FluidTemplate',
 			'MULTIMEDIA' => 'Multimedia',
@@ -1105,7 +1104,7 @@ class tslib_cObj {
 	 * @return	string		Output
 	 */
 	function FORM($conf, $formData = '') {
-		return $this->getContentObject('FORM')->render($conf);
+		return $this->getContentObject('FORM')->render($conf, $formData);
 	}
 
 	/**
@@ -1369,16 +1368,16 @@ class tslib_cObj {
 	}
 
 	/**
-	 * Returns the 'border' attribute for an <img> tag only if the doctype is not xhtml_strict,xhtml_11 or xhtml_2
+	 * Returns the 'border' attribute for an <img> tag only if the doctype is not xhtml_strict, xhtml_11, xhtml_2 or html5
 	 * or if the config parameter 'disableImgBorderAttr' is not set.
 	 *
 	 * @param	string		the border attribute
 	 * @return	string		the border attribute
 	 */
 	function getBorderAttr($borderAttr) {
-		if (!t3lib_div::inList(	'xhtml_strict,xhtml_11,xhtml_2',
-			$GLOBALS['TSFE']->xhtmlDoctype)
-			&& !$GLOBALS['TSFE']->config['config']['disableImgBorderAttr']) {
+		if (! t3lib_div::inList('xhtml_strict,xhtml_11,xhtml_2', $GLOBALS['TSFE']->xhtmlDoctype) &&
+				$GLOBALS['TSFE']->config['config']['doctype'] != 'html5' &&
+				! $GLOBALS['TSFE']->config['config']['disableImgBorderAttr']) {
 			return $borderAttr;
 		}
 	}
@@ -1391,7 +1390,6 @@ class tslib_cObj {
 	 * @param	array		TypoScript properties for the "imageLinkWrap" function
 	 * @return	string		The input string, $string, wrapped as configured.
 	 * @see cImage()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=316&cHash=2848266da6
 	 */
 	function imageLinkWrap($string, $imageFile, $conf) {
 		$a1 = '';
@@ -1570,7 +1568,6 @@ class tslib_cObj {
 	 * @param	string		A string where the first two parts separated by "|" (vertical line) will be wrapped around the input string
 	 * @return	string		Wrapped output string
 	 * @see wrap(), cImage(), FILE()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=282&cHash=831a95115d
 	 */
 	function linkWrap($content, $wrap) {
 		$wrapArr = explode('|', $wrap);
@@ -2038,7 +2035,7 @@ class tslib_cObj {
 					}
 
 					// hand over the whole $conf array to the stdWrapHookObjects
-					if ($conf[$functionName] == 'stdWrapHookObject') {
+					if ($functionType === 'hook') {
 						$singleConf = $conf;
 					}
 					// check if key is still containing something, since it might have been changed by next level stdWrap before
@@ -2090,6 +2087,7 @@ class tslib_cObj {
 	 */
 	public function stdWrap_setContentToCurrent($content = '', $conf = array()) {
 		$this->data[$this->currentValKey] = $content;
+		return $content;
 	}
 
 	/**
@@ -2102,6 +2100,7 @@ class tslib_cObj {
 	 */
 	public function stdWrap_setCurrent($content = '', $conf = array()) {
 		$this->data[$this->currentValKey] = $conf['setCurrent'];
+		return $content;
 	}
 
 	/**
@@ -3259,8 +3258,6 @@ class tslib_cObj {
 	 * @param	array		TypoScript properties for the property (see link to "numRows")
 	 * @return	integer		The number of rows found by the select (FALSE on error)
 	 * @access private
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=317&cHash=e28e53e634
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=318&cHash=a98cb4e7e6
 	 * @see stdWrap()
 	 */
 	function numRows($conf) {
@@ -3304,7 +3301,6 @@ class tslib_cObj {
 	 *
 	 * @param	array		TypoScript properties defining what to compare
 	 * @return	boolean
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=320&cHash=da01618eab
 	 * @see HMENU(), CASEFUNC(), IMAGE(), COLUMN(), stdWrap(), _parseFunc()
 	 */
 	function checkIf($conf) {
@@ -3493,7 +3489,6 @@ class tslib_cObj {
 	 * @param	string		The value to parse by the class "t3lib_parsehtml"
 	 * @param	array		TypoScript properties for the parser. See link.
 	 * @return	string		Return value.
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=330&cHash=664e0296bf
 	 * @see stdWrap(), t3lib_parsehtml::HTMLparserConfig(), t3lib_parsehtml::HTMLcleaner()
 	 */
 	function HTMLparser_TSbridge($theValue, $conf) {
@@ -3521,7 +3516,6 @@ class tslib_cObj {
 	 * @param	string		Input value
 	 * @return	string		Processed input value
 	 * @see getData(), stdWrap(), dataWrap()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=314&cHash=02ab044c7b
 	 */
 	function insertData($str) {
 		$inside = 0;
@@ -3600,15 +3594,20 @@ class tslib_cObj {
 		$afterstring = trim($options[1]);
 		$crop2space = trim($options[2]);
 		if ($chars) {
-			if (strlen($content) > abs($chars)) {
+			if ($GLOBALS['TSFE']->csConvObj->strlen($GLOBALS['TSFE']->renderCharset, $content) > abs($chars)) {
+				$truncatePosition = FALSE;
 				if ($chars < 0) {
 					$content = $GLOBALS['TSFE']->csConvObj->substr($GLOBALS['TSFE']->renderCharset, $content, $chars);
-					$trunc_at = strpos($content, ' ');
-					$content = ($trunc_at && $crop2space) ? $afterstring . substr($content, $trunc_at) : $afterstring . $content;
+					if ($crop2space) {
+						$truncatePosition = strpos($content, ' ');
+					}
+					$content = ($truncatePosition) ? $afterstring . substr($content, $truncatePosition) : $afterstring . $content;
 				} else {
 					$content = $GLOBALS['TSFE']->csConvObj->substr($GLOBALS['TSFE']->renderCharset, $content, 0, $chars);
-					$trunc_at = strrpos($content, ' ');
-					$content = ($trunc_at && $crop2space) ? substr($content, 0, $trunc_at) . $afterstring : $content . $afterstring;
+					if ($crop2space) {
+						$truncatePosition = strrpos($content, ' ');
+					}
+					$content = ($truncatePosition) ? substr($content, 0, $truncatePosition) . $afterstring : $content . $afterstring;
 				}
 			}
 		}
@@ -3789,7 +3788,6 @@ class tslib_cObj {
 	 * @return	string		The processed output value
 	 * @access private
 	 * @see stdWrap()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=322&cHash=a14b745a18
 	 */
 	function textStyle($theValue, $conf) {
 		$conf['face.'][1] = 'Times New Roman';
@@ -3888,7 +3886,6 @@ class tslib_cObj {
 	 * @return	string		The processed output value
 	 * @access private
 	 * @see stdWrap()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=324&cHash=34410ebff3
 	 */
 	function tableStyle($theValue, $conf) {
 		$conf['color.'][240] = 'black';
@@ -3943,7 +3940,6 @@ class tslib_cObj {
 	 * @param	array		The TypoScript configuration properties
 	 * @return	string		The modified string
 	 * @todo	Make it XHTML compatible. Will not present "/>" endings of tags right now. Further getting the tagname might fail if it is not separated by a normal space from the attributes.
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=325&cHash=ae4272e694
 	 */
 	function addParams($content, $conf) {
 		$lowerCaseAttributes = TRUE; // For XHTML compliance.
@@ -3993,7 +3989,6 @@ class tslib_cObj {
 	 * @param	array		TypoScript parameters for the TypoScript function ->filelink
 	 * @return	string		The link to the file possibly with icons, thumbnails, size in bytes shown etc.
 	 * @access private
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=326&cHash=5618043c18
 	 * @see stdWrap()
 	 */
 	function filelink($theValue, $conf) {
@@ -4212,7 +4207,6 @@ class tslib_cObj {
 	 * @return	string		Compiled result
 	 * @access private
 	 * @see stdWrap(), t3lib_menu::procesItemStates()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=319&cHash=1871864c8f
 	 */
 	function splitObj($value, $conf) {
 		$conf['token'] = isset($conf['token.'])
@@ -4326,7 +4320,6 @@ class tslib_cObj {
 	 * @param	array		TypoScript configuration for parseFunc
 	 * @param	string		Reference to get configuration from. Eg. "< lib.parseFunc" which means that the configuration of the object path "lib.parseFunc" will be retrieved and MERGED with what is in $conf!
 	 * @return	string		The processed value
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=327&cHash=33331f0396
 	 * @see _parseFunc()
 	 */
 	function parseFunc($theValue, $conf, $ref = '') {
@@ -4658,7 +4651,6 @@ class tslib_cObj {
 	 * @param	array		TypoScript options
 	 * @return	string		The processed input value being returned; Splitted lines imploded by LF again.
 	 * @access private
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=323&cHash=a19312be78
 	 */
 	function encaps_lineSplit($theValue, $conf) {
 		$lParts = explode(LF, $theValue);
@@ -4703,6 +4695,8 @@ class tslib_cObj {
 				$uTagName = strtoupper($conf['remapTag.'][$uTagName] ? $conf['remapTag.'][$uTagName] : $uTagName);
 			} else {
 				$uTagName = strtoupper($nonWrappedTag);
+					// The line will be wrapped: $uTagName should not be an empty tag
+				$emptyTag = 0;
 				$str_content = $lParts[$k];
 				$nWrapped = 1;
 				$attrib = array();
@@ -4766,7 +4760,6 @@ class tslib_cObj {
 	 * @param	string		The string in which to search for "http://"
 	 * @param	array		Configuration for makeLinks, see link
 	 * @return	string		The processed input string, being returned.
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=328&cHash=c1135706d7
 	 * @see _parseFunc()
 	 */
 	function http_makelinks($data, $conf) {
@@ -4840,7 +4833,6 @@ class tslib_cObj {
 	 * @param	string		The string in which to search for "mailto:"
 	 * @param	array		Configuration for makeLinks, see link
 	 * @return	string		The processed input string, being returned.
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=328&cHash=c1135706d7
 	 * @see _parseFunc()
 	 */
 	function mailto_makelinks($data, $conf) {
@@ -4890,7 +4882,6 @@ class tslib_cObj {
 	 * @param	string		A "imgResource" TypoScript data type. Either a TypoScript file resource or the string GIFBUILDER. See description above.
 	 * @param	array		TypoScript properties for the imgResource type
 	 * @return	array		Returns info-array. info[origFile] = original file.
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=315&cHash=63b593a934
 	 * @see IMG_RESOURCE(), cImage(), tslib_gifBuilder
 	 */
 	function getImgResource($file, $fileArray) {
@@ -5154,7 +5145,6 @@ class tslib_cObj {
 	 * @param	string		The parameter string, eg. "field : title" or "field : navtitle // field : title" (in the latter case and example of how the value is FIRST splitted by "//" is shown)
 	 * @param	mixed		Alternative field array; If you set this to an array this variable will be used to look up values for the "field" key. Otherwise the current page record in $GLOBALS['TSFE']->page is used.
 	 * @return	string		The value fetched
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=282&cHash=831a95115d
 	 * @see getFieldVal()
 	 */
 	function getData($string, $fieldArray) {
@@ -5431,7 +5421,6 @@ class tslib_cObj {
 	 * @param	array		TypoScript configuration (see link below)
 	 * @return	string		A link-wrapped string.
 	 * @see stdWrap(), tslib_pibase::pi_linkTP()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=321&cHash=59bd727a5e
 	 */
 	function typoLink($linktxt, $conf) {
 		$LD = array();
@@ -5772,6 +5761,11 @@ class tslib_cObj {
 							if ($targetDomain === '' && $conf['forceAbsoluteUrl'] ||
 									$absoluteUrlScheme !== parse_url(t3lib_div::getIndpEnv('TYPO3_REQUEST_URL'), PHP_URL_SCHEME)) {
 								$targetDomain = $currentDomain;
+							}
+
+								// If go for an absolute link, add site_path if it's not taken care about by absRefPrefix
+							if (!$GLOBALS['TSFE']->config['config']['absRefPrefix'] && $targetDomain !== '') {
+								$targetDomain = $currentDomain . rtrim(t3lib_div::getIndpEnv('TYPO3_SITE_PATH'), '/');
 							}
 						}
 
@@ -6440,21 +6434,6 @@ class tslib_cObj {
 	}
 
 	/**
-	 * Formats a number to GB, Mb or Kb or just bytes
-	 *
-	 * @param	integer		Number of bytes to format.
-	 * @param	string		Labels for bytes, kilo, mega and giga separated by vertical bar (|) and possibly encapsulated in "". Eg: " | K| M| G" (which is the default value)
-	 * @return	string
-	 * @see t3lib_div::formatSize(), stdWrap()
-	 * @deprecated since TYPO3 3.6, will be removed in TYPO3 4.6 - Use t3lib_div::formatSize() instead
-	 */
-	function bytes($sizeInBytes, $labels) {
-		t3lib_div::logDeprecatedFunction();
-
-		return t3lib_div::formatSize($sizeInBytes, $labels);
-	}
-
-	/**
 	 * Returns the 'age' of the tstamp $seconds
 	 *
 	 * @param	integer		Seconds to return age for. Example: "70" => "1 min", "3601" => "1 hrs"
@@ -6540,20 +6519,6 @@ class tslib_cObj {
 		} else {
 			return $url . $params;
 		}
-	}
-
-	/**
-	 * Checking syntax of input email address
-	 *
-	 * @param	string		Input string to evaluate
-	 * @return	boolean		Returns TRUE if the $email address (input string) is valid; Has a "@", domain name with at least one period and only allowed a-z characters.
-	 * @see t3lib_div::validEmail()
-	 * @deprecated since TYPO3 3.6, will be removed in TYPO3 4.6 - Use t3lib_div::validEmail() instead
-	 */
-	function checkEmail($email) {
-		t3lib_div::logDeprecatedFunction();
-
-		return t3lib_div::validEmail($email);
 	}
 
 	/**
@@ -7247,20 +7212,6 @@ class tslib_cObj {
 	}
 
 	/**
-	 * Returns a part for a WHERE clause (without preceeding operator) which will select records based on the presence of a certain string in a string-list inside the record.
-	 * Example: If you have a record with a field, "usergroup" and that field might contain a list like "1,2,3" (with no spaces between the values) then you can select all records having eg. "2" in this list by calling this function. This is regardless of whether the number "2" is in the start, end or middle of the list - or the only value at all.
-	 *
-	 * @param	string		The field name to look in
-	 * @param	string		The value to look for.
-	 * @return	string
-	 * @deprecated since TYPO3 3.6, will be removed in TYPO3 4.6 - Use $GLOBALS['TYPO3_DB']->listQuery() directly!
-	 */
-	function whereSelectFromList($field, $value) {
-		t3lib_div::logDeprecatedFunction();
-		return $GLOBALS['TYPO3_DB']->listQuery($field, $value, '');
-	}
-
-	/**
 	 * Executes a SELECT query for joining three tables according to the MM-relation standards used for tables configured in $TCA. That means MM-joins where the join table has the fields "uid_local" and "uid_foreign"
 	 *
 	 * @param	string		List of fields to select
@@ -7375,7 +7326,6 @@ class tslib_cObj {
 	 * @return	mixed		A SELECT query if $returnQueryArray is FALSE, otherwise the SELECT query in an array as parts.
 	 * @access private
 	 * @see CONTENT(), numRows()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=318&cHash=a98cb4e7e6
 	 */
 	function getQuery($table, $conf, $returnQueryArray = FALSE) {
 
@@ -7496,7 +7446,6 @@ class tslib_cObj {
 	 * @param	boolean		If set, the function will return the query not as a string but array with the various parts. RECOMMENDED!
 	 * @return	mixed		A WHERE clause based on the relevant parts of the TypoScript properties for a "select" function in TypoScript, see link. If $returnQueryArray is FALSE the where clause is returned as a string with WHERE, GROUP BY and ORDER BY parts, otherwise as an array with these parts.
 	 * @access private
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=318&cHash=a98cb4e7e6
 	 * @see getQuery()
 	 */
 	function getWhere($table, $conf, $returnQueryArray = FALSE) {
@@ -7738,7 +7687,6 @@ class tslib_cObj {
 	 * @param	string		The "table:uid" of the record being shown. If empty string then $this->currentRecord is used. For new records (set by $conf['newRecordFromTable']) it's auto-generated to "[tablename]:NEW"
 	 * @param	array		Alternative data array to use. Default is $this->data
 	 * @return	string		The input content string with the editPanel appended. This function returns only an edit panel appended to the content string if a backend user is logged in (and has the correct permissions). Otherwise the content string is directly returned.
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=375&cHash=7d8915d508
 	 */
 	function editPanel($content, $conf, $currentRecord = '', $dataArr = array()) {
 
@@ -7838,7 +7786,6 @@ class tslib_frameset {
 	 * @param	array		The TypoScript properties of the PAGE object property "frameSet.". See link.
 	 * @return	string		A <frameset> tag.
 	 * @see TSpagegen::renderContentWithHeader()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=343&cHash=41ca925386
 	 */
 	function make($setup) {
 		$content = '';
@@ -8075,7 +8022,6 @@ class tslib_controlTable {
 	 * @param	string		List of margin parameters; left, top, right, bottom
 	 * @return	string		The content strings wrapped in a <table> as the parameters defined
 	 * @see tslib_cObj::CTABLE()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=359&cHash=2e0065b4e7
 	 */
 	function start($offset, $cMargins) {
 		$offArr = t3lib_div::intExplode(',', $offset);

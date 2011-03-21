@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -618,7 +618,7 @@ class t3lib_pageSelect {
 		}
 
 			// Initialize:
-		$selFields = t3lib_div::uniqueList('pid,uid,t3ver_oid,t3ver_wsid,t3ver_state,t3ver_swapmode,title,alias,nav_title,media,layout,hidden,starttime,endtime,fe_group,extendToSubpages,doktype,TSconfig,storage_pid,is_siteroot,mount_pid,mount_pid_ol,fe_login_mode,be_layout_next_level' . $GLOBALS['TYPO3_CONF_VARS']['FE']['addRootLineFields']);
+		$selFields = t3lib_div::uniqueList('pid,uid,t3ver_oid,t3ver_wsid,t3ver_state,t3ver_swapmode,title,alias,nav_title,media,layout,hidden,starttime,endtime,fe_group,extendToSubpages,doktype,TSconfig,storage_pid,is_siteroot,mount_pid,mount_pid_ol,fe_login_mode,backend_layout_next_level,' . $GLOBALS['TYPO3_CONF_VARS']['FE']['addRootLineFields']);
 		$this->error_getRootLine = '';
 		$this->error_getRootLine_failPid = 0;
 
@@ -1414,7 +1414,7 @@ class t3lib_pageSelect {
 	 * @return	boolean	<code>true</code> if has access
 	 */
 	function checkWorkspaceAccess($wsid) {
-		if (!$GLOBALS['BE_USER']) {
+		if (!$GLOBALS['BE_USER'] || !t3lib_extMgm::isLoaded('workspaces')) {
 			return FALSE;
 		}
 		if (isset($this->workspaceCache[$wsid])) {

@@ -6,7 +6,7 @@ if (!defined('TYPO3_MODE')) {
 $TCA['pages'] = array(
 	'ctrl' => $TCA['pages']['ctrl'],
 	'interface' => array(
-		'showRecordFieldList' => 'doktype,title,alias,hidden,starttime,endtime,fe_group,url,target,no_cache,shortcut,keywords,description,abstract,newUntil,lastUpdated,cache_timeout,be_layout,be_layout_next_level',
+		'showRecordFieldList' => 'doktype,title,alias,hidden,starttime,endtime,fe_group,url,target,no_cache,shortcut,keywords,description,abstract,newUntil,lastUpdated,cache_timeout,backend_layout,backend_layout_next_level',
 		'maxDBListItems' => 30,
 		'maxSingleDBListItems' => 50,
 	),
@@ -82,7 +82,6 @@ $TCA['pages'] = array(
 				'size' => '50',
 				'max' => '255',
 				'eval' => 'trim,required',
-				'checkbox' => '',
 			),
 		),
 		'TSconfig' => array(
@@ -178,7 +177,6 @@ $TCA['pages'] = array(
 				'size' => '13',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 			),
 		),
@@ -190,7 +188,6 @@ $TCA['pages'] = array(
 				'size' => '13',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 				'range' => array(
 					'upper' => mktime(0, 0, 0, 12, 31, 2020),
@@ -290,7 +287,6 @@ $TCA['pages'] = array(
 				'type' => 'input',
 				'size' => '50',
 				'max' => '255',
-				'checkbox' => '',
 				'eval' => 'trim',
 			),
 		),
@@ -314,7 +310,6 @@ $TCA['pages'] = array(
 				'size' => '50',
 				'max' => '255',
 				'eval' => '',
-				'checkbox' => '',
 			),
 		),
 		'target' => array(
@@ -325,7 +320,6 @@ $TCA['pages'] = array(
 				'size' => '50',
 				'max' => '80',
 				'eval' => 'trim',
-				'checkbox' => '',
 			),
 		),
 		'alias' => array(
@@ -337,7 +331,6 @@ $TCA['pages'] = array(
 				'max' => '32',
 				'eval' => 'nospace,alphanum_x,lower,unique',
 				'softref' => 'notify',
-				'checkbox' => '',
 			),
 		),
 		'url' => array(
@@ -348,7 +341,6 @@ $TCA['pages'] = array(
 				'max' => '255',
 				'eval' => 'trim,required',
 				'softref' => 'url',
-				'checkbox' => '',
 			),
 		),
 		'urltype' => array(
@@ -388,7 +380,6 @@ $TCA['pages'] = array(
 				'size' => '13',
 				'max' => '20',
 				'eval' => 'datetime',
-				'checkbox' => '0',
 				'default' => '0',
 			),
 		),
@@ -400,7 +391,6 @@ $TCA['pages'] = array(
 				'size' => '13',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 			),
 		),
@@ -594,7 +584,6 @@ $TCA['pages'] = array(
 				'size' => '23',
 				'eval' => 'trim',
 				'max' => '80',
-				'checkbox' => '',
 			),
 		),
 		'author_email' => array(
@@ -606,7 +595,6 @@ $TCA['pages'] = array(
 				'eval' => 'trim',
 				'max' => '80',
 				'softref' => 'email[subst]',
-				'checkbox' => '',
 			),
 		),
 		'media' => array(
@@ -737,16 +725,16 @@ $TCA['pages'] = array(
 				),
 			),
 		),
-		'be_layout' => array(
+		'backend_layout' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.be_layout',
+			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.backend_layout',
 			'config' => array(
 				'type' => 'select',
-				'foreign_table' => 'be_layouts',
-				'foreign_table_where' => 'AND ( ( ###PAGE_TSCONFIG_ID### = 0 AND ###STORAGE_PID### = 0 ) OR ( be_layouts.pid = ###PAGE_TSCONFIG_ID### OR be_layouts.pid = ###STORAGE_PID### ) ) AND be_layouts.hidden = 0',
+				'foreign_table' => 'backend_layout',
+				'foreign_table_where' => 'AND ( ( ###PAGE_TSCONFIG_ID### = 0 AND ###STORAGE_PID### = 0 ) OR ( backend_layout.pid = ###PAGE_TSCONFIG_ID### OR backend_layout.pid = ###STORAGE_PID### ) OR ( ###PAGE_TSCONFIG_ID### = 0 AND backend_layout.pid = ###THIS_UID### ) ) AND backend_layout.hidden = 0',
 				'items' => array(
 					array('', 0),
-					array('none', -1)
+					array('LLL:EXT:cms/locallang_tca.xml:pages.backend_layout.none', -1)
 				),
 				'selicon_cols' => 5,
 				'size' => 1,
@@ -754,16 +742,16 @@ $TCA['pages'] = array(
 				'default' => ''
 			)
 		),
-		'be_layout_next_level' => array(
+		'backend_layout_next_level' => array(
 			'exclude' => 1,
-			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.be_layout_next_level',
+			'label' => 'LLL:EXT:cms/locallang_tca.xml:pages.backend_layout_next_level',
 			'config' => array(
 				'type' => 'select',
-				'foreign_table' => 'be_layouts',
-				'foreign_table_where' => 'AND ( ( ###PAGE_TSCONFIG_ID### = 0 AND ###STORAGE_PID### = 0 ) OR ( be_layouts.pid = ###PAGE_TSCONFIG_ID### OR be_layouts.pid = ###STORAGE_PID### ) ) AND be_layouts.hidden = 0',
+				'foreign_table' => 'backend_layout',
+				'foreign_table_where' => 'AND ( ( ###PAGE_TSCONFIG_ID### = 0 AND ###STORAGE_PID### = 0 ) OR ( backend_layout.pid = ###PAGE_TSCONFIG_ID### OR backend_layout.pid = ###STORAGE_PID### ) OR ( ###PAGE_TSCONFIG_ID### = 0 AND backend_layout.pid = ###THIS_UID### ) ) AND backend_layout.hidden = 0',
 				'items' => array(
 					array('', 0),
-					array('none', -1)
+					array('LLL:EXT:cms/locallang_tca.xml:pages.backend_layout.none', -1)
 				),
 				'selicon_cols' => 5,
 				'size' => 1,
@@ -957,7 +945,7 @@ $TCA['pages'] = array(
 			'showitem' => 'is_siteroot',
 		),
 		'8' => array(
-			'showitem' => 'be_layout_next_level'
+			'showitem' => 'backend_layout_next_level'
 		),
 		'standard' => array(
 			'showitem' => 'doktype;LLL:EXT:cms/locallang_tca.xml:pages.doktype_formlabel',
@@ -1016,7 +1004,7 @@ $TCA['pages'] = array(
 			'canNotCollapse' => 1,
 		),
 		'layout' => array(
-			'showitem' => 'layout;LLL:EXT:cms/locallang_tca.xml:pages.layout_formlabel, newUntil;LLL:EXT:cms/locallang_tca.xml:pages.newUntil_formlabel, --linebreak--, be_layout;LLL:EXT:cms/locallang_tca.xml:pages.be_layout_formlabel, be_layout_next_level;LLL:EXT:cms/locallang_tca.xml:pages.be_layout_next_level_formlabel',
+			'showitem' => 'layout;LLL:EXT:cms/locallang_tca.xml:pages.layout_formlabel, newUntil;LLL:EXT:cms/locallang_tca.xml:pages.newUntil_formlabel, --linebreak--, backend_layout;LLL:EXT:cms/locallang_tca.xml:pages.backend_layout_formlabel, backend_layout_next_level;LLL:EXT:cms/locallang_tca.xml:pages.backend_layout_next_level_formlabel',
 			'canNotCollapse' => 1,
 		),
 		'module' => array(
@@ -1092,7 +1080,7 @@ if (!t3lib_div::compat_version('4.2')) {
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 				starttime, endtime, fe_group, extendToSubpages,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.options,
-				TSconfig;;6;nowrap;4-4-4, storage_pid;;7, l18n_cfg, be_layout;;8,
+				TSconfig;;6;nowrap;4-4-4, storage_pid;;7, l18n_cfg, backend_layout;;8,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 	');
 		// adding doktype 2 ("Advanced")
@@ -1106,7 +1094,7 @@ if (!t3lib_div::compat_version('4.2')) {
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.access,
 				starttime, endtime, fe_login_mode, fe_group, extendToSubpages,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.options,
-				TSconfig;;6;nowrap;6-6-6, storage_pid;;7, l18n_cfg, module, content_from_pid, be_layout;;8,
+				TSconfig;;6;nowrap;6-6-6, storage_pid;;7, l18n_cfg, module, content_from_pid, backend_layout;;8,
 			--div--;LLL:EXT:cms/locallang_tca.xml:pages.tabs.extended,
 	');
 }

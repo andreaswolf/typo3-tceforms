@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2010 Benjamin Mack <benni@typo3.org>
-*  (c) 2008-2010 Steffen Kamper <info@sk-typo3.de>
+*  (c) 2008-2011 Benjamin Mack <benni@typo3.org>
+*  (c) 2008-2011 Steffen Kamper <info@sk-typo3.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -45,7 +45,7 @@ class tx_coreupdates_installsysexts extends Tx_Install_Updates_Base {
 	 * @return	boolean		whether an update is needed (true) or not (false)
 	 */
 	public function checkForUpdate(&$description) {
-		$result = false;
+		$result = FALSE;
 		$description = '
 			<p>
 				Install the following system extensions as their functionality
@@ -107,8 +107,11 @@ class tx_coreupdates_installsysexts extends Tx_Install_Updates_Base {
 
 		foreach($this->newSystemExtensions as $ext) {
 			if (!t3lib_extMgm::isLoaded($ext)) {
-				$result = true;
+				$result = TRUE;
 			}
+		}
+		if ($this->isWizardDone()) {
+			$result = FALSE;
 		}
 		return $result;
 	}
@@ -179,24 +182,21 @@ class tx_coreupdates_installsysexts extends Tx_Install_Updates_Base {
 	 * @return	boolean		whether it worked (true) or not (false)
 	 */
 	public function performUpdate(&$dbQueries, &$customMessages) {
-		$result = false;
 
-		// Get extension keys that were submitted by the used to be installed and that are valid for this update wizard:
+			// Get extension keys that were submitted by the user to be installed and that are valid for this update wizard
 		if (is_array($this->pObj->INSTALL['update']['installSystemExtensions']['sysext'])) {
 			$extArray = array_intersect(
 				$this->newSystemExtensions,
 				array_keys($this->pObj->INSTALL['update']['installSystemExtensions']['sysext'])
 			);
-			$extList = $this->addExtToList($extArray);
-			if ($extList) {
-				$this->writeNewExtensionList($extList);
-				$result = true;
-			}
+			$this->installExtensions($extArray);
 		}
 
-		return $result;
-	}
+			// Never show this wizard again
+		$this->markWizardAsDone();
 
+		return TRUE;
+	}
 
 	/**
 	 * Adds extension to extension list and returns new list. If -1 is returned, an error happend.
@@ -204,8 +204,10 @@ class tx_coreupdates_installsysexts extends Tx_Install_Updates_Base {
 	 *
 	 * @param	array		Extension keys to add
 	 * @return	string		New list of installed extensions or -1 if error
+	 * @deprecated since TYPO3 4.5, will be removed in TYPO3 4.7 - Should not be needed anymore. Extensions should be installed directly by calling Tx_Install_Updates_Base::installExtensions()
 	 */
 	function addExtToList(array $extKeys) {
+		t3lib_div::logDeprecatedFunction();
 			// Get list of installed extensions and add this one.
 		$tmpLoadedExt = $GLOBALS['TYPO3_LOADED_EXT'];
 		if (isset($tmpLoadedExt['_CACHEFILE'])) {
@@ -226,8 +228,10 @@ class tx_coreupdates_installsysexts extends Tx_Install_Updates_Base {
 	 *
 	 * @param	string		List of extensions
 	 * @return	void
+	 * @deprecated since TYPO3 4.5, will be removed in TYPO3 4.7 - Use Tx_Install_Updates_Base::installExtensions() instead
 	 */
-	protected function writeNewExtensionList($newExtList)	{
+	protected function writeNewExtensionList($newExtList) {
+		t3lib_div::logDeprecatedFunction();
 			// Instance of install tool
 		$instObj = new t3lib_install;
 		$instObj->allowUpdateLocalConf = 1;

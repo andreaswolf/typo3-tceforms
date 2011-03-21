@@ -2,8 +2,8 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Xavier Perseguers <typo3@perseguers.ch>
- *  (c) 2010 Steffen Kamper <steffen@typo3.org>
+ *  (c) 2010-2011 Xavier Perseguers <typo3@perseguers.ch>
+ *  (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -42,8 +42,9 @@ class tslib_content_PhpScriptInternal extends tslib_content_Abstract {
 	 * @return	string		Output
 	 */
 	public function render($conf = array()) {
-		$ext = $conf['scriptSuffix'];
-		unset($conf['scriptSuffix']);
+		if (!is_array($conf) || empty($conf['scriptSuffix'])) {
+			throw new InvalidArgumentException('Expected parameter $conf[\'scriptSuffix\'] was not given.', 1295705938);
+		}
 
 		$file = isset($conf['file.'])
 			? $this->cObj->stdWrap($conf['file'], $conf['file.'])
@@ -52,16 +53,12 @@ class tslib_content_PhpScriptInternal extends tslib_content_Abstract {
 		$incFile = $GLOBALS['TSFE']->tmpl->getFileName($file);
 		$content = '';
 		if ($incFile && $GLOBALS['TSFE']->checkFileInclude($incFile)) {
-			$substKey = $ext . '_SCRIPT.' . $GLOBALS['TSFE']->uniqueHash();
+			$substKey = 'INT_SCRIPT.' . $GLOBALS['TSFE']->uniqueHash();
 			$content .= '<!--' . $substKey . '-->';
-			$GLOBALS['TSFE']->config[$ext . 'incScript'][$substKey] = array (
+			$GLOBALS['TSFE']->config['INTincScript'][$substKey] = array (
 				'file' => $incFile, 'conf' => $conf, 'type' => 'SCRIPT'
 			);
-			if ($ext == 'INT') {
-				$GLOBALS['TSFE']->config[$ext . 'incScript'][$substKey]['cObj'] = serialize($this);
-			} else {
-				$GLOBALS['TSFE']->config[$ext . 'incScript'][$substKey]['data'] = $this->cObj->data;
-			}
+			$GLOBALS['TSFE']->config['INTincScript'][$substKey]['cObj'] = serialize($this->cObj);
 		}
 
 		if (isset($conf['stdWrap.'])) {

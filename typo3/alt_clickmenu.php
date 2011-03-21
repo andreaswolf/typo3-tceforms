@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -637,19 +637,6 @@ class clickMenu {
 	}
 
 	/**
-	 * Adding CM element for edit page header
-	 *
-	 * @param	integer		page uid to edit (PID)
-	 * @return	array		Item array, element in $menuItems
-	 * @internal
-	 * @deprecated since TYPO3 4.0, will be removed in TYPO3 4.6 - Use DB_editPageProperties instead
-	 */
-	function DB_editPageHeader($uid)	{
-		t3lib_div::logDeprecatedFunction();
-		return $this->DB_editPageProperties($uid);
-	}
-
-	/**
 	 * Adding CM element for edit page properties
 	 *
 	 * @param	integer		page uid to edit (PID)
@@ -753,7 +740,7 @@ class clickMenu {
 			$conf = '1==1';
 		}
 		$editOnClick = 'if(' . $loc . " && " . $conf . " ){" . $loc . ".location.href=top.TS.PATH_typo3+'tce_db.php?redirect='+top.rawurlencode(" . $this->frameLocation($loc . '.document') . ")+'".
-			"&cmd[".$table.']['.$uid.'][delete]=1&prErr=1&vC='.$GLOBALS['BE_USER']->veriCode()."';}hideCM();top.nav.refresh();";
+			"&cmd[" . $table . '][' . $uid . '][delete]=1&prErr=1&vC=' . $GLOBALS['BE_USER']->veriCode() . t3lib_BEfunc::getUrlToken('tceAction') . "';}hideCM();top.nav.refresh.defer(500, top.nav);";
 
 		return $this->linkItem(
 			$this->label('delete'),
@@ -789,7 +776,24 @@ class clickMenu {
 		return $this->linkItem(
 			$this->label('tempMountPoint'),
 			$this->excludeIcon(t3lib_iconWorks::getSpriteIcon('apps-pagetree-page-mountpoint')),
-			"if (top.content.nav_frame) { top.content.nav_frame.location.href = 'alt_db_navframe.php?setTempDBmount=".intval($page_id)."'; } return hideCM();"
+			"if (top.content.nav_frame) {
+				var node = top.TYPO3.Backend.NavigationContainer.PageTree.getSelected();
+				if (node === null) {
+					return false;
+				}
+
+				var useNode = {
+					attributes: {
+						nodeData: {
+							id: " . intval($page_id) . "
+						}
+					}
+				};
+
+			 	node.ownerTree.commandProvider.mountAsTreeRoot(useNode, node.ownerTree);
+			 }
+			 return hideCM();
+			"
 		);
 	}
 
@@ -823,7 +827,7 @@ class clickMenu {
 		$loc = 'top.content.list_frame';
 		$editOnClick = 'if(' . $loc . '){' . $loc . ".location.href=top.TS.PATH_typo3+'tce_db.php?redirect='+top.rawurlencode(" . $this->frameLocation($loc . '.document') . ")+'" .
 			"&data[" . $table . '][' . $uid . '][' . $flagField . ']=' .
-                ($rec[$flagField] ? 0 : 1) .'&prErr=1&vC=' . $GLOBALS['BE_USER']->veriCode()."';}hideCM();top.nav.refresh();";
+                ($rec[$flagField] ? 0 : 1) . '&prErr=1&vC=' . $GLOBALS['BE_USER']->veriCode() . t3lib_BEfunc::getUrlToken('tceAction') . "';}hideCM();top.nav.refresh.defer(500, top.nav);";
 
 		return $this->linkItem(
 			$title,
@@ -957,24 +961,16 @@ class clickMenu {
 		$script = 'file_upload.php';
 		$type = 'upload';
 		$image = 'upload.gif';
-		if ($GLOBALS['BE_USER']->uc['enableFlashUploader'] == 1) {
+		if ($GLOBALS['BE_USER']->uc['enableFlashUploader']) {
 			$loc = 'top.content.list_frame';
 
 			$editOnClick = 'if (top.TYPO3.FileUploadWindow.isFlashAvailable()) { initFlashUploader("' . rawurlencode($path) . '"); } else if(' . $loc . '){' . $loc . ".location.href=top.TS.PATH_typo3+'".$script.'?target=' . rawurlencode($path) . "';}";
 
 			return $this->linkItem(
 				$this->label($type),
-				$this->excludeIcon('<img' . t3lib_iconWorks::skinImg($this->PH_backPath, 'gfx/' . $image, 'width="12" height="12"').' alt="" />'),
-				$editOnClick . 'top.nav.refresh();return hideCM();'
-				);
-		} elseif ($GLOBALS['BE_USER']->uc['enableFlashUploader'] == 2) {
-			$editOnClick = 'top.TYPO3.configuration.FileUpload.targetDirectory = "' . $path . '"; top.TYPO3.PluploadWindow.reloadWindow = top.content.list_frame;	top.TYPO3.PluploadWindow.show();';
-			return $this->linkItem(
-				$this->label($type),
-				$this->excludeIcon('<img' . t3lib_iconWorks::skinImg($this->PH_backPath, 'gfx/' . $image, 'width="12" height="12"') . ' alt="" />'),
+				$this->excludeIcon('<img'.t3lib_iconWorks::skinImg($this->PH_backPath,'gfx/'.$image,'width="12" height="12"').' alt="" />'),
 				$editOnClick . 'return hideCM();'
-			);
-
+				);
 		} else {
 			return $this->FILE_launch($path, $script, $type, $image, true);
 		}
@@ -1140,7 +1136,7 @@ class clickMenu {
 		$editOnClick='';
 		$loc = 'top.content.list_frame';
 		$editOnClick = 'if(' . $loc . '){' . $loc . '.document.location=top.TS.PATH_typo3+"tce_db.php?redirect="+top.rawurlencode(' . $this->frameLocation($loc . '.document') . ')+"' .
-			'&cmd[pages]['.$srcUid.']['.$action.']='.$negativeSign.$dstUid.'&prErr=1&vC='.$GLOBALS['BE_USER']->veriCode().'";}hideCM();top.nav.refresh();';
+			'&cmd[pages][' . $srcUid . '][' . $action . ']=' . $negativeSign . $dstUid . '&prErr=1&vC=' . $GLOBALS['BE_USER']->veriCode() . t3lib_BEfunc::getUrlToken('tceAction') . '";}hideCM();top.nav.refresh();';
 
 		return $this->linkItem(
 			$this->label($action.'Page_'.$into),
@@ -1762,6 +1758,7 @@ class SC_alt_clickmenu {
 			$this->content = $this->doc->insertStylesAndJS($this->content);
 			echo $this->content;
 		} else {
+			t3lib_formprotection_Factory::get()->persistTokens();
 			$this->content = $GLOBALS['LANG']->csConvObj->utf8_encode($this->content,$GLOBALS['LANG']->charSet);
 			t3lib_ajax::outputXMLreply($this->content);
 		}

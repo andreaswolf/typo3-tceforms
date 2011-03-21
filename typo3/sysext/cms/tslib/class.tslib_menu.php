@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -221,7 +221,7 @@ class tslib_menu {
 			case 'xhtml_strict':
 			case 'xhtml_11':
 			case 'xhtml_2':
-            case 'html_5':
+			case 'html5':
 				$this->nameAttribute = 'id';
 				break;
 			default:
@@ -521,7 +521,7 @@ class tslib_menu {
 
 								//Add versioning overlay for current page (to respect workspaces)
 							if (is_array($row)) {
-							    $this->sys_page->versionOL('pages', $row, true);
+								$this->sys_page->versionOL('pages', $row, true);
 							}
 
 								// Add external MP params, then the row:
@@ -1626,7 +1626,7 @@ class tslib_menu {
 	function getBannedUids() {
 		$banUidArray = array();
 
-		if (trim($this->conf['excludeUidList']))        {
+		if (trim($this->conf['excludeUidList'])) {
 			$banUidList = str_replace('current', $GLOBALS['TSFE']->page['uid'], $this->conf['excludeUidList']);
 			$banUidArray = t3lib_div::intExplode(',', $banUidList);
 		}
@@ -1698,7 +1698,6 @@ class tslib_menu {
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tslib
- * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=387&cHash=73a3116ab8
  */
 class tslib_tmenu extends tslib_menu {
 
@@ -1897,7 +1896,6 @@ class tslib_tmenu extends tslib_menu {
 	 *
 	 * @param	string		Can be "before" or "after" and determines which kind of image to create (basically this is the prefix of the TypoScript properties that are read from the ->I['val'] array
 	 * @return	string		The resulting HTML of the image, if any.
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=388&cHash=a7486044cd
 	 */
 	function getBeforeAfter($pref)	{
 		$res = '';
@@ -1929,10 +1927,14 @@ class tslib_tmenu extends tslib_menu {
 				$res=$this->I['A1'].$res.$this->I['A2'];
 			}
 		}
-		$pref = isset($this->I['val'][$pref.'.'])
-			? $this->WMcObj->stdWrap($this->I['val'][$pref], $this->I['val'][$pref.'.'])
+		$processedPref = isset($this->I['val'][$pref . '.'])
+			? $this->WMcObj->stdWrap($this->I['val'][$pref], $this->I['val'][$pref . '.'])
 			: $this->I['val'][$pref];
-		return $this->tmpl->wrap($res.$pref, $this->I['val'][$pref.'Wrap']);
+		if (isset($this->I['val'][$pref . 'Wrap'])) {
+			return $this->tmpl->wrap($res . $processedPref, $this->I['val'][$pref . 'Wrap']);
+		} else {
+			 return $res . $processedPref;
+		}
 	}
 
 	/**
@@ -2067,7 +2069,6 @@ class tslib_tmenu extends tslib_menu {
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tslib
- * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=384&cHash=93a7644cba
  */
 class tslib_gmenu extends tslib_menu {
 
@@ -2613,7 +2614,6 @@ class tslib_gmenu extends tslib_menu {
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tslib
- * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=389&cHash=fcf18c5d9f
  */
 class tslib_imgmenu extends tslib_menu {
 
@@ -2868,7 +2868,6 @@ class tslib_imgmenu extends tslib_menu {
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage tslib
- * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=391&cHash=563435abbc
  */
 class tslib_jsmenu extends tslib_menu {
 

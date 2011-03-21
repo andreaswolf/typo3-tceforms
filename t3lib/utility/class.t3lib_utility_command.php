@@ -2,7 +2,7 @@
 /***************************************************************
  * Copyright notice
  *
- * (c) 2010 Steffen Kamper <steffen@typo3.org>
+ * (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
  * All rights reserved
  *
  * This script is part of the TYPO3 project. The TYPO3 project is
@@ -46,6 +46,9 @@ final class t3lib_utility_Command {
 	 * @return null|array
 	 */
 	public static function exec($command, &$output = NULL, &$returnValue = 0) {
+		if (TYPO3_OS == 'WIN' && version_compare(phpversion(), '5.3.0', '<')) {
+			$command = '"' . $command . '"';
+		}
 		$lastLine = exec($command, $output, $returnValue);
 		return $lastLine;
 	}

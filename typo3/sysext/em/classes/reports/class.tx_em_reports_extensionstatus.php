@@ -35,6 +35,11 @@ class tx_em_reports_ExtensionStatus  implements tx_reports_StatusProvider {
 	/**
 	 * @var string
 	 */
+	protected $upToDate = '';
+
+	/**
+	 * @var string
+	 */
 	protected $error = '';
 
 	/**
@@ -44,7 +49,8 @@ class tx_em_reports_ExtensionStatus  implements tx_reports_StatusProvider {
 	 * @see typo3/sysext/reports/interfaces/tx_reports_StatusProvider::getStatus()
 	 */
 	public function getStatus() {
-		$this->ok = $GLOBALS['LANG']->sL('LLL:EXT:em/language/locallang.xml:translation_status_ok');
+		$this->ok = $GLOBALS['LANG']->sL('LLL:EXT:em/language/locallang.xml:msg_ok');
+		$this->upToDate = $GLOBALS['LANG']->sL('LLL:EXT:em/language/locallang.xml:translation_status_uptodate');
 		$this->error = t3lib_div::strtoupper($GLOBALS['LANG']->sL('LLL:EXT:em/language/locallang.xml:msg_error'));
 		$status = $this->getInsecuredExtensionsInSystem();
 
@@ -90,6 +96,8 @@ class tx_em_reports_ExtensionStatus  implements tx_reports_StatusProvider {
 					 	$value = $GLOBALS['LANG']->sL('LLL:EXT:em/language/locallang.xml:reports_ExtensionsNotUpToDate');
 						$severity = tx_reports_reports_status_Status::NOTICE;
 						$message = $GLOBALS['LANG']->sL('LLL:EXT:em/language/locallang.xml:reports_MainRepositoryOldList');
+					} else {
+						$value = $this->upToDate;
 					}
 				}
 			}

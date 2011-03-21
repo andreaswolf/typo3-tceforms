@@ -6,7 +6,7 @@
 *
 *  Copyright notice
 *
-*  (c) 2006-2010 Benjamin Mack <benni@typo3.org>
+*  (c) 2006-2011 Benjamin Mack <benni@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 t3lib/ library provided by
@@ -301,7 +301,6 @@ var PageTreeFilter = Class.create({
 
 // Call this function, refresh_nav(), from another script in the backend if you want
 // to refresh the navigation frame (eg. after having changed a page title or moved pages etc.)
-//		See t3lib_BEfunc::getSetUpdateSignal()
 // please use the function in the "Tree" object for future implementations
 function refresh_nav() {
 	window.setTimeout('Tree.refresh();',0);

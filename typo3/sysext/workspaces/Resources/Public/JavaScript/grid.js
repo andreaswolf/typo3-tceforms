@@ -70,6 +70,13 @@ TYPO3.Workspaces.SelectionModel = new Ext.grid.CheckboxSelectionModel({
 	singleSelect: false,
 	hidden: true,
 	listeners: {
+		beforerowselect : function (selection, rowIndex, keep, rec) {
+			if (rec.json.allowedAction_nextStage || rec.json.allowedAction_prevStage) {
+				return true;
+			} else {
+				return false;
+			}
+		},
 		selectionchange: function (selection) {
 			var record = selection.grid.getSelectionModel().getSelections();
 			if (record.length > 0) {
@@ -116,6 +123,8 @@ TYPO3.Workspaces.WorkspaceGrid = new Ext.grid.GridPanel({
 	loadMask : true,
 	height: 630,
 	stripeRows: true,
+		// below the grid we need 40px space for the legend
+	heightOffset: 40,
 	plugins : [
 		TYPO3.Workspaces.RowExpander,
 		TYPO3.Workspaces.Configuration.GridFilters,

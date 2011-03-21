@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2010 François Suter <francois@typo3.org>
+*  (c) 2009-2011 François Suter <francois@typo3.org>
 *  (c) 2005 Christian Jul Jensen <julle@typo3.org>
 *  All rights reserved
 *
@@ -999,27 +999,28 @@ class tx_scheduler_Module extends t3lib_SCbase {
 				'0'     => array(
 					'tr'     => array('<tr class="t3-row-header">', '</tr>'),
 					'defCol' => array('<td>', '</td>'),
-					'1'      => array('<td style="width: 36px;">', '</td>')
+					'1'      => array('<td style="width: 36px;">', '</td>'),
+					'3'      => array('<td colspan="2">', '</td>'),
 				),
 				'defRow' => array(
 					'tr'     => array('<tr class="db_list_normal">', '</tr>'),
 					'defCol' => array('<td>', '</td>'),
-					'1'		 => array('<td class="right">', '</td>'),
-					'2'		 => array('<td class="right">', '</td>'),
+					'1'      => array('<td class="right">', '</td>'),
+					'2'      => array('<td class="right">', '</td>'),
 				)
 			);
 			$disabledTaskRow = array (
 				'tr'     => array('<tr class="db_list_normal disabled">', '</tr>'),
 				'defCol' => array('<td>', '</td>'),
-				'1'		 => array('<td class="right">', '</td>'),
-				'2'		 => array('<td class="right">', '</td>'),
+				'1'      => array('<td class="right">', '</td>'),
+				'2'      => array('<td class="right">', '</td>'),
 			);
 			$rowWithSpan = array (
 				'tr'     => array('<tr class="db_list_normal">', '</tr>'),
 				'defCol' => array('<td>', '</td>'),
-				'1'		 => array('<td class="right">', '</td>'),
-				'2'		 => array('<td class="right">', '</td>'),
-				'3'		 => array('<td colspan="6">', '</td>'),
+				'1'      => array('<td class="right">', '</td>'),
+				'2'      => array('<td class="right">', '</td>'),
+				'3'      => array('<td colspan="6">', '</td>'),
 			);
 			$table = array();
 			$tr = 0;
@@ -1075,10 +1076,10 @@ class tx_scheduler_Module extends t3lib_SCbase {
 				if ($this->scheduler->isValidTaskObject($task)) {
 					// The task object is valid
 
-					$name = $registeredClasses[$schedulerRecord['classname']]['title']. ' (' . $registeredClasses[$schedulerRecord['classname']]['extension'] . ')';
+					$name = htmlspecialchars($registeredClasses[$schedulerRecord['classname']]['title']. ' (' . $registeredClasses[$schedulerRecord['classname']]['extension'] . ')');
 					$additionalInformation = $task->getAdditionalInformation();
 					if (!empty($additionalInformation)) {
-						$name .= ' [' . $additionalInformation . ']';
+						$name .= '<br />[' . htmlspecialchars($additionalInformation) . ']';
 					}
 
 						// Check if task currently has a running execution
@@ -1156,12 +1157,13 @@ class tx_scheduler_Module extends t3lib_SCbase {
 
 						// Format the execution status,
 						// including failure feedback, if any
-					$executionStatusOutput = '<img ' . t3lib_iconWorks::skinImg(t3lib_extMgm::extRelPath('scheduler'), 'res/gfx/status_' . $executionStatus . '.png') . ' alt="' . htmlspecialchars($GLOBALS['LANG']->getLL('status.' . $executionStatus)) . '" title="' . htmlspecialchars($executionStatusDetail) . '" />' . $failureOutput . ' ' . htmlspecialchars($name);
+					$executionStatusOutput = '<img ' . t3lib_iconWorks::skinImg(t3lib_extMgm::extRelPath('scheduler'), 'res/gfx/status_' . $executionStatus . '.png') . ' alt="' . htmlspecialchars($GLOBALS['LANG']->getLL('status.' . $executionStatus)) . '" title="' . htmlspecialchars($executionStatusDetail) . '" />' . $failureOutput;
 
 					$table[$tr][] = $startExecutionElement;
 					$table[$tr][] = $actions;
 					$table[$tr][] = $schedulerRecord['uid'];
 					$table[$tr][] = $executionStatusOutput;
+					$table[$tr][] = $name;
 					$table[$tr][] = $execType;
 					$table[$tr][] = $frequency;
 					$table[$tr][] = $multiple;
@@ -1390,32 +1392,39 @@ class tx_scheduler_Module extends t3lib_SCbase {
 
 			// Check type and validity of frequency, if recurring
 		if ($this->submittedData['type'] == 2) {
-			$parts = t3lib_div::trimExplode(' ', $this->submittedData['frequency']);
-			$numParts = count($parts);
+			$frequency = trim($this->submittedData['frequency']);
 
-			if ($numParts == 0) {
-					// No parts, empty frequency, not valid
+			if (empty($frequency)) {
+					// Empty frequency, not valid
 
 				$this->addMessage($GLOBALS['LANG']->getLL('msg.noFrequency'), t3lib_FlashMessage::ERROR);
-				$result = false;
-			} else if ($numParts == 1) {
-					// One part, assume it is an interval
-					// Make sure it has a valid value
-				$interval = intval($this->submittedData['frequency']);
-				if ($interval > 0) {
-					$this->submittedData['interval'] = $interval;
-				} else {
-					$this->addMessage($GLOBALS['LANG']->getLL('msg.invalidFrequency'), t3lib_FlashMessage::ERROR);
-					$result = false;
-				}
-			} else if ($numParts == 5) {
-					// Five parts, assume it is a valid cron command
-				$this->submittedData['croncmd'] = $this->submittedData['frequency'];
+				$result = FALSE;
 			} else {
-					// Some other number of parts, assume it is an invalid cron command
+				$cronErrorCode = 0;
+				$cronErrorMessage = '';
 
-				$this->addMessage($GLOBALS['LANG']->getLL('msg.invalidFrequency'), t3lib_FlashMessage::ERROR);
-				$result = false;
+					// Try interpreting the cron command
+				try {
+					tx_scheduler_CronCmd_Normalize::normalize($frequency);
+					$this->submittedData['croncmd'] = $frequency;
+				}
+					// If the cron command was invalid, we may still have a valid frequency in seconds
+				catch (Exception $e) {
+						// Store the exception's result
+					$cronErrorMessage = $e->getMessage();
+					$cronErrorCode = $e->getCode();
+						// Check if the frequency is a valid number
+						// If yes, assume it is a frequency in seconds, and unset cron error code
+					if (is_numeric($frequency)) {
+						$this->submittedData['interval'] = intval($frequency);
+						unset($cronErrorCode);
+					}
+				}
+					// If there's a cron error code, issue validation error message
+				if (!empty($cronErrorCode)) {
+					$this->addMessage(sprintf($GLOBALS['LANG']->getLL('msg.frequencyError'), $cronErrorMessage, $cronErrorCode), t3lib_FlashMessage::ERROR);
+					$result = FALSE;
+				}
 			}
 		}
 
@@ -1461,7 +1470,7 @@ class tx_scheduler_Module extends t3lib_SCbase {
 			}
 				// If the timestamp is still false, throw an exception
 			if ($timestamp === false) {
-				throw new Exception;
+				throw new InvalidArgumentException('"' . $string . '" seems not to be a correct date.', 1294587694);
 			}
 		}
 		return $timestamp;
@@ -1538,6 +1547,7 @@ class tx_scheduler_Module extends t3lib_SCbase {
 	 */
 	protected function getTemplateMarkers() {
 		$markers = array(
+			'CSH' => t3lib_BEfunc::wrapInHelp('_MOD_tools_txschedulerM1', ''),
 			'FUNC_MENU' => $this->getFunctionMenu(),
 			'CONTENT'   => $this->content,
 			'TITLE'     => $GLOBALS['LANG']->getLL('title'),
@@ -1569,13 +1579,12 @@ class tx_scheduler_Module extends t3lib_SCbase {
 	 */
 	protected function getDocHeaderButtons() {
 		$buttons = array(
-			'csh'      => t3lib_BEfunc::cshItem('_MOD_tools_txschedulerM1', '', $this->backPath),
 			'reload'   => '',
 			'shortcut' => $this->getShortcutButton(),
 		);
 
 		if (empty($this->CMD) || $this->CMD == 'list') {
-			$buttons['reload'] = '<a href="' . $GLOBALS['MCONF']['_'] . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.reload', TRUE) . '>' .
+			$buttons['reload'] = '<a href="' . $GLOBALS['MCONF']['_'] . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.reload', TRUE) . '">' .
 			  t3lib_iconWorks::getSpriteIcon('actions-system-refresh') .
 		  '</a>';
 		}

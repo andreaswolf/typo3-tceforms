@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Steffen Kamper <steffen@typo3.org>
+*  (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -198,7 +198,7 @@ TYPO3.ModuleMenu.App = {
 
 	showModule: function(mod, params) {
 		params = params || '';
-		this.selecteModule = mod;
+		this.selectedModule = mod;
 
 		params = this.includeId(mod, params);
 		var record = this.getRecordFromName(mod);
@@ -228,11 +228,11 @@ TYPO3.ModuleMenu.App = {
 				this.loadNavigationComponent(record.navigationComponentId);
 				TYPO3.Backend.NavigationDummy.hide();
 				TYPO3.Backend.NavigationIframe.getEl().parent().setStyle('overflow', 'auto');
-			} else if (record.navframe) {
+			} else if (record.navframe || record.navigationFrameScript) {
 				TYPO3.Backend.NavigationDummy.hide();
 				TYPO3.Backend.NavigationContainer.show();
 				this.loadNavigationComponent('typo3-navigationIframe');
-				this.openInNavFrame(record.navframe);
+				this.openInNavFrame(record.navigationFrameScript || record.navframe, record.navigationFrameScriptParam);
 				TYPO3.Backend.NavigationIframe.getEl().parent().setStyle('overflow', 'hidden');
 			} else {
 				TYPO3.Backend.NavigationContainer.hide();
@@ -284,6 +284,10 @@ TYPO3.ModuleMenu.App = {
 		}
 
 		component.show()
+
+			// backwards compatibility
+		top.nav = component;
+		
 		TYPO3.Backend.NavigationContainer.show();
 		this.loadedNavigationComponentId = navigationComponentId;
 	},
@@ -343,7 +347,6 @@ Ext.onReady(function() {
 
 		// keep backward compatibility
 	top.list = TYPO3.Backend.ContentContainer;
-	top.nav = TYPO3.Backend.NavigationContainer.PageTree;
 	top.list_frame = top.list.getIframe();
 	top.nav_frame = TYPO3.Backend.NavigationContainer.PageTree;
 

@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Steffen Kamper <steffen@typo3.org>
+ *  (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -47,6 +47,46 @@ class extDirect_DataProvider_ContextHelp {
 			'id' => $table . '.' . $field,
 			'moreInfo' =>  $helpTextArray['moreInfo']
 		);
+	}
+
+	/**
+	 * Fetch the context help for the given table
+	 *
+	 * @param  string $table table identifier
+	 * @return array complete help information
+	 */
+	public function getTableContextHelp($table) {
+		$output = array();
+		if (!isset($GLOBALS['TCA_DESCR'][$table]['columns'])) {
+			$GLOBALS['LANG']->loadSingleTableDescription($table);
+		}
+		if (is_array($GLOBALS['TCA_DESCR'][$table]) && is_array($GLOBALS['TCA_DESCR'][$table]['columns'])) {
+			foreach ($GLOBALS['TCA_DESCR'][$table]['columns'] as $field => $data) {
+				$output[$field] = array(
+					'description' => NULL,
+					'title' => NULL,
+					'moreInfo' => FALSE,
+					'id' => $table . '.' . $field,
+				);
+
+					// add alternative title, if defined
+				if ($data['alttitle']) {
+					$output[$field]['title'] = $data['alttitle'];
+				}
+
+					// if we have more information to show
+				if ($data['image_descr'] || $data['seeAlso'] || $data['details'] || $data['syntax']) {
+					$output[$field]['moreInfo'] = TRUE;
+				}
+
+					// add description
+				if ($data['description']) {
+					$output[$field]['description'] = $data['description'];
+				}
+			}
+		}
+
+		return $output;
 	}
 }
 

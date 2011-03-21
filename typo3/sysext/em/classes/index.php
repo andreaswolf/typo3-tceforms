@@ -125,13 +125,6 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 	 */
 	public $terConnection;
 
-	/**
-	 * Develop Module
-	 *
-	 * @var tx_em_Develop
-	 */
-	public $developModule;
-
 
 	/**
 	 * XML handling class for the TYPO3 Extension Manager
@@ -191,6 +184,8 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 	var $listRemote; // If set, connects to remote repository
 	var $lookUpStr; // Search string when listing local extensions
 
+
+	protected $noDocHeader = 0;
 
 	/*********************************
 	 *
@@ -257,8 +252,12 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 		$this->settings = t3lib_div::makeInstance('tx_em_Settings');
 		$this->install = t3lib_div::makeInstance('tx_em_Install', $this);
 
-		if (t3lib_div::_GP('silentMode')) {
+		if (t3lib_div::_GP('silentMode') || $this->noDocHeader) {
 			$this->CMD['silentMode'] = 1;
+			$this->noDocHeader = 1;
+		}
+
+		if ($this->CMD['silentMode']) {
 			$this->install->setSilentMode(TRUE);
 		}
 
@@ -267,7 +266,7 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 
 		// Setting internal static:
 
-		$this->requiredExt = t3lib_div::trimExplode(',', $TYPO3_CONF_VARS['EXT']['requiredExt'], 1);
+		$this->requiredExt = t3lib_div::trimExplode(',', t3lib_extMgm::getRequiredExtensionList(), TRUE);
 
 		// Initialize Document Template object:
 		$this->doc = t3lib_div::makeInstance('template');
@@ -291,14 +290,6 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 		} else {
 			$this->extensionmanager = &$this;
 		}
-
-		// Initialize develop module
-		if (isset($this->MOD_MENU['function']['develop'])) {
-			$this->developModule = t3lib_div::makeInstance('tx_em_Develop', $this);
-		} else {
-			$this->developModule = &$this;
-		}
-
 
 
 		// Output classes
@@ -375,8 +366,11 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 		$this->MOD_MENU = $this->settings->MOD_MENU;
 		$globalSettings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['em']);
 
-		if (!intval($GLOBALS['TYPO3_CONF_VARS']['BE']['debug'])) {
-			unset ($this->MOD_MENU['function']['develop']);
+		if (!is_array($globalSettings)) {
+				// no settings saved yet, set default values
+			$globalSettings['showOldModules'] = 1;
+			$globalSettings['inlineToWindow'] = 1;
+			$globalSettings['displayMyExtensions'] = 0;
 		}
 
 		if ($globalSettings['showOldModules'] == 0) {
@@ -385,11 +379,11 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 				$this->MOD_MENU['function']['installed_list'],
 				$this->MOD_MENU['function']['import'],
 				$this->MOD_MENU['function']['translations'],
-				$this->MOD_MENU['function']['settings'],
-				$this->MOD_MENU['function']['updates']
+				$this->MOD_MENU['function']['settings']
 			);
 		}
 		$this->MOD_MENU['singleDetails'] = $this->mergeExternalItems($this->MCONF['name'], 'singleDetails', $this->MOD_MENU['singleDetails']);
+		$this->MOD_MENU['extensionInfo'] = $this->mergeExternalItems($this->MCONF['name'], 'singleDetails', array());
 
 
 			// page/be_user TSconfig settings and blinding of menu-items
@@ -426,6 +420,8 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 	 */
 	function main() {
 
+		$menu = '';
+
 		if (empty($this->MOD_SETTINGS['mirrorListURL'])) {
 			$this->MOD_SETTINGS['mirrorListURL'] = $GLOBALS['TYPO3_CONF_VARS']['EXT']['em_mirrorListURL'];
 		}
@@ -448,6 +444,8 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 			}
 		} elseif ($this->CMD['importExtInfo']) { // Gets detailed information of an extension from online rep.
 			$this->importExtInfo($this->CMD['importExtInfo'], $this->CMD['extVersion']);
+		} elseif ($this->CMD['downloadExtFile']) {
+			tx_em_Tools::sendFile($this->CMD['downloadExtFile']);
 		} else { // No command - we show what the menu setting tells us:
 			if (t3lib_div::inList('loaded_list,installed_list,import', $this->MOD_SETTINGS['function'])) {
 				$menu .= '&nbsp;' . $GLOBALS['LANG']->getLL('group_by') . '&nbsp;' . t3lib_BEfunc::getFuncMenu(0, 'SET[listOrder]', $this->MOD_SETTINGS['listOrder'], $this->MOD_MENU['listOrder']) .
@@ -509,10 +507,6 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 					// Shows a list of extensions with updates in TER
 					$this->checkForUpdates();
 					break;
-				case 'develop':
-					$this->content .= $this->developModule->renderModule();
-					break;
-				default:
 				case 'extensionmanager':
 					$this->content .= $this->extensionmanager->render();
 					break;
@@ -911,7 +905,7 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 	 * @return	void
 	 */
 	function alterSettings() {
-
+		$content = '';
 		// Prepare the HTML output:
 		$content .= '
 			<form action="' . $this->script . '" method="post" name="altersettings">
@@ -1111,6 +1105,7 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 	function fetchMetaData($metaType) {
 		global $TYPO3_CONF_VARS;
 
+		$content = '';
 		switch ($metaType) {
 			case 'mirrors':
 				$mfile = t3lib_div::tempnam('mirrors');
@@ -1373,7 +1368,13 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 					if (!is_uploaded_file($_FILES['upload_ext_file']['tmp_name'])) {
 						t3lib_div::sysLog('Possible file upload attack: ' . $_FILES['upload_ext_file']['tmp_name'], 'Extension Manager', 3);
 
-						return $GLOBALS['LANG']->getLL('ext_import_file_not_uploaded');
+						$flashMessage = t3lib_div::makeInstance(
+							't3lib_FlashMessage',
+							$GLOBALS['LANG']->getLL('ext_import_file_not_uploaded'),
+							'',
+							t3lib_FlashMessage::ERROR
+						);
+						return $flashMessage->render();
 					}
 
 					$uploadedTempFile = t3lib_div::upload_to_tempfile($_FILES['upload_ext_file']['tmp_name']);
@@ -1381,7 +1382,13 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 				$fileContent = t3lib_div::getUrl($uploadedTempFile);
 
 				if (!$fileContent) {
-					return $GLOBALS['LANG']->getLL('ext_import_file_empty');
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						$GLOBALS['LANG']->getLL('ext_import_file_empty'),
+						'',
+						t3lib_FlashMessage::ERROR
+					);
+					return $flashMessage->render();
 				}
 
 				// Decode file data:
@@ -1405,13 +1412,31 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 							} // ... else go on, install...
 						} // ... else go on, install...
 					} else {
-						return $GLOBALS['LANG']->getLL('ext_import_no_key');
+						$flashMessage = t3lib_div::makeInstance(
+							't3lib_FlashMessage',
+							$GLOBALS['LANG']->getLL('ext_import_no_key'),
+							'',
+							t3lib_FlashMessage::ERROR
+						);
+						return $flashMessage->render();
 					}
 				} else {
-					return sprintf($GLOBALS['LANG']->getLL('ext_import_wrong_file_format'), $fetchData);
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						sprintf($GLOBALS['LANG']->getLL('ext_import_wrong_file_format'), $fetchData),
+						'',
+						t3lib_FlashMessage::ERROR
+					);
+					return $flashMessage->render();
 				}
 			} else {
-				return $GLOBALS['LANG']->getLL('ext_import_no_file');
+				$flashMessage = t3lib_div::makeInstance(
+					't3lib_FlashMessage',
+					$GLOBALS['LANG']->getLL('ext_import_no_file'),
+					'',
+					t3lib_FlashMessage::ERROR
+				);
+				return $flashMessage->render();
 			}
 		} else {
 			$this->xmlHandler->searchExtensionsXMLExact($extKey, '', '', true, true);
@@ -1480,6 +1505,7 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 				if (t3lib_extMgm::isLocalconfWritable()) {
 					// Check dependencies:
 					$depStatus = $this->install->checkDependencies($extKey, $list[$extKey]['EM_CONF'], $list);
+
 					if (!$this->CMD['remove'] && !$depStatus['returnCode']) {
 						$this->content .= $depStatus['html'];
 						$newExtList = -1;
@@ -1549,9 +1575,11 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 										$GLOBALS['LANG']->getLL('ext_details_remove_ext') . '" />
 								<input type="hidden" name="_do_install" value="1" />
 								<input type="hidden" name="_clrCmd" value="' . $this->CMD['clrCmd'] . '" />
+								<input type="hidden" name="CMD[showExt]" value="' . $this->CMD['showExt'] . '" />
+								<input type="hidden" name="CMD[remove]" value="' . $this->CMD['remove'] . '" />
 								<input type="hidden" name="standAlone" value="' . $this->CMD['standAlone'] . '" />
 								<input type="hidden" name="silentMode" value="' . $this->CMD['silentMode'] . '" />
-
+								' . ($this->noDocHeader ? '<input type="hidden" name="nodoc" value="1" />' : '') . '
 								</form>';
 								$labelDBUpdate = $GLOBALS['LANG']->csConvObj->conv_case(
 									$GLOBALS['LANG']->charSet,
@@ -1567,7 +1595,7 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 								);
 							}
 						}
-						if (!$updates || t3lib_div::_GP('_do_install')) {
+						if (!$updates || t3lib_div::_GP('_do_install') || ($this->noDocHeader && $this->CMD['remove'])) {
 							$this->install->writeNewExtensionList($newExtList);
 							$action = $this->CMD['load'] ? 'installed' : 'removed';
 							$GLOBALS['BE_USER']->writelog(5, 1, 0, 0, 'Extension list has been changed, extension %s has been %s', array($extKey, $action));
@@ -1592,6 +1620,7 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 							} else {
 								$vA = array('CMD' => array('showExt' => $extKey));
 							}
+
 							if ($this->CMD['standAlone'] || t3lib_div::_GP('standAlone')) {
 								$this->content .= sprintf($GLOBALS['LANG']->getLL('ext_details_ext_installed_removed'),
 									($this->CMD['load'] ?
@@ -1653,7 +1682,7 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 					$fI = t3lib_div::split_fileref($editFile);
 					if (@is_file($editFile) && t3lib_div::inList($this->editTextExtensions, ($fI['fileext'] ? $fI['fileext'] : $fI['filebody']))) {
 						if (filesize($editFile) < ($this->kbMax * 1024)) {
-							$outCode = '<form action="' . $this->script . ' method="post" name="editfileform">';
+							$outCode = '<form action="' . $this->script . '" method="post" name="editfileform">';
 							$info = '';
 							$submittedContent = t3lib_div::_POST('edit');
 							$saveFlag = 0;
@@ -1856,6 +1885,7 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 						if ($this->CMD['doDelete']) {
 							$content = $this->install->extDelete($extKey, $list[$extKey], $this->CMD);
 							$this->content .= $this->doc->section(
+								$GLOBALS['LANG']->getLL('ext_details_delete'),
 								$GLOBALS['LANG']->getLL('ext_details_delete'),
 								$content, 0, 1
 							);
@@ -2156,6 +2186,8 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 	 */
 	function extUpdateEMCONF($extKey, $extInfo) {
 		$absPath = tx_em_Tools::getExtPath($extKey, $extInfo['type']);
+		$content = '';
+
 		if ($this->CMD['doUpdateEMCONF']) {
 			return $this->extensionDetails->updateLocalEM_CONF($extKey, $extInfo);
 		} else {
@@ -2165,14 +2197,14 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 				'CMD[showExt]' => $extKey,
 				'CMD[doUpdateEMCONF]' => 1
 			)) . "';}";
+			$content .= $GLOBALS['LANG']->getLL('extUpdateEMCONF_info_changes') . '<br />'
+				. $GLOBALS['LANG']->getLL('extUpdateEMCONF_info_reset') . '<br /><br />';
 			$content .= '<a class="t3-link" href="#" onclick="' . htmlspecialchars($onClick) .
 					' return false;"><strong>' . $updateEMConf . '</strong> ' .
 					sprintf($GLOBALS['LANG']->getLL('extDelete_from_location'),
 						$this->typeLabels[$extInfo['type']],
 						substr($absPath, strlen(PATH_site))
 					) . '</a>';
-			$content .= '<br /><br />' . $GLOBALS['LANG']->getLL('extUpdateEMCONF_info_changes') . '<br />
-						' . $GLOBALS['LANG']->getLL('extUpdateEMCONF_info_reset');
 			return $content;
 		}
 	}
@@ -2190,6 +2222,7 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 			$backUpData = $this->terConnection->makeUploadDataFromarray($uArr);
 			$filename = 'T3X_' . $extKey . '-' . str_replace('.', '_', $extInfo['EM_CONF']['version']) . '-z-' . date('YmdHi') . '.t3x';
 			if (intval($this->CMD['doBackup']) == 1) {
+				ob_end_clean();
 				header('Content-Type: application/octet-stream');
 				header('Content-Disposition: attachment; filename=' . $filename);
 				echo $backUpData;
@@ -2510,15 +2543,40 @@ class SC_mod_tools_em_index extends t3lib_SCbase {
 	 * @return string
 	 */
 	protected function getSubmitAndOpenerCloseLink() {
-		if (!$this->CMD['standAlone'] && ($this->CMD['standAlone'] || t3lib_div::_GP('standAlone'))) {
+		if (!$this->CMD['standAlone'] && !$this->noDocHeader && ($this->CMD['standAlone'] || t3lib_div::_GP('standAlone'))) {
 			$link = '<a href="javascript:opener.top.list.iframe.document.forms[0].submit();window.close();">' .
 				$GLOBALS['LANG']->getLL('ext_import_close_check') . '</a>';
 			return $link;
 		} else {
-			return '<a id="closewindow" href="javascript:parent.TYPO3.EM.Tools.closeImportWindow();">' . $GLOBALS['LANG']->getLL('ext_import_close') . '</a>';
+			return '<a id="closewindow" href="javascript:if (parent.TYPO3.EM) {parent.TYPO3.EM.Tools.closeImportWindow();} else {window.close();}">' . $GLOBALS['LANG']->getLL('ext_import_close') . '</a>';
 		}
 	}
+
+
+	/* Compatibility wrappers */
+
+
+/**
+	 * Returns the absolute path where the extension $extKey is installed (based on 'type' (SGL))
+	 *
+	 * @param	string		Extension key
+	 * @param	string		Install scope type: L, G, S
+	 * @return	string		Returns the absolute path to the install scope given by input $type variable. It is checked if the path is a directory. Slash is appended.
+	 */
+	public function getExtPath($extKey, $type, $returnWithoutExtKey = FALSE) {
+		return tx_em_Tools::getExtPath($extKey, $type, $returnWithoutExtKey);
+	}
 }
+
+
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['em/index.php']) {
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['em/index.php']);
+}
+
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/sysext/em/classes/index.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/sysext/em/classes/index.php']);
+}
+
 
 // Make instance:
 $SOBE = t3lib_div::makeInstance('SC_mod_tools_em_index');
@@ -2531,11 +2589,4 @@ $SOBE->checkExtObj();
 $SOBE->main();
 $SOBE->printContent();
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['em/index.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['em/index.php']);
-}
-
-if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/sysext/em/classes/index.php'])) {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/sysext/em/classes/index.php']);
-}
 ?>

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Ingo Renner <ingo@typo3.org>
+*  (c) 2010-2011 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -71,7 +71,7 @@ class tx_reports_reports_status_WarningMessagePostProcessor {
 
 				$warningMessages['tx_reports_status_notification'] = sprintf(
 					$GLOBALS['LANG']->getLL('status_problemNotification'),
-					'<a href="mod.php?M=tools_txreportsM1&SET[function]=tx_reports.status">',
+					'<a href="javascript:top.goToModule(\'tools_txreportsM1\', 1, \'&SET[function]=tx_reports.status\');">',
 					'</a>'
 				);
 			}

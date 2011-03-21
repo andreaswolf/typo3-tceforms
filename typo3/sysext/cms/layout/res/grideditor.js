@@ -158,7 +158,7 @@ TYPO3.Backend.t3Grid = Ext.extend(Ext.Component, {
 			border: '0',
 			width: '100%',
 			height: '100%',
-			class: 'editor',
+			cls: 'editor',
 			cellspacing: '0',
 			cellpadding: '0'
 		};
@@ -590,7 +590,7 @@ TYPO3.Backend.t3Grid = Ext.extend(Ext.Component, {
 	 * @return string
 	 */
 	export2LayoutRecord: function() {
-		var result = "be_layout {\n\tcolCount = " + this.colCount + "\n\trowCount = " + this.rowCount + "\n\trows {\n";
+		var result = "backend_layout {\n\tcolCount = " + this.colCount + "\n\trowCount = " + this.rowCount + "\n\trows {\n";
 		for (var row = 0; row < this.rowCount; row++) {
 			result += "\t\t" + (row + 1) + " {\n";
 			result += "\t\t\tcolumns {\n";

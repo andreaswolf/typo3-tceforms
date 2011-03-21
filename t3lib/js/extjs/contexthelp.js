@@ -1,7 +1,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Steffen Kamper <steffen@typo3.org>
+ *  (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -47,6 +47,9 @@ TYPO3.ContextHelp = function() {
 	 */
 	function showToolTipHelp() {
 		var link = tip.triggerElement;
+		if (!link) {
+			return false;
+		}
 		var table = link.getAttribute('data-table');
 		var field = link.getAttribute('data-field');
 		var key = table + '.' + field;
@@ -55,18 +58,36 @@ TYPO3.ContextHelp = function() {
 		if (response) {
 			updateTip(response);
 		} else {
-			// clear old tooltip contents
-			updateTip({
-				description: top.TYPO3.LLL.core.csh_tooltip_loading,
-				cshLink: '',
-				moreInfo: '',
-				title: ''
-			});
-			// load content
-			TYPO3.CSH.ExtDirect.getContextHelp(table, field, function(response, options) {
-				cshHelp.add(response);
-				updateTip(response);
-			}, this);
+				// If a table is defined, use ExtDirect call to get the tooltip's content
+			if (table) {
+					// Clear old tooltip contents
+				updateTip({
+					description: top.TYPO3.LLL.core.csh_tooltip_loading,
+					cshLink: '',
+					moreInfo: '',
+					title: ''
+				});
+					// Load content
+				TYPO3.CSH.ExtDirect.getTableContextHelp(table, function(response, options) {
+					Ext.iterate(response, function(key, value){
+						cshHelp.add(value);
+						if (key === field) {
+							updateTip(value);
+								// Need to re-position because the height may have increased
+							tip.show();
+						}
+					});
+				}, this);
+
+				// No table was given, use directly title and description
+			} else {
+				updateTip({
+					description: link.getAttribute('data-description'),
+					cshLink: '',
+					moreInfo: '',
+					title: link.getAttribute('data-title')
+				});
+			}
 		}
 	}
 
@@ -92,7 +113,8 @@ TYPO3.ContextHelp = function() {
 			tip = new Ext.ToolTip({
 				title: 'CSH', // needs a title for init because of the markup
 				html: '',
-				anchor: 'left',
+					// The tooltip will appear above the label, if viewport allows
+				anchor: 'bottom',
 				minWidth: 160,
 				maxWidth: 240,
 				target: Ext.getBody(),
@@ -101,19 +123,43 @@ TYPO3.ContextHelp = function() {
 				cls: 'typo3-csh-tooltip',
 				shadow: false,
 				dismissDelay: 0, // tooltip stays while mouse is over target
-				showDelay: 500, // show after 0.5 seconds
-				hideDelay: 3000, // hide after 3 seconds
+				autoHide: true,
+				showDelay: 1000, // show after 1 second
+				hideDelay: 300, // hide after 0.3 seconds
 				closable: true,
+				isMouseOver: false,
 				listeners: {
 					beforeshow: showToolTipHelp,
 					render: function(tip) {
-						tip.body.on('click', function(event){
-							event.stopEvent();
-							if (tip.moreInfo) {
-								try {
-									top.TYPO3.ContextHelpWindow.open(tip.cshLink);
-								} catch(e) {
-									// do nothing
+						tip.body.on({
+							'click': {
+								fn: function(event) {
+									event.stopEvent();
+									if (tip.moreInfo) {
+										try {
+											top.TYPO3.ContextHelpWindow.open(tip.cshLink);
+										} catch(e) {
+											// do nothing
+										}
+									}
+									tip.hide();
+								}
+							}
+						});
+						tip.el.on({
+							'mouseover': {
+								fn: function() {
+									if (tip.moreInfo) {
+										tip.isMouseOver = true;
+									}
+								}
+							},
+							'mouseout': {
+								fn: function() {
+									if (tip.moreInfo) {
+										tip.isMouseOver = false;
+										tip.hide.defer(tip.hideDelay, tip, []);
+									}
 								}
 							}
 						});
@@ -122,13 +168,51 @@ TYPO3.ContextHelp = function() {
 						tip.setTitle('');
 						tip.body.dom.innerHTML = '';
 					},
+					beforehide: function(tip) {
+						return !tip.isMouseOver;
+					},
 					scope: this
 				}
 			});
+
+			Ext.getBody().on({
+				'keydown': {
+					fn: function() {
+						tip.hide();
+					}
+				},
+				'click': {
+					fn: function() {
+						tip.hide();
+					}
+				}
+			});
+
+			/**
+			 * Adds a sequence to Ext.TooltTip::showAt so as to increase vertical offset when anchor position is 'botton'
+			 * This positions the tip box closer to the target element when the anchor is on the bottom side of the box
+			 * When anchor position is 'top' or 'bottom', the anchor is pushed slightly to the left in order to align with the help icon, if any
+			 *
+			 */
+			Ext.ToolTip.prototype.showAt = Ext.ToolTip.prototype.showAt.createSequence(
+				function() {
+					var ap = this.getAnchorPosition().charAt(0);
+					if (this.anchorToTarget && !this.trackMouse) {
+						switch (ap) {
+							case 'b':
+								var xy = this.getPosition();
+								this.setPagePosition(xy[0]-10, xy[1]+5);
+								break;
+							case 't':
+								var xy = this.getPosition();
+								this.setPagePosition(xy[0]-10, xy[1]);
+								break;
+						}
+					}
+				}
+			);
+
 		},
-
-
-
 
 		/**
 		 * Opens the help window, triggered from click event handler

@@ -467,6 +467,12 @@ class Tx_Extbase_MVC_Web_Routing_UriBuilder {
 		}
 		$this->arguments = t3lib_div::array_merge_recursive_overrule($this->arguments, $prefixedControllerArguments);
 
+		if ($actionName !== NULL
+			&& $this->useCacheHash === TRUE
+			&& !Tx_Extbase_Utility_Extension::isActionCacheable($extensionName, $pluginName, $controllerArguments['controller'], $actionName)) {
+				$this->setUseCacheHash(FALSE);
+		}
+
 		return $this->build();
 	}
 

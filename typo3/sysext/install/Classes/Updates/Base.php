@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Benjamin Mack <benni@typo3.org>
+*  (c) 2010-2011 Benjamin Mack <benni@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,7 +31,7 @@
  * Used by the update wizard in the install tool.
  *
  * @author	Benjamin Mack <benni@typo3.org>
- * @version $Id: 
+ * @version $Id$
  */
 abstract class Tx_Install_Updates_Base {
 
@@ -187,8 +187,71 @@ abstract class Tx_Install_Updates_Base {
 		$res = $this->checkForUpdate($explanation, $showUpdate);
 		return ($showUpdate != 2 || $res == TRUE);
 	}
-	
 
+	/**
+	 * This method creates an instance of a connection to the Extension Manager
+	 * and returns it. This is used when installing an extension.
+	 * 
+	 * @return tx_em_Connection_ExtDirectServer EM connection instance
+	 */
+	public function getExtensionManagerConnection() {
+			// Create an instance of language, if necessary.
+			// Needed in order to make the em_index work
+		if (!isset($GLOBALS['LANG'])) {
+			$GLOBALS['LANG'] = t3lib_div::makeInstance('language');
+			$GLOBALS['LANG']->csConvObj = t3lib_div::makeInstance('t3lib_cs');
+		}
+			// Create an instance of a connection class to the EM
+		$extensionManagerConnection = t3lib_div::makeInstance('tx_em_Connection_ExtDirectServer', FALSE);
+		return $extensionManagerConnection;
+	}
+
+	/**
+	 * This method can be called to install extensions following all proper processes
+	 * (e.g. installing in both extList and extList_FE, respecting priority, etc.)
+	 *
+	 * @param array $extensionKeys List of keys of extensions to install
+	 * @return void
+	 */
+	protected function installExtensions($extensionKeys) {
+		$extensionManagerConnection = $this->getExtensionManagerConnection();
+		foreach ($extensionKeys as $extension) {
+			$extensionManagerConnection->enableExtension($extension);
+		}
+	}
+
+	/**
+	 * Marks some wizard as being "seen" so that it not shown again.
+	 *
+	 * Writes the info in localconf.php
+	 *
+	 * @return void
+	 */
+	protected function markWizardAsDone() {
+		/** @var t3lib_install $install */
+		$install = t3lib_div::makeInstance('t3lib_install');
+		$install->allowUpdateLocalConf = 1;
+		$install->updateIdentity = 'TYPO3 Upgrade Wizard';
+		// Get lines from localconf file
+		$lines = $install->writeToLocalconf_control();
+		$wizardClassName = get_class($this);
+		$install->setValueInLocalconfFile($lines, '$TYPO3_CONF_VARS[\'INSTALL\'][\'wizardDone\'][\'' . $wizardClassName . '\']', 1);
+		$install->writeToLocalconf_control($lines);
+	}
+
+	/**
+	 * Checks if this wizard has been "done" before
+	 *
+	 * @return boolean TRUE if wizard has been done before, FALSE otherwise
+	 */
+	protected function isWizardDone() {
+		$wizardClassName = get_class($this);
+		$done = FALSE;
+		if (isset($GLOBALS['TYPO3_CONF_VARS']['INSTALL']['wizardDone'][$wizardClassName]) &&
+			$GLOBALS['TYPO3_CONF_VARS']['INSTALL']['wizardDone'][$wizardClassName]) {
+			$done = TRUE;
+		}
+		return $done;
+	}
 }
-
 ?>

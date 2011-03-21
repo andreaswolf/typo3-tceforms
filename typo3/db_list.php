@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Steffen Kamper (steffen@typo3.com)
+*  (c) 2010-2011 Steffen Kamper (steffen@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -41,12 +41,12 @@ t3lib_div::deprecationLog('The list module is a system extension now, do not lin
 	LF .
 	'Referer: ' . t3lib_div::getIndpEnv('HTTP_REFERER')
 );
-if (t3lib_extMgm::isLoaded('list')) {
+if (t3lib_extMgm::isLoaded('recordlist')) {
 	t3lib_utility_Http::redirect(t3lib_BEfunc::getModuleUrl('web_list', array(), '', TRUE) . '&' . $query);
 } else {
 	$title = sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:extension.not.installed'), 'list');
 	$message = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:link.to.dblist.correctly');
-	throw new RuntimeException($title . ': ' . $message);
+	throw new RuntimeException($title . ': ' . $message, 1294586840);
 }
 
 ?>

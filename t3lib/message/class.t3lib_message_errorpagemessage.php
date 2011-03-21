@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Benjamin Mack <benni@typo3.org>
+ *  (c) 2010-2011 Benjamin Mack <benni@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -99,6 +99,7 @@ class t3lib_message_ErrorpageMessage extends t3lib_message_AbstractMessage {
 			'###MESSAGE###'       => $this->message,
 			'###BASEURL###'       => t3lib_div::getIndpEnv('TYPO3_SITE_URL'),
 			'###TYPO3_mainDir###' => TYPO3_mainDir,
+			'###TYPO3_copyright_year###' => TYPO3_copyright_year,
 		);
 
 		$content = t3lib_div::getUrl(PATH_site . $this->htmlTemplate);

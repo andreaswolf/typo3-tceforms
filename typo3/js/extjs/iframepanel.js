@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Steffen Kamper <steffen@typo3.org>
+*  (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -46,7 +46,8 @@ TYPO3.iframePanel = Ext.extend(Ext.Panel, {
 			tag: 'iframe',
 			frameborder: '0',
 			src: this.src,
-			name: this.name
+			name: this.name,
+			style: 'float:left;' // this is needed to prevent offset of 2.5 pixel, see #15771
 		}
 		Ext.apply(this, {
 

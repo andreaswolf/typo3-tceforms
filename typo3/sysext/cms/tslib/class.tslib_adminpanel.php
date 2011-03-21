@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2010 Jeff Segars <jeff@webempoweredchurch.org>
-*  (c) 2008-2010 David Slayback <dave@webempoweredchurch.org>
+*  (c) 2008-2011 Jeff Segars <jeff@webempoweredchurch.org>
+*  (c) 2008-2011 David Slayback <dave@webempoweredchurch.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -321,12 +321,12 @@ class tslib_AdminPanel {
 				'<td colspan="2" id="typo3-adminPanel-header" class="' . $cssClassName . '">' .
 					'<span class="typo3-adminPanel-header-title">' . $row . '</span>' .
 					$this->linkSectionHeader('top', '<span class="typo3-adminPanel-header-button"></span>', 'typo3-adminPanel-header-buttonWrapper') .
-					'<input type="hidden" name="TSFE_ADMIN_PANEL[display_top]" value="' . $GLOBALS['BE_USER']->uc['TSFE_adminConfig']['display_top'] . '" /><div></td>' .
+					'<input type="hidden" name="TSFE_ADMIN_PANEL[display_top]" value="' . $GLOBALS['BE_USER']->uc['TSFE_adminConfig']['display_top'] . '" /></td>' .
 			'</tr>';
 
 		if ($moduleContent) {
 			$footer = '<tr class="typo3-adminPanel-fRow">' .
-					'<td colspan="2" id="typo3-adminPanel-header">' .
+					'<td colspan="2" id="typo3-adminPanel-footer">' .
 						($this->extNeedUpdate ? ' <input class="typo3-adminPanel-update" type="submit" value="' . $this->extGetLL('update') . '" />' : '') . '</td>' .
 				'</tr>';
 		} else {
@@ -720,9 +720,9 @@ $query . '<table class="typo3-adminPanel">' .
 	 * @see extGetHead()
 	 */
 	protected function linkSectionHeader($sectionSuffix, $sectionTitle, $className = '') {
-		return '<a href="javascript:void(0)" onclick="' .
+		return '<div class="typo3-adminPanel-label"><a href="javascript:void(0)" onclick="' .
 			htmlspecialchars('document.TSFE_ADMIN_PANEL_FORM[\'TSFE_ADMIN_PANEL[display_' . $sectionSuffix . ']\'].value=' . ($GLOBALS['BE_USER']->uc['TSFE_adminConfig']['display_' . $sectionSuffix] ? '0' : '1') . ';document.TSFE_ADMIN_PANEL_FORM.submit();return false;') .
-			'"' . ($className ? ' class="' . $className . '"' : '') . '><div class="typo3-adminPanel-label">' . $sectionTitle . '</div></a>';
+			'"' . ($className ? ' class="' . $className . '"' : '') . '>' . $sectionTitle . '</a></div>';
 	}
 
 	/**
@@ -779,8 +779,8 @@ $query . '<table class="typo3-adminPanel">' .
 		}
 		if (($perms & 2)) {
 			$params = '&edit[pages][' . $id . ']=edit';
-			$toolBar .= '<a href="' . htmlspecialchars(TYPO3_mainDir . 'alt_document.php?' . $params . '&noView=1&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'))) . '">' .
-					'<img ' . t3lib_iconWorks::skinImg(TYPO3_mainDir . 'gfx/edit2.gif', 'width="11" height="12"') . 'hspace="2" border="0" align="top" title="' . $this->extGetLL('edit_editPageProperties') . '" alt="" /></a>';
+			$toolBar .= '<a href="' . htmlspecialchars(TYPO3_mainDir . 'alt_doc.php?' . $params . '&noView=1&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'))) . '">' .
+					'<img ' . t3lib_iconWorks::skinImg(TYPO3_mainDir, 'gfx/edit2.gif', 'width="11" height="12"') . 'hspace="2" border="0" align="top" title="' . $this->extGetLL('edit_editPageProperties') . '" alt="" /></a>';
 
 			if ($GLOBALS['TSFE']->sys_language_uid && $langAllowed) {
 				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
@@ -791,7 +791,7 @@ $query . '<table class="typo3-adminPanel">' .
 				$GLOBALS['TSFE']->sys_page->versionOL('pages_language_overlay',$row);
 				if (is_array($row)) {
 					$params = '&edit[pages_language_overlay][' . $row['uid'] . ']=edit';
-					$toolBar .= '<a href="' . htmlspecialchars(TYPO3_mainDir . 'alt_document.php?' . $params . '&noView=1&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'))) . '">' .
+					$toolBar .= '<a href="' . htmlspecialchars(TYPO3_mainDir . 'alt_doc.php?' . $params . '&noView=1&returnUrl=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI'))) . '">' .
 							'<img ' . t3lib_iconWorks::skinImg(TYPO3_mainDir, 'gfx/edit3.gif', 'width="11" height="12"') . ' hspace="2" border="0" align="top" title="' . $this->extGetLL('edit_editPageOverlay') . '" alt="" /></a>';
 				}
 			}

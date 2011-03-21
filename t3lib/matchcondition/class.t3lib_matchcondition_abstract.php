@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2009-2010 Oliver Hader <oliver@typo3.org>
+ *  (c) 2009-2011 Oliver Hader <oliver@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -259,10 +259,7 @@ abstract class t3lib_matchCondition_abstract {
 				$values = t3lib_div::trimExplode(',', $value, TRUE);
 					// Take all identified systems into account, e.g. mac for iOS, Linux
 					// for android and Windows NT for Windows XP
-				$allSystems = $browserInfo['system'];
-				if (!empty($browserInfo['all_systems'])) {
-					$allSystems .= ' ' . implode(' ', $browserInfo['all_systems']);
-				}
+				$allSystems .= ' ' . implode(' ', $browserInfo['all_systems']);
 				foreach ($values as $test) {
 					if (stripos($allSystems, $test) !== FALSE) {
 						return TRUE;

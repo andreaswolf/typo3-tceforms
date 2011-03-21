@@ -2,7 +2,7 @@
 /***************************************************************
 * Copyright notice
 *
-* (c) 2010 Oliver Klee (typo3-coding@oliverklee.de)
+* (c) 2010-2011 Oliver Klee (typo3-coding@oliverklee.de)
 * All rights reserved
 *
 * This script is part of the TYPO3 project. The TYPO3 project is
@@ -51,9 +51,10 @@ class t3lib_formprotection_BackendFormProtectionTest extends tx_phpunit_testcase
 			't3lib_beUserAuth',
 			array('getSessionData', 'setAndSaveSessionData')
 		);
+		$GLOBALS['BE_USER']->user['uid'] = 1;
 
 		$className = $this->createAccessibleProxyClass();
-		$this->fixture = new $className;
+		$this->fixture = $this->getMock($className, array('acquireLock', 'releaseLock'));
 	}
 
 	public function tearDown() {
@@ -84,6 +85,9 @@ class t3lib_formprotection_BackendFormProtectionTest extends tx_phpunit_testcase
 				'  public function createValidationErrorMessage() {' .
 				'    parent::createValidationErrorMessage();' .
 				'  }' .
+				'  public function updateTokens() {' .
+				'    return parent::updateTokens();' .
+				'  }' .
 				'  public function retrieveTokens() {' .
 				'    return parent::retrieveTokens();' .
 				'  }' .
@@ -94,6 +98,29 @@ class t3lib_formprotection_BackendFormProtectionTest extends tx_phpunit_testcase
 		return $className;
 	}
 
+	/**
+	 * Mock session methods in t3lib_beUserAuth
+	 *
+	 * @return t3lib_beUserAuth Instance of BE_USER object with mocked session storage methods
+	 */
+	private function createBackendUserSessionStorageStub() {
+		$className = 't3lib_beUserAuthMocked';
+		if (!class_exists($className)) {
+			eval(
+				'class ' . $className . ' extends t3lib_beUserAuth {' .
+				'  protected $session=array();' .
+				'  public function getSessionData($key) {' .
+				'    return $this->session[$key];' .
+				'  }' .
+				'  public function setAndSaveSessionData($key,$data) {' .
+				'    $this->session[$key] = $data;' .
+				'  }' .
+				'}'
+			);
+		}
+
+		return $this->getMock($className, array('foo'));// $className;
+	}
 
 	////////////////////////////////////
 	// Tests for the utility functions
@@ -108,6 +135,25 @@ class t3lib_formprotection_BackendFormProtectionTest extends tx_phpunit_testcase
 		$this->assertTrue(
 			(new $className()) instanceof t3lib_formprotection_BackendFormProtection
 		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function createBackendUserSessionStorageStubWorkProperly() {
+		$GLOBALS['BE_USER'] = $this->createBackendUserSessionStorageStub();
+
+		$allTokens = array(
+			'12345678' => array(
+					'formName' => 'foo',
+					'action' => 'edit',
+					'formInstanceName' => '42'
+				),
+		);
+
+		$GLOBALS['BE_USER']->setAndSaveSessionData('tokens', $allTokens);
+
+		$this->assertEquals($GLOBALS['BE_USER']->getSessionData('tokens'), $allTokens);
 	}
 
 
@@ -134,8 +180,9 @@ class t3lib_formprotection_BackendFormProtectionTest extends tx_phpunit_testcase
 		$action = 'edit';
 		$formInstanceName = '42';
 
-		$GLOBALS['BE_USER']->expects($this->once())->method('getSessionData')
-			->with('formTokens')->will($this->returnValue(array(
+		$GLOBALS['BE_USER']->expects($this->atLeastOnce())->method('getSessionData')
+			->with('formTokens')
+			->will($this->returnValue(array(
 				$tokenId => array(
 					'formName' => $formName,
 					'action' => $action,
@@ -143,9 +190,40 @@ class t3lib_formprotection_BackendFormProtectionTest extends tx_phpunit_testcase
 				),
 			)));
 
-		$this->fixture->retrieveTokens();
+		$this->fixture->updateTokens();
 
 		$this->assertTrue(
+			$this->fixture->validateToken($tokenId, $formName, $action,  $formInstanceName)
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function tokensStayDroppedAfterPersistingTokens() {
+		$tokenId = '51a655b55c54d54e5454c5f521f6552a';
+		$formName = 'foo';
+		$action = 'edit';
+		$formInstanceName = '42';
+
+		$GLOBALS['BE_USER']->expects($this->atLeastOnce())->method('getSessionData')
+			->will($this->returnValue(array(
+				$tokenId => array(
+					'formName' => $formName,
+					'action' => $action,
+					'formInstanceName' => $formInstanceName,
+				),
+			)));
+
+		$className = $this->createAccessibleProxyClass();
+
+		$this->fixture->updateTokens();
+
+		$this->fixture->validateToken($tokenId, $formName, $action,  $formInstanceName);
+
+		$this->fixture->persistTokens();
+
+		$this->assertFalse(
 			$this->fixture->validateToken($tokenId, $formName, $action,  $formInstanceName)
 		);
 	}
@@ -184,6 +262,7 @@ class t3lib_formprotection_BackendFormProtectionTest extends tx_phpunit_testcase
 	 * @test
 	 */
 	public function createValidationErrorMessageAddsErrorFlashMessage() {
+		$GLOBALS['BE_USER'] = $this->createBackendUserSessionStorageStub();
 		$this->fixture->createValidationErrorMessage();
 
 		$messages = t3lib_FlashMessageQueue::getAllMessagesAndFlush();

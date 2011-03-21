@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2010 Oliver Hader <oliver@typo3.org>
+*  (c) 2009-2011 Oliver Hader <oliver@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -41,6 +41,7 @@ class t3lib_extmgmTest extends tx_phpunit_testcase {
 
 	public function setUp() {
 		$this->globals = array(
+			'TYPO3_CONF_VARS' => serialize($GLOBALS['TYPO3_CONF_VARS']),
 			'TYPO3_LOADED_EXT' => serialize($GLOBALS['TYPO3_LOADED_EXT']),
 			'TCA' => serialize($GLOBALS['TCA']),
 		);
@@ -252,6 +253,44 @@ class t3lib_extmgmTest extends tx_phpunit_testcase {
 			$GLOBALS['TCA'][$table]['types']['typeB']['showitem']
 		);
 	}
+
+	/**
+	 * Test wheter replacing other TCA fields works as promissed
+	 * @test
+	 * @see t3lib_extMgm::addFieldsToAllPalettesOfField()
+	 */
+	public function canAddFieldsToTCATypeAndReplaceExistingOnes() {
+		$table = uniqid('tx_coretest_table');
+		$GLOBALS['TCA'] = $this->generateTCAForTable($table);
+
+		$typesBefore = $GLOBALS['TCA'][$table]['types'];
+
+		t3lib_extMgm::addToAllTCAtypes($table, 'fieldZ', '', 'replace:fieldX');
+
+		$this->assertEquals(
+			$typesBefore,
+			$GLOBALS['TCA'][$table]['types'],
+			'It\'s wrong that the "types" array changes here - the replaced field is only on palettes'
+		);
+
+			// unchanged because the palette is not used
+		$this->assertEquals(
+			'fieldX, fieldY', $GLOBALS['TCA'][$table]['palettes']['paletteA']['showitem']
+		);
+			// unchanged because the palette is not used
+		$this->assertEquals(
+			'fieldX, fieldY', $GLOBALS['TCA'][$table]['palettes']['paletteB']['showitem']
+		);
+
+		$this->assertEquals(
+			'fieldZ, fieldY', $GLOBALS['TCA'][$table]['palettes']['paletteC']['showitem']
+		);
+
+		$this->assertEquals(
+			'fieldZ, fieldY', $GLOBALS['TCA'][$table]['palettes']['paletteD']['showitem']
+		);
+	}
+
 
 
 	///////////////////////////////////////////////////
@@ -471,6 +510,31 @@ class t3lib_extmgmTest extends tx_phpunit_testcase {
 			'1.2.3',
 			t3lib_extMgm::getExtensionVersion($extensionKey)
 		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function getEnabledExtensionListConsidersRequiredExtensions() {
+		$testrequiRedExtension = uniqid('test');
+		$GLOBALS['TYPO3_CONF_VARS']['EXT']['requiredExt'] = $testrequiRedExtension;
+
+		$extensions = explode(',', t3lib_extMgm::getEnabledExtensionList());
+		$this->assertTrue(in_array($testrequiRedExtension, $extensions));
+	}
+
+	/**
+	 * @test
+	 */
+	public function getEnabledExtensionListConsidersRequiredAndIgnoredExtensions() {
+		$testRequiredExtension = uniqid('test');
+		$testIgnoredExtension = uniqid('test');
+		$GLOBALS['TYPO3_CONF_VARS']['EXT']['requiredExt'] = $testRequiredExtension . ',' . $testIgnoredExtension;
+		$GLOBALS['TYPO3_CONF_VARS']['EXT']['ignoredExt'] = $testIgnoredExtension;
+
+		$extensions = explode(',', t3lib_extMgm::getEnabledExtensionList());
+		$this->assertTrue(in_array($testRequiredExtension, $extensions));
+		$this->assertFalse(in_array($testIgnoredExtension, $extensions));
 	}
 }
 ?>

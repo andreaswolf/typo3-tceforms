@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2008-2011 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the Typo3 project. The Typo3 project is
@@ -45,6 +45,12 @@ class tx_rtehtmlarea_defaultimage extends tx_rtehtmlarea_api {
 		'image'	=> 'InsertImage',
 		);
 
+	public function main($parentObject) {
+			// Check if this should be enabled based on extension configuration and Page TSConfig
+			// The 'Minimal' and 'Typical' default configurations include Page TSConfig that removes images on the way to the database
+		return parent::main($parentObject)
+			&& !($this->thisConfig['proc.']['entryHTMLparser_db.']['tags.']['img.']['allowedAttribs'] == '0' && $this->thisConfig['proc.']['entryHTMLparser_db.']['tags.']['img.']['rmTagIfNoAttrib'] == '1');
+	}
 	/**
 	 * Return JS configuration of the htmlArea plugins registered by the extension
 	 *

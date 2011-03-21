@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -243,7 +243,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			}
 		}
 		if ($exitOnError) {
-			throw new RuntimeException('Access Error: This page is not within your DB-mounts');
+			throw new RuntimeException('Access Error: This page is not within your DB-mounts', 1294586445);
 		}
 	}
 
@@ -257,7 +257,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	function modAccess($conf, $exitOnError) {
 		if (!t3lib_BEfunc::isModuleSetInTBE_MODULES($conf['name'])) {
 			if ($exitOnError) {
-				throw new RuntimeException('Fatal Error: This module "' . $conf['name'] . '" is not enabled in TBE_MODULES');
+				throw new RuntimeException('Fatal Error: This module "' . $conf['name'] . '" is not enabled in TBE_MODULES', 1294586446);
 			}
 			return FALSE;
 		}
@@ -270,7 +270,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 				// ok, go on...
 			} else {
 				if ($exitOnError) {
-					throw new RuntimeException('Workspace Error: This module "' . $conf['name'] . '" is not available under the current workspace');
+					throw new RuntimeException('Workspace Error: This module "' . $conf['name'] . '" is not available under the current workspace', 1294586447);
 				}
 				return FALSE;
 			}
@@ -286,7 +286,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			$acs = $this->check('modules', $conf['name']);
 		}
 		if (!$acs && $exitOnError) {
-			throw new RuntimeException('Access Error: You don\'t have access to this module.');
+			throw new RuntimeException('Access Error: You don\'t have access to this module.', 1294586448);
 		} else {
 			return $acs;
 		}
@@ -856,6 +856,8 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			&& !t3lib_BEfunc::getWorkspaceVersionOfRecord($this->workspace, $table, $id, 'uid') // There must be no existing version of this record in workspace.
 			&& !t3lib_BEfunc::isPidInVersionizedBranch($recpid, $table)) { // PID must NOT be in a versionized branch either
 			return TRUE;
+		} else if ($this->workspaceRec['disable_autocreate']) {
+			t3lib_div::deprecationLog('Usage of disable_autocreate feature is deprecated since 4.5.');
 		}
 	}
 
@@ -869,16 +871,17 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 	 * @return	boolean		TRUE if user is allowed access
 	 */
 	function workspaceCheckStageForCurrent($stage) {
+		$stage = intval($stage);
 		if ($this->isAdmin()) {
 			return TRUE;
 		}
 
-		if ($this->workspace > 0) {
+		if ($this->workspace > 0 && t3lib_extMgm::isLoaded('workspaces')) {
 			$stat = $this->checkWorkspaceCurrent();
 
 				// Check if custom staging is activated
 			$workspaceRec = t3lib_BEfunc::getRecord('sys_workspace', $stat['uid']);
-			if ($workspaceRec['custom_stages'] > 0 && $stage !== '0' && $stage !== '-10') {
+			if ($workspaceRec['custom_stages'] > 0 && $stage !== 0 && $stage !== '-10') {
 
 					// Get custom stage record
 				$workspaceStageRec = t3lib_BEfunc::getRecord('sys_workspace_stage', $stage);
@@ -886,7 +889,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 				if ((t3lib_div::inList($workspaceStageRec['responsible_persons'], 'be_users_' . $this->user['uid'])
 					 && $stat['_ACCESS'] === 'member')
 					|| $stat['_ACCESS'] === 'owner') {
-					return TRUE; // OK for these criteria
+					return TRUE;
 				}
 
 					// Check if the user is in a group which is responsible for the current stage
@@ -894,15 +897,22 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 					if ((t3lib_div::inList($workspaceStageRec['responsible_persons'], 'be_groups_' . $groupUid)
 						 && $stat['_ACCESS'] === 'member')
 						|| $stat['_ACCESS'] === 'owner') {
-						return TRUE; // OK for these criteria
+						return TRUE;
 					}
+				}
+				// only owner is allowed to change records which are "ready to publish"
+			} elseif ($stage == '-10' || $stage == '-20') {
+				if ($stat['_ACCESS'] === 'owner') {
+					return TRUE;
+				} else {
+					return FALSE;
 				}
 			} else {
 				$memberStageLimit = $this->workspaceRec['review_stage_edit'] ? 1 : 0;
 				if (($stage <= $memberStageLimit && $stat['_ACCESS'] === 'member')
 					|| ($stage <= 1 && $stat['_ACCESS'] === 'reviewer')
 					|| $stat['_ACCESS'] === 'owner') {
-					return TRUE; // OK for these criteria
+					return TRUE;
 				}
 			}
 		} else {
@@ -1567,9 +1577,9 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 		$fileMountpoints = trim($this->workspaceRec['file_mountpoints']);
 		if ($this->workspace > 0) {
 
-				// no custom filemounts that should serve as filter
+				// no custom filemounts that should serve as filter or user is admin
 				// so all user mountpoints are re-applied
-			if ($fileMountpoints === '') {
+			if ($this->isAdmin() || $fileMountpoints === '') {
 				$this->groupData['filemounts'] = $usersFileMounts;
 			} else {
 					// Fetching all filemounts from the workspace
@@ -1635,14 +1645,16 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 					$wsRec = array('uid' => $wsRec);
 				break;
 				default:
-					$wsRec = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
-						$fields,
-						'sys_workspace',
-						'pid=0 AND uid=' . intval($wsRec) .
-						t3lib_BEfunc::deleteClause('sys_workspace'),
-						'',
-						'title'
-					);
+					if (t3lib_extMgm::isLoaded('workspaces')) {
+						$wsRec = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
+							$fields,
+							'sys_workspace',
+							'pid=0 AND uid=' . intval($wsRec) .
+							t3lib_BEfunc::deleteClause('sys_workspace'),
+							'',
+							'title'
+						);
+					}
 				break;
 			}
 		}
@@ -1762,7 +1774,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			return 0;
 		} elseif ($this->checkWorkspace(-1)) { // Check offline
 			return -1;
-		} else { // Traverse custom workspaces:
+		} elseif (t3lib_extMgm::isLoaded('workspaces')) { // Traverse custom workspaces:
 			$workspaces = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('uid,title,adminusers,members,reviewers', 'sys_workspace', 'pid=0' . t3lib_BEfunc::deleteClause('sys_workspace'), '', 'title');
 			foreach ($workspaces as $rec) {
 				if ($this->checkWorkspace($rec)) {
@@ -1880,8 +1892,7 @@ class t3lib_userAuthGroup extends t3lib_userAuth {
 			if ($GLOBALS['TYPO3_DB']->sql_num_rows($res) > $max) {
 					// OK, so there were more than the max allowed number of login failures - so we will send an email then.
 				$subject = 'TYPO3 Login Failure Warning (at ' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] . ')';
-				$email_body = '
-There has been numerous attempts (' . $GLOBALS['TYPO3_DB']->sql_num_rows($res) . ') to login at the TYPO3
+				$email_body = 'There have been some attempts (' . $GLOBALS['TYPO3_DB']->sql_num_rows($res) . ') to login at the TYPO3
 site "' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] . '" (' . t3lib_div::getIndpEnv('HTTP_HOST') . ').
 
 This is a dump of the failures:
@@ -1892,11 +1903,14 @@ This is a dump of the failures:
 					$email_body .= date($GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'] . ' ' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'], $testRows['tstamp']) . ':  ' . @sprintf($testRows['details'], '' . $theData[0], '' . $theData[1], '' . $theData[2]);
 					$email_body .= LF;
 				}
-				t3lib_utility_Mail::mail($email,
-										 $subject,
-										 $email_body,
-										 'From: TYPO3 Login WARNING<>'
-				);
+				$from = t3lib_utility_Mail::getSystemFrom();
+				/** @var $mail t3lib_mail_Message */
+				$mail = t3lib_div::makeInstance('t3lib_mail_Message');
+				$mail->setTo($email)
+						->setFrom($from)
+						->setSubject($subject)
+						->setBody($email_body);
+				$mail->send();
 				$this->writelog(255, 4, 0, 3, 'Failure warning (%s failures within %s seconds) sent by email to %s', array($GLOBALS['TYPO3_DB']->sql_num_rows($res), $secondsBack, $email)); // Logout written to log
 			}
 		}

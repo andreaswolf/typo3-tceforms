@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Steffen Ritter <info@steffen-ritter.net>
+ *  (c) 2010-2011 Steffen Ritter <info@steffen-ritter.net>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -63,22 +63,6 @@ class t3lib_spritemanager_SpriteBuildingHandler extends t3lib_spritemanager_Abst
 		}
 
 		$generatorResponse = $this->generatorInstance->generateSpriteFromArray($iconsToProcess);
-
-		if (!is_dir(PATH_site . t3lib_SpriteManager::$tempPath . 'ie6')) {
-			t3lib_div::mkdir(PATH_site . t3lib_SpriteManager::$tempPath . 'ie6');
-		}
-
-		t3lib_div::upload_copy_move(
-			$generatorResponse['spriteGifImage'],
-			t3lib_div::dirname($generatorResponse['spriteGifImage']) . '/ie6/' . basename($generatorResponse['spriteGifImage'])
-		);
-		unlink($generatorResponse['spriteGifImage']);
-
-		t3lib_div::upload_copy_move(
-			$generatorResponse['cssGif'],
-			t3lib_div::dirname($generatorResponse['cssGif']) . '/ie6/' . basename($generatorResponse['cssGif'])
-		);
-		unlink($generatorResponse['cssGif']);
 
 		$this->iconNames = array_merge($this->iconNames, $generatorResponse['iconNames']);
 

@@ -99,15 +99,9 @@ class tx_em_ExtensionManager {
 	public function render() {
 
 		/* Add CSS */
-		if ($this->debug == 2 || 1) {
-			$this->pageRenderer->addCssFile($this->resPath . 'js/ux/css/GridFilters.css');
-			$this->pageRenderer->addCssFile($this->resPath . 'js/ux/css/RangeMenu.css');
-			$this->pageRenderer->addCssFile($this->resPath . 'css/t3_em.css');
-		} elseif($this->debug == 1) {
-
-		} else {
-
-		}
+		$this->pageRenderer->addCssFile($this->resPath . 'js/ux/css/GridFilters.css');
+		$this->pageRenderer->addCssFile($this->resPath . 'js/ux/css/RangeMenu.css');
+		$this->pageRenderer->addCssFile($this->resPath . 'css/t3_em.css');
 
 
 		$iconsGfxPath = $GLOBALS['TBE_STYLES']['skinImgAutoCfg']['relDir'] . 'gfx/';
@@ -128,7 +122,7 @@ class tx_em_ExtensionManager {
 
 		/* load ExtJS */
 		$this->pageRenderer->loadExtJS();
-		$this->pageRenderer->enableExtJsDebug();
+		$this->pageRenderer->enableExtJSQuickTips();
 
 			// Load  JavaScript:
 		$this->pageRenderer->addJsFile($this->parentObject->doc->backPath .
@@ -146,11 +140,20 @@ class tx_em_ExtensionManager {
 
 
 			// Localization
-		$labels = tx_em_Tools::getArrayFromLocallang(t3lib_extMgm::extPath('em', 'language/locallang.xml'));
+		$labels = array();
+		$this->pageRenderer->addInlineLanguageLabelFile(t3lib_extMgm::extPath('em', 'language/locallang.xml'));
+		$labels['yes'] = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:yes');
+		$labels['no'] = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_common.xml:no');
 		$this->pageRenderer->addInlineLanguageLabelArray($labels);
 
 		$globalSettings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['em']);
-
+		if (!is_array($globalSettings)) {
+			$globalSettings = array(
+				'displayMyExtensions' => 0,
+				'selectedLanguages' => array(),
+				'inlineToWindow' => 1,
+			);
+		}
 		$settings = $this->parentObject->MOD_SETTINGS;
 		$mirrors = unserialize($settings['extMirrors']);
 		$settings['extMirrors'] = array(array('Random (recommended)', '', '', '', '', '', ''));
@@ -165,6 +168,15 @@ class tx_em_ExtensionManager {
 
 		$allowRepositoryUpdate = !intval($GLOBALS['BE_USER']->getTSConfigVal('mod.tools_em.hideRepositoryUpdate'));
 
+		/* file operations */
+		$fileAllowMove = intval($GLOBALS['BE_USER']->getTSConfigVal('mod.tools_em.fileAllowMove'));
+		$fileAllowDelete = intval($GLOBALS['BE_USER']->getTSConfigVal('mod.tools_em.fileAllowDelete'));
+		$fileAllowRename = intval($GLOBALS['BE_USER']->getTSConfigVal('mod.tools_em.fileAllowRename'));
+		$fileAllowUpload = intval($GLOBALS['BE_USER']->getTSConfigVal('mod.tools_em.fileAllowUpload'));
+		$fileAllowCreate = intval($GLOBALS['BE_USER']->getTSConfigVal('mod.tools_em.fileAllowCreate'));
+		$fileAllowDownload = intval($GLOBALS['BE_USER']->getTSConfigVal('mod.tools_em.fileAllowDownload'));
+
+
 			// add the settings
 		$additionalSettings = array(
 			'siteUrl' => t3lib_div::getIndpEnv('TYPO3_SITE_URL'),
@@ -174,15 +186,24 @@ class tx_em_ExtensionManager {
 			'editorCss' => $this->resPath . 'css/editor.css',
 			'codemirrorCssPath' => $this->parentObject->doc->backPath . 'contrib/codemirror/css/',
 			'codemirrorJsPath' => $this->parentObject->doc->backPath . 'contrib/codemirror/js/',
+			'codemirrorContribPath' => $this->parentObject->doc->backPath . 'contrib/codemirror/contrib/',
 			'selectedLanguages' => t3lib_div::trimExplode(',', $globalSettings['selectedLanguages'], TRUE),
 			'state' => $GLOBALS['BE_USER']->uc['moduleData']['tools_em']['States'],
 			'inlineToWindow' => $globalSettings['inlineToWindow'],
-			'allowRepositoryUpdate' => $allowRepositoryUpdate
+			'allowRepositoryUpdate' => $allowRepositoryUpdate,
+			'displayMyExtensions' => $globalSettings['displayMyExtensions'],
+			'debug' => $GLOBALS['TYPO3_CONF_VARS']['BE']['debug'] > 0,
+			//TODO: some are disabled until feater-proofed
+			'fileAllowSave' => $GLOBALS['TYPO3_CONF_VARS']['EXT']['noEdit'] == 0,
+			'fileAllowMove' => 0, //$fileAllowMove,
+			'fileAllowDelete' => 0, //$fileAllowDelete,
+			'fileAllowRename' => 0, //$fileAllowRename,
+			'fileAllowUpload' => 0, //$fileAllowUpload,
+			'fileAllowCreate' => 0, //$fileAllowCreate,
+			'fileAllowDownload' => $fileAllowDownload,
+
 		);
 		$settings = array_merge($settings, $additionalSettings);
-
-		$this->pageRenderer->addInlineSettingArray('EM', $settings);
-
 
 		// Add JS
 		$this->pageRenderer->addJsFile($this->parentObject->doc->backPath . '../t3lib/js/extjs/ux/flashmessages.js');
@@ -193,6 +214,8 @@ class tx_em_ExtensionManager {
 		$this->pageRenderer->addJsFile($this->resPath . 'js/overrides/ext_overrides.js');
 		$this->pageRenderer->addJsFile($this->resPath . 'js/ux/custom_plugins.js');
 		$this->pageRenderer->addJsFile($this->parentObject->doc->backPath . '../t3lib/js/extjs/ux/Ext.ux.FitToParent.js');
+		$this->pageRenderer->addJsFile($this->parentObject->doc->backPath . '../t3lib/js/extjs/notifications.js');
+		$this->pageRenderer->addJsFile($this->resPath . 'js/ux/TreeState.js');
 		$this->pageRenderer->addJsFile($this->resPath . 'js/ux/RowPanelExpander.js');
 		$this->pageRenderer->addJsFile($this->resPath . 'js/ux/searchfield.js');
 		$this->pageRenderer->addJsFile($this->resPath . 'js/ux/fileuploadfield.js');
@@ -227,15 +250,29 @@ class tx_em_ExtensionManager {
 		// clear flashmessages from php
 		t3lib_FlashMessageQueue::getAllMessagesAndFlush();
 
-		//Update from repository - box
-		//$content = $this->parentObject->showRepositoryUpdateForm(0);
-
-		$content .= '
-
+		$content =  '
 			<div id="em-message-area"></div><div id="em-app"></div>
 			<!-- dummy form to make configuration js happy -->
 			<form name="tsStyleConfigForm" action="" method="post"></form>
 		';
+
+			//hook for the extension manager gui
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['em/classes/class.tx_em_extensionamager.php']['renderHook'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['em/classes/class.tx_em_extensionamager.php']['renderHook'] as $classRef) {
+				$hookObject = t3lib_div::getUserObj($classRef);
+				if(!($hookObject instanceof tx_em_renderHook)) {
+					throw new UnexpectedValueException('$hookObject must implement interface tx_em_renderHook', 1298121373);
+				}
+				$hookObject->render(
+					$this->pageRenderer, $settings, $content
+				);
+			}
+		}
+
+			// render settings and labels
+		$this->pageRenderer->addInlineSettingArray('EM', $settings);
+		$this->pageRenderer->addInlineLanguageLabelArray($labels);
+
 		return $content;
 	}
 

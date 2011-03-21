@@ -45,6 +45,10 @@ div.typo3-dyntabmenu-divs {
 .x-toolbar {
 	background:none !important;
 }
+/* fixes positioning of toolbar in IE6 */
+* html .x-panel-tbar {
+	border: 1px none;
+}
 .x-grid3 {
 	background: none !important;
 }
@@ -73,7 +77,7 @@ div.x-grid3-row img.x-action-col-icon {
 	display:none;
 }
 
-div.x-grid3-row:hover img.x-action-col-icon {
+div.x-grid3-row-over img.x-action-col-icon {
 	display:inline-block;
 }
 
@@ -187,4 +191,26 @@ div .t3-workspaces-comments-singleComment-content {
 div .t3-workspaces-comments-singleComment-content-title {
 	padding: 8px 0 8px 0;
 	font-weight: bold;
+}
+
+.typo3-workspaces-row-disabled .x-grid3-td-checker {
+	visibility: hidden;
+}
+
+div.x-grid3-row img.t3-icon-extensions-workspaces {
+	display: inline-block !important;
+	width: 17px;
+	visibility: hidden;
+}
+
+div.x-grid3-row-over img.t3-icon-extensions-workspaces {
+	visibility: visible;
+}
+
+img.t3-icon-workspaces-sendtonextstage {
+	background-position: 0 4px !important;
+}
+
+img.t3-icon-workspaces-sendtoprevstage {
+	background-position: 0 4px !important;
 }

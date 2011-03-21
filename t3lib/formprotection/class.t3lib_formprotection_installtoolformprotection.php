@@ -2,7 +2,7 @@
 /***************************************************************
  * Copyright notice
  *
- * (c) 2010 Oliver Klee <typo3-coding@oliverklee.de>
+ * (c) 2010-2011 Oliver Klee <typo3-coding@oliverklee.de>
  * All rights reserved
  *
  * This script is part of the TYPO3 project. The TYPO3 project is
@@ -145,10 +145,11 @@ class t3lib_formprotection_InstallToolFormProtection extends t3lib_formProtectio
 		if (isset($_SESSION['installToolFormTokens'])
 			&& is_array($_SESSION['installToolFormTokens'])
 		) {
-			$this->tokens = $_SESSION['installToolFormTokens'];
+			$tokens = $_SESSION['installToolFormTokens'];
 		} else {
-			$this->tokens = array();
+			$tokens = array();
 		}
+		return $tokens;
 	}
 
 	/**

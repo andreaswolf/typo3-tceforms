@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -780,23 +780,6 @@ class tslib_pibase {
 			$output.= ' '.$v;
 		}
 		return ' class="'.trim($output).'"';
-	}
-
-	/**
-	 * Sets CSS style-data for the $class-suffix (prefixed by pi_getClassName())
-	 *
-	 * @param	string		$class: Class suffix, see pi_getClassName
-	 * @param	string		$data: CSS data
-	 * @param	string		If $selector is set to any CSS selector, eg 'P' or 'H1' or 'TABLE' then the style $data will regard those HTML-elements only
-	 * @return	void
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, I think this function should not be used (and probably isn't used anywhere). It was a part of a concept which was left behind quite quickly.
-	 * @obsolete
-	 * @private
-	 */
-	function pi_setClassStyle($class,$data,$selector='')	{
-		t3lib_div::logDeprecatedFunction();
-
-		$GLOBALS['TSFE']->setCSS($this->pi_getClassName($class).($selector?' '.$selector:''),'.'.$this->pi_getClassName($class).($selector?' '.$selector:'').' {'.$data.'}');
 	}
 
 	/**

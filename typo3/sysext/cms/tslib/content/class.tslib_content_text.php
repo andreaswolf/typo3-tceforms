@@ -2,8 +2,8 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Xavier Perseguers <typo3@perseguers.ch>
- *  (c) 2010 Steffen Kamper <steffen@typo3.org>
+ *  (c) 2010-2011 Xavier Perseguers <typo3@perseguers.ch>
+ *  (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -42,8 +42,11 @@ class tslib_content_Text extends tslib_content_Abstract {
 	 * @return	string		Output
 	 */
 	public function render($conf = array()) {
-		$content = $conf['value'];
-		unset($conf['value']);
+		$content = '';
+		if (is_array($conf) && isset($conf['value'])) {
+			$content = $conf['value'];
+			unset($conf['value']);
+		}
 		if(count($conf)) {
 			$content = $this->cObj->stdWrap($content, $conf);
 		}

@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2010-2011 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,10 +29,7 @@
  *
  * TYPO3 SVN ID: $Id: acronym.js 8087 2010-07-04 20:18:10Z stan $
  */
-HTMLArea.EditElement = HTMLArea.Plugin.extend({
-	constructor: function(editor, pluginName) {
-		this.base(editor, pluginName);
-	},
+HTMLArea.EditElement = Ext.extend(HTMLArea.Plugin, {
 	/*
 	 * This function gets called by the class constructor
 	 */
@@ -45,7 +42,7 @@ HTMLArea.EditElement = HTMLArea.Plugin.extend({
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: '1.0',
+			version		: '1.1',
 			developer	: 'Stanislas Rolland',
 			developerUrl	: 'http://www.sjbr.ca/',
 			copyrightOwner	: 'Stanislas Rolland',
@@ -316,7 +313,11 @@ HTMLArea.EditElement = HTMLArea.Plugin.extend({
 	buildLanguageFieldsetConfig: function (element) {
 		var itemsConfig = [];
 		var languagePlugin = this.getPluginInstance('Language');
-		if (this.removedProperties.indexOf('language') == -1) {
+		var languageConfigurationUrl;
+		if (this.editorConfiguration.buttons && this.editorConfiguration.buttons.language && this.editorConfiguration.buttons.language.dataUrl) {
+			languageConfigurationUrl = this.editorConfiguration.buttons.language.dataUrl;
+		}
+		if (languagePlugin && languageConfigurationUrl && this.removedProperties.indexOf('language') == -1) {
 			var selectedLanguage = !Ext.isEmpty(element) ? languagePlugin.getLanguageAttribute(element) : 'none';
 			function initLanguageStore (store) {
 				if (selectedLanguage !== 'none') {
@@ -332,7 +333,7 @@ HTMLArea.EditElement = HTMLArea.Plugin.extend({
 				autoLoad: true,
 				root: 'options',
 				fields: [ { name: 'text'}, { name: 'value'} ],
-				url: this.getDropDownConfiguration('Language').dataUrl,
+				url: languageConfigurationUrl,
 				listeners: {
 					load: initLanguageStore
 				}

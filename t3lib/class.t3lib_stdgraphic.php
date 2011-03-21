@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -150,10 +150,8 @@ class t3lib_stdGraphic {
 	var $imagecopyresized_fix = 0; // If set, imagecopyresized will not be called directly. For GD2 (some PHP installs?)
 	var $gifExtension = 'gif'; // This should be changed to 'png' if you want this class to read/make PNG-files instead!
 	var $gdlibExtensions = ''; // File formats supported by gdlib. This variable get's filled in "init" method
-	var $truecolor = TRUE; // Internal variable which get's used to determine wheter GDlib should use function truecolor pendants, @deprecated as of TYPO3 4.4, as this variables is now always set (GDlib2 always has this method, and PHP recommends to only use imagecreatetruecolor() over imagecreate())
 	var $png_truecolor = FALSE; // Set to true if generated png's should be truecolor by default
 	var $truecolorColors = 0xffffff; // 16777216 Colors is the maximum value for PNG, JPEG truecolor images (24-bit, 8-bit / Channel)
-	var $TTFLocaleConv = ''; // Used to recode input to TTF-functions for other charsets. Deprecated since TYPO3 3.6, will be removed in TYPO3 4.6
 	var $enable_typo3temp_db_tracking = 0; // If set, then all files in typo3temp will be logged in a database table. In addition to being a log of the files with original filenames, it also serves to secure that the same image is not rendered simultaneously by two different processes.
 	var $imageFileExt = 'gif,jpg,jpeg,png,tif,bmp,tga,pcx,ai,pdf'; // Commalist of file extensions perceived as images by TYPO3. List should be set to 'gif,png,jpeg,jpg' if IM is not available. Lowercase and no spaces between!
 	var $webImageExt = 'gif,jpg,jpeg,png'; // Commalist of web image extensions (can be shown by a webbrowser)
@@ -268,9 +266,6 @@ class t3lib_stdGraphic {
 
 		if ($gfxConf['gdlib_png']) {
 			$this->gifExtension = 'png';
-		}
-		if ($gfxConf['TTFLocaleConv']) {
-			$this->TTFLocaleConv = $gfxConf['TTFLocaleConv'];
 		}
 		if ($gfxConf['enable_typo3temp_db_tracking']) {
 			$this->enable_typo3temp_db_tracking = $gfxConf['enable_typo3temp_db_tracking'];
@@ -517,9 +512,6 @@ class t3lib_stdGraphic {
 			imagecopyresized($im_base, $im, 0, 0, 0, 0, imagesx($im), imagesy($im), imagesx($im), imagesy($im)); // Copy the source image onto that
 			imagecopyresized($im_base, $cpImg, $Xstart, $Ystart, $cpImgCutX, $cpImgCutY, $w, $h, $w, $h); // Then copy the $cpImg onto that (the actual operation!)
 			$im = $im_base; // Set pointer
-			if (!$this->truecolor) {
-				$this->makeEffect($im, array('value' => 'colors=' . t3lib_div::intInRange($this->setup['reduceColors'], 256, $this->truecolorColors, 256))); // Reduce to "reduceColors" colors - make SURE that IM is working then!
-			}
 		} else {
 			imagecopyresized($im, $cpImg, $Xstart, $Ystart, $cpImgCutX, $cpImgCutY, $w, $h, $w, $h);
 		}
@@ -556,11 +548,6 @@ class t3lib_stdGraphic {
 			$cols = $this->convertColor($conf['fontColor']);
 				// NiceText is calculated
 			if (!$conf['niceText']) {
-					// Font Color is reserved:
-				if (!$this->truecolor) {
-					$reduce = t3lib_div::intInRange($this->setup['reduceColors'], 256, $this->truecolorColors, 256);
-					$this->reduceColors($im, $reduce - 49, $reduce - 50); // If "reduce-49" colors (or more) are used reduce them to "reduce-50"
-				}
 				$Fcolor = ImageColorAllocate($im, $cols[0], $cols[1], $cols[2]);
 					// antiAliasing is setup:
 				$Fcolor = ($conf['antiAlias']) ? $Fcolor : -$Fcolor;
@@ -1538,10 +1525,6 @@ class t3lib_stdGraphic {
 		$conf['offset'] = $cords[0] . ',' . $cords[1];
 		$cords = $this->objPosition($conf, $workArea, array($cords[2], $cords[3]));
 		$cols = $this->convertColor($conf['color']);
-		if (!$this->truecolor) {
-			$reduce = t3lib_div::intInRange($this->setup['reduceColors'], 256, $this->truecolorColors, 256);
-			$this->reduceColors($im, $reduce - 1, $reduce - 2); // If "reduce-1" colors (or more) are used reduce them to "reduce-2"
-		}
 
 		$opacity = 0;
 		if (isset($conf['opacity'])) {
@@ -1915,24 +1898,6 @@ class t3lib_stdGraphic {
 	}
 
 	/**
-	 * Reduce colors in image dependend on the actual amount of colors (Only works if we are not in truecolor mode)
-	 * This function is not needed anymore, as truecolor is now always on.
-	 *
-	 * @param	integer		GDlib Image Pointer
-	 * @param	integer		The max number of colors in the image before a reduction will happen; basically this means that IF the GD image current has the same amount or more colors than $limit define, THEN a reduction is performed.
-	 * @param	integer		Number of colors to reduce the image to.
-	 * @return	void
-	 * @deprecated since TYPO3 4.4, this function will be removed in TYPO3 4.6.
-	 */
-	function reduceColors(&$im, $limit, $cols) {
-		t3lib_div::logDeprecatedFunction();
-
-		if (!$this->truecolor && ImageColorsTotal($im) >= $limit) {
-			$this->makeEffect($im, array('value' => 'colors=' . $cols));
-		}
-	}
-
-	/**
 	 * Reduce colors in image using IM and create a palette based image if possible (<=256 colors)
 	 *
 	 * @param	string		Image file to reduce
@@ -2107,14 +2072,6 @@ class t3lib_stdGraphic {
 			// Recode string to UTF-8 from $this->nativeCharset:
 		if ($this->nativeCharset && $this->nativeCharset != 'utf-8') {
 			$string = $this->csConvObj->utf8_encode($string, $this->nativeCharset); // Convert to UTF-8
-		}
-
-			// Recode string accoding to TTFLocaleConv. Deprecated.
-		if ($this->TTFLocaleConv) {
-			t3lib_div::deprecationLog('The option $TYPO3_CONF_VARS[\'GFX\'][\'TTFLocaleConv\'] is in use, but deprecated since TYPO3 3.6, will be removed in TYPO3 4.6. Make sure to unset this variable in your typo3conf/localconf.php and use a different way to encode your string.');
-
-			list($from, $to) = t3lib_div::trimExplode('..', $this->TTFLocaleConv, TRUE);
-			$string = $this->csConvObj->conv($string, $from, $to);
 		}
 
 		return $string;
@@ -2356,11 +2313,12 @@ class t3lib_stdGraphic {
 	 * @author	Michael Stucki <michael@typo3.org> / Robert Lemke <rl@robertlemke.de>
 	 */
 	function cacheImageDimensions($identifyResult) {
-		global $TYPO3_DB;
-			// Create a md5 hash of the filename
-		$md5Hash = md5_file($identifyResult[3]);
+			// Create md5 hash of filemtime and filesize
+		$md5Hash = md5(filemtime($identifyResult[3]) . filesize($identifyResult[3]));
+
+		$result = FALSE;
 		if ($md5Hash) {
-			$fieldArr = array(
+			$fieldArray = array(
 				'md5hash' => $md5Hash,
 				'md5filename' => md5($identifyResult[3]),
 				'tstamp' => $GLOBALS['EXEC_TIME'],
@@ -2368,12 +2326,18 @@ class t3lib_stdGraphic {
 				'imagewidth' => $identifyResult[0],
 				'imageheight' => $identifyResult[1],
 			);
-			$TYPO3_DB->exec_INSERTquery('cache_imagesizes', $fieldArr);
-			if (!$err = $TYPO3_DB->sql_error()) {
-				return TRUE;
+
+			$GLOBALS['TYPO3_DB']->exec_INSERTquery(
+				'cache_imagesizes',
+				$fieldArray
+			);
+
+			if (!$err = $GLOBALS['TYPO3_DB']->sql_error()) {
+				$result = TRUE;
 			}
 		}
-		return FALSE;
+
+		return $result;
 	}
 
 	/**
@@ -2381,25 +2345,39 @@ class t3lib_stdGraphic {
 	 *
 	 * @param	string		The image filepath
 	 * @return	array		Returns an array where [0]/[1] is w/h, [2] is extension and [3] is the filename.
-	 * @author	Michael Stucki <michael@typo3.org> / Robert Lemke <rl@robertlemke.de>
+	 * @author	Michael Stucki <michael@typo3.org>
+	 * @author	Robert Lemke <rl@robertlemke.de>
 	 */
 	function getCachedImageDimensions($imageFile) {
-		global $TYPO3_DB;
-			// Create a md5 hash of the filename
-		$md5Hash = md5_file($imageFile);
-		preg_match('/([^\.]*)$/', $imageFile, $reg);
-		$res = $TYPO3_DB->exec_SELECTquery('md5hash, imagewidth, imageheight', 'cache_imagesizes', 'md5filename=' . $TYPO3_DB->fullQuoteStr(md5($imageFile), 'cache_imagesizes'));
-		if ($res) {
-			if ($row = $TYPO3_DB->sql_fetch_assoc($res)) {
-				if ($row['md5hash'] != $md5Hash) {
-						// file has changed, delete the row
-					$TYPO3_DB->exec_DELETEquery('cache_imagesizes', 'md5hash=' . $TYPO3_DB->fullQuoteStr($row['md5hash'], 'cache_imagesizes'));
-				} else {
-					return (array((int) $row['imagewidth'], (int) $row['imageheight'], strtolower($reg[0]), $imageFile));
-				}
+			// Create md5 hash of filemtime and filesize
+		$md5Hash = md5(filemtime($imageFile) . filesize($imageFile));
+
+		$cachedImageDimensions = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
+			'md5hash, md5filename, imagewidth, imageheight',
+			'cache_imagesizes',
+			'md5filename=' . $GLOBALS['TYPO3_DB']->fullQuoteStr(md5($imageFile), 'cache_imagesizes')
+		);
+
+		$result = FALSE;
+		if (is_array($cachedImageDimensions)) {
+			if ($cachedImageDimensions['md5hash'] != $md5Hash) {
+					// File has changed, delete the row
+				$GLOBALS['TYPO3_DB']->exec_DELETEquery(
+					'cache_imagesizes',
+					'md5filename=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cachedImageDimensions['md5filename'], 'cache_imagesizes')
+				);
+			} else {
+				preg_match('/([^\.]*)$/', $imageFile, $imageExtension);
+				$result = array(
+					(int)$cachedImageDimensions['imagewidth'],
+					(int)$cachedImageDimensions['imageheight'],
+					strtolower($imageExtension[0]),
+					$imageFile,
+				);
 			}
 		}
-		return FALSE;
+
+		return $result;
 	}
 
 	/**
@@ -2885,36 +2863,6 @@ class t3lib_stdGraphic {
 		return $result;
 	}
 
-
-	/**
-	 * Writes the input GDlib image pointer to file. Now just a wrapper to ImageWrite.
-	 *
-	 * @param	pointer		The GDlib image resource pointer
-	 * @param	string		The filename to write to
-	 * @return	mixed		The output of either imageGif, imagePng or imageJpeg based on the filename to write
-	 * @see imageWrite()
-	 * @deprecated since TYPO3 4.0, this function will be removed in TYPO3 4.6.
-	 */
-	function imageGif($destImg, $theImage) {
-		t3lib_div::logDeprecatedFunction();
-
-		return $this->imageWrite($destImg, $theImage);
-	}
-
-	/**
-	 * This function has been renamed and only exists for providing backwards compatibility.
-	 * Please use $this->imageCreateFromFile() instead.
-	 *
-	 * @param	string		Image filename
-	 * @return	pointer		Image Resource pointer
-	 * @deprecated since TYPO3 4.0, this function will be removed in TYPO3 4.6.
-	 */
-	function imageCreateFromGif($sourceImg) {
-		t3lib_div::logDeprecatedFunction();
-
-		return $this->imageCreateFromFile($sourceImg);
-	}
-
 	/**
 	 * Creates a new GDlib image resource based on the input image filename.
 	 * If it fails creating a image from the input file a blank gray image with the dimensions of the input image will be created instead.
@@ -2951,24 +2899,6 @@ class t3lib_stdGraphic {
 		$Bcolor = ImageColorAllocate($im, 128, 128, 128);
 		ImageFilledRectangle($im, 0, 0, $i[0], $i[1], $Bcolor);
 		return $im;
-	}
-
-
-	/**
-	 * Creates a new GD image resource.
-	 * Wrapper for imagecreate(truecolor) depended if GD2 is used.
-	 * This function however got obsolete, as PHP now recommends to use
-	 * imagecreatetruecolor() only.
-	 *
-	 * @param	integer		Width of image
-	 * @param	integer		Height of image
-	 * @return	pointer		Image Resource pointer
-	 * @deprecated since TYPO3 4.4, this function will be removed in TYPO3 4.6.
-	 */
-	function imagecreate($w, $h) {
-		t3lib_div::logDeprecatedFunction();
-
-		return imagecreatetruecolor($w, $h);
 	}
 
 	/**

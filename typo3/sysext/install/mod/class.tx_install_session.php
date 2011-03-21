@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2010 Ernesto Baschny <ernst@cron-it.de>
+*  (c) 2009-2011 Ernesto Baschny <ernst@cron-it.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -93,7 +93,7 @@ class tx_install_session {
 		$sessionSavePath = $this->getSessionSavePath();
 		if (!is_dir($sessionSavePath)) {
 			if (!t3lib_div::mkdir($sessionSavePath)) {
-				throw new Exception('<p><strong>Could not create session folder in typo3temp/.</strong></p><p>Make sure it is writeable!</p>');
+				throw new RuntimeException('Could not create session folder in typo3temp/. Make sure it is writeable!', 1294587484);
 			}
 			t3lib_div::writeFile($sessionSavePath.'/.htaccess', 'Order deny, allow'."\n".'Deny from all'."\n");
 			$indexContent = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">';
@@ -121,14 +121,14 @@ class tx_install_session {
 			ini_set('session.cookie_httponly', TRUE);
 		}
 		if (ini_get('session.auto_start')) {
-			$sessionCreationError = '<p><strong>Error: session.auto-start is enabled</strong></p>';
-			$sessionCreationError .= '<p>The PHP option session.auto-start is enabled. Disable this option in php.ini or .htaccess:</p>';
+			$sessionCreationError = 'Error: session.auto-start is enabled.<br />';
+			$sessionCreationError .= 'The PHP option session.auto-start is enabled. Disable this option in php.ini or .htaccess:<br />';
 			$sessionCreationError .= '<pre>php_value session.auto_start Off</pre>';
-			throw new Exception($sessionCreationError);
+			throw new RuntimeException($sessionCreationError, 1294587485);
 		} else if (defined('SID')) {
-			$sessionCreationError = '<p><strong>Error: Session already started by session_start().</strong></p>';
-			$sessionCreationError .= '<p>Make sure no installed extension is starting a session in its ext_localconf.php or ext_tables.php.</p>';
-			throw new Exception($sessionCreationError);
+			$sessionCreationError = 'Session already started by session_start().<br />';
+			$sessionCreationError .= 'Make sure no installed extension is starting a session in its ext_localconf.php or ext_tables.php.';
+			throw new RuntimeException($sessionCreationError, 1294587486);
 		}
 		session_start();
 	}
@@ -138,7 +138,7 @@ class tx_install_session {
 	 */
 	private function getSessionSavePath() {
 		return sprintf(
-			$this->typo3tempPath . '/' . $this->sessionPath,
+			$this->typo3tempPath . $this->sessionPath,
 			md5(
 				'session:' .
 					$GLOBALS['TYPO3_CONF_VARS']['BE']['installToolPassword']
@@ -344,13 +344,7 @@ class tx_install_session {
 	 */
 	public function write($id, $sessionData) {
 		$sessionFile = $this->getSessionFile($id);
-		if ($fp = @fopen($sessionFile, 'w')) {
-			$return = fwrite($fp, $sessionData);
-			fclose($fp);
-			return $return;
-		} else {
-			return FALSE;
-		}
+		return t3lib_div::writeFile($sessionFile, $sessionData);
 	}
 
 	/**
@@ -386,6 +380,22 @@ class tx_install_session {
 		return TRUE;
 	}
 
+	/**
+	 * Writes the session data at the end, to overcome a PHP APC bug.
+	 *
+	 * Writes the session data in a proper context that is not affected by the APC bug:
+	 * http://pecl.php.net/bugs/bug.php?id=16721.
+	 *
+	 * This behaviour was introduced in #17511, where self::write() made use of t3lib_div
+	 * which due to the APC bug throws a "Fatal error: Class 't3lib_div' not found"
+	 * (and the session data is not saved). Calling session_write_close() at this point
+	 * seems to be the most easy solution, acording to PHP author.
+	 *
+	 * @return void
+	 */
+	public function __destruct() {
+		session_write_close();
+	}
 }
 
 if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/install/mod/class.tx_install_session.php'])) {

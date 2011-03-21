@@ -53,9 +53,12 @@ class tx_em_Install {
 	 *
 	 * @var t3lib_install
 	 */
-	protected $install;
+	public $install;
 
 
+	/**
+	 * @var integer
+	 */
 	protected $systemInstall = 0; // If "1" then installs in the sysext directory is allowed. Default: 0
 
 	/**
@@ -77,9 +80,16 @@ class tx_em_Install {
 		$this->systemInstall = isset($GLOBALS['TYPO3_CONF_VARS']['EXT']['allowSystemInstall']) && $GLOBALS['TYPO3_CONF_VARS']['EXT']['allowSystemInstall'];
 	}
 
-	public function setSilentMode(boolean $silentMode) {
-		$this->silentMode = $silentMode;
+	/**
+	 * Set silent mode to prevent flashmessages
+	 *
+	 * @param  boolean $silentMode
+	 * @return void
+	 */
+	public function setSilentMode($silentMode) {
+		$this->silentMode = $silentMode ? TRUE : FALSE;
 	}
+
 	/**
 	 * Imports the data of an extension  from upload
 	 *
@@ -179,8 +189,29 @@ class tx_em_Install {
 										foreach ($writeFiles as $theFile => $fileData) {
 											t3lib_div::writeFile($extDirPath . $theFile, $fileData['content']);
 											if (!@is_file($extDirPath . $theFile)) {
-												$content .= sprintf($GLOBALS['LANG']->getLL('ext_import_file_not_created'),
-														$extDirPath . $theFile) . '<br />';
+												if (!$this->silentMode) {
+													$flashMessage = t3lib_div::makeInstance(
+														't3lib_FlashMessage',
+														sprintf($GLOBALS['LANG']->getLL('ext_import_file_not_created'),
+														$extDirPath . $theFile),
+														'',
+														t3lib_FlashMessage::ERROR
+													);
+													$content .= $flashMessage->render();
+												} else {
+													if (!$this->silentMode) {
+														$flashMessage = t3lib_div::makeInstance(
+															't3lib_FlashMessage',
+															sprintf($GLOBALS['LANG']->getLL('ext_import_file_not_created'), $extDirPath . $theFile),
+															'',
+															t3lib_FlashMessage::ERROR
+														);
+														$content .= $flashMessage->render();
+													} else {
+														$content .= sprintf($GLOBALS['LANG']->getLL('ext_import_file_not_created'),
+																$extDirPath . $theFile) . '<br />';
+													}
+												}
 											} elseif (md5(t3lib_div::getUrl($extDirPath . $theFile)) != $fileData['content_md5']) {
 												$content .= sprintf($GLOBALS['LANG']->getLL('ext_import_file_corrupted'),
 														$extDirPath . $theFile) . '<br />';
@@ -268,32 +299,109 @@ class tx_em_Install {
 																tx_em_Tools::installButton() . ' ' . $GLOBALS['LANG']->getLL('ext_import_install') . '</a>';
 											} else {
 												$content = $GLOBALS['LANG']->getLL('ext_import_imported') .
-														'<br /><br /><a href="javascript:opener.top.list.iframe.document.forms[0].submit();window.close();">' .
+														'<br /><br />';
+												if ($this->silentMode || t3lib_div::_GP('nodoc')) {
+													$content .= '<a id="closewindow" href="javascript:parent.TYPO3.EM.Tools.closeImportWindow();">' . $GLOBALS['LANG']->getLL('ext_import_close') . '</a>';
+												} else {
+													$content .= '<a href="javascript:opener.top.list.iframe.document.forms[0].submit();window.close();">' .
 														$GLOBALS['LANG']->getLL('ext_import_close_check') . '</a>';
+												}
+
 											}
 										}
 									} else {
-										$content = $res;
+										if (!$this->silentMode) {
+											$flashMessage = t3lib_div::makeInstance(
+												't3lib_FlashMessage',
+												$res,
+												'',
+												t3lib_FlashMessage::ERROR
+											);
+											$content = $flashMessage->render();
+										} else {
+											$content = $res;
+										}
 									}
 								} else {
-									$content = sprintf($GLOBALS['LANG']->getLL('ext_import_ext_path_different'), $extDirPath);
+									if (!$this->silentMode) {
+										$flashMessage = t3lib_div::makeInstance(
+											't3lib_FlashMessage',
+											sprintf($GLOBALS['LANG']->getLL('ext_import_ext_path_different'), $extDirPath),
+											'',
+											t3lib_FlashMessage::ERROR
+										);
+										$content = $flashMessage->render();
+									} else {
+										$content = sprintf($GLOBALS['LANG']->getLL('ext_import_ext_path_different'), $extDirPath);
+									}
 								}
 							} else {
-								$content = $res;
+								if (!$this->silentMode) {
+									$flashMessage = t3lib_div::makeInstance(
+										't3lib_FlashMessage',
+										$res,
+										'',
+										t3lib_FlashMessage::ERROR
+									);
+									$content = $flashMessage->render();
+								} else {
+									$content = $res;
+								}
 							}
 						}
 					} else {
-						$content = sprintf($GLOBALS['LANG']->getLL('ext_import_ext_only_here'),
-							tx_em_Tools::typePath($EM_CONF['lockType']), $EM_CONF['lockType']);
+						if (!$this->silentMode) {
+							$flashMessage = t3lib_div::makeInstance(
+								't3lib_FlashMessage',
+								sprintf($GLOBALS['LANG']->getLL('ext_import_ext_only_here'),
+									$this->typePaths[$EM_CONF['lockType']], $EM_CONF['lockType']),
+								'',
+								t3lib_FlashMessage::ERROR
+							);
+							$content = $flashMessage->render();
+						} else {
+							$content = sprintf($GLOBALS['LANG']->getLL('ext_import_ext_only_here'),
+								tx_em_Tools::typePath($EM_CONF['lockType']), $EM_CONF['lockType']);
+						}
 					}
 				} else {
-					$content = $GLOBALS['LANG']->getLL('ext_import_no_ext_key_files');
+					if (!$this->silentMode) {
+						$flashMessage = t3lib_div::makeInstance(
+							't3lib_FlashMessage',
+							$GLOBALS['LANG']->getLL('ext_import_no_ext_key_files'),
+							'',
+							t3lib_FlashMessage::ERROR
+						);
+						$content = $flashMessage->render();
+					} else {
+						$content = $GLOBALS['LANG']->getLL('ext_import_no_ext_key_files');
+					}
 				}
 			} else {
-				$content = sprintf($GLOBALS['LANG']->getLL('ext_import_data_transfer'), $fetchData);
+				if (!$this->silentMode) {
+					$flashMessage = t3lib_div::makeInstance(
+						't3lib_FlashMessage',
+						sprintf($GLOBALS['LANG']->getLL('ext_import_data_transfer'), $fetchData),
+						'',
+						t3lib_FlashMessage::ERROR
+					);
+					$content = $flashMessage->render();
+				} else {
+					$content = sprintf($GLOBALS['LANG']->getLL('ext_import_data_transfer'), $fetchData);
+				}
 			}
 		} else {
-			$content = sprintf($GLOBALS['LANG']->getLL('ext_import_no_install_here'), tx_em_Tools::typePath($loc));
+			if (!$this->silentMode) {
+				$flashMessage = t3lib_div::makeInstance(
+					't3lib_FlashMessage',
+					sprintf($GLOBALS['LANG']->getLL('ext_import_no_install_here'), $this->typePaths[$loc]),
+					'',
+					t3lib_FlashMessage::ERROR
+				);
+				$content = $flashMessage->render();
+			} else {
+				$content = sprintf($GLOBALS['LANG']->getLL('ext_import_no_install_here'), tx_em_Tools::typePath($loc));
+			}
 		}
 
 		return $content;
@@ -535,6 +643,10 @@ class tx_em_Install {
 			}
 			$content .= '<br /><br /><input type="submit" value="' . $GLOBALS['LANG']->getLL('checkDependencies_try_again') . '" />';
 
+			if (t3lib_div::_GP('nodoc')) {
+				$content .= '<input type="hidden" name="nodoc" value="1" />';
+			}
+
 			return array(
 				'returnCode' => FALSE,
 				'html' => '<form action="' . $this->parentObject->script . '" method="post" name="depform">' . $content . '</form>');
@@ -554,6 +666,7 @@ class tx_em_Install {
 	 * @return	string		Returns message string about the status of the operation
 	 */
 	function extDelete($extKey, $extInfo, $command) {
+		$content = '';
 		$absPath = tx_em_Tools::getExtPath($extKey, $extInfo['type']);
 		if (t3lib_extMgm::isLoaded($extKey)) {
 			return $GLOBALS['LANG']->getLL('extDelete_ext_active');
@@ -595,7 +708,7 @@ class tx_em_Install {
 					'CMD[doDelete]' => 1,
 					'CMD[absPath]' => rawurlencode($absPath)
 				)) . "';}";
-				$content .= '<a class="t3-link" href="#" onclick="' . htmlspecialchars($onClick) .
+				$content .= '<a class="t3-link deleteLink" href="#" onclick="' . htmlspecialchars($onClick) .
 						' return false;"><strong>' . $deleteFromServer . '</strong> ' .
 						sprintf($GLOBALS['LANG']->getLL('extDelete_from_location'),
 							$this->api->typeLabels[$extInfo['type']],
@@ -703,10 +816,12 @@ class tx_em_Install {
 
 
 		$dbStatus = array();
+		$content = '';
 
 		// Updating tables and fields?
 		if (is_array($extInfo['files']) && in_array('ext_tables.sql', $extInfo['files'])) {
-			$fileContent = t3lib_div::getUrl(tx_em_Tools::getExtPath($extKey, $extInfo['type']) . 'ext_tables.sql');
+			$path = tx_em_Tools::getExtPath($extKey, $extInfo['type']);
+			$fileContent = t3lib_div::getUrl($path . 'ext_tables.sql');
 
 			$FDfile = $this->install->getFieldDefinitions_fileContent($fileContent);
 			if (count($FDfile)) {
@@ -1142,14 +1257,16 @@ class tx_em_Install {
 	function tsStyleConfigForm($extKey, $extInfo, $output = 0, $script = '', $addFields = '') {
 		global $TYPO3_CONF_VARS;
 
-		// Initialize:
+			// Initialize:
 		$absPath = tx_em_Tools::getExtPath($extKey, $extInfo['type']);
 		$relPath = tx_em_Tools::typeRelPath($extInfo['type']) . $extKey . '/';
 
-		// Look for template file for form:
+		$form = '';
+
+			// Look for template file for form:
 		if (t3lib_extMgm::isLoaded($extKey) && @is_file($absPath . 'ext_conf_template.txt')) {
 
-			// Load tsStyleConfig class and parse configuration template:
+				// Load tsStyleConfig class and parse configuration template:
 			$tsStyleConfig = t3lib_div::makeInstance('t3lib_tsStyleConfig');
 			$tsStyleConfig->doNotSortCategoriesBeforeMakingForm = TRUE;
 			$theConstants = $tsStyleConfig->ext_initTSstyleConfig(
@@ -1159,14 +1276,14 @@ class tx_em_Install {
 				$GLOBALS['BACK_PATH']
 			);
 
-			// Load the list of resources.
+				// Load the list of resources.
 			$tsStyleConfig->ext_loadResources($absPath . 'res/');
 
-			// Load current value:
+				// Load current value:
 			$arr = unserialize($TYPO3_CONF_VARS['EXT']['extConf'][$extKey]);
 			$arr = is_array($arr) ? $arr : array();
 
-			// Call processing function for constants config and data before write and form rendering:
+				// Call processing function for constants config and data before write and form rendering:
 			if (is_array($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/mod/tools/em/index.php']['tsStyleConfigForm'])) {
 				$_params = array('fields' => &$theConstants, 'data' => &$arr, 'extKey' => $extKey);
 				foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['typo3/mod/tools/em/index.php']['tsStyleConfigForm'] as $_funcRef) {
@@ -1175,34 +1292,51 @@ class tx_em_Install {
 				unset($_params);
 			}
 
-			// If saving operation is done:
+				// If saving operation is done:
 			if (t3lib_div::_POST('submit')) {
 				$tsStyleConfig->ext_procesInput(t3lib_div::_POST(), array(), $theConstants, array());
 				$arr = $tsStyleConfig->ext_mergeIncomingWithExisting($arr);
 				$this->writeTsStyleConfig($extKey, $arr);
 			}
 
-			// Setting value array
+				// Setting value array
 			$tsStyleConfig->ext_setValuearray($theConstants, $arr);
 
-			// Getting session data:
+				// Getting session data:
 			$MOD_MENU = array();
 			$MOD_MENU['constant_editor_cat'] = $tsStyleConfig->ext_getCategoriesForModMenu();
 			$MOD_SETTINGS = t3lib_BEfunc::getModuleData($MOD_MENU, t3lib_div::_GP('SET'), 'xMod_test');
 
-			// Resetting the menu (stop)
+				// Resetting the menu (stop)
 			if (count($MOD_MENU['constant_editor_cat']) > 1) {
 				$menu = $GLOBALS['LANG']->getLL('extInfoArray_category') . ' ' .
 						t3lib_BEfunc::getFuncMenu(0, 'SET[constant_editor_cat]', $MOD_SETTINGS['constant_editor_cat'], $MOD_MENU['constant_editor_cat'], '', '&CMD[showExt]=' . $extKey);
-				$this->parentObject->content .= $this->parentObject->doc->section('', '<span class="nobr">' . $menu . '</span>');
-				$this->parentObject->content .= $this->parentObject->doc->spacer(10);
+					// add class to select
+				$menu = str_replace('<select', '<select class="mod-menu-template-select"', $menu);
+				if ($this->silentMode) {
+					$menu = str_replace('jumpToUrl', 'abc', $menu);
+				}
+
+				if ($this->parentObject instanceof SC_mod_tools_em_index) {
+					$this->parentObject->content .= $this->parentObject->doc->section('', '<span class="nobr">' . $menu . '</span>');
+					$this->parentObject->content .= $this->parentObject->doc->spacer(10);
+				} else {
+					$form .= '<h3>' . '<span class="nobr">' . $menu . '</span></h3>';
+				}
 			}
 
-			// Category and constant editor config:
-			$form = '
+				// Category and constant editor config:
+			$form .= '
 				<table border="0" cellpadding="0" cellspacing="0" width="600">
 					<tr>
-						<td>' . $tsStyleConfig->ext_getForm($MOD_SETTINGS['constant_editor_cat'], $theConstants, $script, $addFields) . '</form></td>
+						<td>' . $tsStyleConfig->ext_getForm(
+							$MOD_SETTINGS['constant_editor_cat'],
+							$theConstants,
+							$script,
+							$addFields,
+							$extKey,
+							!$this->silentMode
+						) . ($this->silentMode ? '' : '</form>') .'</td>
 					</tr>
 				</table>';
 		} else {
@@ -1214,26 +1348,24 @@ class tx_em_Install {
 					t3lib_FlashMessage::INFO
 				);
 			}
+
 			$form = '
 				<table border="0" cellpadding="0" cellspacing="0" width="600">
 					<tr>
 						<td>
 							<form action="' . htmlspecialchars($script) . '" method="post">' .
 					$addFields .
-					(!$this->silentMode ? '' : $flashMessage->render()) .
-					'<br /><input type="submit" name="write" value="' . $GLOBALS['LANG']->getLL('updatesForm_make_updates') . '" />
+					($this->silentMode ? '' : $flashMessage->render()) .
+					(t3lib_div::_GP('nodoc') ? '<input type="hidden" name="nodoc" value="1" />' : '') .
+					'<br /><input type="submit" id="configuration-submit-' . $extKey . '" name="write" value="' . $GLOBALS['LANG']->getLL('updatesForm_make_updates') . '" />
 							</form>
 						</td>
 					</tr>
 				</table>';
 		}
 
-		#if ($output) {
-		return $form;
-		#} else {
-		#	$this->content.=$this->doc->section('', $form);
-		#}
 
+		return $form;
 
 	}
 
@@ -1263,25 +1395,30 @@ class tx_em_Install {
 
 	/**
 	 * Creates a form for an extension which contains all options for configuration, updates of database, clearing of cache etc.
-	 * This form is shown when
 	 *
-	 * @param	string		Extension key
-	 * @param	array		Extension information array
-	 * @param	boolean		If set, the form will ONLY show if fields/tables should be updated (suppressing forms like general configuration and cache clearing).
-	 * @param	string		Alternative action=""-script
-	 * @param	string		HTML: Additional form fields
-	 * @return	string		HTML
+	 * @param  string  $extKey  Extension key
+	 * @param  array  $extInfo  Extension information array
+	 * @param  boolean  $notSilent  If set, the form will ONLY show if fields/tables should be updated (suppressing forms like general configuration and cache clearing).
+	 * @param  string  $script  Alternative action=""-script
+	 * @param  string  $addFields  Additional form fields
+	 * @param  boolean  $addFormTags  TRUE if it shopuld be wrapped with form tag
+	 * @param  boolean  $excludeDatabaseCheck  TRUE if no database check should be done
+	 * @return  string
 	 */
-	function updatesForm($extKey, $extInfo, $notSilent = 0, $script = '', $addFields = '', $addForm = TRUE) {
+	function updatesForm($extKey, $extInfo, $notSilent = FALSE, $script = '', $addFields = '', $addFormTag = TRUE, $excludeDatabaseCheck = FALSE) {
 		$script = $script ? $script : t3lib_div::linkThisScript();
-		if ($addForm) {
+		if ($addFormTag) {
 			$formWrap = array('<form action="' . htmlspecialchars($script) . '" method="POST">', '</form>');
 		} else {
 			$formWrap = array('', '');
 		}
 		$extensionDetails = t3lib_div::makeInstance('tx_em_Extensions_Details', $this);
+		$updates = '';
 
-		$updates .= $this->checkDBupdates($extKey, $extInfo);
+		if (!$excludeDatabaseCheck) {
+			$updates .= $this->checkDBupdates($extKey, $extInfo);
+		}
+
 		$uCache = $this->checkClearCache($extInfo);
 		if ($notSilent) {
 			$updates .= $uCache;
@@ -1316,6 +1453,7 @@ class tx_em_Install {
 	 * @return	string		HTML output (if form is shown)
 	 */
 	function checkClearCache($extInfo) {
+		$content = '';
 		if ($extInfo['EM_CONF']['clearCacheOnLoad']) {
 			if (t3lib_div::_POST('_clear_all_cache')) { // Action: Clearing the cache
 				$tce = t3lib_div::makeInstance('t3lib_TCEmain');

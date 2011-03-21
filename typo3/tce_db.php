@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -246,8 +246,23 @@ $SOBE->init();
 // Include files?
 foreach($SOBE->include_once as $INC_FILE)	include_once($INC_FILE);
 
-$SOBE->initClipboard();
-$SOBE->main();
+$formprotection = t3lib_formprotection_Factory::get();
+
+if ($formprotection->validateToken(t3lib_div::_GP('formToken'), 'tceAction')) {
+	$SOBE->initClipboard();
+	$SOBE->main();
+
+		// This is done for the clear cache menu, so that it gets a new token
+		// making it possible to clear cache several times.
+	if (t3lib_div::_GP('ajaxCall')) {
+		$token = array();
+		$token['value'] = $formprotection->generateToken('tceAction');
+		$token['name'] = 'formToken';
+			// This will be used by clearcachemenu.js to replace the token for the next call
+		echo t3lib_BEfunc::getUrlToken('tceAction');
+	}
+}
+$formprotection->persistTokens();
 $SOBE->finish();
 
 ?>

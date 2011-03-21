@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2010 Oliver Hader <oliver@typo3.org>
+*  (c) 2009-2011 Oliver Hader <oliver@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -373,6 +373,17 @@ class tslib_contentTest extends tx_phpunit_testcase {
 		$this->assertEquals($expectedResult, $actualResult);
 	}
 
+
+	//////////////////////////////
+	// Tests concerning crop
+	//////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function cropIsMultibyteSafe() {
+		$this->assertEquals('бла', $this->cObj->crop('бла', '3|...'));
+	}
 
 	//////////////////////////////
 	// Tests concerning cropHTML

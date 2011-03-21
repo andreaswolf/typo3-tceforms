@@ -4,6 +4,7 @@ $emClassesPath = $extensionPath . '/classes/';
 $emInterfacesPath = $extensionPath . '/interfaces/';
 return array(
 	'tx_em_index_checkdatabaseupdateshook' => $emInterfacesPath . 'interface.tx_em_index_checkdatabaseupdateshook.php',
+	'tx_em_renderhook' => $emInterfacesPath . 'interface.tx_em_renderhook.php',
 
 	'sc_mod_tools_em_index' => $emClassesPath . 'index.php',
 	'tx_em_api' => $emClassesPath . 'class.tx_em_api.php',
@@ -15,11 +16,11 @@ return array(
 
 	'tx_em_database' => $emClassesPath . 'database/class.tx_em_database.php',
 
-	'tx_em_xmlexception' => $emClassesPath . 'exception/class.tx_em_xml_exception.php',
-	'tx_em_connection_exception' => $emClassesPath . 'exception/class.tx_em_connection_exception.php',
-	'tx_em_extensionxml_exception' => $emClassesPath . 'exception/class.tx_em_extensionxml_exception.php',
-	'tx_em_extensionimport_exception' => $emClassesPath . 'exception/class.tx_em_extensionimport_exception.php',
-	'tx_em_mirrorxml_exception' => $emClassesPath . 'exception/class.tx_em_mirrorxml_exception.php',
+	'tx_em_xmlexception' => $emClassesPath . 'exception/class.tx_em_xmlexception.php',
+	'tx_em_connectionexception' => $emClassesPath . 'exception/class.tx_em_connectionexception.php',
+	'tx_em_extensionxmlexception' => $emClassesPath . 'exception/class.tx_em_extensionxmlexception.php',
+	'tx_em_extensionimportexception' => $emClassesPath . 'exception/class.tx_em_extensionimportexception.php',
+	'tx_em_mirrorxmlexception' => $emClassesPath . 'exception/class.tx_em_mirrorxmlexception.php',
 
 	'tx_em_extensions_list' => $emClassesPath . 'extensions/class.tx_em_extensions_list.php',
 	'tx_em_extensions_details' => $emClassesPath . 'extensions/class.tx_em_extensions_details.php',

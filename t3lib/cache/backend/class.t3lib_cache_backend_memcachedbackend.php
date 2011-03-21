@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2009-2010 Ingo Renner <ingo@typo3.org>
+ *  (c) 2009-2011 Ingo Renner <ingo@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -109,7 +109,7 @@ class t3lib_cache_backend_MemcachedBackend extends t3lib_cache_backend_AbstractB
 	public function __construct(array $options = array()) {
 		if (!extension_loaded('memcache')) {
 			throw new t3lib_cache_Exception(
-				'The PHP extension "memcached" must be installed and loaded in ' .
+				'The PHP extension "memcache" must be installed and loaded in ' .
 				'order to use the Memcached backend.',
 				1213987706
 			);
@@ -337,7 +337,7 @@ class t3lib_cache_backend_MemcachedBackend extends t3lib_cache_backend_AbstractB
 	 */
 	public function remove($entryIdentifier) {
 		$this->removeIdentifierFromAllTags($entryIdentifier);
-		return $this->memcache->delete($this->identifierPrefix . $entryIdentifier);
+		return $this->memcache->delete($this->identifierPrefix . $entryIdentifier, 0);
 	}
 
 	/**
@@ -487,13 +487,13 @@ class t3lib_cache_backend_MemcachedBackend extends t3lib_cache_backend_AbstractB
 							$identifiers
 						);
 					} else {
-						$this->memcache->delete($this->identifierPrefix . 'tag_' . $tag);
+						$this->memcache->delete($this->identifierPrefix . 'tag_' . $tag, 0);
 					}
 				}
 			}
 
 				// Clear reverse tag index for this identifier
-			$this->memcache->delete($this->identifierPrefix . 'ident_' . $entryIdentifier);
+			$this->memcache->delete($this->identifierPrefix . 'ident_' . $entryIdentifier, 0);
 		}
 	}
 

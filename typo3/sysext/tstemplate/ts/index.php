@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -332,32 +332,6 @@ class SC_mod_web_ts_index extends t3lib_SCbase {
 	// ***************************
 	// OTHER FUNCTIONS:
 	// ***************************
-
-	/**
-	* Counts the records in the system cache_* tables and returns these values.
-	*
-	* @param boolean $humanReadable: Returns human readable string instead of an array
-	* @return mixed The number of records in cache_* tables as array or string
-	* @deprecated since TYPO3 4.2.0, will be removed in TYPO3 4.6
-	*/
-	function getCountCacheTables($humanReadable) {
-		t3lib_div::logDeprecatedFunction();
-
-		$out = array();
-
-		$out['cache_pages'] = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('id', 'cache_pages');
-		$out['cache_pagesection'] = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('id', 'cache_pagesection');
-		$out['cache_hash'] = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('id', 'cache_hash');
-
-		if ($humanReadable) {
-			$newOut = array();
-			foreach ($out as $k => $v) {
-				$newOut[] = $k . ":" . $v;
-			}
-			$out = implode(', ', $newOut);
-		}
-		return $out;
-	}
 
 	function linkWrapTemplateTitle($title, $onlyKey = '') {
 		if ($onlyKey) {

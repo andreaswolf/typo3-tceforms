@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2011 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,14 +31,12 @@ require_once('interfaces/interface.backend_toolbaritem.php');
 
 require('classes/class.typo3logo.php');
 require('classes/class.modulemenu.php');
-require_once('classes/class.donatewindow.php');
 
 	// core toolbar items
 require('classes/class.clearcachemenu.php');
 require('classes/class.shortcutmenu.php');
 require('classes/class.livesearch.php');
 
-require_once('class.alt_menu_functions.inc');
 $GLOBALS['LANG']->includeLLFile('EXT:lang/locallang_misc.xml');
 
 
@@ -103,14 +101,7 @@ class TYPO3backend {
 		$this->pageRenderer->loadExtJS();
 		$this->pageRenderer->enableExtJSQuickTips();
 
-		$this->pageRenderer->addExtOnReadyCode(
-			'TYPO3.Backend = new TYPO3.Viewport(TYPO3.Viewport.configuration);
-			if (typeof console === "undefined") {
-				console = TYPO3.Backend.DebugConsole;
-			}
-			TYPO3.ContextHelpWindow.init();',
-			TRUE
-		);
+
 		$this->pageRenderer->addJsInlineCode(
 			'consoleOverrideWithDebugPanel',
 			'//already done'
@@ -120,20 +111,18 @@ class TYPO3backend {
 			// add default BE javascript
 		$this->js      = '';
 		$this->jsFiles = array(
+			'common'                => 'js/common.js',
+			'locallang'             => $this->getLocalLangFileName(),
 			'modernizr'             => 'contrib/modernizr/modernizr.min.js',
 			'swfupload'             => 'contrib/swfupload/swfupload.js',
 			'swfupload.swfobject'   => 'contrib/swfupload/plugins/swfupload.swfobject.js',
 			'swfupload.cookies'     => 'contrib/swfupload/plugins/swfupload.cookies.js',
 			'swfupload.queue'       => 'contrib/swfupload/plugins/swfupload.queue.js',
-			'plupload'              => 'contrib/plupload/js/plupload.full.min.js',
 			'md5'                   => 'md5.js',
-			'common'                => 'js/common.js',
 			'toolbarmanager'        => 'js/toolbarmanager.js',
 			'modulemenu'            => 'js/modulemenu.js',
 			'iecompatibility'       => 'js/iecompatibility.js',
 			'flashupload'           => 'js/flashupload.js',
-			'pluploadPanel'         => 'js/extjs/ext.ux.plupload.js',
-			'pluploadWindow'        => 'js/extjs/PluploadWindow.js',
 			'evalfield'             => '../t3lib/jsfunc.evalfield.js',
 			'flashmessages'         => '../t3lib/js/extjs/ux/flashmessages.js',
 			'tabclosemenu'          => '../t3lib/js/extjs/ux/ext.ux.tabclosemenu.js',
@@ -144,6 +133,7 @@ class TYPO3backend {
 			'viewport'              => 'js/extjs/viewport.js',
 			'iframepanel'           => 'js/extjs/iframepanel.js',
 			'viewportConfiguration' => 'js/extjs/viewportConfiguration.js',
+			'util'					=> '../t3lib/js/extjs/util.js',
 		);
 
 		if ($this->debug) {
@@ -201,10 +191,6 @@ class TYPO3backend {
 	public function render()	{
 		$this->executeHook('renderPreProcess');
 
-		if (t3lib_div::makeInstance('DonateWindow')->isDonateWindowAllowed()) {
-			$this->pageRenderer->addJsFile('js/donate.js');
-		}
-
 			// prepare the scaffolding, at this point extension may still add javascript and css
 		$logo         = t3lib_div::makeInstance('TYPO3Logo');
 		$logo->setLogo('gfx/typo3logo_mini.png');
@@ -244,17 +230,6 @@ class TYPO3backend {
 		}
 
 
-			// TYPO3.Ajax.ExtDirec is used for BE toolbar items and may be later for general services
-		if (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect']) && is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'])) {
-			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ExtDirect'] as $key => $value) {
-				if (strpos($key, 'TYPO3.Ajax.ExtDirect') !== FALSE) {
-					$this->pageRenderer->addJsFile('ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.Ajax.ExtDirect', NULL, FALSE);
-					break;
-				}
-			}
-		}
-		$this->pageRenderer->addJsFile('ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.BackendUserSettings', NULL, FALSE);
-
 		$this->generateJavascript();
 		$this->pageRenderer->addJsInlineCode('BackendInlineJavascript', $this->js);
 
@@ -266,12 +241,19 @@ class TYPO3backend {
 			//save states in BE_USER->uc
 		$extOnReadyCode = '
 			Ext.state.Manager.setProvider(new TYPO3.state.ExtDirectProvider({
-				key: "BackendComponents.States"
+				key: "BackendComponents.States",
+				autoRead: false
 			}));
 		';
 		if ($states) {
-		    $extOnReadyCode .= 'Ext.state.Manager.getProvider().initState(' . $states . ');';
+			$extOnReadyCode .= 'Ext.state.Manager.getProvider().initState(' . json_encode($states) . ');';
 		}
+		$extOnReadyCode .= '
+			TYPO3.Backend = new TYPO3.Viewport(TYPO3.Viewport.configuration);
+			if (typeof console === "undefined") {
+				console = TYPO3.Backend.DebugConsole;
+			}
+			TYPO3.ContextHelpWindow.init();';
 		$this->pageRenderer->addExtOnReadyCode($extOnReadyCode);
 
 
@@ -313,8 +295,14 @@ class TYPO3backend {
 
 			$component = strtolower(substr($info['componentId'], strrpos($info['componentId'], '-') + 1));
 			$componentDirectory = 'components/' . $component . '/';
-			$absoluteComponentPath = t3lib_extMgm::extPath($info['extKey']) . $componentDirectory;
-			$relativeComponentPath = t3lib_extMgm::extRelPath($info['extKey']) . $componentDirectory;
+
+			if ($info['isCoreComponent']) {
+				$absoluteComponentPath = PATH_t3lib . 'js/extjs/' . $componentDirectory;
+				$relativeComponentPath = '../' . str_replace(PATH_site, '', $absoluteComponentPath);
+			} else {
+				$absoluteComponentPath = t3lib_extMgm::extPath($info['extKey']) . $componentDirectory;
+				$relativeComponentPath = t3lib_extMgm::extRelPath($info['extKey']) . $componentDirectory;
+			}
 
 			$cssFiles = t3lib_div::getFilesInDir($absoluteComponentPath . 'css/', 'css');
 			if (file_exists($absoluteComponentPath . 'css/loadorder.txt')) {
@@ -338,16 +326,6 @@ class TYPO3backend {
 			foreach ($jsFiles as $jsFile) {
 				$this->pageRenderer->addJsFile($relativeComponentPath . 'javascript/' . $jsFile);
 			}
-
-			if (is_array($info['extDirectNamespaces']) && count($info['extDirectNamespaces'])) {
-				foreach ($info['extDirectNamespaces'] as $namespace) {
-					$this->pageRenderer->addJsFile(
-						'ajax.php?ajaxID=ExtDirect::getAPI&namespace=' . $namespace,
-						NULL,
-						FALSE
-					);
-				}
-			}
 		}
 	}
 
@@ -359,9 +337,11 @@ class TYPO3backend {
 	protected function renderToolbar() {
 
 			// move search to last position
-		$search = $this->toolbarItems['liveSearch'];
-		unset($this->toolbarItems['liveSearch']);
-		$this->toolbarItems['liveSearch'] = $search;
+		if (array_key_exists('liveSearch', $this->toolbarItems)) {
+			$search = $this->toolbarItems['liveSearch'];
+			unset($this->toolbarItems['liveSearch']);
+			$this->toolbarItems['liveSearch'] = $search;
+		}
 
 		$toolbar = '<ul id="typo3-toolbar">';
 		$toolbar.= '<li>'.$this->getLoggedInUserLabel().'</li>
@@ -412,6 +392,129 @@ class TYPO3backend {
 	}
 
 	/**
+	 * Returns the file name  to the LLL JavaScript, containing the localized labels,
+	 * which can be used in JavaScript code.
+	 *
+	 * @return string File name of the JS file, relative to TYPO3_mainDir
+	 */
+	protected function getLocalLangFileName() {
+		$code = $this->generateLocalLang();
+		$filePath = 'typo3temp/locallang-BE-' . sha1($code) . '.js';
+		if (!file_exists(PATH_site . $filePath)) {
+				// writeFileToTypo3tempDir() returns NULL on success (please double-read!)
+			if (t3lib_div::writeFileToTypo3tempDir(PATH_site . $filePath, $code) !== NULL) {
+				throw new RuntimeException('LocalLangFile could not be written to ' . $filePath, 1295193026);
+			}
+		}
+		return '../' . $filePath;
+	}
+
+	/**
+	 * Reads labels required in JavaScript code from the localization system and returns them as JSON
+	 * array in TYPO3.LLL.
+	 *
+	 * @return string JavaScript code containing the LLL labels in TYPO3.LLL
+	 */
+	protected function generateLocalLang() {
+		$coreLabels = array(
+			'waitTitle' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_logging_in') ,
+			'refresh_login_failed' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_failed'),
+			'refresh_login_failed_message' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_failed_message'),
+			'refresh_login_title' => sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_title'), htmlspecialchars($GLOBALS['BE_USER']->user['username'])),
+			'login_expired' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_expired'),
+			'refresh_login_username' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_username'),
+			'refresh_login_password' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_password'),
+			'refresh_login_emptyPassword' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_emptyPassword'),
+			'refresh_login_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_button'),
+			'refresh_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_logout_button'),
+			'please_wait' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.please_wait'),
+			'loadingIndicator' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:loadingIndicator'),
+			'be_locked' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.be_locked'),
+			'refresh_login_countdown_singular' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown_singular'),
+			'refresh_login_countdown' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown'),
+			'login_about_to_expire' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_about_to_expire'),
+			'login_about_to_expire_title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_about_to_expire_title'),
+			'refresh_login_refresh_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_refresh_button'),
+			'refresh_direct_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_direct_logout_button'),
+			'tabs_closeAll' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.closeAll'),
+			'tabs_closeOther' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.closeOther'),
+			'tabs_close' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.close'),
+			'tabs_openInBrowserWindow' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.openInBrowserWindow'),
+			'csh_tooltip_loading' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:csh_tooltip_loading'),
+		);
+
+		$labels = array(
+			'fileUpload' => array(
+				'windowTitle',
+				'buttonSelectFiles',
+				'buttonCancelAll',
+				'infoComponentMaxFileSize',
+				'infoComponentFileUploadLimit',
+				'infoComponentFileTypeLimit',
+				'infoComponentOverrideFiles',
+				'processRunning',
+				'uploadWait',
+				'uploadStarting',
+				'uploadProgress',
+				'uploadSuccess',
+				'errorQueueLimitExceeded',
+				'errorQueueFileSizeLimit',
+				'errorQueueZeroByteFile',
+				'errorQueueInvalidFiletype',
+				'errorUploadHttp',
+				'errorUploadMissingUrl',
+				'errorUploadIO',
+				'errorUploadSecurityError',
+				'errorUploadLimit',
+				'errorUploadFailed',
+				'errorUploadFileIDNotFound',
+				'errorUploadFileValidation',
+				'errorUploadFileCancelled',
+				'errorUploadStopped',
+				'allErrorMessageTitle',
+				'allErrorMessageText',
+				'allError401',
+				'allError2038',
+			),
+			'liveSearch' => array(
+				'title',
+				'helpTitle',
+				'emptyText',
+				'loadingText',
+				'listEmptyText',
+				'showAllResults',
+				'helpDescription',
+				'helpDescriptionPages',
+				'helpDescriptionContent',
+			),
+			'viewPort' => array(
+				'tooltipModuleMenuSplit',
+				'tooltipNavigationContainerSplitDrag',
+				'tooltipDebugPanelSplitDrag',
+
+			),
+		);
+		$generatedLabels = array();
+		$generatedLabels['core'] = $coreLabels;
+
+			// first loop over all categories (fileUpload, liveSearch, ..)
+		foreach ($labels as $categoryName => $categoryLabels) {
+				// then loop over every single label
+			foreach ($categoryLabels as $label) {
+					// LLL identifier must be called $categoryName_$label, e.g. liveSearch_loadingText
+				$generatedLabels[$categoryName][$label] = $GLOBALS['LANG']->getLL($categoryName . '_' . $label);
+			}
+		}
+
+			// Convert labels/settings back to UTF-8 since json_encode() only works with UTF-8:
+		if ($GLOBALS['LANG']->charSet !== 'utf-8') {
+			$GLOBALS['LANG']->csConvObj->convArray($generatedLabels, $GLOBALS['LANG']->charSet, 'utf-8');
+		}
+
+		return 'TYPO3.LLL = ' . json_encode($generatedLabels) . ';';
+	}
+
+	/**
 	 * Generates the JavaScript code for the backend.
 	 *
 	 * @return	void
@@ -456,111 +559,20 @@ class TYPO3backend {
 			'moduleMenuWidth' => $this->menuWidth - 1,
 			'topBarHeight' => (isset($GLOBALS['TBE_STYLES']['dims']['topFrameH']) ? intval($GLOBALS['TBE_STYLES']['dims']['topFrameH']) : 30),
 			'showRefreshLoginPopup' => isset($GLOBALS['TYPO3_CONF_VARS']['BE']['showRefreshLoginPopup']) ? intval($GLOBALS['TYPO3_CONF_VARS']['BE']['showRefreshLoginPopup']) : FALSE,
-			'listModulePath' => t3lib_extMgm::isLoaded('list') ? t3lib_extMgm::extRelPath('list') . 'mod1/' : '',
+			'listModulePath' => t3lib_extMgm::isLoaded('recordlist') ? t3lib_extMgm::extRelPath('recordlist') . 'mod1/' : '',
 			'debugInWindow' => $GLOBALS['BE_USER']->uc['debugInWindow'] ? 1 : 0,
 			'ContextHelpWindows' => array(
 				'width' => 600,
 				'height' => 400
 			),
-			'FileUpload' => array(
-				'maxFileSize' => t3lib_div::getMaxUploadFileSize()
-			)
+			'firstWebmountPid' => intval($GLOBALS['WEBMOUNTS'][0]),
 		);
-		$t3LLLcore = array(
-			'waitTitle' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_logging_in') ,
-			'refresh_login_failed' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_failed'),
-			'refresh_login_failed_message' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_failed_message'),
-			'refresh_login_title' => sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_title'), htmlspecialchars($GLOBALS['BE_USER']->user['username'])),
-			'login_expired' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_expired'),
-			'refresh_login_username' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_username'),
-			'refresh_login_password' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_password'),
-			'refresh_login_emptyPassword' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_emptyPassword'),
-			'refresh_login_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_button'),
-			'refresh_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_logout_button'),
-			'please_wait' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.please_wait'),
-			'loadingIndicator' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:loadingIndicator'),
-			'be_locked' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.be_locked'),
-			'refresh_login_countdown_singular' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown_singular'),
-			'refresh_login_countdown' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_countdown'),
-			'login_about_to_expire' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_about_to_expire'),
-			'login_about_to_expire_title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.login_about_to_expire_title'),
-			'refresh_login_refresh_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_login_refresh_button'),
-			'refresh_direct_logout_button' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:mess.refresh_direct_logout_button'),
-			'tabs_closeAll' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.closeAll'),
-			'tabs_closeOther' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.closeOther'),
-			'tabs_close' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.close'),
-			'tabs_openInBrowserWindow' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:tabs.openInBrowserWindow'),
-			'donateWindow_title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.title'),
-			'donateWindow_message' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.message'),
-			'donateWindow_button_donate' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.button_donate'),
-			'donateWindow_button_disable' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.button_disable'),
-			'donateWindow_button_postpone' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:donateWindow.button_postpone'),
-			'csh_tooltip_loading' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:csh_tooltip_loading'),
-		);
-		$t3LLLfileUpload = array(
-			'windowTitle' => $GLOBALS['LANG']->getLL('fileUpload_windowTitle'),
-			'buttonSelectFiles' => $GLOBALS['LANG']->getLL('fileUpload_buttonSelectFiles'),
-			'buttonStartUpload' => $GLOBALS['LANG']->getLL('fileUpload_buttonStartUpload'),
-			'buttonCancelAll' => $GLOBALS['LANG']->getLL('fileUpload_buttonCancelAll'),
-			'progressText' => $GLOBALS['LANG']->getLL('fileUpload_progressText'),
-			'infoComponentMaxFileSize' => $GLOBALS['LANG']->getLL('fileUpload_infoComponentMaxFileSize'),
-			'infoComponentFileUploadLimit' => $GLOBALS['LANG']->getLL('fileUpload_infoComponentFileUploadLimit'),
-			'infoComponentFileTypeLimit' => $GLOBALS['LANG']->getLL('fileUpload_infoComponentFileTypeLimit'),
-			'infoComponentOverrideFiles' => $GLOBALS['LANG']->getLL('fileUpload_infoComponentOverrideFiles'),
-			'infoFileQueueEmpty' => $GLOBALS['LANG']->getLL('fileUpload_infoFileQueueEmpty'),
-			'infoFileQueued' => $GLOBALS['LANG']->getLL('fileUpload_infoFileQueued'),
-			'infoFileFinished' => $GLOBALS['LANG']->getLL('fileUpload_infoFileFinished'),
-			'infoFileUploading' => $GLOBALS['LANG']->getLL('fileUpload_infoFileQueued'),
-	 		'processRunning' => $GLOBALS['LANG']->getLL('fileUpload_processRunning'),
-			'uploadWait' => $GLOBALS['LANG']->getLL('fileUpload_uploadWait'),
-			'uploadStarting' => $GLOBALS['LANG']->getLL('fileUpload_uploadStarting'),
-			'uploadProgress' => $GLOBALS['LANG']->getLL('fileUpload_uploadProgress'),
-			'uploadSuccess' => $GLOBALS['LANG']->getLL('fileUpload_uploadSuccess'),
-			'errorQueueLimitExceeded' => $GLOBALS['LANG']->getLL('fileUpload_errorQueueLimitExceeded'),
-			'errorQueueFileSizeLimit' => $GLOBALS['LANG']->getLL('fileUpload_errorQueueFileSizeLimit'),
-			'errorQueueZeroByteFile' =>  $GLOBALS['LANG']->getLL('fileUpload_errorQueueZeroByteFile'),
-			'errorQueueInvalidFiletype' => $GLOBALS['LANG']->getLL('fileUpload_errorQueueInvalidFiletype'),
-			'errorUploadHttp' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadHttpError'),
-			'errorUploadMissingUrl' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadMissingUrl'),
-			'errorUploadIO' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadIO'),
-			'errorUploadSecurityError' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadSecurityError'),
-			'errorUploadLimit' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadLimit'),
-			'errorUploadFailed' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFailed'),
-			'errorUploadFileIDNotFound' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFileIDNotFound'),
-			'errorUploadFileValidation' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFileValidation'),
-			'errorUploadFileCancelled' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadFileCancelled'),
-			'errorUploadStopped' => $GLOBALS['LANG']->getLL('fileUpload_errorUploadStopped'),
-			'allErrorMessageTitle' => $GLOBALS['LANG']->getLL('fileUpload_allErrorMessageTitle'),
-			'allErrorMessageText' => $GLOBALS['LANG']->getLL('fileUpload_allErrorMessageText'),
-			'allError401' => $GLOBALS['LANG']->getLL('fileUpload_allError401'),
-			'allError2038' => $GLOBALS['LANG']->getLL('fileUpload_allError2038'),
-		);
-		$t3LLLliveSearch = array(
-			'title' => $GLOBALS['LANG']->getLL('liveSearch_title'),
-			'helpTitle' => $GLOBALS['LANG']->getLL('liveSearch_helpTitle'),
-			'emptyText' => $GLOBALS['LANG']->getLL('liveSearch_emptyText'),
-			'loadingText' => $GLOBALS['LANG']->getLL('liveSearch_loadingText'),
-			'listEmptyText' => $GLOBALS['LANG']->getLL('liveSearch_listEmptyText'),
-			'showAllResults' => $GLOBALS['LANG']->getLL('liveSearch_showAllResults'),
-			'helpDescription' => $GLOBALS['LANG']->getLL('liveSearch_helpDescription'),
-			'helpDescriptionPages' => $GLOBALS['LANG']->getLL('liveSearch_helpDescriptionPages'),
-			'helpDescriptionContent' => $GLOBALS['LANG']->getLL('liveSearch_helpDescriptionContent')
-		);
-			// Convert labels/settings back to UTF-8 since json_encode() only works with UTF-8:
 		if ($GLOBALS['LANG']->charSet !== 'utf-8') {
 			$t3Configuration['username'] = $GLOBALS['LANG']->csConvObj->conv($t3Configuration['username'], $GLOBALS['LANG']->charSet, 'utf-8');
-			$GLOBALS['LANG']->csConvObj->convArray($t3LLLcore, $GLOBALS['LANG']->charSet, 'utf-8');
-			$GLOBALS['LANG']->csConvObj->convArray($t3LLLfileUpload, $GLOBALS['LANG']->charSet, 'utf-8');
-			$GLOBALS['LANG']->csConvObj->convArray($t3LLLliveSearch, $GLOBALS['LANG']->charSet, 'utf-8');
 		}
 
 		$this->js .= '
 	TYPO3.configuration = ' . json_encode($t3Configuration) . ';
-	TYPO3.LLL = {
-		core : ' . json_encode($t3LLLcore) . ',
-		fileUpload: ' . json_encode($t3LLLfileUpload) . ',
-		liveSearch: ' . json_encode($t3LLLliveSearch) . '
-	};
 
 	/**
 	 * TypoSetup object.

@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -25,7 +25,7 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 /**
- * Contains the dynamic configuation of the fields in the core tables of TYPO3: be_users, be_groups, sys_filemounts and sys_workspace
+ * Contains the dynamic configuation of the fields in the core tables of TYPO3: be_users, be_groups and sys_filemounts
  *
  * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
@@ -114,7 +114,6 @@ $TCA['be_users'] = array(
 				'size' => '20',
 				'eval' => 'trim',
 				'max' => '50',
-				'checkbox' => '',
 				'softref' => 'substitute'
 			)
 		),
@@ -250,7 +249,6 @@ $TCA['be_users'] = array(
 				'items' => array(
 					array('LLL:EXT:lang/locallang_tca.xml:workspace_perms_live', 0),
 					array('LLL:EXT:lang/locallang_tca.xml:workspace_perms_draft', 0),
-					array('LLL:EXT:lang/locallang_tca.xml:workspace_perms_custom', 0),
 				),
 				'default' => 3
 			)
@@ -263,7 +261,6 @@ $TCA['be_users'] = array(
 				'max' => '20',
 				'eval' => 'date',
 				'default' => '0',
-				'checkbox' => '0'
 			)
 		),
 		'endtime' => array(
@@ -273,7 +270,6 @@ $TCA['be_users'] = array(
 				'size' => '8',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 				'range' => array(
 					'upper' => mktime(0, 0, 0, 12, 31, 2020),
@@ -514,7 +510,6 @@ $TCA['be_groups'] = array(
 				'items' => array(
 					array('LLL:EXT:lang/locallang_tca.xml:workspace_perms_live', 0),
 					array('LLL:EXT:lang/locallang_tca.xml:workspace_perms_draft', 0),
-					array('LLL:EXT:lang/locallang_tca.xml:workspace_perms_custom', 0),
 				),
 				'default' => 0
 			)
@@ -608,7 +603,6 @@ $TCA['be_groups'] = array(
 				'size' => '20',
 				'eval' => 'trim',
 				'max' => '50',
-				'checkbox' => '',
 				'softref' => 'substitute'
 			)
 		),
@@ -797,7 +791,7 @@ $TCA['sys_language'] = array(
 				'items' => array(
 					array('', 0, ''),
 				),
-				'selicon_cols' => 8,
+				'selicon_cols' => 16,
 				'size' => 1,
 				'minitems' => 0,
 				'maxitems' => 1,
@@ -835,7 +829,6 @@ $TCA['sys_news'] = array(
 				'size' => '8',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0'
 			)
 		),
@@ -847,7 +840,6 @@ $TCA['sys_news'] = array(
 				'size' => '8',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0'
 			)
 		),

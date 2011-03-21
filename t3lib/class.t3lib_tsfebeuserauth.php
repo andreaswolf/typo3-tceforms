@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -134,13 +134,6 @@ class t3lib_tsfeBeUserAuth extends t3lib_beUserAuth {
 	 * @var	boolean
 	 */
 	public $writeAttemptLog = FALSE;
-
-	/**
-	 * This is the name of the include-file containing the login form. If not set, login CAN be anonymous. If set login IS needed.
-	 *
-	 * @var	string
-	 */
-	public $auth_include = '';
 
 	/**
 	 * Array of page related information (uid, title, depth).

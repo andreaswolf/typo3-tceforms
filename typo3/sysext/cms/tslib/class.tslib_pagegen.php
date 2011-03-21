@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -125,7 +125,7 @@ This setting has been deprecated in TYPO 3.8.1 due to security concerns.
 You need to change this value to the URL of your website root, otherwise TYPO3 will not work!
 
 See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.typo3.org/index.php/TYPO3_3.8.1</a> for more information.';
-				throw new RuntimeException(nl2br($error));
+				throw new RuntimeException(nl2br($error), 1294587219);
 			} else {
 				$GLOBALS['TSFE']->baseUrl = $GLOBALS['TSFE']->config['config']['baseURL'];
 			}
@@ -211,6 +211,11 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 			$GLOBALS['TSFE']->linkVars='';
 		}
 
+		if($GLOBALS['TSFE']->config['config']['doctype'] == 'html_5') {
+			$GLOBALS['TSFE']->logDeprecatedTyposcript('config.doctype = html_5', 'It will be removed in TYPO3 4.7. Use html5 instead.');
+			$GLOBALS['TSFE']->config['config']['doctype'] = 'html5';
+		}
+		
 			// Setting XHTML-doctype from doctype
 		if (!$GLOBALS['TSFE']->config['config']['xhtmlDoctype'])	{
 			$GLOBALS['TSFE']->config['config']['xhtmlDoctype'] = $GLOBALS['TSFE']->config['config']['doctype'];
@@ -273,6 +278,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 		}
 			// Include HTML mail library?
 		if ($GLOBALS['TSFE']->config['config']['incT3Lib_htmlmail'])	{
+			$GLOBALS['TSFE']->logDeprecatedTyposcript('config.incT3Lib_htmlmail');
 			$incFilesArray[] = 't3lib/class.t3lib_htmlmail.php';
 		}
 		return $incFilesArray;
@@ -427,7 +433,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 	PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
 	"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">';
 					break;
-				case 'html_5' :
+				case 'html5' :
 					$docTypeParts[] = '<!DOCTYPE html>';
 					break;
 				case 'none' :
@@ -443,10 +449,10 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 		if ($GLOBALS['TSFE']->xhtmlVersion) {
 			$htmlTagAttributes['xml:lang'] = $htmlLang;
 		}
-		if ($GLOBALS['TSFE']->xhtmlVersion < 110 || $doctype === 'html_5') {
+		if ($GLOBALS['TSFE']->xhtmlVersion < 110 || $doctype === 'html5') {
 			$htmlTagAttributes['lang'] = $htmlLang;
 		}
-		if ($GLOBALS['TSFE']->xhtmlVersion || $doctype === 'html_5') {
+		if ($GLOBALS['TSFE']->xhtmlVersion || $doctype === 'html5') {
 			$htmlTagAttributes['xmlns'] = 'http://www.w3.org/1999/xhtml'; // We add this to HTML5 to achieve a slightly better backwards compatibility
 			if (is_array($GLOBALS['TSFE']->config['config']['namespaces.'])) {
 				foreach ($GLOBALS['TSFE']->config['config']['namespaces.'] as $prefix => $uri) {
@@ -483,7 +489,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 		$pageRenderer->addInlineComment('	This website is powered by TYPO3 - inspiring people to share!
 	TYPO3 is a free open source Content Management Framework initially created by Kasper Skaarhoj and licensed under GNU/GPL.
 	TYPO3 is copyright ' . TYPO3_copyright_year . ' of Kasper Skaarhoj. Extensions are copyright of their respective owners.
-	Information and contribution at http://typo3.com/ and http://typo3.org/
+	Information and contribution at ' . TYPO3_URL_GENERAL . ' and ' . TYPO3_URL_ORG . '
 ');
 
 		if ($GLOBALS['TSFE']->baseUrl) {

@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj <kasperYYYY@typo3.com>
-*  (c) 2008-2010 Benjamin Mack <benni . typo3 . o)rg>
+*  (c) 1999-2011 Kasper Skårhøj <kasperYYYY@typo3.com>
+*  (c) 2008-2011 Benjamin Mack <benni . typo3 . o)rg>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -108,7 +108,7 @@ class tx_simulatestatic {
 					header(t3lib_utility_Http::HTTP_STATUS_503);
 					t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
 					$message = 'Error: PATH_INFO not configured: ' . $message . '<br /><br /><a href="' . htmlspecialchars($redirectUrl) . '">Click here to get to the right page.</a>';
-					throw new RuntimeException($message);
+					throw new RuntimeException($message, 1294587706);
 				}
 			} else {
 				t3lib_utility_Http::redirect($redirectUrl);

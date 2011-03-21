@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -123,19 +123,6 @@
 
 
 if (!defined('TYPO3_MODE'))	die("Can't include this file directly.");
-
-
-/**
- * Deprecated fontwrap function. Is just transparent now.
- *
- * @param	string		Input string
- * @return	string		Output string (in the old days this was wrapped in <font> tags)
- * @deprecated since TYPO3 3.6, will be removed in TYPO3 4.6
- */
-function fw($str) {
-	t3lib_div::logDeprecatedFunction();
-	return $str;
-}
 
 
 /**
@@ -423,11 +410,14 @@ class template {
 	 */
 	function issueCommand($params,$rUrl='')	{
 		$rUrl = $rUrl ? $rUrl : t3lib_div::getIndpEnv('REQUEST_URI');
-		return $this->backPath.'tce_db.php?'.
-				$params.
-				'&redirect='.($rUrl==-1?"'+T3_THIS_LOCATION+'":rawurlencode($rUrl)).
-				'&vC='.rawurlencode($GLOBALS['BE_USER']->veriCode()).
+		$commandUrl = $this->backPath.'tce_db.php?' .
+				$params .
+				'&redirect=' . ($rUrl==-1 ? "'+T3_THIS_LOCATION+'" : rawurlencode($rUrl)) .
+				'&vC='.rawurlencode($GLOBALS['BE_USER']->veriCode()) .
+				t3lib_BEfunc::getUrlToken('tceAction') .
 				'&prErr=1&uPT=1';
+
+		return $commandUrl;
 	}
 
 	/**
@@ -759,7 +749,7 @@ class template {
      PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">';
 				// The fallthrough is intended as HTML5, as this is the default for the BE since TYPO3 4.5
-			case 'html_5':
+			case 'html5':
 			default:
 				$headerStart = '<!DOCTYPE html>' . LF;
 				$htmlTag = '<html>';
@@ -818,11 +808,6 @@ class template {
 		$this->docStyle();
 
 	   if ($this->extDirectStateProvider) {
-			$this->pageRenderer->addJsFile(
-				$this->backPath . 'ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.ExtDirectStateProvider',
-				NULL,
-				FALSE
-			);
 			$this->pageRenderer->addJsFile($this->backPath . '../t3lib/js/extjs/ExtDirect.StateProvider.js');
 		}
 
@@ -840,7 +825,7 @@ class template {
 								info: Ext.log,
 								warn: Ext.log,
 								error: Ext.log
-							}
+							};
 						}
 					}
 				});
@@ -923,7 +908,7 @@ $str.=$this->docBodyTagBegin().
 
 <!-- Wrapping DIV-section for whole page END -->
 </div>':'') . $this->endOfPageJsBlock ;
-
+			t3lib_formprotection_Factory::get()->persistTokens();
 		}
 
 
@@ -1087,18 +1072,6 @@ $str.=$this->docBodyTagBegin().
 	     ********************* -->
 ';
 		} else return '';
-	}
-
-	/**
-	 * Originally it printed a kind of divider.
-	 * Deprecated. Just remove function calls to it or call the divider() function instead.
-	 *
-	 * @return	void
-	 * @internal
-	 * @deprecated since TYPO3 3.6, will be removed in TYPO3 4.6
-	 */
-	function middle()	{
-		t3lib_div::logDeprecatedFunction();
 	}
 
 	/**
@@ -1283,7 +1256,7 @@ $str.=$this->docBodyTagBegin().
 	 * @return	string		<meta> tag with name "generator"
 	 */
 	function generator()	{
-		$str = 'TYPO3 '.TYPO3_branch.', http://typo3.com, &#169; Kasper Sk&#229;rh&#248;j 1998-2009, extensions are copyright of their respective owners.';
+		$str = 'TYPO3 '.TYPO3_branch.', ' . TYPO3_URL_GENERAL . ', &#169; Kasper Sk&#229;rh&#248;j 1998-2009, extensions are copyright of their respective owners.';
 		return '<meta name="generator" content="'.$str .'" />';
 	}
 
@@ -1556,8 +1529,12 @@ $str.=$this->docBodyTagBegin().
 				this.selectedIndex=0;
 			} else if (this.options[this.selectedIndex].value.indexOf(\';\')!=-1) {
 				eval(this.options[this.selectedIndex].value);
-			}else{
-				window.location.href=\''.$this->backPath.'tce_db.php?vC='.$BE_USER->veriCode().'&redirect='.rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')).'&cacheCmd=\'+this.options[this.selectedIndex].value;
+			} else {
+				window.location.href=\'' . $this->backPath .
+						'tce_db.php?vC=' . $BE_USER->veriCode() .
+						t3lib_BEfunc::getUrlToken('tceAction') .
+						'&redirect=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')) .
+						'&cacheCmd=\'+this.options[this.selectedIndex].value;
 			}';
 		$af_content = '<select name="cacheCmd" onchange="'.htmlspecialchars($onChange).'">'.implode('',$opt).'</select>';
 
@@ -1630,7 +1607,6 @@ $str.=$this->docBodyTagBegin().
 	protected function loadCshJavascript() {
 		$this->pageRenderer->loadExtJS();
 		$this->pageRenderer->addJsFile($this->backPath .'../t3lib/js/extjs/contexthelp.js');
-		$this->pageRenderer->addJsFile($this->backPath . 'ajax.php?ajaxID=ExtDirect::getAPI&namespace=TYPO3.CSH', NULL, FALSE);
 		$this->pageRenderer->addExtDirectCode();
 	}
 
@@ -1891,13 +1867,11 @@ $str.=$this->docBodyTagBegin().
 	 * The return value is not needed anymore
 	 *
 	 * @deprecated since TYPO3 4.5, as the getDynTabMenu() function includes the function automatically since TYPO3 4.3
-	 * @return	string		JavaScript section for the HTML header. (return value is deprecated since TYPO3 4.3, will be removed in TYPO3 4.5)
+	 * @return	void
 	 */
-	function getDynTabMenuJScode()	{
+	function getDynTabMenuJScode() {
 		t3lib_div::logDeprecatedFunction();
 		$this->loadJavascriptLib('js/tabmenu.js');
-		// return value deprecated since TYPO3 4.3
-		return '';
 	}
 
 	/**

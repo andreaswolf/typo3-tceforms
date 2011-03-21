@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -1169,19 +1169,6 @@ class t3lib_install {
 		}
 
 		return $content;
-	}
-
-	/**
-	 * Reads the field definitions for the input SQL-file string
-	 *
-	 * @param	string		Should be a string read from an SQL-file made with 'mysqldump [database_name] -d'
-	 * @return	array		Array with information about table.
-	 * @deprecated	since TYPO3 4.2, this function will be removed in TYPO3 4.6, use ->getFieldDefinitions_fileContent() instead!
-	 */
-	function getFieldDefinitions_sqlContent($fileContent) {
-		t3lib_div::logDeprecatedFunction();
-
-		return $this->getFieldDefinitions_fileContent($fileContent);
 	}
 }
 

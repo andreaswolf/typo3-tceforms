@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2008-2010 Christoph Koehler (christoph@webempoweredchurch.org)
+*  (c) 2008-2011 Christoph Koehler (christoph@webempoweredchurch.org)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -43,13 +43,43 @@ class AjaxLogin {
 	 * @return	void
 	 */
 	public function login(array $parameters, TYPO3AJAX $ajaxObj) {
-		if ($GLOBALS['BE_USER']->user['uid']) {
+		if ($this->isAuthorizedBackendSession()) {
 			$json = array('success' => TRUE);
+			$token = '';
+			if ($this->hasLoginBeenProcessed()) {
+				$formprotection = t3lib_formprotection_Factory::get();
+				$json['accessToken'] = $formprotection->generateToken('refreshTokens');
+				$formprotection->persistTokens();
+			}
 		} else {
 			$json = array('success' => FALSE);
 		}
 		$ajaxObj->addContent('login', $json);
 		$ajaxObj->setContentFormat('json');
+	}
+
+	/**
+	 * Checks if a user is logged in and the session is active.
+	 *
+	 * @return boolean
+	 */
+	protected function isAuthorizedBackendSession() {
+		return (isset($GLOBALS['BE_USER']) && $GLOBALS['BE_USER'] instanceof t3lib_beUserAuth && isset($GLOBALS['BE_USER']->user['uid']));
+	}
+
+	/**
+	 * Check whether the user was not already authorized
+	 *
+	 * @return boolean
+	 */
+	protected function hasLoginBeenProcessed() {
+		$loginFormData = $GLOBALS['BE_USER']->getLoginFormData();
+
+		return ($loginFormData['status'] == 'login')
+			&& isset($loginFormData['uname'])
+			&& isset($loginFormData['uident'])
+			&& isset($loginFormData['chalvalue'])
+			&& ((string)$_COOKIE['be_typo_user'] !== (string)$GLOBALS['BE_USER']->id);
 	}
 
 	/**
@@ -95,8 +125,10 @@ class AjaxLogin {
 		if(is_object($GLOBALS['BE_USER'])) {
 			$ajaxObj->setContentFormat('json');
 			if (@is_file(PATH_typo3conf.'LOCK_BACKEND')) {
-			 	$ajaxObj->addContent('login', array('timed_out' => FALSE, 'locked' => TRUE));
+			 	$ajaxObj->addContent('login', array('will_time_out' => FALSE, 'locked' => TRUE));
 				$ajaxObj->setContentFormat('json');
+			} else if (!isset($GLOBALS['BE_USER']->user['uid'])) {
+				$ajaxObj->addContent('login', array('timed_out' => TRUE));
 			} else {
 				$GLOBALS['BE_USER']->fetchUserSession(TRUE);
 				$ses_tstamp = $GLOBALS['BE_USER']->user['ses_tstamp'];
@@ -105,9 +137,9 @@ class AjaxLogin {
 				// if 120 seconds from now is later than the session timeout, we need to show the refresh dialog.
 				// 120 is somewhat arbitrary to allow for a little room during the countdown and load times, etc.
 				if ($GLOBALS['EXEC_TIME'] >= $ses_tstamp + $timeout - 120) {
-					$ajaxObj->addContent('login', array('timed_out' => TRUE));
+					$ajaxObj->addContent('login', array('will_time_out' => TRUE));
 				} else {
-					$ajaxObj->addContent('login', array('timed_out' => FALSE));
+					$ajaxObj->addContent('login', array('will_time_out' => FALSE));
 				}
 			}
 		} else {
@@ -132,6 +164,43 @@ class AjaxLogin {
 		$parent->addContent('challenge', $_SESSION['login_challenge']);
 		$parent->setContentFormat('json');
 	}
+
+	/**
+	 * Generates new tokens for the ones found in the DOM.
+	 *
+	 * @param	array		$parameters: Parameters (not used)
+	 * @param	TYPO3AJAX	$parent: The calling parent AJAX object
+	 */
+	public function refreshTokens(array $parameters, TYPO3AJAX $parent) {
+		$accessToken = (string)t3lib_div::_GP('accessToken');
+		$formprotection = t3lib_formprotection_Factory::get();
+
+		if ($formprotection->validateToken($accessToken, 'refreshTokens')) {
+			$oldTokens = json_decode((string)t3lib_div::_GP('tokens'));
+			$regeneratedTokens = new stdClass();
+
+			foreach ($oldTokens as $oldToken) {
+				$newToken = $this->generateNewToken($oldToken);
+				$regeneratedTokens->$oldToken = $newToken;
+			}
+		}
+		$parent->addContent('newTokens', $regeneratedTokens);
+		$parent->setContentFormat('json');
+
+		$formprotection->persistTokens();
+	}
+
+	/**
+	 * Generate new token.
+	 *
+	 * @param string $oldToken
+	 * @return string regenerated Token
+	 */
+	protected function generateNewToken($oldToken) {
+		list ($tokenId, $formName) = explode('-', $oldToken);
+		return t3lib_formprotection_Factory::get()->generateToken($formName) . '-' . $formName;
+	}
+
 }
 
 if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['typo3/classes/class.ajaxlogin.php'])) {

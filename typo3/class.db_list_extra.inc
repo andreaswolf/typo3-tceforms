@@ -692,8 +692,9 @@ class localRecordList extends recordList {
 
 					$localizationMarkerClass = '';
 					if (isset($GLOBALS['TCA'][$table]['ctrl']['languageField'])
-					&& $row[$GLOBALS['TCA'][$table]['ctrl']['languageField']] != 0) {
-							// it's a translated record
+					&& $row[$GLOBALS['TCA'][$table]['ctrl']['languageField']] != 0
+					&& $row[$GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField']] != 0) {
+							// it's a translated record with a language parent
 						$localizationMarkerClass = ' localization';
 					}
 				} elseif ($fCol == 'pid') {
@@ -1221,7 +1222,7 @@ class localRecordList extends recordList {
 				}
 
 					// "Edit Perms" link:
-				if ($table=='pages' && $GLOBALS['BE_USER']->check('modules','web_perm'))	{
+				if ($table == 'pages' && $GLOBALS['BE_USER']->check('modules','web_perm') && t3lib_extMgm::isLoaded('perm'))	{
 					$cells['perms'] =
 						'<a href="' .
 							htmlspecialchars(
@@ -1479,7 +1480,7 @@ class localRecordList extends recordList {
 	 * @param	integer		UID of record
 	 * @return	string		HTML-table
 	 *
-	 * @deprecated since 4.4, will be removed in TYPO3 4.6 - Use getReferenceHTML() instead
+	 * @deprecated since 4.4, will be removed in TYPO3 4.6 - Use createReferenceHtml() instead
 	 */
 	function makeRef($table,$uid)	{
 		t3lib_div::logDeprecatedFunction();
@@ -1592,7 +1593,7 @@ class localRecordList extends recordList {
 			}
 
 			if ($lNew)	$out[1].= $lNew;
-		} else {
+		} else if ($row['l18n_parent']) {
 			$out[0] = '&nbsp;&nbsp;&nbsp;&nbsp;'.$out[0];
 		}
 

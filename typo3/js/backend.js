@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2011 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -36,6 +36,7 @@ Ext.ns('TYPO3.configuration');
 function jump(url, modName, mainModName) {
 		// clear information about which entry in nav. tree that might have been highlighted.
 	top.fsMod.navFrameHighlightedID = [];
+	top.fsMod.recentIds['web'] = -1;
 
 	if (top.TYPO3.Backend.NavigationContainer.PageTree) {
 		top.TYPO3.Backend.NavigationContainer.PageTree.refreshTree();

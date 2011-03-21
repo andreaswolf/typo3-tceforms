@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2003-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2003-2011 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the Typo3 project. The Typo3 project is
@@ -89,8 +89,6 @@ class tx_rtehtmlarea_pi1 {
 		}
 		if (empty($dictionaryList)) {
 			$dictionaryList = t3lib_div::_POST('showDictionaries');
-				// Applying EM variable DEPRECATED as of TYPO3 4.3.0
-			$dictionaryList = $dictionaryList ? $dictionaryList : trim($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$this->extKey]['plugins']['SpellChecker']['dictionaryList']);
 		}
 		$dictionaryArray = t3lib_div::trimExplode(',', $dictionaryList, 1);
 		$restrictToDictionaries = t3lib_div::_POST('restrictToDictionaries');
@@ -101,8 +99,7 @@ class tx_rtehtmlarea_pi1 {
 			$dictionaryArray[] = 'en';
 		}
 		$this->dictionary = t3lib_div::_POST('dictionary');
-			// Applying EM variable DEPRECATED as of TYPO3 4.3.0
-		$defaultDictionary = $this->dictionary ? $this->dictionary : trim($TYPO3_CONF_VARS['EXTCONF'][$this->extKey]['plugins']['SpellChecker']['defaultDictionary']);
+		$defaultDictionary = $this->dictionary;
 		if (!$defaultDictionary || !in_array($defaultDictionary, $dictionaryArray)) {
 			$defaultDictionary = 'en';
 		}
@@ -232,7 +229,7 @@ class tx_rtehtmlarea_pi1 {
 			if (!xml_set_default_handler($parser, 'defaultHandler')) echo('Bad xml handler setting');
 			if (!xml_parse($parser,'<?xml version="1.0" encoding="' . $this->parserCharset . '"?><spellchecker> ' . preg_replace('/&nbsp;/'.(($this->parserCharset == 'utf-8')?'u':''), ' ', $content) . ' </spellchecker>')) echo('Bad parsing');
 			if (xml_get_error_code($parser)) {
-				die('Line '.xml_get_current_line_number($parser).': '.xml_error_string(xml_get_error_code($parser)));
+				throw new UnexpectedException('Line ' . xml_get_current_line_number($parser) . ': ' . xml_error_string(xml_get_error_code($parser)), 1294585788);
 			}
 			xml_parser_free($parser);
 			if ($this->pspell_is_available && !$this->forceCommandMode) {

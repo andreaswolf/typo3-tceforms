@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -235,7 +235,7 @@ final class t3lib_extMgm {
 	 */
 	public static function getExtensionVersion($key) {
 		if (!is_string($key) || empty($key)) {
-			throw new InvalidArgumentException('Extension key must be a non-empty string.');
+			throw new InvalidArgumentException('Extension key must be a non-empty string.', 1294586096);
 		}
 		if (!self::isLoaded($key)) {
 			return '';
@@ -303,7 +303,7 @@ final class t3lib_extMgm {
 	public static function addToAllTCAtypes($table, $str, $specificTypesList = '', $position = '') {
 		t3lib_div::loadTCA($table);
 		$str = trim($str);
-
+		$palettesChanged = array();
 		if ($str && is_array($GLOBALS['TCA'][$table]) && is_array($GLOBALS['TCA'][$table]['types'])) {
 			foreach ($GLOBALS['TCA'][$table]['types'] as $type => &$typeDetails) {
 				if ($specificTypesList === '' || t3lib_div::inList($specificTypesList, $type)) {
@@ -315,6 +315,10 @@ final class t3lib_extMgm {
 								if (preg_match('/\b' . $palette . '\b/', $typeDetails['showitem']) > 0
 										&& preg_match('/\b' . $positionArray[1] . '\b/', $paletteDetails['showitem']) > 0) {
 									self::addFieldsToPalette($table, $palette, $str, $position);
+										// save that palette in case other types use it
+									$palettesChanged[] = $palette;
+									$fieldExists = TRUE;
+								} elseif (in_array($palette, $palettesChanged)) {
 									$fieldExists = TRUE;
 								}
 							}
@@ -705,17 +709,24 @@ final class t3lib_extMgm {
 					case 'after':
 					case 'before':
 						$pointer = 0;
+						$found = FALSE;
 						foreach ($mods as $k => $m) {
 							if (!strcmp($m, $modRef)) {
 								$pointer = strtolower($place) == 'after' ? $k + 1 : $k;
+								$found = TRUE;
 							}
 						}
-						array_splice(
-							$mods, // The modules array
-							$pointer, // To insert one position from the end of the list
-							0, // Don't remove any items, just insert
-							$sub // Module to insert
-						);
+						if ($found) {
+							array_splice(
+								$mods, // The modules array
+								$pointer, // To insert one position from the end of the list
+								0, // Don't remove any items, just insert
+								$sub // Module to insert
+							);
+						} else {
+								// If requested module is not found: Add at the end
+							array_push($mods, $sub);
+						}
 					break;
 					default:
 						if (strtolower($place) == 'top') {
@@ -837,15 +848,26 @@ final class t3lib_extMgm {
 	 *
 	 * @param string $module
 	 * @param string $componentId
-	 * @param array $extDirectNamespaces
 	 * @return void
 	 */
-	public static function addNavigationComponent($module, $componentId, $extDirectNamespaces = array()) {
+	public static function addNavigationComponent($module, $componentId) {
 		$GLOBALS['TBE_MODULES']['_navigationComponents'][$module] = array(
 			'componentId' => $componentId,
 			'extKey' => $GLOBALS['_EXTKEY'],
-			'extDirectNamespaces' => $extDirectNamespaces
+			'isCoreComponent' => FALSE,
 		);
+	}
+
+	/**
+	 * Registers a core navigation component
+	 *
+	 * @param string $module
+	 * @param string $componentId
+	 * @return void
+	 */
+	public static function addCoreNavigationComponent($module, $componentId) {
+		self::addNavigationComponent($module, $componentId);
+		$GLOBALS['TBE_MODULES']['_navigationComponents'][$module]['isCoreComponent'] = TRUE;
 	}
 
 
@@ -1568,9 +1590,45 @@ $TYPO3_LOADED_EXT = unserialize(stripslashes(\'' . addslashes(serialize($extensi
 			$extLoadInContext = $GLOBALS['TYPO3_CONF_VARS']['EXT']['extList'];
 		}
 
-		$extensionList = $GLOBALS['TYPO3_CONF_VARS']['EXT']['requiredExt'] . ',' . $extLoadInContext;
+		$extensionList = self::getRequiredExtensionList() . ',' . $extLoadInContext;
+		$ignoredExtensionList = self::getIgnoredExtensionList();
+
+			// Remove the extensions to be ignored:
+		if ($ignoredExtensionList && (defined('TYPO3_enterInstallScript') && TYPO3_enterInstallScript) === FALSE) {
+			$extensions = array_diff(
+				explode(',', $extensionList),
+				explode(',', $ignoredExtensionList)
+			);
+			$extensionList = implode(',', $extensions);
+		}
 
 		return $extensionList;
+	}
+
+	/**
+	 * Gets the list of required extensions.
+	 *
+	 * @return string
+	 */
+	public static function getRequiredExtensionList() {
+		$requiredExtensionList = t3lib_div::uniqueList(
+			REQUIRED_EXTENSIONS . ',' . $GLOBALS['TYPO3_CONF_VARS']['EXT']['requiredExt']
+		);
+
+		return $requiredExtensionList;
+	}
+
+	/**
+	 * Gets the list of extensions to be ignored (not to be loaded).
+	 *
+	 * @return string
+	 */
+	public static function getIgnoredExtensionList() {
+		$ignoredExtensionList = t3lib_div::uniqueList(
+			$GLOBALS['TYPO3_CONF_VARS']['EXT']['ignoredExt']
+		);
+
+		return $ignoredExtensionList;
 	}
 }
 

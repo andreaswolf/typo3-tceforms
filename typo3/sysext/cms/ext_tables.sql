@@ -393,7 +393,7 @@ CREATE TABLE tt_content (
   fe_group varchar(100) DEFAULT '0' NOT NULL,
   header_link varchar(255) DEFAULT '' NOT NULL,
   imagecaption_position varchar(6) DEFAULT '' NOT NULL,
-  image_link varchar(255) DEFAULT '' NOT NULL,
+  image_link text,
   image_zoom tinyint(3) unsigned DEFAULT '0' NOT NULL,
   image_noRows tinyint(3) unsigned DEFAULT '0' NOT NULL,
   image_effects tinyint(3) unsigned DEFAULT '0' NOT NULL,
@@ -438,9 +438,9 @@ CREATE TABLE tt_content (
 );
 
 #
-# Table structure for table 'be_layouts'
+# Table structure for table 'backend_layout'
 #
-CREATE TABLE be_layouts (
+CREATE TABLE backend_layout (
   uid int(11) NOT NULL auto_increment,
   pid int(11) DEFAULT '0' NOT NULL,
   t3ver_oid int(11) DEFAULT '0' NOT NULL,

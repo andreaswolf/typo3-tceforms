@@ -178,6 +178,30 @@ class Tx_Extbase_Tests_Unit_MVC_Web_Routing_UriBuilderTest extends Tx_Extbase_Te
 	/**
 	 * @test
 	 */
+	public function uriForDisablesCacheHashForNonCacheableActions() {
+		$mockConfiguration = array(
+			'controllerConfiguration' => array(
+				'SomeController' => array(
+					'nonCacheableActions' => array('someNonCacheableAction')
+				)
+			)
+		);
+		$mockConfigurationManager = $this->getMock('Tx_Extbase_Configuration_ConfigurationManagerInterface');
+		$mockConfigurationManager->expects($this->any())->method('getConfiguration')->will($this->returnValue($mockConfiguration));
+		$mockObjectManager = $this->getMock('Tx_Extbase_Object_ObjectManager');
+		$mockObjectManager->expects($this->any())->method('get')->with('Tx_Extbase_Configuration_ConfigurationManagerInterface')->will($this->returnValue($mockConfigurationManager));
+		t3lib_div::setSingletonInstance('Tx_Extbase_Object_ObjectManager', $mockObjectManager);
+
+		$this->assertTrue($this->uriBuilder->getUseCacheHash());
+		$this->uriBuilder->uriFor('someNonCacheableAction', array(), 'SomeController', 'SomeExtension');
+		$this->assertFalse($this->uriBuilder->getUseCacheHash());
+
+		t3lib_div::purgeInstances();
+	}
+
+	/**
+	 * @test
+	 */
 	public function buildBackendUriKeepsQueryParametersIfAddQueryStringIsSet() {
 		t3lib_div::_GETset(array('M' => 'moduleKey', 'id' => 'pageId', 'foo' => 'bar'));
 
@@ -543,7 +567,7 @@ class Tx_Extbase_Tests_Unit_MVC_Web_Routing_UriBuilderTest extends Tx_Extbase_Te
 		$mockUriBuilder = $this->getMock($this->buildAccessibleProxy('Tx_Extbase_MVC_Web_Routing_UriBuilder'), array('dummy'));
 		$actualResult = $mockUriBuilder->_call('convertTransientObjectToArray', $mockValueObject);
 
-		$expectedResult = array('name' => 'foo', 'uid' => NULL);
+		$expectedResult = array('name' => 'foo', 'uid' => NULL, 'pid' => NULL);
 		$this->assertEquals($expectedResult, $actualResult);
 	}
 
@@ -573,8 +597,12 @@ class Tx_Extbase_Tests_Unit_MVC_Web_Routing_UriBuilderTest extends Tx_Extbase_Te
 		$expectedResult = array(
 			'object' => array(
 				'object' => 99,
-				'uid' => NULL),
-			'uid' => NULL);
+				'uid' => NULL,
+				'pid' => NULL
+				),
+			'uid' => NULL,
+			'pid' => NULL
+			);
 		$this->assertEquals($expectedResult, $actualResult);
 	}
 

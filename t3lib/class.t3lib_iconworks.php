@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -119,11 +119,24 @@ final class t3lib_iconWorks {
 		'gz' => 'mimetypes-compressed',
 		'pdf' => 'mimetypes-pdf',
 		'doc' => 'mimetypes-word',
+		'dot' => 'mimetypes-word',
+		'docm' => 'mimetypes-word',
+		'docx' => 'mimetypes-word',
+		'dotm' => 'mimetypes-word',
+		'dotx' => 'mimetypes-word',
 		'sxw' => 'mimetypes-word',
 		'rtf' => 'mimetypes-word',
 		'xls' => 'mimetypes-excel',
+		'xlsm' => 'mimetypes-excel',
+		'xlsx' => 'mimetypes-excel',
+		'xltm' => 'mimetypes-excel',
+		'xltx' => 'mimetypes-excel',
 		'sxc' => 'mimetypes-excel',
 		'ppt' => 'mimetypes-powerpoint',
+		'pptm' => 'mimetypes-powerpoint',
+		'pptx' => 'mimetypes-powerpoint',
+		'potm' => 'mimetypes-powerpoint',
+		'potx' => 'mimetypes-powerpoint',
 		'mount' => 'apps-filetree-mount',
 		'folder' => 'apps-filetree-folder-default',
 		'default' => 'mimetypes-other-other'

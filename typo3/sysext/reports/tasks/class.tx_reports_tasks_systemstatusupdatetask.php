@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Ingo Renner <ingo@typo3.org>
+*  (c) 2010-2011 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -33,6 +33,14 @@
 class tx_reports_tasks_SystemStatusUpdateTask extends tx_scheduler_Task {
 
 	/**
+	 * Email address to send email notification to in case we find problems with
+	 * the system.
+	 *
+	 * @var	string
+	 */
+	protected $notificationEmail = NULL;
+
+	/**
 	 * Executes the System Status Update task, determing the highest severity of
 	 * status reports and saving that to the registry to be displayed at login
 	 * if necessary.
@@ -48,7 +56,75 @@ class tx_reports_tasks_SystemStatusUpdateTask extends tx_scheduler_Task {
 
 		$registry->set('tx_reports', 'status.highestSeverity', $highestSeverity);
 
+		if ($highestSeverity > tx_reports_reports_status_Status::OK) {
+			$this->sendNotificationEmail($systemStatus);
+		}
+
 		return true;
+	}
+
+	/**
+	 * Gets the notification email address.
+	 *
+	 * @return	string	Notification email address.
+	 */
+	public function getNotificationEmail() {
+		return $this->notificationEmail;
+	}
+
+	/**
+	 * Sets the notification email address.
+	 *
+	 * @param	string	$notificationEmail Notification email address.
+	 */
+	public function setNotificationEmail($notificationEmail) {
+		$this->notificationEmail = $notificationEmail;
+	}
+
+	/**
+	 * Sends a notification email, reporting system issues.
+	 *
+	 * @param	array	$systemStatus Array of statuses
+	 */
+	protected function sendNotificationEmail(array $systemStatus) {
+		$systemIssues = array();
+
+		foreach ($systemStatus as $statusProvider) {
+			foreach ($statusProvider as $status) {
+				if ($status->getSeverity() > tx_reports_reports_status_Status::OK) {
+					$systemIssues[] = (string) $status;
+				}
+			}
+		}
+
+		$subject = sprintf(
+			$GLOBALS['LANG']->getLL('status_updateTask_email_subject'),
+			$GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']
+		);
+
+		$message = sprintf(
+			$GLOBALS['LANG']->getLL('status_problemNotification'),
+			'',
+			''
+		);
+		$message .= CRLF . CRLF;
+		$message .= $GLOBALS['LANG']->getLL('status_updateTask_email_site')
+			. ': ' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'];
+		$message .= CRLF . CRLF;
+		$message .= $GLOBALS['LANG']->getLL('status_updateTask_email_issues')
+			. ': ' .CRLF;
+		$message .= implode(CRLF, $systemIssues);
+		$message .= CRLF . CRLF;
+
+		$from = t3lib_utility_Mail::getSystemFrom();
+
+		$mail = t3lib_div::makeInstance('t3lib_mail_Message');
+		$mail->setFrom($from);
+		$mail->setTo($this->notificationEmail);
+		$mail->setSubject($subject);
+		$mail->setBody($message);
+
+		$mail->send();
 	}
 }
 

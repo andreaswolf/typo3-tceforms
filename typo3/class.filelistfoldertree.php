@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -419,8 +419,8 @@ class filelistFolderTree extends t3lib_folderTree {
 
 				}
 
-				if($webpath == 'web') {
-					$icon = 'apps-filetree-folder-default';
+				if ($exp) {
+					$icon = 'apps-filetree-folder-opened';
 				} else {
 					$icon = 'apps-filetree-folder-default';
 				}

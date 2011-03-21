@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2010 Ingo Renner <ingo@typo3.org>
+*  (c) 2009-2011 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -57,7 +57,7 @@ interface tx_scheduler_AdditionalFieldProvider {
 	 * Takes care of saving the additional fields' values in the task's object
 	 *
 	 * @param	array					An array containing the data submitted by the add/edit task form
-	 * @param	tx_scheduler_Module		Reference to the scheduler backend module
+	 * @param	tx_scheduler_Task		Reference to the scheduler backend module
 	 * @return	void
 	 */
 	public function saveAdditionalFields(array $submittedData, tx_scheduler_Task $task);

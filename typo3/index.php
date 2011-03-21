@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -366,7 +366,7 @@ class SC_index {
 				if ($this->commandLI=='setCookie') {
 						// we tried it a second time but still no cookie
 						// 26/4 2005: This does not work anymore, because the saving of challenge values in $_SESSION means the system will act as if the password was wrong.
-					throw new RuntimeException('Login-error: Yeah, that\'s a classic. No cookies, no TYPO3.<br /><br />Please accept cookies from TYPO3 - otherwise you\'ll not be able to use the system.');
+					throw new RuntimeException('Login-error: Yeah, that\'s a classic. No cookies, no TYPO3.<br /><br />Please accept cookies from TYPO3 - otherwise you\'ll not be able to use the system.', 1294586846);
 				} else {
 						// try it once again - that might be needed for auto login
 					$this->redirectToURL = 'index.php?commandLI=setCookie';
@@ -397,6 +397,9 @@ class SC_index {
 			if (!$this->loginRefresh)	{
 				t3lib_utility_Http::redirect($this->redirectToURL);
 			} else {
+				$formprotection = t3lib_formprotection_Factory::get();
+				$accessToken = $formprotection->generateToken('refreshTokens');
+				$formprotection->persistTokens();
 				$TBE_TEMPLATE->JScode.=$TBE_TEMPLATE->wrapScriptTags('
 					if (parent.opener && (parent.opener.busy || parent.opener.TYPO3.loginRefresh)) {
 						if (parent.opener.TYPO3.loginRefresh) {
@@ -404,6 +407,7 @@ class SC_index {
 						} else {
 							parent.opener.busy.loginRefreshed();
 						}
+						parent.opener.TYPO3.loginRefresh.refreshTokens("' . $accessToken . '");
 						parent.close();
 					}
 				');
@@ -457,8 +461,8 @@ class SC_index {
 						<select id="t3-interfaceselector" name="interface" class="c-interfaceselector" tabindex="3" onchange="window.location.href=this.options[this.selectedIndex].value;">'.$this->interfaceSelector_jump.'
 						</select>';
 
-			} else {	// If there is only ONE interface value set:
-
+			} elseif (!$this->redirect_url) {
+					// If there is only ONE interface value set and no redirect_url is present:
 				$this->interfaceSelector_hidden='<input type="hidden" name="interface" value="'.trim($TYPO3_CONF_VARS['BE']['interfaces']).'" />';
 			}
 		}
@@ -485,18 +489,18 @@ class SC_index {
 		if (strlen($loginCopyrightWarrantyProvider)>=2 && strlen($loginCopyrightWarrantyURL)>=10)	{
 			$warrantyNote = sprintf($GLOBALS['LANG']->getLL('warranty.by'), htmlspecialchars($loginCopyrightWarrantyProvider), '<a href="' . htmlspecialchars($loginCopyrightWarrantyURL) . '" target="_blank">', '</a>');
 		} else {
-			$warrantyNote = sprintf($GLOBALS['LANG']->getLL('no.warranty'), '<a href="http://typo3.com/1316.0.html" target="_blank">', '</a>');
+			$warrantyNote = sprintf($GLOBALS['LANG']->getLL('no.warranty'), '<a href="' . TYPO3_URL_LICENSE . '" target="_blank">', '</a>');
 		}
 
 			// Compile full copyright notice:
-		$copyrightNotice = '<a href="http://typo3.com/" target="_blank">'.
+		$copyrightNotice = '<a href="' . TYPO3_URL_GENERAL . '" target="_blank">'.
 					'<img src="' . $loginImageSmall . '" alt="' . $GLOBALS['LANG']->getLL('typo3.logo') . '" align="left" />' .
 					$GLOBALS['LANG']->getLL('typo3.cms') . ($GLOBALS['TYPO3_CONF_VARS']['SYS']['loginCopyrightShowVersion']?' ' . $GLOBALS['LANG']->getLL('version.short') . ' ' . htmlspecialchars($GLOBALS['TYPO_VERSION']):'') .
 					'</a>. ' .
 					$GLOBALS['LANG']->getLL('copyright') . ' &copy; ' . TYPO3_copyright_year . ' Kasper Sk&#229;rh&#248;j. ' . $GLOBALS['LANG']->getLL('extension.copyright') . ' ' .
-					sprintf($GLOBALS['LANG']->getLL('details.link'), '<a href="http://typo3.com/" target="_blank">http://typo3.com/</a>') . '<br /> ' .
+					sprintf($GLOBALS['LANG']->getLL('details.link'), '<a href="' . TYPO3_URL_GENERAL . '" target="_blank">' . TYPO3_URL_GENERAL . '</a>') . '<br /> ' .
 					$warrantyNote . ' ' .
-					sprintf($GLOBALS['LANG']->getLL('free.software'), '<a href="http://typo3.com/1316.0.html" target="_blank">', '</a> ') .
+					sprintf($GLOBALS['LANG']->getLL('free.software'), '<a href="' . TYPO3_URL_LICENSE . '" target="_blank">', '</a> ') .
 					$GLOBALS['LANG']->getLL('keep.notice');
 
 			// Return notice:
@@ -679,19 +683,6 @@ class SC_index {
 			$this->interfaceSelector_hidden . $this->addFields_hidden;
 
 		return $output;
-	}
-
-	/**
-	 * Outputs an empty string. This function is obsolete and kept for the
-	 * compatibility only.
-	 *
-	 * @param	string	$unused	Unused
-	 * @return	string		HTML output
-	 * @deprecated since TYPO3 4.3, will be removed in TYPO3 4.6 - all the functionality was put in $this->startForm() and $this->addFields_hidden
-	 */
-	function getHiddenFields($unused = '') {
-		t3lib_div::logDeprecatedFunction();
-		return '';
 	}
 
 	/**

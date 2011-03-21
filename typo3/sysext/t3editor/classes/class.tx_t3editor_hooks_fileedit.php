@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Tobias Liebig <mail_typo3@etobi.de>
+*  (c) 2010-2011 Tobias Liebig <mail_typo3@etobi.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -86,6 +86,7 @@ class tx_t3editor_hooks_fileedit {
 				return;
 			}
 			$pObj->JScode .= $t3editor->getJavascriptCode($pObj);
+			$pObj->loadJavascriptLib(t3lib_extmgm::extRelPath('t3editor') . 'res/jslib/fileedit.js');
 		}
 	}
 

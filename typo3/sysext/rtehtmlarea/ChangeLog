@@ -1,3 +1,78 @@
+2011-02-25  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #17761: htmlArea RTE: Defer access to stylesheets
+
+2011-02-22  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #17695: htmlArea RTE: Removing format may remove content
+
+2011-02-20  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Follow-up to issue #17677: htmlArea RTE: Classes configuration is loaded twice
+	* Fixed bug #17669: htmlArea RTE: Dialogue window positioning properties not honoured
+
+2011-02-19  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #17676: htmlArea RTE: Some combo stores are loaded twice
+	* Fixed bug #17677: htmlArea RTE: Classes configuration is loaded twice 
+
+2011-02-18  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Added feature #17658: htmlArea RTE: Write troubleshooting messages to JavaScript console
+	* Fixed issue #17659: htmlArea RTE: Delete deprecated plugin information variables
+	* Fixed issue #17660: htmlArea RTE: Delete deprecated color conversion function aliases
+	* Follow-up to issue #17559: htmlArea RTE: Delete deprecated code/functions from main js script
+
+2011-02-17  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #17616: htmlArea RTE: Link dialogue doesn't open when anchor class is set with double quotes
+
+2011-02-15  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #17587: htmlArea RTE: RTE should not be enabled on Android
+
+2011-02-11  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed issue #17552: htmlArea RTE: Delete deprecated class HTMLArea.Dialog
+	* Fixed issue #17554: htmlArea RTE: Delete deprecated DAM integration extension variable
+	* Fixed issue #17555: htmlArea RTE: Delete deprecated Aspell-related extension configuration variables
+	* Fixed issue #17557: htmlArea RTE: Delete deprecated Page TSConfig properties
+	* Fixed issue #17558: htmlArea RTE: Delete deprecated browser identification js variables
+	* Fixed issue #17559: htmlArea RTE: Delete deprecated code/functions from main js script
+	* Fixed issue #17560: htmlArea RTE: Any plugin must be inside HTMLArea namespace
+	* Fixed issue #17561: htmlArea RTE: Delete class HTMLArea.Base
+
+2011-02-07  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* htmlArea RTE: Updated Manual
+
+2011-02-01  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #17349: htmlArea RTE: JS error when using "Edit element"
+	* Updated htmlArea RTE version to 2.2.0
+	* Fixed bug #17438: htmlArea RTE: non-xhtml markup in image dialogue (Thanks to Georg Ringer)
+
+2011-01-21  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #16975: htmlArea RTE: Use parentNode rather than parentElement
+	* Follow-up to bug #17157: htmlArea RTE: Not enabled in various browser/system combinations
+	* Fixed bug #17205: htmlArea RTE: Remove Image button when images are not enabled
+	* htmlArea RTE: Updated Manual and ext_emconf
+
+2011-01-20  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #17140: htmlArea RTE: In WebKit, RTE inserts incorrect link if text is double-clicked
+	* Updated htmlArea RTE version to 2.1.5
+
+2011-01-19  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #17156: htmlArea RTE: Disable Cell merge button in FF when less than two cells are selected
+	* Fixed bug #17157: htmlArea RTE: Not enabled in various browser/system combinations 
+
+2011-01-18  Stanislas Rolland  <typo3@sjbr.ca>
+
+	* Fixed bug #16045: htmlArea RTE: Merging table cells using context menu doesn't work in Firefox
+
 2011-01-07  Stanislas Rolland  <typo3@sjbr.ca>
 
 	* Fixed bug #16945: htmlArea RTE: Incorrect default tab label in image insertion dialogue

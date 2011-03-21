@@ -2,8 +2,8 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2009-2010 Michael Klapper <michael.klapper@aoemedia.de>
- *  (c) 2010 Jeff Segars <jeff@webempoweredchurch.org>
+ *  (c) 2009-2011 Michael Klapper <michael.klapper@aoemedia.de>
+ *  (c) 2010-2011 Jeff Segars <jeff@webempoweredchurch.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -54,7 +54,7 @@ class t3lib_search_livesearch {
 	/**
 	 * @var integer
 	 */
-	const RECORD_TITLE_MAX_LENGTH = 37;
+	const RECORD_TITLE_MAX_LENGTH = 28;
 
 	/**
 	 * @var string
@@ -131,11 +131,8 @@ class t3lib_search_livesearch {
 			}
 		} else {
 			$this->setQueryString($searchQuery);
-			$recordArray = $this->findByGlobalTableList($pageIdList, $limit);
+			$recordArray = $this->findByGlobalTableList($pageIdList);
 		}
-
-			// @todo Need to make sure we don't return too many records. How do we handle this when querying across multiple tables?
-		$recordArray = array_slice($recordArray, 0, $this->limitCount);
 
 		return $recordArray;
 	}
@@ -161,13 +158,22 @@ class t3lib_search_livesearch {
 	 * Find records from all registered TCA table & column values.
 	 *
 	 * @param string $pageIdList Comma seperated list of page IDs
-	 * @param string $limit MySql Limit notation
 	 * @return array Records found in the database matching the searchQuery
 	 */
-	protected function findByGlobalTableList($pageIdList, $limit) {
+	protected function findByGlobalTableList($pageIdList) {
+		$limit = $this->limitCount;
 		$getRecordArray = array();
 		foreach ($GLOBALS['TCA'] as $tableName => $value) {
-			$getRecordArray[] = $this->findByTable($tableName, $pageIdList, $limit);
+			$recordArray = $this->findByTable($tableName, $pageIdList, '0,' . $limit);
+			$recordCount = count($recordArray);
+			if ($recordCount) {
+				$limit = $limit - $recordCount;
+				$getRecordArray[] = $recordArray;
+
+				if ($limit <= 0) {
+					break;
+				}
+			}
 		}
 
 		return $getRecordArray;
@@ -187,17 +193,20 @@ class t3lib_search_livesearch {
 	 * @see extractSearchableFieldsFromTable()
 	 */
 	protected function findByTable($tableName, $pageIdList, $limit) {
-		$getRecordArray = array();
 		$fieldsToSearchWithin = $this->extractSearchableFieldsFromTable($tableName);
-		$pageBasedPermission = ($tableName == 'pages' && $this->userPermissions) ? $this->userPermissions : '1=1 ';
-		$where = 'pid IN(' . $pageIdList . ')' . $pageBasedPermission . $this->makeQuerySearchByTable($tableName, $fieldsToSearchWithin);
-		$orderBy = $this->makeOrderByTable($tableName);
-		$getRecordArray = $this->getRecordArray(
-			$tableName,
-			$pageBasedPermission . $this->makeQuerySearchByTable($tableName, $fieldsToSearchWithin),
-			$this->makeOrderByTable($tableName),
-			$limit
-		);
+
+		$getRecordArray = array();
+		if (count($fieldsToSearchWithin) > 0) {
+			$pageBasedPermission = ($tableName == 'pages' && $this->userPermissions) ? $this->userPermissions : '1=1 ';
+			$where = 'pid IN (' . $pageIdList . ') AND ' . $pageBasedPermission . $this->makeQuerySearchByTable($tableName, $fieldsToSearchWithin);
+			$orderBy = $this->makeOrderByTable($tableName);
+			$getRecordArray = $this->getRecordArray(
+				$tableName,
+				$where,
+				$this->makeOrderByTable($tableName),
+				$limit
+			);
+		}
 
 		return $getRecordArray;
 	}
@@ -324,10 +333,31 @@ class t3lib_search_livesearch {
 	 * @param array $fieldsToSearchWithin User right based visible fields where we can search within.
 	 * @return string
 	 */
-	protected function makeQuerySearchByTable($tableName, $fieldsToSearchWithin) {
+	protected function makeQuerySearchByTable($tableName, array $fieldsToSearchWithin) {
 			// free text search
 		$queryLikeStatement = ' LIKE \'%' . $this->getQueryString($tableName) . '%\'';
-		$queryPart = ' AND (' . implode($queryLikeStatement . ' OR ', $fieldsToSearchWithin) . $queryLikeStatement . ')';
+		$integerFieldsToSearchWithin = array();
+		$queryEqualStatement = '';
+
+		if (is_numeric($this->getQueryString($tableName))) {
+			$queryEqualStatement = ' = \'' . $this->getQueryString($tableName) . '\'';
+		}
+		$uidPos = array_search('uid', $fieldsToSearchWithin);
+		if ($uidPos) {
+			$integerFieldsToSearchWithin[] = 'uid';
+			unset($fieldsToSearchWithin[$uidPos]);
+		}
+		$pidPos = array_search('pid', $fieldsToSearchWithin);
+		if ($pidPos) {
+			$integerFieldsToSearchWithin[] = 'pid';
+			unset($fieldsToSearchWithin[$pidPos]);
+		}
+
+		$queryPart = ' AND (';
+		if (count($integerFieldsToSearchWithin) && $queryEqualStatement !== '') {
+			$queryPart .= implode($queryEqualStatement . ' OR ', $integerFieldsToSearchWithin) . $queryEqualStatement . ' OR ';
+		}
+		$queryPart .= implode($queryLikeStatement . ' OR ', $fieldsToSearchWithin) . $queryLikeStatement . ')';
 		$queryPart .= t3lib_BEfunc::deleteClause($tableName);
 		$queryPart .= t3lib_BEfunc::versioningPlaceholderClause($tableName);
 

@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -127,8 +127,6 @@ class t3lib_userAuth {
 	var $formfield_status = ''; // formfield with status: *'login', 'logout'. If empty login is not verified.
 	var $security_level = 'normal'; // sets the level of security. *'normal' = clear-text. 'challenged' = hashed password/username from form in $formfield_uident. 'superchallenged' = hashed password hashed again with username.
 
-	var $auth_include = ''; // this is the name of the include-file containing the login form. If not set, login CAN be anonymous. If set login IS needed.
-
 	var $auth_timeout_field = 0; // Server session lifetime. If > 0: session-timeout in seconds. If false or <0: no timeout. If string: The string is a fieldname from the usertable where the timeout can be found.
 	var $lifetime = 0; // Client session lifetime. 0 = Session-cookies. If session-cookies, the browser will stop the session when the browser is closed. Otherwise this specifies the lifetime of a cookie that keeps the session.
 	var $gc_time = 0; // GarbageCollection. Purge all server session data older than $gc_time seconds. 0 = default to $this->timeout or use 86400 seconds (1 day) if $this->lifetime is 0
@@ -140,7 +138,7 @@ class t3lib_userAuth {
 	var $hash_length = 32; // The ident-hash is normally 32 characters and should be! But if you are making sites for WAP-devices og other lowbandwidth stuff, you may shorten the length. Never let this value drop below 6. A length of 6 would give you more than 16 mio possibilities.
 	var $getMethodEnabled = FALSE; // Setting this flag true lets user-authetication happen from GET_VARS if POST_VARS are not set. Thus you may supply username/password from the URL.
 	var $lockIP = 4; // If set, will lock the session to the users IP address (all four numbers. Reducing to 1-3 means that only first, second or third part of the IP address is used).
-	var $lockHashKeyWords = 'useragent'; // Keyword list (commalist with no spaces!): "useragent". Each keyword indicates some information that can be included in a integer hash made to lock down usersessions.
+	var $lockHashKeyWords = 'useragent'; // Keyword list (commalist with no spaces!): "useragent". Each keyword indicates some information that can be included in a integer hash made to lock down usersessions. Configurable through $TYPO3_CONF_VARS[TYPO3_MODE]['lockHashKeyWords']
 
 	var $warningEmail = ''; // warning -emailaddress:
 	var $warningPeriod = 3600; // Period back in time (in seconds) in which number of failed logins are collected
@@ -245,6 +243,10 @@ class t3lib_userAuth {
 		if ($mode == 'get' && $this->getFallBack && $this->get_name) {
 			$this->get_URL_ID = '&' . $this->get_name . '=' . $id;
 		}
+
+			// Set session hashKey lock keywords from configuration; currently only 'useragent' can be used.
+		$this->lockHashKeyWords = $TYPO3_CONF_VARS[$this->loginType]['lockHashKeyWords'];
+
 			// Make certain that NO user is set initially
 		$this->user = '';
 
@@ -288,10 +290,6 @@ class t3lib_userAuth {
 			}
 		}
 
-			// If any redirection (inclusion of file) then it will happen in this function
-		if (!$this->userid && $this->auth_url) { // if no userid AND an include-document for login is given
-			$this->redirect();
-		}
 			// Set all posible headers that could ensure that the script is not cached on the client-side
 		if ($this->sendNoCacheHeaders) {
 			header('Expires: 0');
@@ -1331,20 +1329,6 @@ class t3lib_userAuth {
 			'ses_tstamp < ' . intval($GLOBALS['EXEC_TIME'] - ($this->gc_time)) .
 			' AND ses_name = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($this->name, $this->session_table)
 		);
-	}
-
-	/**
-	 * Redirect to somewhere (obsolete).
-	 *
-	 * @return	void
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6.
-	 * @obsolete
-	 * @ignore
-	 */
-	function redirect() {
-		t3lib_div::logDeprecatedFunction();
-		include ($this->auth_include);
-		exit;
 	}
 
 	/**

@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2009-2010 Steffen Kamper <info@sk-typo3.de>
+*  (c) 2009-2011 Steffen Kamper <info@sk-typo3.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -64,10 +64,14 @@ Ext.ux.TYPO3.loginRefresh = Ext.extend(Ext.util.Observable, {
 								Ext.MessageBox.hide();
 							}
 						}
-						if (result.login.timed_out && Ext.getCmp("loginformWindow")) {
+						if ((result.login.timed_out || result.login.will_time_out) && Ext.getCmp("loginformWindow")) {
 							Ext.getCmp("login_username").value = TYPO3.configuration.username;
 							this.stopTimer();
-							this.progressWindow.show();
+							if (result.login.timed_out) {
+								this.showLoginForm();
+							} else {
+								this.progressWindow.show();
+							}
 						}
 					},
 					failure: function() {
@@ -208,27 +212,8 @@ Ext.ux.TYPO3.loginRefresh = Ext.extend(Ext.util.Observable, {
 				duration: 30000,
 				increment: 32,
 				text: String.format(TYPO3.LLL.core.refresh_login_countdown, '30'),
-				fn: function(win){
-					if (TYPO3.configuration.showRefreshLoginPopup) {
-						//log off for sure
-						Ext.Ajax.request({
-							url: "ajax.php",
-							params: {
-								"ajaxID": "BackendLogin::logout"
-							},
-							method: "GET",
-							scope: this,
-							success: function(response, opts) {
-								TYPO3.loginRefresh.showLoginPopup();
-							},
-							failure: function(response, opts) {
-								alert("something went wrong");
-							}
-						});
-					} else {
-						Ext.getCmp("loginRefreshWindow").hide();
-						Ext.getCmp("loginformWindow").show();
-					}
+				fn: function() {
+					TYPO3.loginRefresh.showLoginForm();
 				}
 			});
 
@@ -245,6 +230,29 @@ Ext.ux.TYPO3.loginRefresh = Ext.extend(Ext.util.Observable, {
 		this.loginRefreshWindow.on('close', function(){
 			TYPO3.loginRefresh.startTimer();
 		});
+	},
+
+	showLoginForm: function() {
+		if (TYPO3.configuration.showRefreshLoginPopup) {
+			//log off for sure
+			Ext.Ajax.request({
+				url: "ajax.php",
+				params: {
+				"ajaxID": "BackendLogin::logout"
+			},
+			method: "GET",
+			scope: this,
+			success: function(response, opts) {
+				TYPO3.loginRefresh.showLoginPopup();
+			},
+			failure: function(response, opts) {
+				alert("something went wrong");
+			}
+			});
+		} else {
+			Ext.getCmp("loginRefreshWindow").hide();
+			Ext.getCmp("loginformWindow").show();
+		}
 	},
 
 	showLoginPopup: function() {
@@ -298,6 +306,7 @@ Ext.ux.TYPO3.loginRefresh = Ext.extend(Ext.util.Observable, {
 						// User is logged in
 						Ext.getCmp("loginformWindow").hide();
 						TYPO3.loginRefresh.startTimer();
+						TYPO3.loginRefresh.refreshTokens(result.accessToken);
 					} else {
 						// TODO: add failure to notification system instead of alert
 						Ext.Msg.alert(TYPO3.LLL.core.refresh_login_failed, TYPO3.LLL.core.refresh_login_failed_message);
@@ -328,6 +337,97 @@ Ext.ux.TYPO3.loginRefresh = Ext.extend(Ext.util.Observable, {
 		} else {
 			this.submitForm();
 		}
+	},
+
+	getOutdatedTokens: function() {
+		var tokens = [];
+		var searchTokenPlaces = [top, top.content.document];
+
+		if (top.nav instanceof TYPO3.iframePanel) {
+			searchTokenPlaces.push(top.nav.getIframe());
+		}
+
+		Ext.each(searchTokenPlaces, function(searchPlace) {
+			var links = searchPlace.Ext.query('a[href*=formToken]');
+			Ext.each(links, function(linkTag) {
+				tokens.push(Ext.urlDecode(linkTag.href).formToken);
+			});
+
+			var formFields = searchPlace.Ext.query("form input[name=formToken]");
+			Ext.each(formFields, function(inputField) {
+				tokens.push(inputField.value);
+			});
+
+			var linksOnclick = searchPlace.Ext.query('a[onclick*=formToken]');
+			Ext.each(linksOnclick, function(linkTag) {
+				tokens.push(linkTag.attributes.onclick.value.match(/&formToken=([^&]*)&/).pop());
+			});
+
+			if (Ext.isString(searchPlace.TYPO3.ExtDirectToken)) {
+				tokens.push(searchPlace.TYPO3.ExtDirectToken);
+			}
+
+		});
+
+		return tokens;
+	},
+
+	replaceOutdatedTokens: function(newTokens) {
+		var searchTokenPlaces = [top, top.content.document];
+
+		if (top.nav instanceof TYPO3.iframePanel) {
+			searchTokenPlaces.push(top.nav.getIframe());
+		}
+
+		Ext.each(searchTokenPlaces, function(searchPlace) {
+			var links = searchPlace.Ext.query('a[href*=formToken]');
+			Ext.each(links, function(linkTag) {
+				var url = Ext.urlDecode(linkTag.href);
+				url.formToken = newTokens[url.formToken];
+				linkTag.href = unescape(Ext.urlEncode(url));
+			});
+
+			var formFields = searchPlace.Ext.query("form input[name=formToken]");
+			Ext.each(formFields, function(inputField) {
+				inputField.value = newTokens[inputField.value];
+			});
+
+			var linksOnclick = searchPlace.Ext.query('a[onclick*=formToken]');
+			Ext.each(linksOnclick, function(linkTag) {
+				var token = linkTag.attributes.onclick.value.match(/&formToken=([^&]*)&/).pop();
+				linkTag.attributes.onclick.value = linkTag.attributes.onclick.value.replace(new RegExp(token), newTokens[token]);
+			});
+
+			if (Ext.isString(searchPlace.TYPO3.ExtDirectToken)) {
+				searchPlace.TYPO3.ExtDirectToken = newTokens[searchPlace.TYPO3.ExtDirectToken];
+			}
+		});
+	},
+
+	refreshTokens: function(accessToken) {
+		Ext.Ajax.request({
+			url: "ajax.php",
+			params: {
+				"ajaxID": "BackendLogin::refreshTokens",
+				"accessToken": accessToken,
+				"tokens": Ext.encode(this.getOutdatedTokens())
+			},
+			method: "POST",
+			scope: this,
+			success: function(response, opts) {
+				var result = Ext.util.JSON.decode(response.responseText);
+				TYPO3.loginRefresh.replaceOutdatedTokens(result.newTokens);
+			},
+			failure: function(response, opts) {
+				TYPO3.Flashmessage.display(
+						TYPO3.Severity.error,
+						'Refresh tokens',
+						'Refreshing tokens after relogin failed. Please reload the backend.',
+						30
+					);
+			}
+
+		});
 	}
 });
 

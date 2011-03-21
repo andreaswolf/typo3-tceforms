@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2010 Ernesto Baschny <ernst@cron-it.de>
+*  (c) 2010-2011 Ernesto Baschny <ernst@cron-it.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -68,7 +68,15 @@ class tx_coreupdates_flagsfromsprite extends Tx_Install_Updates_Base {
 			$sql = 'UPDATE sys_language SET flag=REPLACE(flag, \'.gif\', \'\') WHERE flag LIKE \'%.gif\'';
 			$res = $GLOBALS['TYPO3_DB']->sql_query($sql);
 			$dbQueries[] = $sql;
+			if ($GLOBALS['TYPO3_DB']->sql_error()) {
+				$customMessages = 'SQL-ERROR: ' . htmlspecialchars($GLOBALS['TYPO3_DB']->sql_error());
+			} else {
+				$result = TRUE;
+			}
 
+			$sql = 'UPDATE sys_language SET flag=\'multiple\' WHERE flag=\'multi-language\'';
+			$res = $GLOBALS['TYPO3_DB']->sql_query($sql);
+			$dbQueries[] = $sql;
 			if ($GLOBALS['TYPO3_DB']->sql_error()) {
 				$customMessages = 'SQL-ERROR: ' . htmlspecialchars($GLOBALS['TYPO3_DB']->sql_error());
 			} else {

@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -87,7 +87,7 @@
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @package TYPO3
  * @subpackage t3lib
- * @see	t3lib_tsparser.php, t3lib_matchcondition.php
+ * @see	t3lib_tsparser, t3lib_matchcondition_abstract
  */
 class t3lib_TStemplate {
 
@@ -935,18 +935,6 @@ class t3lib_TStemplate {
 	}
 
 	/**
-	 * Searching TypoScript code text (for constants, config (Setup) and editorcfg) for include instructions and does the inclusion if needed.
-	 *
-	 * @return	void
-	 * @deprecated since TYPO3 4.4 - Method name misspelled. Use "processIncludes" instead! This function will be removed in TYPO3 4.6.
-	 * @see t3lib_TSparser, processIncludes()
-	 */
-	public function procesIncludes() {
-		t3lib_div::logDeprecatedFunction();
-		$this->processIncludes();
-	}
-
-	/**
 	 * Searching TypoScript code text (for constants, config (Setup) and editorcfg)
 	 * for include instructions and does the inclusion of external TypoScript files
 	 * if needed.
@@ -1086,7 +1074,6 @@ class t3lib_TStemplate {
 	 * @param	integer		The number of items for which to generated individual TypoScript arrays
 	 * @return	array		The individualized TypoScript array.
 	 * @see tslib_cObj::IMGTEXT(), tslib_menu::procesItemStates()
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=289&cHash=6604390b37
 	 */
 	function splitConfArray($conf, $splitCount) {
 
@@ -1259,25 +1246,6 @@ class t3lib_TStemplate {
 			}
 		}
 		return $outFile;
-	}
-
-	/**
-	 * CheckFile runs through the $menuArr and checks every file-reference in $name
-	 * (Not used anywhere)
-	 *
-	 * @param	string		Property name in the menu array
-	 * @param	array		Menu array to traverse
-	 * @return	array		Modified menu array
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6.
-	 * @internal
-	 */
-	function checkFile($name, $menuArr) {
-		t3lib_div::logDeprecatedFunction();
-
-		foreach ($menuArr as $aKey => $value) {
-			$menuArr[$aKey][$name] = $this->getFileName($menuArr[$aKey][$name]);
-		}
-		return $menuArr;
 	}
 
 	/**

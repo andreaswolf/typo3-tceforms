@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2005-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2005-2011 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,10 +29,7 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-HTMLArea.RemoveFormat = HTMLArea.Plugin.extend({
-	constructor: function(editor, pluginName) {
-		this.base(editor, pluginName);
-	},
+HTMLArea.RemoveFormat = Ext.extend(HTMLArea.Plugin, {
 	/*
 	 * This function gets called by the class constructor
 	 */
@@ -41,7 +38,7 @@ HTMLArea.RemoveFormat = HTMLArea.Plugin.extend({
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: '2.1',
+			version		: '2.2',
 			developer	: 'Stanislas Rolland',
 			developerUrl	: 'http://www.sjbr.ca/',
 			copyrightOwner	: 'Stanislas Rolland',
@@ -223,7 +220,7 @@ HTMLArea.RemoveFormat = HTMLArea.Plugin.extend({
 			}
 			if (params['formatting']) {
 					// Remove font, b, strong, i, em, u, strike, span and other inline tags
-				html = html.replace(/<\/?(abbr|acronym|b[^a-zA-Z]|big|cite|code|em[^a-zA-Z]|font|i[^a-zA-Z]|q|s[^a-zA-Z]|samp|small|span|strike|strong|sub|sup|tt|u[^a-zA-Z]|var)[^>]*>/gi, "");
+				html = html.replace(/<\/?(abbr|acronym|b|big|cite|code|em|font|i|q|s|samp|small|span|strike|strong|sub|sup|tt|u|var)(>|[^>a-zA-Z][^>]*>)/gi, '');
 					// Keep tags, strip attributes
 				html = html.replace(/[ \t\n\r]+(style|class|align|cellpadding|cellspacing|frame|bgcolor)=\"[^>\"]*\"/gi, "");
 			}

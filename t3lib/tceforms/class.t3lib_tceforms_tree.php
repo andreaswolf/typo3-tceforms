@@ -2,8 +2,8 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Steffen Ritter <info@steffen-ritter.net>
- *  (c) 2010 Steffen Kamper <steffen@typo3.org>
+ *  (c) 2010-2011 Steffen Ritter <info@steffen-ritter.net>
+ *  (c) 2010-2011 Steffen Kamper <steffen@typo3.org>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -44,7 +44,7 @@ class t3lib_TCEforms_Tree {
 
 	/**
 	 * Constructor which sets the tceForms.
-	 * 
+	 *
 	 * @param t3lib_TCEforms $tceForms
 	 *
 	 */
@@ -65,8 +65,13 @@ class t3lib_TCEforms_Tree {
 	 * @return string The HTML code for the TCEform field
 	 */
 	public function renderField($table, $field, $row, &$PA, $config, $possibleSelectboxItems, $noMatchLabel) {
-		$valueArray = explode(',', $row[$field]);
+		$valueArray = array();
 		$selectedNodes = array();
+
+                if($PA['itemFormElValue'] != 0) {
+                    $valueArray = explode(',', $PA['itemFormElValue']);
+                }
+
 		if (count($valueArray)) {
 			foreach ($valueArray as $selectedValue) {
 				$temp = explode('|', $selectedValue);
@@ -193,7 +198,7 @@ class t3lib_TCEforms_Tree {
 
 		$formField = '
 			<div class="typo3-tceforms-tree">
-				<input type="hidden" name="' . $PA['itemFormElName'] . '" id="treeinput' . $id . '" value="' . $row[$field] . '" />
+				<input type="hidden" name="' . htmlspecialchars($PA['itemFormElName']) . '" id="treeinput' . $id . '" value="' . htmlspecialchars($PA['itemFormElValue']) . '" />
 			</div>
 			<div id="tree_' . $id . '">
 

@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2009-2010 Steffen Kamper (info@sk-typo3.de)
+ *  (c) 2009-2011 Steffen Kamper (info@sk-typo3.de)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -111,7 +111,7 @@ class t3lib_PageRenderer implements t3lib_Singleton {
 	protected $addExtJS = FALSE;
 	protected $addExtCore = FALSE;
 	protected $extJSadapter = 'ext/ext-base.js';
-
+	protected $extDirectCodeAdded = FALSE;
 
 	protected $enableExtJsDebug = FALSE;
 	protected $enableExtCoreDebug = FALSE;
@@ -138,7 +138,6 @@ class t3lib_PageRenderer implements t3lib_Singleton {
 		// SVG library
 	protected $addSvg = FALSE;
 	protected $enableSvgDebug = FALSE;
-
 
 		// used by BE modules
 	public $backPath;
@@ -942,15 +941,69 @@ class t3lib_PageRenderer implements t3lib_Singleton {
 	/**
 	 * Adds the ExtDirect code
 	 *
+	 * @param array $filterNamespaces  limit the output to defined namespaces. If empty, all namespaces are generated
 	 * @return void
 	 */
-	public function addExtDirectCode() {
+	public function addExtDirectCode(array $filterNamespaces = array()) {
+		if ($this->extDirectCodeAdded) {
+			return;
+		}
+		$this->extDirectCodeAdded = TRUE;
+
+		if (count($filterNamespaces) === 0) {
+			$filterNamespaces = array('TYPO3');
+		}
+
+			// for ExtDirect we need flash message support
+		$this->addJsFile(t3lib_div::resolveBackPath($this->backPath . '../t3lib/js/extjs/ux/flashmessages.js'));
+
+			// add language labels for ExtDirect
+		if (TYPO3_MODE === 'FE') {
+			$this->addInlineLanguageLabelArray(array(
+				'extDirect_timeoutHeader' => $GLOBALS['TSFE']->sL('LLL:EXT:lang/locallang_misc.xml:extDirect_timeoutHeader'),
+				'extDirect_timeoutMessage' => $GLOBALS['TSFE']->sL('LLL:EXT:lang/locallang_misc.xml:extDirect_timeoutMessage'),
+			));
+		} else {
+			$this->addInlineLanguageLabelArray(array(
+				'extDirect_timeoutHeader' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_misc.xml:extDirect_timeoutHeader'),
+				'extDirect_timeoutMessage' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_misc.xml:extDirect_timeoutMessage'),
+			));
+		}
+
+		$token = $api = '';
+		if (TYPO3_MODE === 'BE') {
+			$formprotection = t3lib_formprotection_Factory::get();
+			$token = $formprotection->generateToken('extDirect');
+		}
+
+		/** @var $extDirect t3lib_extjs_ExtDirectApi */
+		$extDirect = t3lib_div::makeInstance('t3lib_extjs_ExtDirectApi');
+		$api = $extDirect->getApiPhp($filterNamespaces);
+		if ($api) {
+			$this->addJsInlineCode('TYPO3ExtDirectAPI', $api);
+		}
 			// Note: we need to iterate thru the object, because the addProvider method
 			// does this only with multiple arguments
-		$this->addExtOnReadyCode(
-			'for (var api in Ext.app.ExtDirectAPI) {
-				Ext.Direct.addProvider(Ext.app.ExtDirectAPI[api]);
-			}
+		$this->addExtOnReadyCode('
+			(function() {
+				TYPO3.ExtDirectToken = "' . $token . '-extDirect";
+				for (var api in Ext.app.ExtDirectAPI) {
+					var provider = Ext.Direct.addProvider(Ext.app.ExtDirectAPI[api]);
+					provider.on("beforecall", function(provider, transaction, meta) {
+						if (transaction.data) {
+							transaction.data[transaction.data.length] = TYPO3.ExtDirectToken;
+						} else {
+							transaction.data = [TYPO3.ExtDirectToken];
+						}
+					});
+
+					provider.on("call", function(provider, transaction, meta) {
+						if (transaction.isForm) {
+							transaction.params.securityToken = TYPO3.ExtDirectToken;
+						}
+					});
+				}
+			})();
 
 			var extDirectDebug = function(message, header, group) {
 				var TYPO3ViewportInstance = null;
@@ -971,19 +1024,42 @@ class t3lib_PageRenderer implements t3lib_Singleton {
 			};
 
 			Ext.Direct.on("exception", function(event) {
-				var backtrace = "";
-				if (event.where) {
-					backtrace = "<p style=\"margin-top: 20px;\">" +
-						"<strong>Backtrace:<\/strong><br \/>" +
-						event.where.replace(/#/g, "<br \/>#") +
-						"<\/p>";
-				}
+				if (event.code === Ext.Direct.exceptions.TRANSPORT && !event.where) {
+					TYPO3.Flashmessage.display(
+						TYPO3.Severity.error,
+						TYPO3.lang.extDirect_timeoutHeader,
+						TYPO3.lang.extDirect_timeoutMessage,
+						30
+					);
+				} else {
+					var backtrace = "";
+					if (event.code === "parse") {
+						extDirectDebug(
+							"<p>" + event.xhr.responseText + "<\/p>",
+							event.type,
+							"ExtDirect - Exception"
+						);
+					} else if (event.code === "router") {
+						TYPO3.Flashmessage.display(
+							TYPO3.Severity.error,
+							event.code,
+							event.message,
+							30
+						);
+					} else if (event.where) {
+						backtrace = "<p style=\"margin-top: 20px;\">" +
+							"<strong>Backtrace:<\/strong><br \/>" +
+							event.where.replace(/#/g, "<br \/>#") +
+							"<\/p>";
+						extDirectDebug(
+							"<p>" + event.message + "<\/p>" + backtrace,
+							event.method,
+							"ExtDirect - Exception"
+						);
+					}
 
-				extDirectDebug(
-					"<p>" + event.message + "<\/p>" + backtrace,
-					event.method,
-					"ExtDirect - Exception"
-				);
+
+				}
 			});
 
 			Ext.Direct.on("event", function(event, provider) {

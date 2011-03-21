@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -145,15 +145,17 @@ class t3lib_tsStyleConfig extends t3lib_tsparser_ext {
 	}
 
 	/**
-	 * [Describe function...]
+	 * Get the form for extension configuration
 	 *
-	 * @param	[type]		$cat: ...
-	 * @param	[type]		$theConstants: ...
-	 * @param	[type]		$script: ...
-	 * @param	[type]		$addFields: ...
-	 * @return	[type]		...
+	 * @param  string  $cat
+	 * @param  array $theConstants
+	 * @param  string  $script
+	 * @param  string $addFields
+	 * @param  string $extKey
+	 * @param  bool  Adds opening <form> tag to the ouput, if TRUE
+	 * @return  string the form
 	 */
-	function ext_getForm($cat, $theConstants, $script = "", $addFields = "") {
+	function ext_getForm($cat, $theConstants, $script = "", $addFields = "", $extKey = "", $addFormTag = TRUE) {
 		$this->ext_makeHelpInformationForCategory($cat);
 		$printFields = trim($this->ext_printFields($theConstants, $cat));
 
@@ -163,10 +165,14 @@ class t3lib_tsStyleConfig extends t3lib_tsparser_ext {
 				document.' . $this->ext_CEformName . '.action = "' . t3lib_div::linkThisScript() . '#"+aname;
 			}
 		');
-		$content .= '<form action="' . htmlspecialchars($script ? $script : t3lib_div::linkThisScript()) . '" name="' . $this->ext_CEformName . '" method="post" enctype="' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['form_enctype'] . '">';
+
+		if ($addFormTag) {
+			$content .= '<form action="' . htmlspecialchars($script ? $script : t3lib_div::linkThisScript()) . '" name="' . $this->ext_CEformName . '" method="post" enctype="' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['form_enctype'] . '">';
+		}
 		$content .= $addFields;
 		$content .= $printFields;
-		$content .= '<input type="Submit" name="submit" value="Update" />';
+		$content .= '<input type="submit" name="submit" value="' .
+				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_tsfe.xml:update', TRUE) . '" id="configuration-submit-' . htmlspecialchars($extKey) . '" />';
 
 		$example = $this->ext_displayExample();
 		$content .= $example ? '<hr/>' . $example : "";

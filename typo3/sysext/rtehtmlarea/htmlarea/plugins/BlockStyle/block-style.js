@@ -1,7 +1,7 @@
 /***************************************************************
 *  Copyright notice
 *
-* (c) 2007-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
+* (c) 2007-2011 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -31,10 +31,7 @@
  *
  * TYPO3 SVN ID: $Id$
  */
-HTMLArea.BlockStyle = HTMLArea.Plugin.extend({
-	constructor : function(editor, pluginName) {
-		this.base(editor, pluginName);
-	},
+HTMLArea.BlockStyle = Ext.extend(HTMLArea.Plugin, {
 	/*
 	 * This function gets called by the class constructor
 	 */
@@ -90,7 +87,7 @@ HTMLArea.BlockStyle = HTMLArea.Plugin.extend({
 		 * Registering plugin "About" information
 		 */
 		var pluginInformation = {
-			version		: '2.0',
+			version		: '2.1',
 			developer	: 'Stanislas Rolland',
 			developerUrl	: 'http://www.sjbr.ca/',
 			copyrightOwner	: 'Stanislas Rolland',
@@ -219,6 +216,11 @@ HTMLArea.BlockStyle = HTMLArea.Plugin.extend({
 			tags: this.tags,
 			editor: this.editor
 		});
+			// Disable the combo while initialization completes
+		var dropDown = this.getButton('BlockStyle');
+		if (dropDown) {
+			dropDown.setDisabled(true);
+		}
 			// Monitor css parsing being completed
 		this.editor.iframe.mon(this.blockStyles, 'HTMLAreaEventCssParsingComplete', this.onCssParsingComplete, this);
 		this.blockStyles.initiateParsing();
@@ -229,16 +231,16 @@ HTMLArea.BlockStyle = HTMLArea.Plugin.extend({
 	onCssParsingComplete: function () {
 		if (this.blockStyles.isReady) {
 			this.cssArray = this.blockStyles.getClasses();
-		}
-		if (this.getEditorMode() === 'wysiwyg' && this.editor.isEditable()) {
-			this.updateValue('BlockStyle');
+			if (this.getEditorMode() === 'wysiwyg' && this.editor.isEditable()) {
+				this.updateValue('BlockStyle');
+			}
 		}
 	},
 	/*
 	 * This handler gets called when the toolbar is being updated
 	 */
 	onUpdateToolbar: function (button, mode, selectionEmpty, ancestors) {
-		if (mode === 'wysiwyg' && this.editor.isEditable()) {
+		if (mode === 'wysiwyg' && this.editor.isEditable() && this.blockStyles.isReady) {
 			this.updateValue(button.itemId);
 		}
 	},

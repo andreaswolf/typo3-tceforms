@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -560,7 +560,7 @@ class t3lib_clipboard {
 			if ($this->fileMode) {
 				$str = $GLOBALS['TBE_TEMPLATE']->dfw($str);
 			} else {
-				if (t3lib_extMgm::isLoaded('list')) {
+				if (t3lib_extMgm::isLoaded('recordlist')) {
 					$str = '<a href="' . htmlspecialchars(
 						t3lib_BEfunc::getModuleUrl(
 							'web_list',
@@ -636,7 +636,8 @@ class t3lib_clipboard {
 				'&vC=' . $GLOBALS['BE_USER']->veriCode() .
 				'&prErr=1&uPT=1' .
 				'&CB[paste]=' . rawurlencode($table . '|' . $uid) .
-				'&CB[pad]=' . $this->current;
+				'&CB[pad]=' . $this->current .
+				t3lib_BEfunc::getUrlToken('tceAction');
 		return $rU;
 	}
 
@@ -653,7 +654,8 @@ class t3lib_clipboard {
 				'&vC=' . $GLOBALS['BE_USER']->veriCode() .
 				'&prErr=1&uPT=1' .
 				'&CB[delete]=1' .
-				'&CB[pad]=' . $this->current;
+				'&CB[pad]=' . $this->current .
+				t3lib_BEfunc::getUrlToken('tceAction');
 		return $rU;
 	}
 

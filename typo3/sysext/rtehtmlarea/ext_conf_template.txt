@@ -10,12 +10,6 @@ noSpellCheckLanguages = ja,km,ko,lo,th,zh,b5,gb
   # cat=basic; type=string; label=Aspell path: The server path where Aspell is installed.
 AspellDirectory = /usr/bin/aspell
 
-  # cat=basic; type=string; label=Default Aspell dictionary: The default dictionary to be used by the htmlArea SpellChecker plugin. DEPRECATED. Use Page TSConfig properties defaultContentLanguage and buttons.spellcheck.dictionaries.[language-iso-code].defaultValue.
-defaultDictionary = en
-
-  # cat=basic; type=string; label=List of Aspell dictionaries: The list of dictionaries available to the htmlArea SpellChecker plugin. DEPRECATED. Use Page TSConfig properties buttons.spellcheck.dictionaries.items and restrictToItems.
-dictionaryList  = en
-
   # cat=basic/enable/100; type=options[Minimal (Most features disabled. Administrator needs to enable them using TypoScript. For advanced administrators only.),Typical (Most commonly used features are enabled. Select this option if you are unsure which one to use.),Demo (Show-off configuration. Includes pre-configured styles. Not for production environments.)]; label=Default configuration settings
 defaultConfiguration = Typical (Most commonly used features are enabled. Select this option if you are unsure which one to use.)
 
@@ -31,14 +25,8 @@ allowStyleAttribute = 1
   # cat=basic/enable/140; type=boolean; label=Enable links accessibility icons: If set, accessibility icons will be added in front of links.
 enableAccessibilityIcons = 0
 
-  # cat=basic/enable/130; type=boolean; label=Enable the DAM media browser: If set and if the DAM extension is installed, the DAM media browser will be used. DEPRECATED for DAM 1.1+. Use DAM EM setting instead.
-enableDAMBrowser = 0
-
   # cat=basic/enable/170; type=boolean; label=Force Aspell command mode: If set, the spellchecker will use the Aspell command interface. Presumably. PHP is compiled with pspell, but with an old version of Aspell. If set, PHP safe mode should NOT be enabled.
 forceCommandMode = 0
-
-  # cat=basic/enable/190; type=boolean; label=Enable troubleshooting mode: If set, a troubleshooting log will be displayed below the editing area.
-enableDebugMode = 0
 
   # cat=basic/enable/180; type=boolean; label=Enable compressed scripts: If set, the compressed version of the editor scripts will be used.
 enableCompressedScripts = 1

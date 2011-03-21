@@ -2,7 +2,7 @@
 /***************************************************************
  * Copyright notice
  *
- * (c) 2010 Stefan Galinski <stefan.galinski@gmail.com>
+ * (c) 2010-2011 Stefan Galinski <stefan.galinski@gmail.com>
  *
  * All rights reserved
  *
@@ -47,9 +47,7 @@ class tslib_ExtDirectEid {
 	 * @return void
 	 */
 	public function routeAction() {
-		$GLOBALS['LANG'] = t3lib_div::makeInstance('language');
-		$GLOBALS['LANG']->init();
-
+		tslib_eidtools::initLanguage();
 		tslib_eidtools::connectDB();
 
 		$ajaxID = t3lib_div::_GP('action');

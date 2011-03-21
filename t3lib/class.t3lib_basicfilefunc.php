@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -494,29 +494,6 @@ class t3lib_basicFileFunctions {
 		}
 			// Strip trailing dots and return
 		return preg_replace('/\.*$/', '', $cleanFileName);
-	}
-
-	/**
-	 * Formats an integer, $sizeInBytes, to Mb or Kb or just bytes
-	 *
-	 * @param	integer		Bytes to be formated
-	 * @return	string		Formatted with M,K or &nbsp;&nbsp; appended.
-	 * @deprecated since at least TYPO3 4.2, will be removed in TYPO3 4.6 - Use t3lib_div::formatSize() instead
-	 */
-	function formatSize($sizeInBytes) {
-		t3lib_div::logDeprecatedFunction();
-
-		if ($sizeInBytes > 900) {
-			if ($sizeInBytes > 900000) { // MB
-				$val = $sizeInBytes / (1024 * 1024);
-				return number_format($val, (($val < 20) ? 1 : 0), '.', '') . ' M';
-			} else { // KB
-				$val = $sizeInBytes / (1024);
-				return number_format($val, (($val < 20) ? 1 : 0), '.', '') . ' K';
-			}
-		} else { // Bytes
-			return $sizeInBytes . '&nbsp;&nbsp;';
-		}
 	}
 }
 

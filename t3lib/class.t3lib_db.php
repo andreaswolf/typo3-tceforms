@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2004-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 2004-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -131,7 +131,7 @@ class t3lib_DB {
 
 
 		// Debug:
-	var $debugOutput = FALSE; // Set "TRUE" if you want database errors outputted.
+	var $debugOutput = FALSE; // Set "TRUE" or "1" if you want database errors outputted. Set to "2" if you also want successful database actions outputted.
 	var $debug_lastBuiltQuery = ''; // Internally: Set to last built query (not necessarily executed...)
 	var $store_lastBuiltQuery = FALSE; // Set "TRUE" if you want the last built query to be stored in $debug_lastBuiltQuery independent of $this->debugOutput
 	var $explainOutput = 0; // Set this to 1 to get queries explained (devIPmask must match). Set the value to 2 to the same but disregarding the devIPmask. There is an alternative option to enable explain output in the admin panel under "TypoScript", which will produce much nicer output, but only works in FE.
@@ -141,6 +141,16 @@ class t3lib_DB {
 
 		// Default character set, applies unless character set or collation are explicitely set
 	var $default_charset = 'utf8';
+
+	/**
+	 * @var t3lib_DB_preProcessQueryHook[]
+	 */
+	protected $preProcessHookObjects = array();
+
+	/**
+	 * @var t3lib_DB_postProcessQueryHook[]
+	 */
+	protected $postProcessHookObjects = array();
 
 
 	/************************************
@@ -171,6 +181,9 @@ class t3lib_DB {
 		if ($this->debugOutput) {
 			$this->debug('exec_INSERTquery');
 		}
+		foreach ($this->postProcessHookObjects as $hookObject) {
+			$hookObject->exec_INSERTquery_postProcessAction($table, $fields_values, $no_quote_fields, $this);
+		}
 		return $res;
 	}
 
@@ -187,6 +200,9 @@ class t3lib_DB {
 		$res = mysql_query($this->INSERTmultipleRows($table, $fields, $rows, $no_quote_fields), $this->link);
 		if ($this->debugOutput) {
 			$this->debug('exec_INSERTmultipleRows');
+		}
+		foreach ($this->postProcessHookObjects as $hookObject) {
+			$hookObject->exec_INSERTmultipleRows_postProcessAction($table, $fields, $rows, $no_quote_fields, $this);
 		}
 		return $res;
 	}
@@ -207,6 +223,9 @@ class t3lib_DB {
 		if ($this->debugOutput) {
 			$this->debug('exec_UPDATEquery');
 		}
+		foreach ($this->postProcessHookObjects as $hookObject) {
+			$hookObject->exec_UPDATEquery_postProcessAction($table, $where, $fields_values, $no_quote_fields, $this);
+		}
 		return $res;
 	}
 
@@ -222,6 +241,9 @@ class t3lib_DB {
 		$res = mysql_query($this->DELETEquery($table, $where), $this->link);
 		if ($this->debugOutput) {
 			$this->debug('exec_DELETEquery');
+		}
+		foreach ($this->postProcessHookObjects as $hookObject) {
+			$hookObject->exec_DELETEquery_postProcessAction($table, $where, $this);
 		}
 		return $res;
 	}
@@ -413,6 +435,9 @@ class t3lib_DB {
 		if ($this->debugOutput) {
 			$this->debug('exec_TRUNCATEquery');
 		}
+		foreach ($this->postProcessHookObjects as $hookObject) {
+			$hookObject->exec_TRUNCATEquery_postProcessAction($table, $this);
+		}
 		return $res;
 	}
 
@@ -437,6 +462,9 @@ class t3lib_DB {
 			// Table and fieldnames should be "SQL-injection-safe" when supplied to this
 			// function (contrary to values in the arrays which may be insecure).
 		if (is_array($fields_values) && count($fields_values)) {
+			foreach ($this->preProcessHookObjects as $hookObject) {
+				$hookObject->INSERTquery_preProcessAction($table, $fields_values, $no_quote_fields, $this);
+			}
 
 				// quote and escape values
 			$fields_values = $this->fullQuoteArray($fields_values, $table, $no_quote_fields);
@@ -467,6 +495,10 @@ class t3lib_DB {
 			// Table and fieldnames should be "SQL-injection-safe" when supplied to this
 			// function (contrary to values in the arrays which may be insecure).
 		if (count($rows)) {
+			foreach ($this->preProcessHookObjects as $hookObject) {
+				$hookObject->INSERTmultipleRows_preProcessAction($table, $fields, $rows, $no_quote_fields, $this);
+			}
+
 				// Build query:
 			$query = 'INSERT INTO ' . $table .
 					' (' . implode(', ', $fields) . ') VALUES ';
@@ -503,6 +535,10 @@ class t3lib_DB {
 			// Table and fieldnames should be "SQL-injection-safe" when supplied to this
 			// function (contrary to values in the arrays which may be insecure).
 		if (is_string($where)) {
+			foreach ($this->preProcessHookObjects as $hookObject) {
+				$hookObject->UPDATEquery_preProcessAction($table, $where, $fields_values, $no_quote_fields, $this);
+			}
+
 			$fields = array();
 			if (is_array($fields_values) && count($fields_values)) {
 
@@ -540,6 +576,9 @@ class t3lib_DB {
 	 */
 	function DELETEquery($table, $where) {
 		if (is_string($where)) {
+			foreach ($this->preProcessHookObjects as $hookObject) {
+				$hookObject->DELETEquery_preProcessAction($table, $where, $this);
+			}
 
 				// Table and fieldnames should be "SQL-injection-safe" when supplied to this function
 			$query = 'DELETE FROM ' . $table .
@@ -622,6 +661,10 @@ class t3lib_DB {
 	 * @return	string		Full SQL query for TRUNCATE TABLE
 	 */
 	public function TRUNCATEquery($table) {
+		foreach ($this->preProcessHookObjects as $hookObject) {
+			$hookObject->TRUNCATEquery_preProcessAction($table, $this);
+		}
+
 			// Table should be "SQL-injection-safe" when supplied to this function
 			// Build basic query:
 		$query = 'TRUNCATE TABLE ' . $table;
@@ -651,7 +694,7 @@ class t3lib_DB {
 	public function listQuery($field, $value, $table) {
 		$value = (string) $value;
 		if (strpos(',', $value) !== FALSE) {
-			throw new InvalidArgumentException('$value must not contain a comma (,) in $this->listQuery() !');
+			throw new InvalidArgumentException('$value must not contain a comma (,) in $this->listQuery() !', 1294585862);
 		}
 		$pattern = $this->quoteStr($value, $table);
 		$where = 'FIND_IN_SET(\'' . $pattern . '\',' . $field . ')';
@@ -935,27 +978,6 @@ class t3lib_DB {
 	 * (For use in your applications)
 	 *
 	 **************************************/
-
-	/**
-	 * Executes query
-	 * mysql() wrapper function
-	 * Usage count/core: 0
-	 *
-	 * @param	string		Database name
-	 * @param	string		Query to execute
-	 * @return	pointer		Result pointer / DBAL object
-	 * @deprecated since TYPO3 3.6, will be removed in TYPO3 4.6
-	 * @see sql_query()
-	 */
-	function sql($db, $query) {
-		t3lib_div::logDeprecatedFunction();
-
-		$res = mysql_query($query, $this->link);
-		if ($this->debugOutput) {
-			$this->debug('sql', $query);
-		}
-		return $res;
-	}
 
 	/**
 	 * Executes query
@@ -1404,6 +1426,25 @@ class t3lib_DB {
 				1270853884
 			);
 		}
+
+			// Prepare user defined objects (if any) for hooks which extend query methods
+		$this->preProcessHookObjects = array();
+		$this->postProcessHookObjects = array();
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_db.php']['queryProcessors'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_db.php']['queryProcessors'] as $classRef) {
+				$hookObject = t3lib_div::getUserObj($classRef);
+
+				if (!($hookObject instanceof t3lib_DB_preProcessQueryHook || $hookObject instanceof t3lib_DB_postProcessQueryHook)) {
+					throw new UnexpectedValueException('$hookObject must either implement interface t3lib_DB_preProcessQueryHook or interface t3lib_DB_postProcessQueryHook', 1299158548);
+				}
+				if ($hookObject instanceof t3lib_DB_preProcessQueryHook) {
+					$this->preProcessHookObjects[] = $hookObject;
+				}
+				if ($hookObject instanceof t3lib_DB_postProcessQueryHook) {
+					$this->postProcessHookObjects[] = $hookObject;
+				}
+			}
+		}
 	}
 
 	/**
@@ -1432,7 +1473,7 @@ class t3lib_DB {
 	function debug($func, $query = '') {
 
 		$error = $this->sql_error();
-		if ($error || $this->debugOutput == 2) {
+		if ($error || (int)$this->debugOutput === 2) {
 			debug(
 				array(
 					'caller' => 't3lib_DB::' . $func,

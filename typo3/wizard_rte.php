@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -198,7 +198,8 @@ class SC_wizard_rte {
 
 				// Adding hidden fields:
 			$formContent.= '<input type="hidden" name="redirect" value="'.htmlspecialchars($this->R_URI).'" />
-						<input type="hidden" name="_serialNumber" value="'.md5(microtime()).'" />';
+						<input type="hidden" name="_serialNumber" value="'.md5(microtime()).'" />' .
+						t3lib_TCEforms::getHiddenTokenField('tceAction');
 
 
 				// Finally, add the whole setup:

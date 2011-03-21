@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -85,7 +85,6 @@ $TCA['fe_users'] = array(
 				'size' => '20',
 				'eval' => 'trim',
 				'max' => '50',
-				'checkbox' => '',
 				'softref' => 'substitute'
 			)
 		),
@@ -259,7 +258,6 @@ $TCA['fe_users'] = array(
 				'max' => '20',
 				'eval' => 'date',
 				'default' => '0',
-				'checkbox' => '0'
 			)
 		),
 		'endtime' => array(
@@ -270,7 +268,6 @@ $TCA['fe_users'] = array(
 				'size' => '8',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 				'range' => array(
 					'upper' => mktime(0,0,0,12,31,2020),
@@ -379,7 +376,6 @@ $TCA['fe_groups'] = array(
 				'size' => '20',
 				'eval' => 'trim',
 				'max' => '50',
-				'checkbox' => ''
 			)
 		),
 		'description' => array(
@@ -449,7 +445,6 @@ $TCA['sys_domain'] = array(
 				'type' => 'input',
 				'size' => '35',
 				'max' => '120',
-				'checkbox' => '',
 				'default' => '',
 				'eval' => 'trim',
 				'softref' => 'substitute'
@@ -538,7 +533,6 @@ $TCA['pages_language_overlay'] = array(
 				'size' => '8',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0'
 			)
 		),
@@ -550,7 +544,6 @@ $TCA['pages_language_overlay'] = array(
 				'size' => '8',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 				'range' => array(
 					'upper' => mktime(0,0,0,12,31,2020),
@@ -566,7 +559,6 @@ $TCA['pages_language_overlay'] = array(
 				'size' => '50',
 				'max' => '255',
 				'eval' => 'trim,required',
-				'checkbox' => '',
 			)
 		),
 		'subtitle' => array(
@@ -578,7 +570,6 @@ $TCA['pages_language_overlay'] = array(
 				'size' => '50',
 				'max' => '255',
 				'eval' => 'trim',
-				'checkbox' => '',
 			)
 		),
 		'nav_title' => array(
@@ -590,7 +581,6 @@ $TCA['pages_language_overlay'] = array(
 				'size' => '50',
 				'max' => '255',
 				'eval' => 'trim',
-				'checkbox' => '',
 			)
 		),
 		'keywords' => array(
@@ -628,7 +618,6 @@ $TCA['pages_language_overlay'] = array(
 				'size' => '23',
 				'eval' => 'trim',
 				'max' => '80',
-				'checkbox' => '',
 			)
 		),
 		'author_email' => array(
@@ -640,7 +629,6 @@ $TCA['pages_language_overlay'] = array(
 				'eval' => 'trim',
 				'max' => '80',
 				'softref' => 'email[subst]',
-				'checkbox' => '',
 			)
 		),
 		'media' => array(
@@ -667,7 +655,6 @@ $TCA['pages_language_overlay'] = array(
 				'max' => '255',
 				'eval' => 'trim',
 				'softref' => 'url',
-				'checkbox' => '',
 			)
 		),
 		'urltype' => array(
@@ -930,7 +917,6 @@ $TCA['sys_template'] = array(
 				'size' => '8',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0'
 			)
 		),
@@ -942,7 +928,6 @@ $TCA['sys_template'] = array(
 				'size' => '8',
 				'max' => '20',
 				'eval' => 'date',
-				'checkbox' => '0',
 				'default' => '0',
 				'range' => array(
 					'upper' => mktime(0,0,0,12,31,2020),
@@ -1149,19 +1134,16 @@ $TCA['sys_template'] = array(
 );
 
 // ******************************************************************
-// be_layouts
+// backend_layout
 // ******************************************************************
-/**
- * @todo add lll
- */
-$TCA['be_layouts'] = array(
-	'ctrl' => $TCA['be_layouts']['ctrl'],
+$TCA['backend_layout'] = array(
+	'ctrl' => $TCA['backend_layout']['ctrl'],
 	'interface' => array(
 		'showRecordFieldList' => 'title,config,description,hidden,icon'
 	),
 	'columns' => array(
 		'title' => array(
-			'label' => 'LLL:EXT:cms/locallang_tca.xml:be_layouts.title',
+			'label' => 'LLL:EXT:cms/locallang_tca.xml:backend_layout.title',
 			'config' => array(
 				'type' => 'input',
 				'size' => '25',
@@ -1170,7 +1152,7 @@ $TCA['be_layouts'] = array(
 			)
 		),
 		'description' => array(
-			'label' => 'LLL:EXT:cms/locallang_tca.xml:be_layouts.description',
+			'label' => 'LLL:EXT:cms/locallang_tca.xml:backend_layout.description',
 			'config' => array(
 				'type' => 'text',
 				'rows' => '5',
@@ -1178,7 +1160,7 @@ $TCA['be_layouts'] = array(
 			)
 		),
 		'config' => array(
-			'label' => 'LLL:EXT:cms/locallang_tca.xml:be_layouts.config',
+			'label' => 'LLL:EXT:cms/locallang_tca.xml:backend_layout.config',
 			'config' => array(
 				'type' => 'text',
 				'rows' => '5',
@@ -1186,17 +1168,17 @@ $TCA['be_layouts'] = array(
 				'wizards' => Array(
 					'_PADDING' => 4,
 					0 => Array(
-						'title' => 'LLL:EXT:cms/locallang_tca.xml:be_layouts.wizard',
+						'title' => 'LLL:EXT:cms/locallang_tca.xml:backend_layout.wizard',
 						'type' => 'popup',
-						'icon' => t3lib_extMgm::extRelPath('cms').'layout/wizard_be_layout.png',
-						'script' => t3lib_extMgm::extRelPath('cms').'layout/wizard_be_layout.php',
+						'icon' => t3lib_extMgm::extRelPath('cms').'layout/wizard_backend_layout.png',
+						'script' => t3lib_extMgm::extRelPath('cms').'layout/wizard_backend_layout.php',
 						'JSopenParams' => 'height=800,width=800,status=0,menubar=0,scrollbars=0',
 					),
 				),
 			)
 		),
 		'hidden' => array(
-			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.disable',
+			'label' => 'LLL:EXT:lang/locallang_general.xml:LGL.disable',
 			'exclude' => 1,
 			'config' => array(
 				'type' => 'check',
@@ -1204,7 +1186,7 @@ $TCA['be_layouts'] = array(
 			)
 		),
 		'icon' => array(
-			'label' => 'LLL:EXT:cms/locallang_tca.xml:be_layouts.icon',
+			'label' => 'LLL:EXT:cms/locallang_tca.xml:backend_layout.icon',
 			'exclude' => 1,
 			'config' => array(
 				'type' => 'group',
@@ -1218,9 +1200,7 @@ $TCA['be_layouts'] = array(
 		),
 	),
 	'types' => array(
-		'1' => array('showitem' => '
-			hidden,title;;1;;2-2-2, icon, description, config'
-		)
+		'1' => array('showitem' => 'hidden,title;;1;;2-2-2, icon, description, config')
 	)
 );
 

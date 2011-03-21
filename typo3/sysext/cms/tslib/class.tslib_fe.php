@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -468,19 +468,6 @@
 	}
 
 	/**
-	 * Connect to MySQL database
-	 * May exit after outputting an error message or some JavaScript redirecting to the install tool.
-	 *
-	 * @return	void
-	 * @deprecated since TYPO3 3.8, this function will be removed in TYPO3 4.6, use connectToDB() instead!
-	 */
-	function connectToMySQL()	{
-		t3lib_div::logDeprecatedFunction();
-
-		$this->connectToDB();
-	}
-
-	/**
 	 * Connect to SQL database
 	 * May exit after outputting an error message or some JavaScript redirecting to the install tool.
 	 *
@@ -618,7 +605,6 @@
 		$this->fe_user = t3lib_div::makeInstance('tslib_feUserAuth');
 
 		$this->fe_user->lockIP = $this->TYPO3_CONF_VARS['FE']['lockIP'];
-		$this->fe_user->lockHashKeyWords = $this->TYPO3_CONF_VARS['FE']['lockHashKeyWords'];
 		$this->fe_user->checkPid = $this->TYPO3_CONF_VARS['FE']['checkFeUserPid'];
 		$this->fe_user->lifetime = intval($this->TYPO3_CONF_VARS['FE']['lifetime']);
 		$this->fe_user->checkPid_value = $GLOBALS['TYPO3_DB']->cleanIntList(t3lib_div::_GP('pid'));	// List of pid's acceptable
@@ -711,7 +697,6 @@
 	 * 2) Using hook which enables features like those provided from "simulatestatic" or "realurl" extension (AKA "Speaking URLs")
 	 *
 	 * @return	void
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&cHash=4ad9d7acb4
 	 */
 	function checkAlternativeIdMethods()	{
 		$this->siteScript = t3lib_div::getIndpEnv('TYPO3_SITE_SCRIPT');
@@ -937,7 +922,7 @@
 						$message = 'No pages are found on the rootlevel!';
 						t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
 						header('HTTP/1.0 503 Service Temporarily Unavailable');
-						throw new RuntimeException($message);
+						throw new RuntimeException($message, 1294587207);
 					}
 				}
 			}
@@ -1029,7 +1014,7 @@
 					$message = 'The requested page does not exist!';
 					header('HTTP/1.0 404 Page Not Found');
 					t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-					throw new RuntimeException($message);
+					throw new RuntimeException($message, 1294587208);
 				}
 			}
 		}
@@ -1042,7 +1027,7 @@
 				$message = 'The requested page does not exist!';
 				header('HTTP/1.0 404 Page Not Found');
 				t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-				throw new RuntimeException($message);
+				throw new RuntimeException($message, 1294587209);
 			}
 		}
 
@@ -1078,7 +1063,7 @@
 					$message = 'The requested page didn\'t have a proper connection to the tree-root! <br /><br />('.$this->sys_page->error_getRootLine.')';
 					header('HTTP/1.0 503 Service Temporarily Unavailable');
 					t3lib_div::sysLog(str_replace('<br /><br />','',$message), 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-					throw new RuntimeException($message);
+					throw new RuntimeException($message, 1294587210);
 				}
 			}
 			$this->fePreview = 1;
@@ -1093,7 +1078,7 @@
 					$message = 'The requested page was not accessible!';
 					header('HTTP/1.0 503 Service Temporarily Unavailable');
 					t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-					throw new RuntimeException($message);
+					throw new RuntimeException($message, 1294587211);
 				}
 			} else {
 				$el = reset($this->rootLine);
@@ -1157,7 +1142,7 @@
 				$message = 'Page shortcuts were looping in uids '.implode(',',$pageLog).'...!';
 				header('HTTP/1.0 500 Internal Server Error');
 				t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-				throw new RuntimeException($message);
+				throw new RuntimeException($message, 1294587212);
 			}
 		}
 			// Return resulting page:
@@ -1471,7 +1456,7 @@
 
 			// Create response:
 		if (gettype($code)=='boolean' || !strcmp($code,1))	{	// Simply boolean; Just shows TYPO3 error page with reason:
-			throw new RuntimeException('The page did not exist or was inaccessible.' . ($reason ? ' Reason: ' . htmlspecialchars($reason) : ''));
+			throw new RuntimeException('The page did not exist or was inaccessible.' . ($reason ? ' Reason: ' . htmlspecialchars($reason) : ''), 1294587213);
 		} elseif (t3lib_div::isFirstPartOfStr($code,'USER_FUNCTION:')) {
 			$funcRef = trim(substr($code,14));
 			$params = array(
@@ -1488,7 +1473,7 @@
 				$fileContent = str_replace('###REASON###', htmlspecialchars($reason), $fileContent);
 				echo $fileContent;
 			} else {
-				throw new RuntimeException('Configuration Error: 404 page "' . $readFile.'" could not be found.');
+				throw new RuntimeException('Configuration Error: 404 page "' . $readFile.'" could not be found.', 1294587214);
 			}
 		} elseif (t3lib_div::isFirstPartOfStr($code,'REDIRECT:')) {
 			t3lib_utility_Http::redirect(substr($code, 9));
@@ -1509,7 +1494,7 @@
 					$reason = 'Page cannot be found.';
 				}
 				$reason.= LF . LF . 'Additionally, ' . $code . ' was not found while trying to retrieve the error document.';
-				throw new RuntimeException('Reason: ' . nl2br(htmlspecialchars($reason)));
+				throw new RuntimeException(nl2br(htmlspecialchars($reason)), 1294587215);
 			}
 
 				// Prepare headers
@@ -1571,7 +1556,7 @@
 				echo $content;	// Output the content
 			}
 		} else {
-			throw new RuntimeException($reason ? 'Reason: '.htmlspecialchars($reason) : 'Page cannot be found.');
+			throw new RuntimeException($reason ? htmlspecialchars($reason) : 'Page cannot be found.', 1294587216);
 		}
 		exit();
 	}
@@ -1722,9 +1707,9 @@
 
 							// Return preview keyword configuration:
 						return $previewConfig;
-					} else die(htmlspecialchars('Request URL did not match "'.t3lib_div::getIndpEnv('TYPO3_SITE_URL').'index.php?ADMCMD_prev='.$inputCode.'"'));	// This check is to prevent people from setting additional GET vars via realurl or other URL path based ways of passing parameters.
-				} else die('POST requests are incompatible with keyword preview.');
-			} else die('ADMCMD command could not be executed! (No keyword configuration found)');
+					} else throw new Exception(htmlspecialchars('Request URL did not match "' . t3lib_div::getIndpEnv('TYPO3_SITE_URL') . 'index.php?ADMCMD_prev=' . $inputCode . '"', 1294585190));	// This check is to prevent people from setting additional GET vars via realurl or other URL path based ways of passing parameters.
+				} else throw new Exception('POST requests are incompatible with keyword preview.', 1294585191);
+			} else throw new Exception('ADMCMD command could not be executed! (No keyword configuration found)', 1294585192);
 		}
 	}
 
@@ -1736,14 +1721,10 @@
 	 * @return	void
 	 * @see ADMCMD_preview(), index_ts.php
 	 */
-	function ADMCMD_preview_postInit($previewConfig){
-		if (is_array($previewConfig))	{
-
-				// Clear cookies:
-			unset($_COOKIE['be_typo_user']);
-			$this->ADMCMD_preview_BEUSER_uid = $previewConfig['BEUSER_uid'];
-
-		} else die('Error in preview configuration.');
+	function ADMCMD_preview_postInit(array $previewConfig){
+			// Clear cookies:
+		unset($_COOKIE['be_typo_user']);
+		$this->ADMCMD_preview_BEUSER_uid = $previewConfig['BEUSER_uid'];
 	}
 
 
@@ -2066,7 +2047,7 @@
 						$message = 'The page is not configured! [type= '.$this->type.']['.$this->sPre.']';
 						header('HTTP/1.0 503 Service Temporarily Unavailable');
 						t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-						throw new RuntimeException($message);
+						throw new RuntimeException($message, 1294587217);
 					}
 				} else {
 					$this->config['config'] = array();
@@ -2125,7 +2106,7 @@
 					$message = 'No TypoScript template found!';
 					header('HTTP/1.0 503 Service Temporarily Unavailable');
 					t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-					throw new RuntimeException($message);
+					throw new RuntimeException($message, 1294587218);
 				}
 			}
 		}
@@ -2249,7 +2230,7 @@
 	 * @see getCompressedTCarray()
 	 */
 	function includeTCA($TCAloaded=1)	{
-		global $TCA, $PAGES_TYPES, $LANG_GENERAL_LABELS, $TBE_MODULES;
+		global $TCA, $PAGES_TYPES, $TBE_MODULES;
 		if (!$this->TCAloaded)	{
 			$TCA = Array();
 			include (TYPO3_tables_script ? PATH_typo3conf.TYPO3_tables_script : PATH_t3lib.'stddb/tables.php');
@@ -2498,7 +2479,6 @@
 	 *
 	 * @return	void
 	 * @see tslib_feTCE
-	 * @link http://typo3.org/doc.0.html?&tx_extrepmgm_pi1[extUid]=270&tx_extrepmgm_pi1[tocEl]=342&cHash=fdf55adb3b
 	 */
 	function fe_tce()	{
 		$fe_tce = t3lib_div::makeInstance('tslib_feTCE');
@@ -2650,10 +2630,10 @@
 								header('Content-Disposition: attachment; filename="'.basename($absoluteFileName) . '"');
 								readfile($absoluteFileName);
 								exit;
-							} else die('jumpurl Secure: "'.$this->jumpurl.'" was not a valid file!');
-						} else die('jumpurl Secure: The requested file was not allowed to be accessed through jumpUrl (path or file not allowed)!');
-					} else die('jumpurl Secure: locationData, '.$locationData.', was not accessible.');
-				} else die('jumpurl Secure: Calculated juHash did not match the submitted juHash.');
+							} else throw new Exception('jumpurl Secure: "' . $this->jumpurl . '" was not a valid file!', 1294585193);
+						} else throw new Exception('jumpurl Secure: The requested file was not allowed to be accessed through jumpUrl (path or file not allowed)!', 1294585194);
+					} else throw new Exception('jumpurl Secure: locationData, ' . $locationData . ', was not accessible.', 1294585195);
+				} else throw new Exception('jumpurl Secure: Calculated juHash did not match the submitted juHash.', 1294585196);
 			} else {
 				$TSConf = $this->getPagesTSconfig();
 				if ($TSConf['TSFE.']['jumpUrl_transferSession'])	{
@@ -4251,6 +4231,7 @@ if (version == "n3") {
 	 * @return	void
 	 * @see t3lib_timeTrack::debug_typo3PrintError()
 	 * @see	t3lib_message_ErrorPageMessage
+	 * @deprecated since TYPO3 4.5, will be removed in TYPO3 4.7
 	 */
 	function printError($label,$header='Error!') {
 		t3lib_div::logDeprecatedFunction();
@@ -4373,7 +4354,7 @@ if (version == "n3") {
 		if ($returnTitle)	{
 			if ($ws===-1)	{
 				return 'Default Draft Workspace';
-			} else {
+			} elseif (t3lib_extMgm::isLoaded('workspaces')) {
 				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('title', 'sys_workspace', 'uid='.intval($ws));
 				if ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
 					return $row['title'];
@@ -4535,7 +4516,7 @@ if (version == "n3") {
 	 * @param	string		$key is the key in the array, for num-key let the value be empty
 	 * @param	string		$content is the content if you want any
 	 * @return	void
-	 * @see setJS(), tslib_pibase::pi_setClassStyle()
+	 * @see setJS()
 	 */
 	function setCSS($key,$content)	{
 		if ($key)	{
@@ -4545,20 +4526,6 @@ if (version == "n3") {
 				break;
 			}
 		}
-	}
-
-	/**
-	 * Seeds the random number engine.
-	 *
-	 * @return	void
-	 * @deprecated since TYPO3 4.3, this function will be removed in TYPO3 4.6, the random number generator is seeded automatically since PHP 4.2.0
-	 */
-	function make_seed() {
-		t3lib_div::logDeprecatedFunction();
-
-		list($usec, $sec) = explode(' ', microtime());
-		$seedV = (float)$sec + ((float)$usec * 100000);
-		srand($seedV);
 	}
 
 	/**

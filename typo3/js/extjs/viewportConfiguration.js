@@ -1,7 +1,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Stefan Galinski <stefan.galinski@gmail.com>
+ *  (c) 2010-2011 Stefan Galinski <stefan.galinski@gmail.com>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -54,6 +54,9 @@ TYPO3.Viewport.configuration = {
 			floatable: true,
 			hideCollapseTool: true,
 			split: true,
+			useSplitTips: true,
+			splitTip: top.TYPO3.LLL.viewPort.tooltipModuleMenuSplit,
+			enableChildSplit: true,
 			border: false,
 			autoScroll: true
 		},
@@ -71,8 +74,11 @@ TYPO3.Viewport.configuration = {
 					floatable: true,
 					animCollapse: false,
 					split: true,
+					enableChildSplit: true,
 					collapsible: true,
 					collapseMode: 'mini',
+					useSplitTips: true,
+					collapsibleSplitTip: top.TYPO3.LLL.viewPort.tooltipNavigationContainerSplitDrag,
 					hideCollapseTool: true,
 					hidden: true,
 					border: false,
@@ -83,7 +89,8 @@ TYPO3.Viewport.configuration = {
 							id: 'typo3-navigationIframe',
 							border: false,
 							hidden: true,
-							xtype: 'iframePanel'
+							xtype: 'iframePanel',
+							name: 'navigation'
 						}
 					]
 				},
@@ -120,6 +127,8 @@ TYPO3.Viewport.configuration = {
 					hideCollapseTool: true,
 					animCollapse: false,
 					split: true,
+					useSplitTips: true,
+					collapsibleSplitTip: top.TYPO3.LLL.viewPort.tooltipDebugPanelSplitDrag,
 					autoScroll: true,
 					hidden: true,
 					height: 200,

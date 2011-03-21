@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2005-2010 Stanislas Rolland <typo3(arobas)sjbr.ca>
+*  (c) 2005-2011 Stanislas Rolland <typo3(arobas)sjbr.ca>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -117,6 +117,10 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 			$this->siteURL = preg_replace('/^(http|https)/', 'https', $this->siteURL);
 			$this->hostURL = preg_replace('/^(http|https)/', 'https', $this->hostURL);
 		}
+			// Register RTE windows:
+		$this->TCEform->RTEwindows[] = $PA['itemFormElName'];
+		$textAreaId = preg_replace('/[^a-zA-Z0-9_:.-]/', '_', $PA['itemFormElName']);
+		$textAreaId = htmlspecialchars(preg_replace('/^[^a-zA-Z]/', 'x', $textAreaId)) . '_' . strval($this->TCEform->RTEcounter);
 		/* =======================================
 		 * LANGUAGES & CHARACTER SETS
 		 * =======================================
@@ -209,6 +213,14 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 			// Preloading the pageStyle and including RTE skin stylesheets
 		$this->addPageStyle();
 		$this->addSkin();
+			// Re-initialize the scripts array so that only the cumulative set of plugins of the last RTE on the page is used
+		$this->cumulativeScripts[$this->TCEform->RTEcounter] = array();
+		$this->includeScriptFiles($this->TCEform->RTEcounter);
+		$this->buildJSMainLangFile($this->TCEform->RTEcounter);
+			// Register RTE in JS:
+		$this->TCEform->additionalJS_post[] = $this->wrapCDATA($this->registerRTEinJS($this->TCEform->RTEcounter, '', '', '',$textAreaId));
+			// Set the save option for the RTE:
+		$this->TCEform->additionalJS_submit[] = $this->setSaveRTE($this->TCEform->RTEcounter, $this->TCEform->formName, $textAreaId);
 			// Loading ExtJs JavaScript files and inline code, if not configured in TS setup
 		if (!$GLOBALS['TSFE']->isINTincScript() || !is_array($GLOBALS['TSFE']->pSetup['javascriptLibs.']['ExtJs.'])) {
 			$pageRenderer->loadExtJs();
@@ -240,25 +252,12 @@ class tx_rtehtmlarea_pi2 extends tx_rtehtmlarea_base {
 				$value = $plugin->transformContent($value);
 			}
 		}
-
-			// Register RTE windows:
-		$this->TCEform->RTEwindows[] = $PA['itemFormElName'];
-		$textAreaId = preg_replace('/[^a-zA-Z0-9_:.-]/', '_', $PA['itemFormElName']);
-		$textAreaId = htmlspecialchars(preg_replace('/^[^a-zA-Z]/', 'x', $textAreaId)) . '_' . strval($this->TCEform->RTEcounter);
-
-			// Register RTE in JS:
-		$this->TCEform->additionalJS_post[] = $this->wrapCDATA($this->registerRTEinJS($this->TCEform->RTEcounter, '', '', '',$textAreaId));
-
-			// Set the save option for the RTE:
-		$this->TCEform->additionalJS_submit[] = $this->setSaveRTE($this->TCEform->RTEcounter, $this->TCEform->formName, $textAreaId);
-
 			// draw the textarea
 		$item = $this->triggerField($PA['itemFormElName']).'
 			<div id="pleasewait' . $textAreaId . '" class="pleasewait" style="display: block;" >' . $TSFE->csConvObj->conv($TSFE->getLLL('Please wait',$this->LOCAL_LANG), $this->charset, $TSFE->renderCharset) . '</div>
 			<div id="editorWrap' . $textAreaId . '" class="editorWrap" style="visibility: hidden; '. htmlspecialchars($this->RTEWrapStyle). '">
 			<textarea id="RTEarea' . $textAreaId . '" name="'.htmlspecialchars($PA['itemFormElName']).'" rows="0" cols="0" style="'.htmlspecialchars($this->RTEdivStyle).'">'.t3lib_div::formatForTextarea($value).'</textarea>
-			</div>' . ($TYPO3_CONF_VARS['EXTCONF'][$this->ID]['enableDebugMode'] ? '<div id="HTMLAreaLog"></div>' : '') . '
-			';
+			</div>' . LF;
 		return $item;
 	}
 	/**

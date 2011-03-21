@@ -83,31 +83,32 @@ final class tx_em_Database {
 	 * Get extension list from cache_extensions
 	 *
 	 * @param int $repository
+	 * @param string $addFields
 	 * @param string $andWhere
-	 * @param string $orderBy
-	 * @param string $orderDir
+	 * @param string $order
 	 * @param string $limit
 	 * @return array
 	 */
-	public function getExtensionListFromRepository($repository, $andWhere = '', $orderBy = '', $orderDir = 'ASC', $limit = '') {
-		$order = $orderBy ? $orderBy . ' ' . $orderDir : '';
+	public function getExtensionListFromRepository($repository, $addFields = '', $andWhere = '', $order = '', $limit = '') {
 		$ret = array();
 		$temp = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-			'count(*) count',
+			'count(*) AS count',
 			'cache_extensions',
 			'repository=' . intval($repository) . $andWhere,
 			'extkey'
 		);
 		$ret['count'] = count($temp);
+
 		$ret['results'] = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-			'*, count(*) AS versions, max(intversion) AS maxintversion',
-			'cache_extensions',
-			'repository=' . intval($repository) . $andWhere,
-			'extkey',
+			'cache_extensions.*, count(*) AS versions, cache_extensions.intversion AS maxintversion' .
+			($addFields === '' ? '' : ',' . $addFields),
+			'cache_extensions JOIN cache_extensions AS ce ON cache_extensions.extkey = ce.extkey',
+			'cache_extensions.lastversion=1 AND cache_extensions.repository=' . intval($repository) . $andWhere,
+			'ce.extkey',
 			$order,
 			$limit
 		);
-
+		//debug($GLOBALS['TYPO3_DB']->debug_lastBuiltQuery);
 		return $ret;
 	}
 
@@ -311,7 +312,7 @@ final class tx_em_Database {
 		// Traverse the selected rows and dump each row as a line in the file:
 		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($result)) {
 			$values = array();
-			foreach ($fieldStructure as $field) {
+			foreach ($fieldStructure as $field => $structure) {
 				$values[] = isset($row[$field]) ? "'" . str_replace($search, $replace, $row[$field]) . "'" : 'NULL';
 			}
 			$lines[] = 'INSERT INTO ' . $table . ' VALUES (' . implode(', ', $values) . ');';

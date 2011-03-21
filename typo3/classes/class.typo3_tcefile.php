@@ -2,8 +2,8 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
-*  (c) 2009-2010 Benjamin Mack (benni.typo3.org)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 2009-2011 Benjamin Mack (benni.typo3.org)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -166,24 +166,13 @@ class TYPO3_tcefile {
 		$this->init();
 		$this->main();
 		$errors = $this->fileProcessor->getErrorMessages();
-		$uploaderType = t3lib_div::_GP('uploaderType');
 		if (count($errors)) {
 			$ajaxObj->setError(implode(',', $errors));
 		} else {
-			if ($uploaderType === 'plupload') {
-				$ajaxObj->addContent('result', $this->fileData);
-				if (count($this->fileData)) {
-					$ajaxObj->addContent('success', TRUE);
-				} else {
-					$ajaxObj->addContent('success', FALSE);
-				}
-			} else {
-				$ajaxObj->addContent('result', $this->fileData);
-				if ($this->redirect) {
-					$ajaxObj->addContent('redirect', $this->redirect);
-				}
+			$ajaxObj->addContent('result', $this->fileData);
+			if ($this->redirect) {
+				$ajaxObj->addContent('redirect', $this->redirect);
 			}
-
 			$ajaxObj->setContentFormat('json');
 		}
 	}

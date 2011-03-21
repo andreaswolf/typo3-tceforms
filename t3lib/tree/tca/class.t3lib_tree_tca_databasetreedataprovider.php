@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Steffen Ritter <info@steffen-ritter.net>
+ *  (c) 2010-2011 Steffen Ritter <info@steffen-ritter.net>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -291,7 +291,7 @@ class t3lib_tree_Tca_DatabaseTreeDataProvider extends t3lib_tree_Tca_AbstractTca
 		if (isset($this->columnConfiguration['foreign_table']) && $this->columnConfiguration['foreign_table'] != $this->getTableName()) {
 			throw new InvalidArgumentException(
 				'TCA Tree configuration is invalid: tree for different node-Tables is not implemented yet',
-				'1290944650'
+				1290944650
 			);
 		}
 

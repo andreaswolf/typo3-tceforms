@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2008-2010 Michael Stucki (michael@typo3.org)
+ *  (c) 2008-2011 Michael Stucki (michael@typo3.org)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -54,6 +54,8 @@ class t3lib_lock {
 
 	protected $loops = 150; // Number of times a locked resource is tried to be acquired. This is only used by manual locks like the "simple" method.
 	protected $step = 200; // Milliseconds after lock acquire is retried. $loops * $step results in the maximum delay of a lock. Only used by manual locks like the "simple" method.
+	protected $syslogFacility = 'cms';
+	protected $isLoggingEnabled = TRUE;
 
 
 	/**
@@ -81,7 +83,7 @@ class t3lib_lock {
 		if (in_array($method, array('disable', 'simple', 'flock', 'semaphore'))) {
 			$this->method = $method;
 		} else {
-			throw new Exception('No such method "' . $method . '"');
+			throw new InvalidArgumentException('No such method "' . $method . '"', 1294586097);
 		}
 
 		$success = FALSE;
@@ -157,14 +159,14 @@ class t3lib_lock {
 				}
 
 				if (!$isAcquired) {
-					throw new Exception('Lock file could not be created');
+					throw new RuntimeException('Lock file could not be created', 1294586098);
 				}
 
 				t3lib_div::fixPermissions($this->resource);
 			break;
 			case 'flock':
 				if (($this->filepointer = fopen($this->resource, 'w+')) == FALSE) {
-					throw new Exception('Lock file could not be opened');
+					throw new RuntimeException('Lock file could not be opened', 1294586099);
 				}
 
 				if (flock($this->filepointer, LOCK_EX | LOCK_NB) == TRUE) { // Lock without blocking
@@ -172,7 +174,7 @@ class t3lib_lock {
 				} elseif (flock($this->filepointer, LOCK_EX) == TRUE) { // Lock with blocking (waiting for similar locks to become released)
 					$noWait = FALSE;
 				} else {
-					throw new Exception('Could not lock file "' . $this->resource . '"');
+					throw new RuntimeException('Could not lock file "' . $this->resource . '"', 1294586100);
 				}
 			break;
 			case 'semaphore':
@@ -269,6 +271,24 @@ class t3lib_lock {
 	}
 
 	/**
+	 * Sets the facility (extension name) for the syslog entry.
+	 *
+	 * @param string $syslogFacility
+	 */
+	public function setSyslogFacility($syslogFacility) {
+		$this->syslogFacility = $syslogFacility;
+	}
+
+	/**
+	 * Enable/ disable logging
+	 *
+	 * @param boolean $isLoggingEnabled
+	 */
+	public function setEnableLogging($isLoggingEnabled) {
+		$this->isLoggingEnabled = $isLoggingEnabled;
+	}
+
+	/**
 	 * Adds a common log entry for this locking API using t3lib_div::sysLog().
 	 * Example: 25-02-08 17:58 - cms: Locking [simple::0aeafd2a67a6bb8b9543fb9ea25ecbe2]: Acquired
 	 *
@@ -277,7 +297,9 @@ class t3lib_lock {
 	 * @return	void
 	 */
 	public function sysLog($message, $severity = 0) {
-		t3lib_div::sysLog('Locking [' . $this->method . '::' . $this->id . ']: ' . trim($message), 'cms', $severity);
+		if ($this->isLoggingEnabled) {
+			t3lib_div::sysLog('Locking [' . $this->method . '::' . $this->id . ']: ' . trim($message), $this->syslogFacility, $severity);
+		}
 	}
 }
 

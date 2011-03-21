@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2007-2010 Ingo Renner <ingo@typo3.org>
+*  (c) 2007-2011 Ingo Renner <ingo@typo3.org>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -134,8 +134,8 @@ class ModuleMenu {
 							'link' => $subData['link'],
 							'originalLink' => $subData['originalLink'],
 							'index' => $index++,
-							'navigationFrameScript' => $subData['navFrameScript'],
-							'navigationFrameScriptParam' => $subData['navFrameScriptParam'],
+							'navigationFrameScript' => $subData['navigationFrameScript'],
+							'navigationFrameScriptParam' => $subData['navigationFrameScriptParam'],
 							'navigationComponentId' => $subData['navigationComponentId'],
 						);
 					}

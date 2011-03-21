@@ -215,8 +215,8 @@ CREATE TABLE pages (
   alias varchar(32) DEFAULT '' NOT NULL,
   l18n_cfg tinyint(4) DEFAULT '0' NOT NULL,
   fe_login_mode tinyint(4) DEFAULT '0' NOT NULL,
-  be_layout int(10) DEFAULT '0' NOT NULL,
-  be_layout_next_level int(10) DEFAULT '0' NOT NULL,
+  backend_layout int(10) DEFAULT '0' NOT NULL,
+  backend_layout_next_level int(10) DEFAULT '0' NOT NULL,
   PRIMARY KEY (uid),
   KEY t3ver_oid (t3ver_oid,t3ver_wsid),
   KEY parent (pid,sorting,deleted,hidden),
@@ -302,36 +302,6 @@ CREATE TABLE sys_filemounts (
 );
 
 #
-# Table structure for table 'sys_workspace'
-#
-CREATE TABLE sys_workspace (
-  uid int(11) NOT NULL auto_increment,
-  pid int(11) DEFAULT '0' NOT NULL,
-  tstamp int(11) DEFAULT '0' NOT NULL,
-  deleted tinyint(1) DEFAULT '0' NOT NULL,
-  title varchar(30) DEFAULT '' NOT NULL,
-  description varchar(255) DEFAULT '' NOT NULL,
-  adminusers text,
-  members text,
-  reviewers text,
-  db_mountpoints varchar(255) DEFAULT '' NOT NULL,
-  file_mountpoints varchar(255) DEFAULT '' NOT NULL,
-  publish_time int(11) DEFAULT '0' NOT NULL,
-  unpublish_time int(11) DEFAULT '0' NOT NULL,
-  freeze tinyint(3) DEFAULT '0' NOT NULL,
-  live_edit tinyint(3) DEFAULT '0' NOT NULL,
-  review_stage_edit tinyint(3) DEFAULT '0' NOT NULL,
-  vtypes tinyint(3) DEFAULT '0' NOT NULL,
-  disable_autocreate tinyint(1) DEFAULT '0' NOT NULL,
-  swap_modes tinyint(3) DEFAULT '0' NOT NULL,
-  publish_access tinyint(3) DEFAULT '0' NOT NULL,
-  stagechg_notification tinyint(3) DEFAULT '0' NOT NULL,
-
-  PRIMARY KEY (uid),
-  KEY parent (pid)
-);
-
-#
 # Table structure for table 'sys_history'
 #
 CREATE TABLE sys_history (
@@ -345,9 +315,10 @@ CREATE TABLE sys_history (
   history_files mediumtext,
   snapshot tinyint(4) DEFAULT '0' NOT NULL,
   PRIMARY KEY (uid),
-  KEY recordident (tablename,recuid,tstamp),
+  KEY recordident_1 (tablename,recuid),
+  KEY recordident_2 (tablename,tstamp),
   KEY sys_log_uid (sys_log_uid)
-);
+) ENGINE=InnoDB;
 
 #
 # Table structure for table 'sys_lockedrecords'
@@ -386,35 +357,6 @@ CREATE TABLE sys_refindex (
   KEY lookup_rec (tablename,recuid),
   KEY lookup_uid (ref_table,ref_uid),
   KEY lookup_string (ref_string)
-);
-
-#
-# Table structure for table 'sys_refindex_words'
-#
-CREATE TABLE sys_refindex_words (
-  wid int(11) DEFAULT '0' NOT NULL,
-  baseword varchar(60) DEFAULT '' NOT NULL,
-  PRIMARY KEY (wid)
-);
-
-#
-# Table structure for table 'sys_refindex_rel'
-#
-CREATE TABLE sys_refindex_rel (
-  rid int(11) DEFAULT '0' NOT NULL,
-  wid int(11) DEFAULT '0' NOT NULL,
-  PRIMARY KEY (rid,wid)
-);
-
-
-#
-# Table structure for table 'sys_refindex_res'
-#
-CREATE TABLE sys_refindex_res (
-  rid int(11) DEFAULT '0' NOT NULL,
-  tablename varchar(255) DEFAULT '' NOT NULL,
-  recuid int(11) DEFAULT '0' NOT NULL,
-  PRIMARY KEY (rid)
 );
 
 #

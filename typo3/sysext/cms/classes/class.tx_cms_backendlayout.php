@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 GridView Team
+ *  (c) 2010-2011 GridView Team
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -34,7 +34,16 @@ class tx_cms_BackendLayout {
 	 * @return void
 	 */
 	public function colPosListItemProcFunc(&$params) {
-		$params['items'] = $this->addColPosListLayoutItems($params['row']['pid'], $params['items']);
+		if ($params['row']['pid'] > 0) {
+			$params['items'] = $this->addColPosListLayoutItems($params['row']['pid'], $params['items']);
+		} else {
+			// negative uid_pid values indicate that the element has been inserted after an existing element
+			// so there is no pid to get the backendLayout for and we have to get that first
+			$existingElement = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('pid', 'tt_content', 'uid=' . -(intval($params['row']['pid'])));
+			if ($existingElement['pid'] > 0) {
+				$params['items'] = $this->addColPosListLayoutItems($existingElement['pid'], $params['items']);
+			}
+		}
 	}
 
 	/**
@@ -74,7 +83,11 @@ class tx_cms_BackendLayout {
 		}
 
 		foreach (t3lib_div::trimExplode(',', $tsConfig['properties']['removeItems'], 1) as $removeId) {
-			unset($tcaItems[$removeId]);
+			foreach ($tcaItems as $key => $item) {
+				if ($item[1] == $removeId) {
+					unset($tcaItems[$key]);
+				}
+			}
 		}
 
 		return $tcaItems;
@@ -92,19 +105,25 @@ class tx_cms_BackendLayout {
 
 		for ($i = count($rootline); $i > 0; $i--) {
 			$page = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
-				'uid, be_layout, be_layout_next_level',
+				'uid, backend_layout, backend_layout_next_level',
 				'pages',
 				'uid=' . intval($rootline[$i]['uid'])
 			);
-
-			if (intval($page['be_layout_next_level']) > 0 && $page['uid'] != $id) {
-				$backendLayoutUid = intval($page['be_layout_next_level']);
-				break;
-			} else {
-				if (intval($page['be_layout']) > 0) {
-					$backendLayoutUid = intval($page['be_layout']);
-					break;
+			$selectedBackendLayout = intval($page['backend_layout']);
+			$selectedBackendLayoutNextLevel = intval($page['backend_layout_next_level']);
+			if ($selectedBackendLayout != 0 && $page['uid'] == $id) {
+				if ($selectedBackendLayout > 0) {
+						// Backend layout for current page is set
+					$backendLayoutUid = $selectedBackendLayout;
 				}
+				break;
+			} else if ($selectedBackendLayoutNextLevel == -1 && $page['uid'] != $id) {
+					// Some previous page in our rootline sets layout_next to "None"
+				break;
+			} else if ($selectedBackendLayoutNextLevel > 0 && $page['uid'] != $id) {
+					// Some previous page in our rootline sets some backend_layout, use it
+				$backendLayoutUid = $selectedBackendLayoutNextLevel;
+				break;
 			}
 		}
 
@@ -112,7 +131,7 @@ class tx_cms_BackendLayout {
 		if ($backendLayoutUid) {
 			$backendLayout = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
 				'*',
-				'be_layouts',
+				'backend_layout',
 				'uid=' . $backendLayoutUid
 			);
 
@@ -125,8 +144,8 @@ class tx_cms_BackendLayout {
 				$backendLayout['__colPosList'] = array();
 
 					// create items and colPosList
-				if ($backendLayout['__config']['be_layout.'] && $backendLayout['__config']['be_layout.']['rows.']) {
-					foreach ($backendLayout['__config']['be_layout.']['rows.'] as $row) {
+				if ($backendLayout['__config']['backend_layout.'] && $backendLayout['__config']['backend_layout.']['rows.']) {
+					foreach ($backendLayout['__config']['backend_layout.']['rows.'] as $row) {
 						if (isset($row['columns.']) && is_array($row['columns.'])) {
 							foreach ($row['columns.'] as $column) {
 								$backendLayout['__items'][] = array(

@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -303,13 +303,13 @@ class SC_wizard_tsconfig {
 			// Adding link to TSref:
 		if ($this->mode=='tsref')	{
 			$this->content.=$this->doc->section($LANG->getLL('tsprop_TSref'),'
-			<a href="'.htmlspecialchars('http://typo3.org/documentation/document-library/references/doc_core_tsref/current/view/').'" target="_blank">'.$LANG->getLL('tsprop_TSref',1).'</a>
+			<a href="'. TYPO3_URL_DOCUMENTATION_TSREF.'" target="_blank">'.$LANG->getLL('tsprop_TSref',1).'</a>
 			',0,1);
 		}
 			// Adding link to admin guides etc:
 		if ($this->mode=='page' || $this->mode=='beuser')	{
 			$this->content.=$this->doc->section($LANG->getLL('tsprop_tsconfig'),'
-			<a href="'.htmlspecialchars('http://typo3.org/documentation/document-library/references/doc_core_tsconfig/current/view/').'" target="_blank">'.$LANG->getLL('tsprop_tsconfig',1).'</a>
+			<a href="' . TYPO3_URL_DOCUMENTATION_TSCONFIG . '" target="_blank">' . $LANG->getLL('tsprop_tsconfig',1) . '</a>
 			',0,1);
 		}
 	}

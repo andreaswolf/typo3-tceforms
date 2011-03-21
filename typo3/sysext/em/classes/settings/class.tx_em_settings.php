@@ -42,11 +42,12 @@ class tx_em_Settings implements t3lib_Singleton {
 
 
 	/**
-	 * Develop commands
+	 * Settings array
 	 *
-	 * @var string
+	 * @var array
 	 */
 	protected $settings;
+
 
 	/**
 	 * Constructor
@@ -97,16 +98,23 @@ class tx_em_Settings implements t3lib_Singleton {
 	 * @return void
 	 */
 	protected function readSettings() {
+		$globalSettings = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['em']);
+		if (!is_array($globalSettings)) {
+			$globalSettings = array(
+				'displayMyExtensions' => 0,
+				'selectedLanguages' => array(),
+				'inlineToWindow' => 1,
+			);
+		}
 		$this->MOD_MENU = array(
 			'function' => array(
-				'extensionmanager' => 'New Extension manager (beta4)', //$GLOBALS['LANG']->getLL('header'),
 				'loaded_list' => $GLOBALS['LANG']->getLL('menu_loaded_extensions'),
 				'installed_list' => $GLOBALS['LANG']->getLL('menu_install_extensions'),
 				'import' => $GLOBALS['LANG']->getLL('menu_import_extensions'),
 				'translations' => $GLOBALS['LANG']->getLL('menu_translation_handling'),
 				'settings' => $GLOBALS['LANG']->getLL('menu_settings'),
+				'extensionmanager' => $GLOBALS['LANG']->getLL('header'),
 				'updates' => $GLOBALS['LANG']->getLL('menu_extension_updates'),
-				'develop' => $GLOBALS['LANG']->getLL('menu_extension_develop'),
 			),
 			'listOrder' => array(
 				'cat' => $GLOBALS['LANG']->getLL('list_order_category'),
@@ -157,6 +165,7 @@ class tx_em_Settings implements t3lib_Singleton {
 			'mainTab' => '0',
 		);
 		$this->settings = t3lib_BEfunc::getModuleData($this->MOD_MENU, t3lib_div::_GP('SET'), 'tools_em');
+		$this->settings = array_merge($this->settings, $globalSettings);
 	}
 
 	/**

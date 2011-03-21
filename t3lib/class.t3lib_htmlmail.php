@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -245,6 +245,7 @@ class t3lib_htmlmail {
 	 * @return	void
 	 */
 	public function t3lib_htmlmail() {
+		t3lib_div::logDeprecatedFunction();
 		$this->forceReturnPath = $GLOBALS['TYPO3_CONF_VARS']['SYS']['forceReturnPath'];
 
 		$this->mailer = 'TYPO3';
@@ -264,8 +265,10 @@ class t3lib_htmlmail {
 		if (!$host || $host == '127.0.0.1' || $host == 'localhost' || $host == 'localhost.localdomain') {
 			$host = ($TYPO3_CONF_VARS['SYS']['sitename'] ? preg_replace('/[^A-Za-z0-9_\-]/', '_', $TYPO3_CONF_VARS['SYS']['sitename']) : 'localhost') . '.TYPO3';
 		}
-		$this->messageid = md5(microtime()) . '@' . $host;
 
+		$idLeft = time() . '.' . uniqid();
+		$idRight = !empty($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'swift.generated';
+		$this->messageid = $idLeft . '@' . $idRight;
 
 			// Default line break for Unix systems.
 		$this->linebreak = LF;
@@ -1463,37 +1466,6 @@ class t3lib_htmlmail {
 			}
 		}
 		return $attributes;
-	}
-
-
-	/**
-	 * Implementation of quoted-printable encode.
-	 * This function was a duplicate of t3lib_div::quoted_printable, thus it's going to be removed.
-	 * Deprecated since TYPO3 4.0
-	 *
-	 * @param	string		Content to encode
-	 * @return	string		The QP encoded string
-	 * @deprecated since TYPO3 4.0, will be removed in TYPO3 4.6
-	 */
-	public function quoted_printable($string) {
-		t3lib_div::logDeprecatedFunction();
-
-		return t3lib_div::quoted_printable($string, 76);
-	}
-
-
-	/**
-	 * Converts a name field
-	 * Deprecated since TYPO3 4.0
-	 *
-	 * @param	string		$name: the name
-	 * @return	string		the name
-	 * @deprecated since TYPO3 4.0, will be removed in TYPO3 4.6
-	 */
-	public function convertName($name) {
-		t3lib_div::logDeprecatedFunction();
-
-		return $name;
 	}
 }
 

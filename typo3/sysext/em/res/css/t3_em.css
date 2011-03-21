@@ -1,4 +1,9 @@
 /* Global overwrite */
+
+.x-menu-list-item a {
+	display: block !important;
+}
+
 strong {
 	font-weight: bold;
 }
@@ -11,22 +16,30 @@ strong {
 	vertical-align: middle;
 }
 
-.x-grid-panel .x-panel-body {
-	overflow: auto !important;
-}
-
 .x-panel-tbar {
     border-bottom: none;
     padding: 0;
 }
 
-.x-form fieldset {
+.x-form fieldset, .x-fieldset {
 	 border: none;
 }
 
 .bold button {
 	font-weight: bold;
 }
+
+.gridrowpanel .x-panel-body {
+	background: #fff;
+	padding:10px;
+	overflow: auto !important;
+}
+
+.x-grid-panel1 .x-panel-body,
+.extfiletree .x-panel-body {
+    overflow: auto !important;
+}
+
 
 /* extension states */
 .state-alpha div {background-color:#d12438;color:#fff !important;font-weight:bold !important;}
@@ -40,6 +53,11 @@ strong {
 img.installExtension, img.removeExtension {
 	cursor: pointer;
 }
+
+.action-title-cell {
+	cursor: pointer;
+}
+
 .extLangTitleWithIcon img {
 	vertical-align: bottom;
 }
@@ -131,9 +149,30 @@ img.installExtension, img.removeExtension {
 	line-height: 14px;
 }
 
-#em-extlanguagegrid .x-grid3-row-selected {
-	background-color: #cfffda;
+.em-extlist-extinfo-sub {
+	overflow: auto;
 }
+
+.em-extlist-extinfo-left {
+	float: left;
+	padding: 10px 40px 0 0;
+}
+
+.em-extlist-extinfo-right {
+	float: left;
+	padding: 10px 40px 0 0;
+}
+
+#em-local-extensions .x-grid3-row-selected,
+#em-extlanguagegrid .x-grid3-row-selected {
+	background-color: #d8ecd0;
+}
+
+#em-local-extensions .x-grid3-row-selected.x-grid3-row-over,
+#em-extlanguagegrid .x-grid3-row-selected.x-grid3-row-over {
+	background-color: #abd99a;
+}
+
 
 .em-extlist-extinfo label,
 .em-info label {
@@ -141,6 +180,10 @@ img.installExtension, img.removeExtension {
 	display: inline-block;
 	width: 100px;
 	font-weight: bold;
+}
+.em-extlist-extinfo-right label {
+	width: auto;
+	margin-bottom: 5px;
 }
 
 a.email {
@@ -170,3 +213,33 @@ a.email {
 .paddingActionIcon img {
 	margin-right: 5px;
 }
+
+.filteringList-highlight {
+	background-color: #f48e0c;
+    color: #fff;
+}
+
+
+#localSearchField, #rsearchField, #myExtSearchField {
+	height: 21px !important;
+	padding: 0 20px;
+}
+
+.ux-searchfield-trigger1 {
+	right: 0 !important;
+    position: absolute !important;
+    top: 5px !important;
+	border: none !important;
+}
+
+.ux-searchfield-trigger2 {
+	left: 4px !important;
+    position: absolute !important;
+    top: 3px !important;
+	border: none !important;
+}
+
+.fileChanged {
+	color: red;
+}
+

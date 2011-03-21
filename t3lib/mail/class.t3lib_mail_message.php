@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Ernesto Baschny <ernst@cron-it.de>
+ *  (c) 2010-2011 Ernesto Baschny <ernst@cron-it.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -42,19 +42,24 @@ class t3lib_mail_Message extends Swift_Message {
 	/**
 	 * @var t3lib_mail_Mailer
 	 */
-	var $mailer;
+	protected $mailer;
+
+	/**
+	 * @var string This will be added as X-Mailer to all outgoing mails
+	 */
+	protected $mailerHeader = 'TYPO3';
 
 	/**
 	 * True if the message has been sent.
 	 * @var boolean
 	 */
-	var $sent = FALSE;
+	protected $sent = FALSE;
 
 	/**
 	 * Holds the failed recipients after the message has been sent
 	 * @var array
 	 */
-	var $failedRecipients = array();
+	protected $failedRecipients = array();
 
 	/**
 	 *
@@ -73,6 +78,7 @@ class t3lib_mail_Message extends Swift_Message {
 	public function send() {
 		$this->initializeMailer();
 		$this->sent = TRUE;
+		$this->getHeaders()->addTextHeader('X-Mailer', $this->mailerHeader);
 		return $this->mailer->send($this, $this->failedRecipients);
 	}
 

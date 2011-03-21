@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2006-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+*  (c) 2006-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -63,6 +63,7 @@ if ($temp_path = $TBE_MODULES['_PATHS'][$temp_M]) {
 }
 
 if ($isDispatched === FALSE) {
-	die('Value "' . htmlspecialchars($temp_M) . '" for "M" was not found as a module');
+	throw new UnexpectedValueException('No module "' . htmlspecialchars($temp_M) . '" could be found.', 1294585070);
 }
+
 ?>

@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 1999-2010 Kasper Skårhøj (kasperYYYY@typo3.com)
+ *  (c) 1999-2011 Kasper Skårhøj (kasperYYYY@typo3.com)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -334,39 +334,6 @@ final class t3lib_BEfunc {
 	}
 
 	/**
-	 * Returns a WHERE clause which will make an AND search for the words in the $searchWords array in any of the fields in array $fields.
-	 * Usage: 0
-	 *
-	 * @param	array		Array of search words
-	 * @param	array		Array of fields
-	 * @param	string		Table in which we are searching (for DBAL detection of quoteStr() method)
-	 * @return	string		WHERE clause for search
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->searchQuery() directly!
-	 */
-	public static function searchQuery($searchWords, $fields, $table = '') {
-		t3lib_div::logDeprecatedFunction();
-
-		return $GLOBALS['TYPO3_DB']->searchQuery($searchWords, $fields, $table);
-	}
-
-	/**
-	 * Returns a WHERE clause that can find a value ($value) in a list field ($field)
-	 * For instance a record in the database might contain a list of numbers, "34,234,5" (with no spaces between). This query would be able to select that record based on the value "34", "234" or "5" regardless of their positioni in the list (left, middle or right).
-	 * Is nice to look up list-relations to records or files in TYPO3 database tables.
-	 * Usage: 0
-	 *
-	 * @param	string		Table field name
-	 * @param	string		Value to find in list
-	 * @return	string		WHERE clause for a query
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->listQuery() directly!
-	 */
-	public static function listQuery($field, $value) {
-		t3lib_div::logDeprecatedFunction();
-
-		return $GLOBALS['TYPO3_DB']->listQuery($field, $value, '');
-	}
-
-	/**
 	 * Makes an backwards explode on the $str and returns an array with ($table, $uid).
 	 * Example: tt_content_45 => array('tt_content', 45)
 	 * Usage: 1
@@ -476,79 +443,6 @@ final class t3lib_BEfunc {
 
 	/*******************************************
 	 *
-	 * SQL-related, DEPRECATED functions
-	 * (use t3lib_DB functions instead)
-	 *
-	 *******************************************/
-
-
-	/**
-	 * Returns a SELECT query, selecting fields ($select) from two/three tables joined
-	 * $local_table and $mm_table is mandatory. $foreign_table is optional.
-	 * The JOIN is done with [$local_table].uid <--> [$mm_table].uid_local  / [$mm_table].uid_foreign <--> [$foreign_table].uid
-	 * The function is very useful for selecting MM-relations between tables adhering to the MM-format used by TCE (TYPO3 Core Engine). See the section on $TCA in Inside TYPO3 for more details.
-	 *
-	 * @param	string		Field list for SELECT
-	 * @param	string		Tablename, local table
-	 * @param	string		Tablename, relation table
-	 * @param	string		Tablename, foreign table
-	 * @param	string		Optional additional WHERE clauses put in the end of the query. DO NOT PUT IN GROUP BY, ORDER BY or LIMIT!
-	 * @param	string		Optional GROUP BY field(s), if none, supply blank string.
-	 * @param	string		Optional ORDER BY field(s), if none, supply blank string.
-	 * @param	string		Optional LIMIT value ([begin,]max), if none, supply blank string.
-	 * @return	string		Full SQL query
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->exec_SELECT_mm_query() instead since that will return the result pointer while this returns the query. Using this function may make your application less fitted for DBAL later.
-	 * @see t3lib_DB::exec_SELECT_mm_query()
-	 */
-	public static function mm_query($select, $local_table, $mm_table, $foreign_table, $whereClause = '', $groupBy = '', $orderBy = '', $limit = '') {
-		t3lib_div::logDeprecatedFunction();
-
-		$query = $GLOBALS['TYPO3_DB']->SELECTquery(
-			$select,
-				$local_table . ',' . $mm_table . ($foreign_table ? ',' . $foreign_table : ''),
-				$local_table . '.uid=' . $mm_table . '.uid_local' . ($foreign_table ? ' AND ' . $foreign_table . '.uid=' . $mm_table . '.uid_foreign' : '') . ' ' .
-						$whereClause, // whereClauseMightContainGroupOrderBy
-			$groupBy,
-			$orderBy,
-			$limit
-		);
-		return $query;
-	}
-
-	/**
-	 * Creates an INSERT SQL-statement for $table from the array with field/value pairs $fields_values.
-	 * DEPRECATED - $GLOBALS['TYPO3_DB']->INSERTquery() directly instead! But better yet, use $GLOBALS['TYPO3_DB']->exec_INSERTquery()
-	 *
-	 * @param	string		Table name
-	 * @param	array		Field values as key=>value pairs.
-	 * @return	string		Full SQL query for INSERT
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->exec_INSERTquery() directly!
-	 */
-	public static function DBcompileInsert($table, $fields_values) {
-		t3lib_div::logDeprecatedFunction();
-
-		return $GLOBALS['TYPO3_DB']->INSERTquery($table, $fields_values);
-	}
-
-	/**
-	 * Creates an UPDATE SQL-statement for $table where $where-clause (typ. 'uid=...') from the array with field/value pairs $fields_values.
-	 * DEPRECATED - $GLOBALS['TYPO3_DB']->UPDATEquery() directly instead! But better yet, use $GLOBALS['TYPO3_DB']->exec_UPDATEquery()
-	 *
-	 * @param	string		Database tablename
-	 * @param	string		WHERE clause, eg. "uid=1"
-	 * @param	array		Field values as key=>value pairs.
-	 * @return	string		Full SQL query for UPDATE
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6, use $GLOBALS['TYPO3_DB']->exec_UPDATEquery() directly!
-	 */
-	public static function DBcompileUpdate($table, $where, $fields_values) {
-		t3lib_div::logDeprecatedFunction();
-
-		return $GLOBALS['TYPO3_DB']->UPDATEquery($table, $where, $fields_values);
-	}
-
-
-	/*******************************************
-	 *
 	 * Page tree, TCA related
 	 *
 	 *******************************************/
@@ -605,7 +499,7 @@ final class t3lib_BEfunc {
 					't3ver_state' => $val['t3ver_state'],
 					't3ver_swapmode' => $val['t3ver_swapmode'],
 					't3ver_stage' => $val['t3ver_stage'],
-					'be_layout_next_level' => $val['be_layout_next_level']
+					'backend_layout_next_level' => $val['backend_layout_next_level']
 				);
 				if (isset($val['_ORIG_pid'])) {
 					$output[$c]['_ORIG_pid'] = $val['_ORIG_pid'];
@@ -633,7 +527,7 @@ final class t3lib_BEfunc {
 			$row = $getPageForRootline_cache[$ident];
 		} else {
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-				'pid,uid,title,TSconfig,is_siteroot,storage_pid,t3ver_oid,t3ver_wsid,t3ver_state,t3ver_swapmode,t3ver_stage,be_layout_next_level',
+				'pid,uid,title,TSconfig,is_siteroot,storage_pid,t3ver_oid,t3ver_wsid,t3ver_state,t3ver_swapmode,t3ver_stage,backend_layout_next_level',
 				'pages',
 					'uid=' . intval($uid) . ' ' .
 							self::deleteClause('pages') . ' ' .
@@ -1788,26 +1682,6 @@ final class t3lib_BEfunc {
 	}
 
 	/**
-	 * Returns either title = '' or alt = '' attribute. This depends on the client browser and whether it supports title = '' or not (which is the default)
-	 * If no $content is given only the attribute name is returned.
-	 * The returned attribute with content will have a leading space char.
-	 * Warning: Be careful to submit empty $content var - that will return just the attribute name!
-	 * Usage: 0
-	 *
-	 * @param	string		String to set as title-attribute. If no $content is given only the attribute name is returned.
-	 * @param	boolean		If $hsc is set, then content of the attribute is htmlspecialchar()'ed (which is good for XHTML and other reasons...)
-	 * @return	string
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6 - The idea made sense with older browsers, but now all browsers should support the "title" attribute - so just hardcode the title attribute instead!
-	 */
-	public static function titleAttrib($content = '', $hsc = 0) {
-		t3lib_div::logDeprecatedFunction();
-
-		global $CLIENT;
-		$attrib = ($CLIENT['BROWSER'] == 'net' && $CLIENT['VERSION'] < 5) || $CLIENT['BROWSER'] == 'konqu' ? 'alt' : 'title';
-		return strcmp($content, '') ? ' ' . $attrib . '="' . ($hsc ? htmlspecialchars($content) : $content) . '"' : $attrib;
-	}
-
-	/**
 	 * Returns alt="" and title="" attributes with the value of $content.
 	 * Usage: 7
 	 *
@@ -1907,9 +1781,23 @@ final class t3lib_BEfunc {
 					$onClick = 'top.launchView(\'' . $theFile . '\',\'\',\'' . $backPath . '\');return false;';
 					$thumbData .= '<a href="#" onclick="' . htmlspecialchars($onClick) . '"><img src="' . htmlspecialchars($backPath . $url) . '" hspace="2" border="0" title="' . trim($theFile) . '"' . $tparams . ' alt="" /></a> ';
 				} else {
-					$icon = self::getFileIcon($ext);
-					$url = 'gfx/fileicons/' . $icon;
-					$thumbData .= '<img src="' . $backPath . $url . '" hspace="2" border="0" title="' . trim($theFile) . '"' . $tparams . ' alt="" /> ';
+						// Icon
+					$theFile_abs = PATH_site . ($uploaddir ? $uploaddir . '/' : '') . trim($theFile);
+					$theFile = ($abs ? '' : '../') . ($uploaddir ? $uploaddir . '/' : '') . trim($theFile);
+
+					$fileIcon = t3lib_iconWorks::getSpriteIconForFile(
+						strtolower($ext),
+						array('title' => htmlspecialchars(trim($theFile)))
+					);
+
+					$check = basename($theFile_abs) . ':' . filemtime($theFile_abs) . ':' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey'];
+					$params = '&file=' . rawurlencode($theFile);
+					$params .= $size ? '&size=' . $size : '';
+					$params .= '&md5sum=' . t3lib_div::shortMD5($check);
+
+					$url = $thumbScript . '?&dummy=' . $GLOBALS['EXEC_TIME'] . $params;
+					$onClick = 'top.launchView(\'' . $theFile . '\',\'\',\'' . $backPath . '\');return false;';
+					$thumbData .= '<a href="#" onclick="' . htmlspecialchars($onClick) . '">' . $fileIcon . '</a> ';
 				}
 			}
 		}
@@ -2714,21 +2602,41 @@ final class t3lib_BEfunc {
 	 * @return	string	the HTML code ready to render
 	 * @api	public
 	 */
-	public static function wrapInHelp($table, $field, $text = '') {
-			// get the help text that should be shown on hover
-		$GLOBALS['LANG']->loadSingleTableDescription($table);
-		$helpText = self::helpText($table, $field);
+	public static function wrapInHelp($table, $field, $text = '', array $overloadHelpText = array()) {
+			// Initialize some variables
+		$helpText = '';
 		$abbrClassAdd = '';
-		if ($helpText) {
-				// if no text was given, just use the regular help icon
+		$wrappedText = $text;
+		$hasHelpTextOverload = count($overloadHelpText) > 0;
+
+			// Get the help text that should be shown on hover
+		if (!$hasHelpTextOverload) {
+			$helpText = self::helpText($table, $field);
+		}
+
+			// If there's a help text or some overload information, proceed with preparing an output
+		if (!empty($helpText) || $hasHelpTextOverload) {
+				// If no text was given, just use the regular help icon
 			if ($text == '') {
 				$text = t3lib_iconWorks::getSpriteIcon('actions-system-help-open');
 				$abbrClassAdd = '-icon';
 			}
 			$text = '<abbr class="t3-help-teaser' . $abbrClassAdd . '">' . $text . '</abbr>';
-			$text = '<span class="t3-help-link" href="#" data-table="' . $table . '" data-field="' . $field . '">' . $text . '</span>';
+			$wrappedText = '<span class="t3-help-link" href="#" data-table="' . $table . '" data-field="' . $field . '"';
+				// The overload array may provide a title and a description
+				// If either one is defined, add them to the "data" attributes
+			if ($hasHelpTextOverload) {
+				if (isset($overloadHelpText['title'])) {
+					$wrappedText .= ' data-title="' . htmlspecialchars($overloadHelpText['title']) . '"';
+				}
+				if (isset($overloadHelpText['description'])) {
+					$wrappedText .= ' data-description="' . htmlspecialchars($overloadHelpText['description']) . '"';
+				}
+			}
+			$wrappedText .= '>' . $text . '</span>';
 		}
-		return $text;
+
+		return $wrappedText;
 	}
 
 
@@ -3052,31 +2960,6 @@ final class t3lib_BEfunc {
 
 	/**
 	 * Call to update the page tree frame (or something else..?) after
-	 * t3lib_BEfunc::getSetUpdateSignal('updatePageTree') -> will set the page tree to be updated.
-	 * t3lib_BEfunc::getSetUpdateSignal() -> will return some JavaScript that does the update (called in the typo3/template.php file, end() function)
-	 * please use the setUpdateSignal function instead now, as it allows you to add more parameters
-	 * Usage: 11
-	 *
-	 * @param	string		Whether to set or clear the update signal. When setting, this value contains strings telling WHAT to set. At this point it seems that the value "updatePageTree" is the only one it makes sense to set.
-	 * @return	string		HTML code (<script> section)
-	 * @see	t3lib_BEfunc::getUpdateSignalCode()
-	 * @see	t3lib_BEfunc::setUpdateSignal()
-	 * @deprecated	since TYPO3 4.2, this function will be removed in TYPO3 4.6, use the setUpdateSignal function instead, as it allows you to add more parameters
-	 */
-	public static function getSetUpdateSignal($set = '') {
-		t3lib_div::logDeprecatedFunction();
-
-			// kept for backwards compatibility if $set is empty, use "getUpdateSignalCode()" instead
-		if ($set) {
-			return self::setUpdateSignal($set);
-		} else {
-			return self::getUpdateSignalCode();
-		}
-	}
-
-
-	/**
-	 * Call to update the page tree frame (or something else..?) after
 	 * use 'updatePageTree' as a first parameter will set the page tree to be updated.
 	 * Usage: 10
 	 *
@@ -3130,17 +3013,26 @@ final class t3lib_BEfunc {
 				t3lib_div::callUserFunction($updateSignals[$set], $params, $ref);
 				$signals[] = $params['JScode'];
 			} else {
-				if ($set === 'updatePageTree') {
-					$signals[] = '
-						if (top && top.TYPO3.Backend.NavigationContainer.PageTree) {
-							top.TYPO3.Backend.NavigationContainer.PageTree.refreshTree();
-						}
-					';
-				} else if ($set == 'updateFolderTree') {
-					$signals[] = '
-					if (top && top.TYPO3.Backend.NavigationIframe) {
-						top.TYPO3.Backend.NavigationIframe.refresh();
-					}';
+				switch ($set) {
+					case 'updatePageTree':
+						$signals[] = '
+							if (top && top.TYPO3.Backend.NavigationContainer.PageTree) {
+								top.TYPO3.Backend.NavigationContainer.PageTree.refreshTree();
+							}
+						';
+						break;
+					case 'updateFolderTree':
+						$signals[] = '
+							if (top && top.TYPO3.Backend.NavigationIframe) {
+								top.TYPO3.Backend.NavigationIframe.refresh();
+							}';
+						break;
+					case 'updateModuleMenu':
+						$signals[] = '
+							if (top && top.TYPO3.ModuleMenu.App) {
+								top.TYPO3.ModuleMenu.App.refreshMenu();
+							}';
+						break;
 				}
 			}
 		}
@@ -3271,7 +3163,7 @@ final class t3lib_BEfunc {
 	public static function getListViewLink($urlParameters = array(), $linkTitle = '', $linkText = '') {
 		$url = self::getModuleUrl('web_list', $urlParameters);
 
-		if (!t3lib_extMgm::isLoaded('list') || $url === FALSE) {
+		if (!t3lib_extMgm::isLoaded('recordlist') || $url === FALSE) {
 			return '';
 		} else {
 			return '<a href="' . htmlspecialchars($url) . '" title="' . htmlspecialchars($linkTitle) . '">' .
@@ -3279,6 +3171,18 @@ final class t3lib_BEfunc {
 					htmlspecialchars($linkText) .
 					'</a>';
 		}
+	}
+
+	/**
+	 * Generates a token and returns a parameter for the URL
+	 *
+	 * @param string $formName Context of the token
+	 * @param string $tokenName The name of the token GET variable
+	 * @return string a URL GET variable including ampersand
+	 */
+	public static function getUrlToken($formName = 'securityToken', $tokenName = 'formToken') {
+		$formprotection = t3lib_formprotection_Factory::get();
+		return '&' . $tokenName . '=' . $formprotection->generateToken($formName) . '-' . $formName;
 	}
 
 	/*******************************************
@@ -4249,14 +4153,7 @@ final class t3lib_BEfunc {
 	public static function versioningPlaceholderClause($table) {
 		if ($GLOBALS['TCA'][$table] && $GLOBALS['TCA'][$table]['ctrl']['versioningWS']) {
 			$currentWorkspace = intval($GLOBALS['BE_USER']->workspace);
-			if ($currentWorkspace !== 0) {
-					// show only the items of the current workspace
-					// if in any workspace other than live
-				return ' AND (' . $table . '.t3ver_state <= 0 OR ' . $table . '.t3ver_wsid = ' . $currentWorkspace . ')';
-			} elseif ($GLOBALS['TCA'][$table]['ctrl']['versioningWS'] == 2) {
-					// if in live workspace, don't show "MOVE-TO-PLACEHOLDERS"
-				return ' AND (' . $table . '.t3ver_state != 3)';
-			}
+			return ' AND (' . $table . '.t3ver_state <= 0 OR ' . $table . '.t3ver_wsid = ' . $currentWorkspace . ')';
 		}
 	}
 
@@ -4416,7 +4313,7 @@ final class t3lib_BEfunc {
 			);
 		} else {
 			$warrantyNote = sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:no.warranty'),
-				'<a href="http://typo3.com/1316.0.html" target="_blank">', '</a>'
+				'<a href="' . TYPO3_URL_LICENSE . '" target="_blank">', '</a>'
 			);
 		}
 		$cNotice = '<a href="http://typo3.com/" target="_blank">' .
@@ -4429,11 +4326,11 @@ final class t3lib_BEfunc {
 				htmlspecialchars(TYPO3_copyright_year) . ' Kasper Sk&aring;rh&oslash;j. ' .
 				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:extension.copyright') . ' ' .
 				sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:details.link'),
-					'<a href="http://typo3.com/" target="_blank">http://typo3.com/</a>'
+					'<a href="' . TYPO3_URL_GENERAL . '" target="_blank">' . TYPO3_URL_GENERAL . '</a>'
 				) . ' ' .
 				strip_tags($warrantyNote, '<a>') . ' ' .
 				sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:free.software'),
-					'<a href="http://typo3.com/1316.0.html" target="_blank">', '</a> '
+					'<a href="' . TYPO3_URL_LICENSE . '" target="_blank">', '</a> '
 				) .
 				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xml:keep.notice');
 
@@ -4501,10 +4398,13 @@ final class t3lib_BEfunc {
 					'</a>');
 			}
 
-				// Check if fileDenyPattern was changed which is dangerous on Apache
-			if ($GLOBALS['TYPO3_CONF_VARS']['BE']['fileDenyPattern'] != FILE_DENY_PATTERN_DEFAULT) {
+				// Check if parts of fileDenyPattern were removed which is dangerous on Apache
+			$defaultParts = t3lib_div::trimExplode('|', FILE_DENY_PATTERN_DEFAULT, TRUE);
+			$givenParts = t3lib_div::trimExplode('|', $GLOBALS['TYPO3_CONF_VARS']['BE']['fileDenyPattern'], TRUE);
+			$result = array_intersect($defaultParts, $givenParts);
+			if ($defaultParts !== $result) {
 				$warnings['file_deny_pattern'] = sprintf(
-					$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:warning.file_deny_pattern'),
+					$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:warning.file_deny_pattern_partsNotPresent'),
 						'<br /><pre>' . htmlspecialchars(FILE_DENY_PATTERN_DEFAULT) . '</pre><br />');
 			}
 
@@ -4671,41 +4571,6 @@ final class t3lib_BEfunc {
 			}
 		}
 		return $paramArr;
-	}
-
-	/**
-	 * Returns "list of backend modules". Most likely this will be obsolete soon / removed. Don't use.
-	 * Usage: 0
-	 *
-	 * @param	array		Module names in array. Must be "addslashes()"ed
-	 * @param	string		Perms clause for SQL query
-	 * @param	string		Backpath
-	 * @param	string		The URL/script to jump to (used in A tag)
-	 * @return	array		Two keys, rows and list
-	 * @internal
-	 * @deprecated since TYPO3 3.6, this function will be removed in TYPO3 4.6.
-	 * @obsolete
-	 */
-	public static function getListOfBackendModules($name, $perms_clause, $backPath = '', $script = 'index.php') {
-		t3lib_div::logDeprecatedFunction();
-
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', 'pages', 'doktype!=255 AND module IN (\'' . implode('\',\'', $name) . '\') AND' . $perms_clause . self::deleteClause('pages'));
-		if (!$GLOBALS['TYPO3_DB']->sql_num_rows($res)) {
-			return FALSE;
-		}
-
-		$out = '';
-		$theRows = array();
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-			$theRows[] = $row;
-			$out .= '<span class="nobr"><a href="' . htmlspecialchars($script . '?id=' . $row['uid']) . '">' .
-					t3lib_iconWorks::getSpriteIconForRecord('pages', $row, array('title' => htmlspecialchars(self::getRecordPath($row['uid'], $perms_clause, 20)))) .
-					htmlspecialchars($row['title']) .
-					'</a></span><br />';
-		}
-		$GLOBALS['TYPO3_DB']->sql_free_result($res);
-
-		return array('rows' => $theRows, 'list' => $out);
 	}
 
 	/**

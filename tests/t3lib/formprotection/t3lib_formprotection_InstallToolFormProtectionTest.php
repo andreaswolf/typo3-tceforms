@@ -2,7 +2,7 @@
 /***************************************************************
 * Copyright notice
 *
-* (c) 2010 Oliver Klee (typo3-coding@oliverklee.de)
+* (c) 2010-2011 Oliver Klee (typo3-coding@oliverklee.de)
 * All rights reserved
 *
 * This script is part of the TYPO3 project. The TYPO3 project is
@@ -83,7 +83,7 @@ class t3lib_formprotection_InstallToolFormProtectionTest extends tx_phpunit_test
 				'    parent::createValidationErrorMessage();' .
 				'  }' .
 				'  public function retrieveTokens() {' .
-				'    return parent::retrieveTokens();' .
+				'    return $this->tokens = parent::retrieveTokens();' .
 				'  }' .
 				'}'
 			);
