@@ -36,6 +36,8 @@
 class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 	/**
 	 * @test
+	 * @covers t3lib_TCA_DataStructure::hasControlValue
+	 * @covers t3lib_TCA_DataStructure::getControlValue
 	 */
 	public function controlValuesCanBeRetrievedFromDataStructure() {
 		$TcaFixture = array(
@@ -59,9 +61,44 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
+	 * @covers t3lib_TCA_DataStructure::getFieldObject
 	 */
 	public function getFieldObjectReturnsProperFieldObject() {
-		$this->markTestIncomplete();
+		/** @var $mockedField t3lib_TCA_DataStructure_Field */
+		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array(), array(), '', FALSE);
+		t3lib_div::addInstance('t3lib_TCA_DataStructure_Field', $mockedField);
+
+		/** @var $fixture t3lib_TCA_DataStructure */
+		$fixture = $this->getMock('t3lib_TCA_DataStructure', NULL, array(), '', FALSE);
+
+		$this->assertSame($mockedField, $fixture->getFieldObject(uniqid()));
+	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCA_DataStructure::getFieldObject
+	 */
+	public function getFieldObjectCachesObjects() {
+		/** @var $mockedField t3lib_TCA_DataStructure_Field */
+		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array(), array(), '', FALSE);
+		t3lib_div::addInstance('t3lib_TCA_DataStructure_Field', $mockedField);
+		$fieldName1 = uniqid();
+
+		/** @var $mockedField t3lib_TCA_DataStructure_Field */
+		$mockedField2 = $this->getMock('t3lib_TCA_DataStructure_Field', array(), array(), '', FALSE);
+		t3lib_div::addInstance('t3lib_TCA_DataStructure_Field', $mockedField2);
+		$fieldName2 = uniqid();
+
+		/** @var $fixture t3lib_TCA_DataStructure */
+		$fixture = $this->getMock('t3lib_TCA_DataStructure', NULL, array(), '', FALSE);
+
+		$obj1 = $fixture->getFieldObject($fieldName1);
+		$obj2 = $fixture->getFieldObject($fieldName1);
+		$obj3 = $fixture->getFieldObject($fieldName2);
+
+		$this->assertSame($mockedField, $obj1);
+		$this->assertSame($obj1, $obj2);
+		$this->assertNotSame($obj1, $obj3);
 	}
 }
 

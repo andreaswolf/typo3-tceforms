@@ -19,6 +19,13 @@ class t3lib_TCA_DataStructure {
 	protected $fields = array();
 
 	/**
+	 * Cache for field objects created by getFieldObject
+	 *
+	 * @var t3lib_TCA_DataStructure[]
+	 */
+	protected $fieldObjects = array();
+
+	/**
 	 * The control section of this data structure
      * This holds information from e.g. $TCA[$tableName]['ctrl']
 	 *
@@ -189,7 +196,11 @@ class t3lib_TCA_DataStructure {
 	 * @TODO add caching
 	 */
 	public function getFieldObject($fieldName) {
-		return new t3lib_TCA_DataStructure_Field($this, $fieldName, $this->getFieldConfiguration($fieldName));
+		if (!$this->fieldObjects[$fieldName]) {
+			$this->fieldObjects[$fieldName] = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Field', $this, $fieldName, $this->getFieldConfiguration($fieldName));
+		}
+
+		return $this->fieldObjects[$fieldName];
 	}
 
 	public function hasField($fieldName) {
