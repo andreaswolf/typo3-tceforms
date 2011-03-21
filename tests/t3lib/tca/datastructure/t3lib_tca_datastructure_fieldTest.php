@@ -79,17 +79,36 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
+	 * @covers t3lib_TCA_DataStructure_Field::getName
 	 */
 	public function fieldNameIsCorrectlyStoredAndReturned() {
 		$name = uniqid();
 		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
-		$field = new t3lib_TCA_DataStructure_Field($mockedDataStructure, $name, array());
+		$field = new t3lib_TCA_DataStructure_Field($mockedDataStructure, $name);
 
 		$this->assertEquals($name, $field->getName());
 	}
 
 	/**
 	 * @test
+	 * @covers t3lib_TCA_DataStructure_Field::getLabel
+	 */
+	public function labelIsProperlyExtractedFromConfiguration() {
+		$name = uniqid();
+		$configuration = array(
+			'label' => uniqid()
+		);
+		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
+		$mockedDataStructure->expects($this->once())->method('getFieldConfiguration')->with($name)->will($this->returnValue($configuration));
+		$field = new t3lib_TCA_DataStructure_Field($mockedDataStructure, $name);
+
+		$this->assertEquals($configuration['label'], $field->getLabel());
+	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCA_DataStructure_Field::hasConfigurationValue
+	 * @covers t3lib_TCA_DataStructure_Field::getConfigurationValue
 	 */
 	public function configurationValuesAreCorrectlyStoredAndReturned() {
 		$configuration = array(
@@ -184,6 +203,40 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 		$fieldMock->expects($this->once())->method('hasLocalizationMode');
 
 		$fieldMock->getLocalizationMode();
+	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCA_DataStructure_Field::getConfiguration
+	 */
+	public function getConfigurationReturnsStoredConfigurationArray() {
+		$configurationArray = array(
+			'some' => uniqid(),
+			'random' => uniqid(),
+			'configuration' => uniqid(),
+			'values' => uniqid(),
+		);
+
+		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
+		$mockedDataStructure->expects($this->once())->method('getFieldConfiguration')->will($this->returnValue($configurationArray));
+		$field = new t3lib_TCA_DataStructure_Field($mockedDataStructure, uniqid());
+
+		$this->assertEquals($configurationArray, $field->getConfiguration());
+	}
+
+	/**
+	 * @test
+	 */
+	public function paletteMethodsCorrectlyHandlePalette() {
+		/** @var $fixture t3lib_TCA_DataStructure_Field */
+		$fixture = $this->getMock('t3lib_TCA_DataStructure_Field', NULL, array(), '', FALSE);
+		/** @var $mockedPalette t3lib_TCA_DataStructure_Palette */
+		$mockedPalette = $this->getMock('t3lib_TCA_DataStructure_Palette', array(), array(), '', FALSE);
+
+		$this->assertFalse($fixture->hasPalette());
+		$fixture->addPalette($mockedPalette);
+		$this->assertTrue($fixture->hasPalette());
+		$this->assertSame($mockedPalette, $fixture->getPalette());
 	}
 }
 
