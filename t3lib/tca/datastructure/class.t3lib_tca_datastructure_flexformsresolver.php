@@ -56,26 +56,52 @@ class t3lib_TCA_DataStructure_FlexFormsResolver extends t3lib_TCA_DataStructure_
 		$field = $flexElementObject->getFieldname();
 		$fieldConfig = $flexElementObject->getFieldSetup();
 
+		$dataStructureArray = $this->resolveDataStructureXml($fieldConfig, $record, $table);
+		$TCAentry = $this->extractInformationFromDataStructureArray($dataStructureArray);
+
+		return $this->createDataStructureObject($TCAentry);
+	}
+
+	/**
+	 * Takes an XML data structure (converted to an array) and extracts all useful information from it.
+	 *
+	 * @param array $dataStructureArray
+	 * @return array
+	 */
+	public function extractInformationFromDataStructureArray(array $dataStructureArray) {
+		$TCAcolumnsArray = $this->extractColumnsFromDataStructureArray($dataStructureArray);
+		$TCAcontrolArray = $this->extractControlInformationFromDataStructureArray($dataStructureArray);
+		$TCAsheetsArray = $this->extractSheetInformation($dataStructureArray);
+
+		return array(
+			'ctrl' => $TCAcontrolArray,
+			'columns' => $TCAcolumnsArray,
+			'sheets' => $TCAsheetsArray,
+			'meta' => $dataStructureArray['meta']
+		);
+	}
+
+	/**
+	 * Resolves an XML data structure into a DS array. Mainly a wrapper for t3lib_BEfunc::getFlexFormDS
+	 *
+	 * @param  $fieldConfig
+	 * @param  $record
+	 * @param  $table
+	 * @return mixed
+	 * @throws RuntimeException
+	 */
+	protected function resolveDataStructureXml($fieldConfig, $record, $table) {
 		$dataStructureArray = t3lib_BEfunc::getFlexFormDS($fieldConfig['config'], $record, $table);
 
 		if (!is_array($dataStructureArray)) {
 			throw new RuntimeException('Decoding FlexForm DataStructure failed: ' . $dataStructureArray);
 		}
 
-		$TCAcolumnsArray = $this->extractColumnsFromDataStructureArray($dataStructureArray);
-		$TCAcontrolArray = $this->extractControlInformationFromDataStructureArray($dataStructureArray);
-		$TCAsheetsArray = $this->extractSheetInformation($dataStructureArray);
+		return $dataStructureArray;
+	}
 
-		$TCAentry = array(
-			'ctrl' => $TCAcontrolArray,
-			'columns' => $TCAcolumnsArray,
-			'sheets' => $TCAsheetsArray,
-			'meta' => $dataStructureArray['meta']
-		);
-
-		$dataStructureObject = t3lib_div::makeInstance('t3lib_TCA_FlexFormDataStructure', $TCAentry);
-
-		return $dataStructureObject;
+	protected function createDataStructureObject(array $TCAentry) {
+		return t3lib_div::makeInstance('t3lib_TCA_FlexFormDataStructure', $TCAentry);
 	}
 
 	protected function extractColumnsFromDataStructureArray($dataStructureArray) {
