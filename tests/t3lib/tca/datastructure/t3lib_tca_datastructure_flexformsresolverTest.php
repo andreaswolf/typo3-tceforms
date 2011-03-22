@@ -41,7 +41,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractColumnsFromDataStructureArray
 	 */
 	public function fieldTypeIsCorrectlyRecognized() {
-		$this->dataStructureMock = array('sheets' => array(
+		$dataStructureMock = array('sheets' => array(
 			'defaultSheet' => array('ROOT' => array('el' => array(
 				'sectionField' => array(
 					'section' => 1
@@ -52,22 +52,15 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 			)))
 		));
 
-		$mockedRecord = $this->getMock('t3lib_TCEforms_Record', array(), array(), '', NULL);
-		$mockedField = $this->getMock('t3lib_TCEforms_Element_Flex', array(), array(), '', NULL);
-		$mockedField->expects($this->any())->method('getRecordObject')->will($this->returnValue($mockedRecord));
-		/** @var $fixture t3lib_TCA_DataStructure_FlexFormsResolver */
-		$fixture = $this->getMock('t3lib_TCA_DataStructure_FlexFormsResolver', array('resolveDataStructureXml', 'createDataStructureObject'));
-		$fixture->expects($this->once())->method('resolveDataStructureXml')->will($this->returnValue($this->dataStructureMock));
-		$fixture->expects($this->once())->method('createDataStructureObject')->will($this->returnCallback(array($this, 'sectionFieldsAreRecognized_createDataStructureObject_callback')));
-
-		$fixture->resolveDataStructure($mockedField);
-	}
-
-	public function sectionFieldsAreRecognized_createDataStructureObject_callback($TCAentry) {
-		$fields = $TCAentry['columns'];
+		$fixture = new t3lib_TCA_DataStructure_FlexFormsResolver();
+		$TcaEntry = $fixture->extractInformationFromDataStructureArray($dataStructureMock);
+		$fields = $TcaEntry['columns'];
 
 		$this->assertEquals('section', $fields['sectionField']['_type']);
 		$this->assertEquals('field', $fields['nonSectionField']['_type']);
+	}
+
+	public function sectionFieldsAreRecognized_createDataStructureObject_callback($TCAentry) {
 	}
 
 	/**
@@ -75,7 +68,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractSheetInformation
 	 */
 	public function fieldNamesAreExtractedForSheets() {
-		$this->dataStructureMock = array('sheets' => array(
+		$dataStructureMock = array('sheets' => array(
 			'defaultSheet' => array('ROOT' => array('el' => array(
 				uniqid('el-') => array(),
 				uniqid('el-') => array()
@@ -86,28 +79,52 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 			))),
 		));
 
-		$mockedRecord = $this->getMock('t3lib_TCEforms_Record', array(), array(), '', NULL);
-		$mockedField = $this->getMock('t3lib_TCEforms_Element_Flex', array(), array(), '', NULL);
-		$mockedField->expects($this->any())->method('getRecordObject')->will($this->returnValue($mockedRecord));
-		/** @var $fixture t3lib_TCA_DataStructure_FlexFormsResolver */
-		$fixture = $this->getMock('t3lib_TCA_DataStructure_FlexFormsResolver', array('resolveDataStructureXml', 'createDataStructureObject'));
-		$fixture->expects($this->once())->method('resolveDataStructureXml')->will($this->returnValue($this->dataStructureMock));
-		$fixture->expects($this->once())->method('createDataStructureObject')->will($this->returnCallback(array($this, 'fieldNamesAreExtractedForSheets_callback')));
-
-		$fixture->resolveDataStructure($mockedField);
-	}
-
-	public function fieldNamesAreExtractedForSheets_callback($TCAentry) {
-		$sheets = $TCAentry['sheets'];
+		$fixture = new t3lib_TCA_DataStructure_FlexFormsResolver();
+		$TcaEntry = $fixture->extractInformationFromDataStructureArray($dataStructureMock);
+		$sheets = $TcaEntry['sheets'];
 
 		foreach ($sheets as $sheet) {
 			$sheetName = $sheet['name'];
-			$mockedElements = array_keys($this->dataStructureMock['sheets'][$sheetName]['ROOT']['el']);
+			$mockedElements = array_keys($dataStructureMock['sheets'][$sheetName]['ROOT']['el']);
 			$this->assertNotEmpty($mockedElements);
 
 			foreach ($mockedElements as $element) {
 				$this->assertContains($element, $sheet['elements']);
 			}
+		}
+	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractSheetInformation
+	 */
+	public function fieldConfigIsCorrectlyExtracted() {
+		$dataStructureMock = array('sheets' => array(
+			'defaultSheet' => array('ROOT' => array('el' => array(
+				uniqid('el-') => array(
+					'TCEforms' => array(
+						'label' => uniqid(),
+						'config' => array('type' => uniqid())
+					)
+				),
+				uniqid('el-') => array(
+					'TCEforms' => array(
+						'config' => array('type' => uniqid())
+					)
+				)
+			))),
+		));
+
+		$fixture = new t3lib_TCA_DataStructure_FlexFormsResolver();
+		$TcaEntry = $fixture->extractInformationFromDataStructureArray($dataStructureMock);
+
+		$elements = $dataStructureMock['sheets']['defaultSheet']['ROOT']['el'];
+		$elementNames = array_keys($elements);
+
+		foreach ($elementNames as $elementName) {
+			$this->assertArrayHasKey($elementName, $TcaEntry['columns']);
+			$this->assertEquals(array_merge($elements[$elementName]['TCEforms'], array('_type' => 'field')),
+			  $TcaEntry['columns'][$elementName]);
 		}
 	}
 
@@ -177,6 +194,29 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 				$this->assertEquals($fieldConfig['TCEforms'], $containerTca['columns'][$fieldName]);
 			}
 		}
+	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractColumnsFromDataStructureArray
+	 */
+	public function configArrayIsCorrectlySetForSectionFields() {
+		$dataStructureMock = array('sheets' => array(
+			'defaultSheet' => array('ROOT' => array('el' => array(
+				'sectionField' => array(
+					'section' => 1
+				)
+			)))
+		));
+
+		/** @var $fixture t3lib_TCA_DataStructure_FlexFormsResolver */
+		$fixture = $this->getMock('t3lib_TCA_DataStructure_FlexFormsResolver', array('resolveDataStructureXml', 'createDataStructureObject'));
+
+		$TcaEntry = $fixture->extractInformationFromDataStructureArray($dataStructureMock);
+		$column = array_shift($TcaEntry['columns']);
+
+		$this->assertArrayHasKey('config', $column);
+		$this->assertEquals('flexsection', $column['config']['type']);
 	}
 }
 

@@ -113,6 +113,9 @@ class t3lib_TCA_DataStructure_FlexFormsResolver extends t3lib_TCA_DataStructure_
 					$containers = $this->extractContainersFromFlexformSection($elementConfig);
 					$TCAcolumns[$elementName] = array(
 						'containers' => $containers,
+						'config' => array(
+							'type' => 'flexsection'
+						),
 						'_type' => 'section'
 					);
 				} else {
