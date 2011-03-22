@@ -108,11 +108,48 @@ class t3lib_TCA_DataStructure_FlexFormsResolver extends t3lib_TCA_DataStructure_
 		$TCAcolumns = array();
 		foreach ($dataStructureArray['sheets'] as $sheet) {
 			foreach ($sheet['ROOT']['el'] as $elementName => $elementConfig) {
-				$TCAcolumns[$elementName] = $elementConfig['TCEforms'];
+					// section elements contain no TCEforms configuration
+				if ($elementConfig['section'] == '1') {
+					$containers = $this->extractContainersFromFlexformSection($elementConfig);
+					$TCAcolumns[$elementName] = array(
+						'containers' => $containers,
+						'_type' => 'section'
+					);
+				} else {
+					$TCAcolumns[$elementName] = $elementConfig['TCEforms'];
+					$TCAcolumns[$elementName]['_type'] = 'field';
+				}
 			}
 		}
 
 		return $TCAcolumns;
+	}
+
+	/**
+	 * Returns an associative array of all containers that belong to a FlexForm section.
+	 *
+	 * @param  $flexformField
+	 * @return array
+	 * @static
+	 */
+	protected function extractContainersFromFlexformSection($flexformField) {
+		$containers = array();
+		foreach ($flexformField['el'] as $containerName => $containerConfig) {
+			$containers[$containerName] = array(
+					// TODO check if the title is used anywhere currently
+				'title' => $containerConfig['tx_templavoila']['title'],
+				'columns' => $this->extractFieldInformationFromFlexformContainer($containerConfig)
+			);
+		}
+		return $containers;
+	}
+
+	protected function extractFieldInformationFromFlexformContainer($flexformContainer) {
+		$fields = array();
+		foreach ($flexformContainer['el'] as $fieldName => $fieldConfig) {
+			$fields[$fieldName] = $fieldConfig['TCEforms'];
+		}
+		return $fields;
 	}
 
 
