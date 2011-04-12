@@ -630,6 +630,11 @@ $TYPO3_CONF_VARS = array(
 //		Eg.  ...['service_type']['setup']['my_option'] = 'my_value'; Setup options how to handle the service (call it or not and how when)
 //		Eg.  ...['service_type']['default']['my_option'] = 'my_value';
 //		Eg.  ...['service_type']['service_key']['my_option'] = 'my_value';
+	),
+	'TCEFORMS' => array(
+		'widgetTypes' => array(
+			''
+		)
 	)
 );
 $T3_VAR = array();	// Initialize.
