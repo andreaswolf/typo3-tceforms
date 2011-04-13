@@ -37,6 +37,8 @@
 interface t3lib_TCEforms_ContainerWidget extends t3lib_TCEforms_Widget {
 	public function addChildWidget(t3lib_TCEforms_Widget $widget);
 
+	public function addChildWidgets(array $widgets);
+
 	public function getChildWidgets();
 
 	public function getChildWidgetCount();

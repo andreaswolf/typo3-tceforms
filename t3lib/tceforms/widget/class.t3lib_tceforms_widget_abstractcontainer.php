@@ -54,6 +54,12 @@ abstract class t3lib_TCEforms_Widget_AbstractContainer extends t3lib_TCEforms_Wi
 		$widget->setParentWidget($this);
 	}
 
+	public function addChildWidgets(array $widgets) {
+		foreach ($widgets as $widget) {
+			$this->addChildWidget($widget);
+		}
+	}
+
 	public function renderChildWidgets() {
 		// TODO: Implement renderChildWidgets() method.
 	}

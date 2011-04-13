@@ -59,6 +59,21 @@ class t3lib_TCEforms_Widget_AbstractContainerTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
+	 */
+	public function addChildWidgetsAddsAllGivenWidgets() {
+		$mockedWidgets = array(
+			$this->getMock('t3lib_TCEforms_Widget'),
+			$this->getMock('t3lib_TCEforms_Widget')
+		);
+
+		$this->fixture->addChildWidgets($mockedWidgets);
+
+		$this->assertContains($mockedWidgets[0], $this->fixture->getChildWidgets());
+		$this->assertContains($mockedWidgets[1], $this->fixture->getChildWidgets());
+	}
+
+	/**
+	 * @test
 	 * @covers t3lib_TCEforms_Widget_AbstractContainer::getChildWidgetCount
 	 */
 	public function getChildWidgetCountReturnsCorrectValues() {
