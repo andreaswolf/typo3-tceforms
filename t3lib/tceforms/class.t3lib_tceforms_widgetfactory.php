@@ -52,7 +52,7 @@ class t3lib_TCEforms_WidgetFactory {
 	 * @param array $widgetConfiguration
 	 * @return void
 	 */
-	public function createWidget(array $widgetConfiguration) {
+	public function buildWidget(array $widgetConfiguration) {
 		if (isset($widgetConfiguration['class'])) {
 			$widgetClass = $widgetConfiguration['class'];
 		} elseif (isset($widgetConfiguration['type'])) {

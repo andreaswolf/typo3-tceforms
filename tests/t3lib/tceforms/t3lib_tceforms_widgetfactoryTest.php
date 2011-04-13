@@ -46,9 +46,9 @@ class t3lib_TCEforms_WidgetFactoryTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
-	 * @covers t3lib_TCEforms_WidgetFactory::createWidget
+	 * @covers t3lib_TCEforms_WidgetFactory::buildWidget
 	 */
-	public function createWidgetCorrectlyResolvesType() {
+	public function buildWidgetCorrectlyResolvesType() {
 		$widgetType = uniqid();
 		$widgetClass = uniqid('t3lib_TCEforms_MockedWidget');
 		$mockedWidget = $this->getMock('t3lib_TCEforms_Widget', array(), array(), $widgetClass);
@@ -63,14 +63,14 @@ class t3lib_TCEforms_WidgetFactoryTest extends Tx_Phpunit_TestCase {
 		$widgetConfig = array(
 			'type' => $widgetType
 		);
-		$fixture->createWidget($widgetConfig);
+		$fixture->buildWidget($widgetConfig);
 	}
 
 	/**
 	 * @test
-	 * @covers t3lib_TCEforms_WidgetFactory::createWidget
+	 * @covers t3lib_TCEforms_WidgetFactory::buildWidget
 	 */
-	public function createWidgetReturnsCorrectObjectForGivenType() {
+	public function buildWidgetReturnsCorrectObjectForGivenType() {
 		$widgetType = uniqid();
 		$widgetClass = uniqid('t3lib_TCEforms_MockedWidget');
 		$mockedWidget = $this->getMock('t3lib_TCEforms_Widget', array(), array(), $widgetClass);
@@ -85,16 +85,16 @@ class t3lib_TCEforms_WidgetFactoryTest extends Tx_Phpunit_TestCase {
 		$widgetConfig = array(
 			'type' => $widgetType
 		);
-		$widgetObject = $fixture->createWidget($widgetConfig);
+		$widgetObject = $fixture->buildWidget($widgetConfig);
 
 		$this->assertSame($mockedWidget, $widgetObject);
 	}
 
 	/**
 	 * @test
-	 * @covers t3lib_TCEforms_WidgetFactory::createWidget
+	 * @covers t3lib_TCEforms_WidgetFactory::buildWidget
 	 */
-	public function createWidgetReturnsCorrectObjectForGivenClass() {
+	public function buildWidgetReturnsCorrectObjectForGivenClass() {
 		$widgetClass = uniqid('t3lib_TCEforms_MockedWidget');
 		$mockedWidget = $this->getMock('t3lib_TCEforms_Widget', array(), array(), $widgetClass);
 		t3lib_div::addInstance($widgetClass, $mockedWidget);
@@ -102,7 +102,7 @@ class t3lib_TCEforms_WidgetFactoryTest extends Tx_Phpunit_TestCase {
 		$widgetConfig = array(
 			'class' => $widgetClass
 		);
-		$widgetObject = $this->fixture->createWidget($widgetConfig);
+		$widgetObject = $this->fixture->buildWidget($widgetConfig);
 
 		$this->assertSame($mockedWidget, $widgetObject);
 	}
@@ -111,9 +111,9 @@ class t3lib_TCEforms_WidgetFactoryTest extends Tx_Phpunit_TestCase {
 	 * The aspect tested in this test helps preventing unneccessary lookups in the widget registry
 	 *
 	 * @test
-	 * @covers t3lib_TCEforms_WidgetFactory::createWidget
+	 * @covers t3lib_TCEforms_WidgetFactory::buildWidget
 	 */
-	public function createWidgetPrefersClassIfClassAndTypeAreGiven() {
+	public function buildWidgetPrefersClassIfClassAndTypeAreGiven() {
 		$widgetType = uniqid();
 		$widgetClass = uniqid('t3lib_TCEforms_MockedWidget');
 		$mockedWidget = $this->getMock('t3lib_TCEforms_Widget', array(), array(), $widgetClass);
