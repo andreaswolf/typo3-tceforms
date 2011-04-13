@@ -37,6 +37,17 @@
 abstract class t3lib_TCEforms_Widget_Abstract implements t3lib_TCEforms_Widget {
 	protected $parentWidget = NULL;
 
+	/**
+	 * The configuration for this widget
+	 *
+	 * @var array
+	 */
+	protected $configuration;
+
+	public function __construct(array $configuration) {
+		$this->configuration = $configuration;
+	}
+
 	public function hasParentWidget() {
 		return !($this->parentWidget === NULL);
 	}

@@ -35,6 +35,8 @@
  * @subpackage t3lib
  */
 interface t3lib_TCEforms_Widget {
+	public function __construct(array $configuration);
+
 	public function hasParentWidget();
 
 	public function getParentWidget();

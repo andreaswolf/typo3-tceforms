@@ -61,10 +61,11 @@ class t3lib_TCEforms_WidgetFactory {
 			// TODO throw exception
 		}
 
-		$widgetObject = t3lib_div::makeInstance($widgetClass);
+		$widgetObject = t3lib_div::makeInstance($widgetClass, $widgetConfiguration);
 
 		return $widgetObject;
 	}
+
 }
 
 ?>

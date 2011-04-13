@@ -42,7 +42,7 @@ class t3lib_TCEforms_Widget_AbstractFieldTest extends Tx_Phpunit_TestCase {
 	private $fixture;
 
 	public function setUp() {
-		$this->fixture = $this->getMockForAbstractClass('t3lib_TCEforms_Widget_AbstractField');
+		$this->fixture = $this->getMockForAbstractClass('t3lib_TCEforms_Widget_AbstractField', array(), '', FALSE);
 	}
 
 	/**
