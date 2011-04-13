@@ -63,9 +63,30 @@ class t3lib_TCEforms_WidgetFactory {
 
 		$widgetObject = t3lib_div::makeInstance($widgetClass, $widgetConfiguration);
 
+		if (is_a($widgetObject, 't3lib_TCEforms_ContainerWidget') && isset($widgetConfiguration['items'])) {
+			$subwidgets = (array)$this->buildWidgetArray($widgetConfiguration['items']);
+
+			$widgetObject->addChildWidgets($subwidgets);
+		}
+
 		return $widgetObject;
 	}
 
+	/**
+	 * Builds widgets from an array of widget configurations. A typical example are the widgets inside a container,
+	 * e.g. on one tab of a tab panel
+	 *
+	 * @param array $widgetConfigurations
+	 * @return array The objects that were built
+	 */
+	public function buildWidgetArray(array $widgetConfigurations) {
+		$builtWidgets = array();
+
+		foreach ($widgetConfigurations as $configuration) {
+			$builtWidgets[] = $this->buildWidget($configuration);
+		}
+		return $builtWidgets;
+	}
 }
 
 ?>

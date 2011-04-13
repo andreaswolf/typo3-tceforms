@@ -129,7 +129,133 @@ class t3lib_TCEforms_WidgetFactoryTest extends Tx_Phpunit_TestCase {
 			'type' => $widgetType,
 			'class' => $widgetClass
 		);
-		$fixture->createWidget($widgetConfig);
+		$fixture->buildWidget($widgetConfig);
+	}
+
+	/**
+	 * @test
+	 */
+	public function buildWidgetBuildsSubitemsForContainers() {
+		$widgetClassName = uniqid('t3lib_TCEforms_MockedWidget');
+		$mockedWidget = $this->getMock('t3lib_TCEforms_ContainerWidget', array(), array(), $widgetClassName);
+		t3lib_div::addInstance($widgetClassName, $mockedWidget);
+
+		$widgetConfig = array(
+			'class' => $widgetClassName,
+			'items' => array(
+				array(
+					'class' => 'foo'
+				),
+				array(
+					'class' => 'bar'
+				)
+			)
+		);
+
+		/** @var t3lib_TCEforms_WidgetFactory $fixture */
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetFactory', array('buildWidgetArray'));
+		$fixture->expects($this->once())->method('buildWidgetArray')->with($this->equalTo($widgetConfig['items']));
+
+		$fixture->buildWidget($widgetConfig);
+	}
+
+	/**
+	 * @test
+	 */
+	public function buildWidgetDoesNotBuildSubitemsIfWidgetIsNoContainer() {
+		$widgetClassName = uniqid('t3lib_TCEforms_MockedWidget');
+		$mockedWidget = $this->getMock('t3lib_TCEforms_Widget', array(), array(), $widgetClassName);
+		t3lib_div::addInstance($widgetClassName, $mockedWidget);
+
+		$widgetConfig = array(
+			'class' => $widgetClassName,
+			'items' => array(
+			)
+		);
+
+		/** @var t3lib_TCEforms_WidgetFactory $fixture */
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetFactory', array('buildWidgetArray'));
+		$fixture->expects($this->never())->method('buildWidgetArray');
+
+		$fixture->buildWidget($widgetConfig);
+	}
+
+	/**
+	 * @test
+	 * @covers t3lib_TCEforms_WidgetFactory::buildWidget
+	 */
+	public function buildWidgetAddsBuiltSubitemsToWidget() {
+		$widgetClassName = uniqid('t3lib_TCEforms_MockedWidget');
+		$mockedWidget = $this->getMock('t3lib_TCEforms_ContainerWidget', array(), array(), $widgetClassName);
+		t3lib_div::addInstance($widgetClassName, $mockedWidget);
+
+		$mockedSubwidgets = array(
+			$this->getMock('t3lib_TCEforms_Widget'),
+			$this->getMock('t3lib_TCEforms_Widget')
+		);
+
+		$widgetConfig = array(
+			'class' => $widgetClassName,
+			'items' => array(
+			)
+		);
+
+		/** @var t3lib_TCEforms_WidgetFactory $fixture */
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetFactory', array('buildWidgetArray'));
+		$fixture->expects($this->once())->method('buildWidgetArray')->will($this->returnValue($mockedSubwidgets));
+
+		$mockedWidget->expects($this->once())->method('addChildWidgets')->with($this->equalTo($mockedSubwidgets));
+
+		$fixture->buildWidget($widgetConfig);
+	}
+
+	/**
+	 * @test
+	 */
+	public function buildWidgetArrayBuildsAllWidgets() {
+		$subwidgetConfig = array(
+			array(
+				'class' => uniqid()
+			),
+			array(
+				'class' => uniqid()
+			)
+		);
+
+		/** @var $fixture t3lib_TCEforms_WidgetFactory */
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetFactory', array('buildWidget'));
+		$fixture->expects($this->at(0))->method('buildWidget')->with($subwidgetConfig[0]);
+		$fixture->expects($this->at(1))->method('buildWidget')->with($subwidgetConfig[1]);
+
+		$fixture->buildWidgetArray($subwidgetConfig);
+	}
+
+	/**
+	 * @test
+	 */
+	public function buildWidgetArrayReturnsBuiltWidgets() {
+		$subwidgetConfig = array(
+			array(
+				'class' => uniqid()
+			),
+			array(
+				'class' => uniqid()
+			)
+		);
+		$mockedWidgets = array(
+			$this->getMock('t3lib_TCEforms_Widget'),
+			$this->getMock('t3lib_TCEforms_Widget')
+		);
+
+		/** @var $fixture t3lib_TCEforms_WidgetFactory */
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetFactory', array('buildWidget'));
+		$fixture->expects($this->at(0))->method('buildWidget')->with($subwidgetConfig[0])->will($this->returnValue($mockedWidgets[0]));
+		$fixture->expects($this->at(1))->method('buildWidget')->with($subwidgetConfig[1])->will($this->returnValue($mockedWidgets[1]));
+
+		$builtWidgets = $fixture->buildWidgetArray($subwidgetConfig);
+
+		$this->assertSame($mockedWidgets[0], $builtWidgets[0]);
+		$this->assertSame($mockedWidgets[1], $builtWidgets[1]);
 	}
 }
 
