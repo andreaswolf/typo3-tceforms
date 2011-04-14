@@ -204,6 +204,7 @@ $t3libClasses = array(
 	't3lib_tceforms_helper' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_helper.php',
 	't3lib_tceforms_viewhelpers_elementviewhelper' => PATH_t3lib . 'tceforms/viewhelpers/class.t3lib_tceforms_viewhelpers_elementviewhelper.php',
 	't3lib_tceforms_widget' => PATH_t3lib . 'interfaces/tceforms/interface.t3lib_tceforms_widget.php',
+	't3lib_tceforms_widgetbuilder' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_widgetbuilder.php',
 	't3lib_tceforms_widgetfactory' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_widgetfactory.php',
 	't3lib_tceforms_widgetregistry' => PATH_t3lib . 'tceforms/class.t3lib_tceforms_widgetregistry.php',
 	't3lib_tceforms_widget_abstract' => PATH_t3lib . 'tceforms/widget/class.t3lib_tceforms_widget_abstract.php',
