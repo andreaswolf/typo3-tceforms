@@ -67,6 +67,12 @@ abstract class t3lib_TCEforms_Widget_AbstractContainer extends t3lib_TCEforms_Wi
 	public function isPossibleChildWidget(t3lib_TCEforms_Widget $widget) {
 		// TODO: Implement isPossibleChildWidget() method.
 	}
+
+	public function __clone() {
+		foreach ($this->childWidgets as $index => $widget) {
+			$this->childWidgets[$index] = clone $widget;
+		}
+	}
 }
 
 ?>

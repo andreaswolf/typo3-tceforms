@@ -110,6 +110,23 @@ class t3lib_TCEforms_Widget_AbstractContainerTest extends Tx_Phpunit_TestCase {
 
 		$this->fixture->addChildWidget($childWidget);
 	}
+
+	/**
+	 * @test
+	 */
+	public function childWidgetsAreAlsoCloned() {
+		$childWidget = $this->getMock('t3lib_TCEforms_Widget');
+		$childWidget->expects($this->once())->method('setParentWidget')->with($this->equalTo($this->fixture));
+
+		$this->fixture->addChildWidget($childWidget);
+		$fixtureChildWidgets = $this->fixture->getChildWidgets();
+
+		$clonedFixture = clone $this->fixture;
+		$clonedFixtureChildWidgets = $clonedFixture->getChildWidgets();
+
+		$this->assertSame($childWidget, $fixtureChildWidgets[0]);
+		$this->assertNotSame($fixtureChildWidgets[0], $clonedFixtureChildWidgets[0]);
+	}
 }
 
 ?>
