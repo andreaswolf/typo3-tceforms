@@ -28,47 +28,13 @@
 
 
 /**
- * Base class for all field type implementations; some subclasses may also implement _ContainerWidget if they allow
- * widgets inside them (especially type=flex, inline or flexsection/flexcontainer
+ * 
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  * @package TYPO3
- * @subpackage t3lib
+ * @subpackage 
  */
-abstract class t3lib_TCEforms_Widget_AbstractField extends t3lib_TCEforms_Widget_Abstract implements t3lib_TCEforms_FieldWidget {
-	/**
-	 * The name of this field in the data structure.
-	 *
-	 * TODO: does this always represent the lowest level or does it contain upper levels if there may be ambiguities
-	 *       (e.g. in FlexForms, where the same field name may appear on different sheets)?
-	 *
-	 * @var string
-	 */
-	protected $fieldName;
-
-	public function getIdentity() {
-		// TODO: Implement getIdentity() method.
-	}
-
-	public function getFieldName() {
-		return $this->fieldName;
-	}
-
-	public function setFieldName($fieldName) {
-		$this->fieldName = $fieldName;
-	}
-
-	public function hasWizards() {
-		// TODO: Implement hasWizards() method.
-	}
-
-	public function getWizards() {
-		// TODO: Implement getWizards() method.
-	}
-
-	public function addWizard() {
-		// TODO: Implement addWizard() method.
-	}
+abstract class t3lib_TCEforms_Widget_Box extends t3lib_TCEforms_Widget_AbstractContainer {
 }
 
 ?>

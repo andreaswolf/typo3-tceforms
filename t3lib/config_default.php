@@ -633,7 +633,11 @@ $TYPO3_CONF_VARS = array(
 	),
 	'TCEFORMS' => array(
 		'widgetTypes' => array(
-			''
+			'hbox' => 't3lib_TCEforms_Widget_HBox',
+			'tabpanel' => 't3lib_TCEforms_Widget_TabPanel',
+			'tab' => 't3lib_TCEforms_Widget_Tab',
+			'vbox' => 't3lib_TCEforms_Widget_VBox',
+			'field' => 't3lib_TCEforms_Widget_FieldProxy'
 		)
 	)
 );
