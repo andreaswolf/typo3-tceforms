@@ -64,6 +64,21 @@ class t3lib_TCEforms_WidgetBuilderTest extends Tx_Phpunit_TestCase {
 	/**
 	 * @test
 	 */
+	public function buildRecursiveWidgetArrayDoesNotLetWidgetFactoryBuildTheRecursiveStructure() {
+		$widgetConfig = array(
+			array('type' => 'foo')
+		);
+
+		$mockedWidgetFactory = $this->getMock('t3lib_TCEforms_WidgetFactory');
+		$mockedWidgetFactory->expects($this->at(0))->method('buildWidget')->with($this->anything(), $this->equalTo(FALSE));
+
+		$this->fixture->setWidgetFactory($mockedWidgetFactory);
+		$this->fixture->buildRecursiveWidgetArray($widgetConfig);
+	}
+
+	/**
+	 * @test
+	 */
 	public function buildRecursiveWidgetArrayAddsSubwidgetsToCorrectWidget() {
 		$widgetConfig = array(
 			array(

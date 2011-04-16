@@ -73,7 +73,7 @@ class t3lib_TCEforms_WidgetBuilder {
 			// the widgets on the outermost level
 		$topLevelWidgets = array();
 		foreach ($widgetStack as $stackEntry) {
-			$widgetObject = $this->widgetFactory->buildWidget($stackEntry['config']);
+			$widgetObject = $this->widgetFactory->buildWidget($stackEntry['config'], FALSE);
 
 			if (isset($stackEntry['parent'])) {
 				$stackEntry['parent']->addChildWidget($widgetObject);
