@@ -52,7 +52,7 @@ class t3lib_TCEforms_WidgetFactory {
 	 * @param array $widgetConfiguration
 	 * @return void
 	 */
-	public function buildWidget(array $widgetConfiguration) {
+	public function buildWidget(array $widgetConfiguration, $buildRecursive = TRUE) {
 		if (isset($widgetConfiguration['class'])) {
 			$widgetClass = $widgetConfiguration['class'];
 		} elseif (isset($widgetConfiguration['type'])) {
@@ -63,7 +63,7 @@ class t3lib_TCEforms_WidgetFactory {
 
 		$widgetObject = t3lib_div::makeInstance($widgetClass, $widgetConfiguration);
 
-		if (is_a($widgetObject, 't3lib_TCEforms_ContainerWidget') && isset($widgetConfiguration['items'])) {
+		if (is_a($widgetObject, 't3lib_TCEforms_ContainerWidget') && isset($widgetConfiguration['items']) && $buildRecursive) {
 			$subwidgets = (array)$this->buildWidgetArray($widgetConfiguration['items']);
 
 			$widgetObject->addChildWidgets($subwidgets);

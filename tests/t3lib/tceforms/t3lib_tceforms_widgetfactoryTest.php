@@ -182,6 +182,27 @@ class t3lib_TCEforms_WidgetFactoryTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
+	 */
+	public function buildWidgetDoesNotBuildSubitemsIfBuildRecursiveIsNotSet() {
+		$widgetClassName = uniqid('t3lib_TCEforms_MockedWidget');
+		$mockedWidget = $this->getMock('t3lib_TCEforms_ContainerWidget', array(), array(), $widgetClassName);
+		t3lib_div::addInstance($widgetClassName, $mockedWidget);
+
+		$widgetConfig = array(
+			'class' => $widgetClassName,
+			'items' => array(
+			)
+		);
+
+		/** @var t3lib_TCEforms_WidgetFactory $fixture */
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetFactory', array('buildWidgetArray'));
+		$fixture->expects($this->never())->method('buildWidgetArray');
+
+		$fixture->buildWidget($widgetConfig, FALSE);
+	}
+
+	/**
+	 * @test
 	 * @covers t3lib_TCEforms_WidgetFactory::buildWidget
 	 */
 	public function buildWidgetAddsBuiltSubitemsToWidget() {
