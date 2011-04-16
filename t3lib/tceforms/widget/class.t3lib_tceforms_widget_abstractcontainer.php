@@ -60,6 +60,16 @@ abstract class t3lib_TCEforms_Widget_AbstractContainer extends t3lib_TCEforms_Wi
 		}
 	}
 
+	public function replaceChildWidget(t3lib_TCEforms_Widget $oldWidget, t3lib_TCEforms_Widget $newWidget) {
+		$key = array_search($oldWidget, $this->childWidgets);
+
+		if ($key === FALSE) {
+			// TODO throw exception
+		}
+
+		$this->childWidgets[$key] = $newWidget;
+	}
+
 	public function renderChildWidgets() {
 		// TODO: Implement renderChildWidgets() method.
 	}

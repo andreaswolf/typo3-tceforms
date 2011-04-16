@@ -28,16 +28,26 @@
 
 
 /**
- * A proxy for field widgets; this is inserted instead of the real field when constructing the widget tree without
- * a concrete record in mind. It is later on replaced by the real field widget
+ * Test case for the field proxy class
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCEforms_Widget_FieldProxy extends t3lib_TCEforms_Widget_AbstractField {
-	public function replaceBy(t3lib_TCEforms_FieldWidget $widget) {
-		$this->parentWidget->replaceChildWidget($this, $widget);
+class t3lib_TCEforms_Widget_FieldProxyTest extends Tx_Phpunit_TestCase {
+	/**
+	 * @test
+	 */
+	public function replaceByReplacesWidgetInParentWidget() {
+		$fixture = new t3lib_TCEforms_Widget_FieldProxy(array());
+		$newFixture = $this->getMock('t3lib_TCEforms_FieldWidget');
+
+		/** @var $parentWidget t3lib_TCEforms_ContainerWidget */
+		$parentWidget = $this->getMock('t3lib_TCEforms_ContainerWidget');
+		$parentWidget->expects($this->once())->method('replaceChildWidget')->with($this->equalTo($fixture), $this->equalTo($newFixture));
+
+		$fixture->setParentWidget($parentWidget);
+		$fixture->replaceBy($newFixture);
 	}
 }
 

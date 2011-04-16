@@ -127,6 +127,38 @@ class t3lib_TCEforms_Widget_AbstractContainerTest extends Tx_Phpunit_TestCase {
 		$this->assertSame($childWidget, $fixtureChildWidgets[0]);
 		$this->assertNotSame($fixtureChildWidgets[0], $clonedFixtureChildWidgets[0]);
 	}
+
+	/**
+	 * @test
+	 */
+	public function replaceChildWidgetRemovesOldWidget() {
+		$childWidget = $this->getMock('t3lib_TCEforms_Widget');
+		$this->fixture->addChildWidget($childWidget);
+
+		$newChildWidget = $this->getMock('t3lib_TCEforms_Widget');
+		$this->fixture->replaceChildWidget($childWidget, $newChildWidget);
+
+		$childWidgets = $this->fixture->getChildWidgets();
+		$this->assertNotContains($childWidget, $childWidgets);
+	}
+
+	/**
+	 * @test
+	 */
+	public function replaceChildWidgetInsertsOldWidgetAtSamePosition() {
+		$mockedChildWidgets = array(
+			$this->getMock('t3lib_TCEforms_Widget', array(), array(), uniqid('t3lib_TCEforms_MockedWidgetOne')),
+			$this->getMock('t3lib_TCEforms_Widget', array(), array(), uniqid('t3lib_TCEforms_MockedWidgetTwo')),
+			$this->getMock('t3lib_TCEforms_Widget', array(), array(), uniqid('t3lib_TCEforms_MockedWidgetThree'))
+		);
+		$this->fixture->addChildWidgets($mockedChildWidgets);
+
+		$newChildWidget = $this->getMock('t3lib_TCEforms_Widget', array(), array(), uniqid('t3lib_TCEforms_MockedWidgetFour'));
+		$this->fixture->replaceChildWidget($mockedChildWidgets[1], $newChildWidget);
+
+		$childWidgets = $this->fixture->getChildWidgets();
+		$this->assertEquals(array($mockedChildWidgets[0], $newChildWidget, $mockedChildWidgets[2]), $childWidgets);
+	}
 }
 
 ?>

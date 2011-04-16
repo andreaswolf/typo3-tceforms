@@ -48,4 +48,6 @@ interface t3lib_TCEforms_ContainerWidget extends t3lib_TCEforms_Widget {
 	public function renderChildWidgets();
 
 	public function hasChildWidgets();
+
+	public function replaceChildWidget(t3lib_TCEforms_Widget $oldWidget, t3lib_TCEforms_Widget $newWidget);
 }
