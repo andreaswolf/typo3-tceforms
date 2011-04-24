@@ -9,29 +9,13 @@
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  */
-class t3lib_TCA_DataStructure {
-	/**
-	 * The definition of the fields this data structure contains
-     * This holds information about e.g. $TCA[$tableName]['columns']
-	 *
-	 * @var array<t3lib_TCA_DataStructure_Field>
-	 */
-	protected $fields = array();
-
+class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 	/**
 	 * Cache for field objects created by getFieldObject
 	 *
 	 * @var t3lib_TCA_DataStructure[]
 	 */
 	protected $fieldObjects = array();
-
-	/**
-	 * The control section of this data structure
-     * This holds information from e.g. $TCA[$tableName]['ctrl']
-	 *
-	 * @var array
-	 */
-	protected $control = array();
 
 	/**
 	 * The configuration objects of all defined palettes
@@ -42,16 +26,6 @@ class t3lib_TCA_DataStructure {
 	protected $palettes = array();
 
 	/**
-	 * All type values defined for this data structure.
-     * This holds information from e.g. $TCA[$tableName]['types']
-	 *
-	 * Default type is zero
-	 *
-	 * @var array<string>
-	 */
-	protected $definedTypeValues = array();
-
-	/**
 	 * The raw information on the types for this data structure. See $types for a parsed version.
 	 * Parsing is done automatically on access.
      * This holds information from e.g. $TCA[$tableName]['types']
@@ -59,15 +33,6 @@ class t3lib_TCA_DataStructure {
 	 * @var array
 	 */
 	protected $rawTypes = array();
-
-	/**
-	 * The different types defined for this data structure.
-	 * The array contains an entry for each defined type, with a reference to the type object
-     * This holds information from e.g. $TCA[$tableName]['types']
-	 *
-	 * @var array<t3lib_TCA_DataStructure_Type>
-	 */
-	protected $types = array();
 
 	/**
 	 * @var array<t3lib_TCA_DisplayConfiguration>
@@ -144,45 +109,6 @@ class t3lib_TCA_DataStructure {
 	}
 
 	/**
-	 * Returns TRUE if a key inside the control section ($TCA[$table]['ctrl']) exists.
-	 *
-	 * @param string $key The key to check
-	 * @return bool
-	 */
-	public function hasControlValue($key) {
-		return array_key_exists($key, $this->control);
-	}
-
-	/**
-	 * Returns the value from an entry in the control section ($TCA[$table]['ctrl']).
-	 *
-	 * @param string $key The key to get
-	 * @return mixed/string
-	 *
-	 * TODO define access to [ctrl][enablecolumns]
-	 * TODO define access to ['EXT']['myext']
-	 * TODO define if this function only returns strings or also arrays (connected to previous questions)
-	 *
-	 */
-	public function getControlValue($key) {
-		return $this->control[$key];
-	}
-
-	public function getFieldNames() {
-		return array_keys($this->fields);
-	}
-
-	/**
-	 * Returns the configuration object for a field
-	 *
-	 * @param string $fieldName
-	 * @return array
-	 */
-	public function getFieldConfiguration($fieldName) {
-		return $this->fields[$fieldName];
-	}
-
-	/**
 	 * Returns the object representation of a TCA field.
 	 *
 	 * This is only the bare variant of this field, as defined in the TCA columns section. Any special
@@ -205,14 +131,6 @@ class t3lib_TCA_DataStructure {
 		}
 
 		return $this->fieldObjects[$fieldName];
-	}
-
-	public function hasField($fieldName) {
-		return array_key_exists($fieldName, $this->fields);
-	}
-
-	public function getFieldConfigurations() {
-		return $this->fields;
 	}
 
 	/**
@@ -258,49 +176,6 @@ class t3lib_TCA_DataStructure {
 	}
 
 	/**
-	 * Returns TRUE if a field for differentiating between different types of the record exists
-	 *
-	 * @return boolean
-	 */
-	public function hasTypeField() {
-		return (array_key_exists('type', $this->control) && $this->control['type'] !== '');
-	}
-
-	/**
-	 * Returns the fieldname of the type field.
-	 *
-	 * @return string
-	 */
-	public function getTypeField() {
-		return $this->control['type'];
-	}
-
-	public function typeExists($typeNumber) {
-		return in_array($typeNumber, $this->definedTypeValues);
-	}
-
-	/**
-	 * Returns the configuration for a record type.
-	 *
-	 * These are defined in the [types]-section of the TCA.
-	 *
-	 * @param string/integer $typeNum
-	 * @return array
-	 */
-	public function getTypeConfiguration($typeNumber = '0') {
-			// See "TYPO3 Core APIs, section "$TCA array reference", subsection "['types'][key] section"
-		if (!$this->typeExists($typeNumber)) {
-			$typeNumber = 1;
-		}
-
-		if (!array_key_exists($typeNumber, $this->types)) {
-			$this->createTypeObject($typeNumber);
-		}
-
-		return $this->types[$typeNumber];
-	}
-
-	/**
 	 * Returns the default type number for a record.
 	 *
 	 * If a type field exists, a default value may be set. If it is not or there is no type field,
@@ -324,8 +199,8 @@ class t3lib_TCA_DataStructure {
 		return $this->definedTypeValues;
 	}
 
-	protected function createTypeObject($typeNum) {
-		$this->types[$typeNum] = t3lib_TCA_DataStructure_Type::createFromConfiguration($this, $typeNum, $this->rawTypes[$typeNum]);
+	protected function createTypeObject($typeValue) {
+		$this->types[$typeValue] = t3lib_TCA_DataStructure_Type::createFromConfiguration($this, $typeValue, $this->rawTypes[$typeValue]);
 	}
 
 	public function createElementObject($name, $label, $specialConfiguration) {

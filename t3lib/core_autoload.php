@@ -18,6 +18,7 @@ $t3libClasses = array(
 	't3lib_clipboard' => PATH_t3lib . 'class.t3lib_clipboard.php',
 	't3lib_compressor' => PATH_t3lib . 'class.t3lib_compressor.php',
 	't3lib_cs' => PATH_t3lib . 'class.t3lib_cs.php',
+	't3lib_datastructure_abstract' => PATH_t3lib . 'datastructure/class.t3lib_datastructure_abstract.php',
 	't3lib_db' => PATH_t3lib . 'class.t3lib_db.php',
 	't3lib_db_preparedstatement' => PATH_t3lib . 'db/class.t3lib_db_preparedstatement.php',
 	't3lib_diff' => PATH_t3lib . 'class.t3lib_diff.php',
