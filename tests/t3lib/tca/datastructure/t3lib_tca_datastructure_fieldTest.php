@@ -34,6 +34,20 @@
  * @subpackage t3lib
  */
 class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
+	/**
+	 * @var t3lib_TCA_DataStructure_Field
+	 */
+	private $fixture;
+
+	/**
+	 * @var string
+	 */
+	private $fieldName;
+
+	public function setUp() {
+		$this->fieldName = uniqid();
+		$this->fixture = new t3lib_TCA_DataStructure_Field($this->fieldName);
+	}
 
 	protected static $localizationModeFixtures = array(
 		'exclude' => array(
@@ -82,11 +96,7 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 	 * @covers t3lib_TCA_DataStructure_Field::getName
 	 */
 	public function fieldNameIsCorrectlyStoredAndReturned() {
-		$name = uniqid();
-		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
-		$field = new t3lib_TCA_DataStructure_Field($mockedDataStructure, $name);
-
-		$this->assertEquals($name, $field->getName());
+		$this->assertEquals($this->fieldName, $this->fixture->getName());
 	}
 
 	/**
@@ -100,7 +110,8 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 		);
 		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
 		$mockedDataStructure->expects($this->once())->method('getFieldConfiguration')->with($name)->will($this->returnValue($configuration));
-		$field = new t3lib_TCA_DataStructure_Field($mockedDataStructure, $name);
+		$field = new t3lib_TCA_DataStructure_Field($name);
+		$field->setDataStructure($mockedDataStructure);
 
 		$this->assertEquals($configuration['label'], $field->getLabel());
 	}
@@ -118,7 +129,8 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 
 		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
 		$mockedDataStructure->expects($this->once())->method('getFieldConfiguration')->will($this->returnValue($configuration));
-		$field = new t3lib_TCA_DataStructure_Field($mockedDataStructure, uniqid());
+		$field = new t3lib_TCA_DataStructure_Field(uniqid());
+		$field->setDataStructure($mockedDataStructure);
 
 		foreach ($configuration as $name => $value) {
 			$this->assertTrue($field->hasConfigurationValue($name));
@@ -133,12 +145,13 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 	public function hasLocalizationModeReturnsFalseIfLanguageFieldInDataStructureIsNotSet() {
 		$fieldConfiguration = self::$localizationModeFixtures['exclude'];
 		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure', array('hasControlValue', 'getFieldConfiguration'));
-		$mockedDataStructure->expects($this->once())->method('hasControlValue')->with('languageField')->will($this->returnValue(FALSE));
 		$mockedDataStructure->expects($this->once())->method('getFieldConfiguration')->will($this->returnValue($fieldConfiguration));
+		$mockedDataStructure->expects($this->once())->method('hasControlValue')->with('languageField')->will($this->returnValue(FALSE));
 
 		/** @var $mockedField t3lib_TCA_DataStructure_Field */
 		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array('hasConfigurationValue'), array($mockedDataStructure, uniqid()));
 		$mockedField->expects($this->never())->method('hasConfigurationValue');
+		$mockedField->setDataStructure($mockedDataStructure);
 
 		$this->assertFalse($mockedField->hasLocalizationMode());
 	}
@@ -150,13 +163,14 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 	public function hasLocalizationModeReturnsFalseIfConfigurationValueIsNotSet() {
 		$fieldConfiguration = self::$localizationModeFixtures['exclude'][0];
 		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure', array('hasControlValue', 'getFieldConfiguration'));
-		$mockedDataStructure->expects($this->once())->method('hasControlValue')->with('languageField')->will($this->returnValue(TRUE));
 		$mockedDataStructure->expects($this->once())->method('getFieldConfiguration')->will($this->returnValue($fieldConfiguration));
+		$mockedDataStructure->expects($this->once())->method('hasControlValue')->with('languageField')->will($this->returnValue(TRUE));
 
 		/** @var $mockedField t3lib_TCA_DataStructure_Field */
 		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array('getConfigurationValue', 'hasConfigurationValue'), array($mockedDataStructure, uniqid()));
 		$mockedField->expects($this->atLeastOnce())->method('hasConfigurationValue')->with('l10n_mode')->will($this->returnValue(FALSE));
 		$mockedField->expects($this->any())->method('getConfigurationValue')->will($this->returnValue($fieldConfiguration['l10n_mode']));
+		$mockedField->setDataStructure($mockedDataStructure);
 
 		$this->assertFalse($mockedField->hasLocalizationMode());
 	}
@@ -174,6 +188,7 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 		/** @var $mockedField t3lib_TCA_DataStructure_Field */
 		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array('hasConfigurationValue'), array($mockedDataStructure, uniqid()));
 		$mockedField->expects($this->any())->method('hasConfigurationValue')->will($this->returnValue(TRUE));
+		$mockedField->setDataStructure($mockedDataStructure);
 
 		$this->assertEquals($localizationModeValidity, $mockedField->hasLocalizationMode());
 	}
@@ -191,6 +206,7 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 		/** @var $mockedField t3lib_TCA_DataStructure_Field */
 		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array('hasLocalizationMode'), array($mockedDataStructure, uniqid()));
 		$mockedField->expects($this->any())->method('hasLocalizationMode')->will($this->returnValue(TRUE));
+		$mockedField->setDataStructure($mockedDataStructure);
 
 		$this->assertEquals($fieldConfiguration['l10n_mode'], $mockedField->getLocalizationMode());
 	}
@@ -219,9 +235,9 @@ class t3lib_TCA_DataStructure_FieldTest extends Tx_Phpunit_TestCase {
 
 		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
 		$mockedDataStructure->expects($this->once())->method('getFieldConfiguration')->will($this->returnValue($configurationArray));
-		$field = new t3lib_TCA_DataStructure_Field($mockedDataStructure, uniqid());
+		$this->fixture->setDataStructure($mockedDataStructure);
 
-		$this->assertEquals($configurationArray, $field->getConfiguration());
+		$this->assertEquals($configurationArray, $this->fixture->getConfiguration());
 	}
 
 	/**

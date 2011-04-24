@@ -53,14 +53,18 @@ class t3lib_TCA_DataStructure_Field extends t3lib_TCA_DataStructure_Element {
 	 * @param string $name The field name of this field
 	 * @return void
 	 */
-	public function __construct(t3lib_TCA_DataStructure $dataStructure, $name) {
-		$this->dataStructure = $dataStructure;
+	public function __construct($name) {
 		$this->name = $name;
-		$this->configuration = $dataStructure->getFieldConfiguration($name);
-
-		$this->setLabel($this->configuration['label']);
 
 		$this->setStyle(new t3lib_TCA_FieldStyle());
+	}
+
+	public function setDataStructure(t3lib_DataStructure_Abstract $dataStructure) {
+		$this->dataStructure = $dataStructure;
+		$this->configuration = $dataStructure->getFieldConfiguration($this->name);
+		$this->setLabel($this->configuration['label']);
+
+		return $this;
 	}
 
 	/**

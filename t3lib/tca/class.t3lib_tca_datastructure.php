@@ -197,7 +197,11 @@ class t3lib_TCA_DataStructure {
 	 */
 	public function getFieldObject($fieldName) {
 		if (!$this->fieldObjects[$fieldName]) {
-			$this->fieldObjects[$fieldName] = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Field', $this, $fieldName, $this->getFieldConfiguration($fieldName));
+			/** @var $fieldObject t3lib_TCA_DataStructure_Field */
+			$fieldObject = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Field', $fieldName);
+			$fieldObject->setDataStructure($this);
+
+			$this->fieldObjects[$fieldName] = $fieldObject;
 		}
 
 		return $this->fieldObjects[$fieldName];
