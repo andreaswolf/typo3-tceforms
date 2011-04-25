@@ -1,4 +1,30 @@
 <?php
+/***************************************************************
+ *  Copyright notice
+ *
+ *  (c) 2011 Andreas Wolf <andreas.wolf@ikt-werk.de>
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
+
 
 /**
  * Definition of a type in a TCA data structure.
@@ -9,61 +35,47 @@
  * This class is instantiated once for each type value.
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
+ * @package TYPO3
+ * @subpackage t3lib
  */
 class t3lib_TCA_DataStructure_Type {
-
 	/**
 	 * The data structure this type belongs to
 	 *
-	 * @var t3lib_TCA_DataStructure
+	 * @var \t3lib_TCA_DataStructure
 	 */
 	protected $dataStructure;
 
 	/**
-	 * The number of this type.
+	 * The unique value used in records for this type.
 	 *
-	 * @var integer
+	 * @var mixed
 	 */
-	protected $typeNum;
+	protected $typeValue;
 
 	/**
-	 * The fields included in this type.
-	 *
-	 * @var array
+	 * @var string[]
 	 */
 	protected $fieldList = array();
 
 	/**
-	 *
-	 * @var array
-	 */
-	protected $sheets = array();
-
-	/**
-	 * Name of the field where the column indicating the record subtype is stored
+	 * The field that contains the subtype value for this type, if any.
 	 *
 	 * @var string
 	 */
-	protected $subtypeValueField;
-
-	/**
-	 * The sheet that contains the subtype value field.
-	 *
-	 * @var t3lib_TCA_DataStructure_Sheet
-	 */
-	protected $subtypeValueFieldSheet;
+	protected $subtypeValueField = NULL;
 
 	/**
 	 * A list of all fields to exclude for the different subtypes
 	 *
-	 * @var array<string>
+	 * @var string[]
 	 */
 	protected $subtypesExcludeList = array();
 
 	/**
 	 * A list of all fields to add to the different subtypes
 	 *
-	 * @var array<string>
+	 * @var string[]
 	 */
 	protected $subtypesAddList = array();
 
@@ -79,93 +91,40 @@ class t3lib_TCA_DataStructure_Type {
 	 *
 	 * See TYPO3 Core API, section TCA, subsection "['types'][key] section" for more information
 	 *
-	 * @var array<string>
+	 * @var string[]
 	 */
 	protected $bitmaskExcludelistBits = array();
 
 	/**
-	 * The list of fields to display for this type. This value misses all calculations done for subtypes
-	 * and bitmasks!
+	 * The widget configuration for this type
 	 *
-	 * @var string
+	 * @var array
 	 */
-	protected $showitemString;
+	protected $widgetConfiguration = array();
 
 	/**
+	 * Constructor method for this class.
 	 *
 	 * @param t3lib_TCA_DataStructure $dataStructure The data structure this type belongs to
-	 * @param integer $typeNum The number of this type
-	 * @param integer $subtypeNum the subtype number of this type
-	 * @param array $configuration The configuration array as defined by TCA; don't set this if you set $sheets
-	 * @param array $sheets Already preconfigured sheet definitions. Use this if you get sheet information from your source
-	 *
-	 * @return void
-	 *
-	 * TODO create some kind of cache here (or let the data structure object do the caching)
+	 * @param mixed $typeValue The unique value used in records for this type.
+	 * @param array $configuration The configuration array for this type. Has to contain some sort of display configuration (showitem string, widget configuration array/string)
 	 */
-	protected function __construct(t3lib_TCA_DataStructure $dataStructure, $typeNum) {
+	public function __construct(t3lib_DataStructure_Abstract $dataStructure, $typeValue, array $configuration = array()) {
 		$this->dataStructure = $dataStructure;
-		$this->typeNum = $typeNum;
-	}
+		$this->typeValue = $typeValue;
 
-	/**
-	 * Handles construction from a complex TCA configuration array (with subarrays ctrl, columns, types etc.)
-	 *
-	 * @param t3lib_TCA_DataStructure $dataStructure
-	 * @param unknown_type $typeNum
-	 * @param array $configuration
-	 */
-	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, $typeNum, array $configuration) {
-		$obj = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Type', $dataStructure, $typeNum);
-		$obj->resolveConfiguration($configuration);
-
-		return $obj;
-	}
-
-	/**
-	 * Handles construction from a simple array of sheets containing fields. This will be used for e.g. FlexForm data structures
-	 *
-	 * @param t3lib_TCA_DataStructure $dataStructure
-	 * @param integer $typeNum
-	 * @param array $sheets
-	 */
-	public static function createFromSheets(t3lib_TCA_DataStructure $dataStructure, $typeNum, array $sheets) {
-		$obj = new t3lib_TCA_DataStructure_Type($dataStructure, $typeNum);
-		$obj->resolveSheetsDefinition($sheets);
-
-		return $obj;
-	}
-
-	/**
-	 * Creates an object structure out of an array describing sheets and their elements
-	 *
-	 * @param array $sheetDefinition The array containing sheets and their elements
-	 * @return void
-	 *
-	 * TODO document the format expected by this function
-	 */
-	protected function resolveSheetsDefinition(array $sheetDefinition) {
-		$sheetCounter = 0;
-
-		foreach ($sheetDefinition as $sheet) {
-			++$sheetCounter;
-			$currentSheet = $this->createSheetObject($sheet['title'], $sheet['name']);
-
-			foreach ($sheet['elements'] as $element) {
-				$elementObject = $this->dataStructure->createElementObject($element, '', array());
-				$currentSheet->addElement($elementObject);
-			}
-
-			$this->sheets[] = $currentSheet;
+		if (!empty($configuration)) {
+			$this->resolveConfiguration($configuration);
 		}
 	}
 
-	/**
-	 *
-	 *
-	 * @param array $configuration The type configuration array from TCA
-	 * @return void
+	/*
+	 * TODO remove this method, resolve sheets to widget config in FlexForms resolver instead
 	 */
+	public static function createFromSheets($sheets) {
+		//
+	}
+
 	protected function resolveConfiguration(array $configuration) {
 		if (isset($configuration['subtype_value_field'])) {
 			$this->subtypeValueField = $configuration['subtype_value_field'];
@@ -177,149 +136,116 @@ class t3lib_TCA_DataStructure_Type {
 			$this->bitmaskExcludelistBits = $configuration['bitmask_excludelist_bits'];
 		}
 
-		$this->showitemString = $configuration['showitem'];
+		if (isset($configuration['widgetConfiguration'])) {
+			if (is_string($configuration['widgetConfiguration'])) {
+				$this->widgetConfiguration = json_decode($configuration['widgetConfiguration'], TRUE);
+				if ($this->widgetConfiguration === NULL) {
+					throw new RuntimeException('Decoding JSON widget configuration failed: ' . json_last_error(), 1303662376);
+				}
+			} else {
+				$this->widgetConfiguration = $configuration['widgetConfiguration'];
+			}
+		}
 	}
 
-	protected function createSheetObject($label, $name = '') {
-		$sheetObject = new t3lib_TCA_DataStructure_Sheet($label, $name);
 
-		return $sheetObject;
+	/********************************************
+	 * Widget configuration
+	 ********************************************/
+
+	public function hasWidgetConfiguration() {
+		return !empty($this->widgetConfiguration);
 	}
+
+	public function getWidgetConfiguration() {
+		return $this->widgetConfiguration;
+	}
+
+	/********************************************
+	 * Subtype handling
+	 ********************************************/
 
 	/**
-	 * TODO check if this may be moved to the datastructure class
+	 * Returns TRUE if this type contains a subtype value field
 	 *
-	 * @param $name
-	 * @param $label
-	 * @param $configuration
-	 * @param $specialConfiguration
-	 * @return t3lib_TCA_DataStructure_Field
+	 * @return bool
 	 */
-	protected function createElementObject($name, $label, $specialConfiguration) {
-		return $this->dataStructure->createElementObject($name, $label, $specialConfiguration);
-	}
-
-	/**
-	 *
-	 *
-	 * @param integer $paletteNumber
-	 * @param string $label
-	 * @return
-	 */
-	protected function createPaletteObject($paletteNumber, $label = '') {
-		$paletteConfiguration = $this->dataStructure->getPaletteConfiguration($paletteNumber);
-		$paletteFieldNames = t3lib_div::trimExplode(',', $paletteConfiguration['showitem']);
-
-		foreach ($paletteFieldNames as $fieldName) {
-			$paletteElements[] = $fieldName;
-		}
-
-		$paletteObject = new t3lib_TCA_DataStructure_Palette($this->dataStructure, $label, $paletteNumber, $paletteElements);
-
-		return $paletteObject;
-	}
-
-	/**
-	 * Returns language label from locallang_core.php
-	 * Labels must be prefixed with either "l_" or "m_".
-	 * The prefix "l_" maps to the prefix "labels." inside locallang_core.php
-	 * The prefix "m_" maps to the prefix "mess." inside locallang_core.php
-	 *
-	 * @param   string  The label key
-	 * @return  string  The value of the label, fetched for the current backend language.
-	 */
-	protected function getLL($str) {
-		$content = '';
-
-		switch(substr($str, 0, 2)) {
-			case 'l_':
-				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:labels.' . substr($str,2));
-			break;
-			case 'm_':
-				$content = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:mess.' . substr($str,2));
-			break;
-		}
-		return $content;
-	}
-
-	/**
-	 * Returns the sheet definitions for a given subtype. If the record has no subtype, the default sheetset
-	 * is returned.
-	 *
-	 * @param unknown_type $subtypeNumber
-	 * @TODO remove parameter and subtype handling
-	 */
-	public function getSheets($subtypeNumber = '') {
-		if (!$this->hasSubtypeValueField() || empty($subtypeNumber)) {
-			return $this->sheets;
-		}
-		if ($this->sheetsForSubtype[$subtypeNumber]) {
-			return $this->sheetsForSubtype[$subtypeNumber];
-		}
-
-		$sheets = $this->sheets;
-
-		$this->sheetsForSubtype[$subtypeNumber] = $sheets;
-
-		return $sheets;
-	}
-
-	public function getShowitemString() {
-		return $this->showitemString;
-	}
-
 	public function hasSubtypeValueField() {
 		return !empty($this->subtypeValueField);
 	}
 
+	/**
+	 * Returns the name of the subtype value field, if any.
+	 *
+	 * @return string
+	 * @see hasSubtypeValueField()
+	 */
 	public function getSubtypeValueField() {
-		return $this->subtypeValueField;
-	}
-
-	public function getAddListForSubtype($subtypeValue) {
-		return (array)t3lib_div::trimExplode(',', $this->subtypesAddList[$subtypeValue]);
+		return (string)$this->subtypeValueField;
 	}
 
 	/**
-	 * Enter description here ...
+	 * Returns a list of fields that should be displayed additionally for the given record subtype.
 	 *
-	 * @param string $subtypeValue
+	 * @param mixed $subtype
 	 * @return array
 	 */
-	public function getExcludeListForSubtype($subtypeValue) {
-		return (array)t3lib_div::trimExplode(',', $this->subtypesExcludeList[$subtypeValue]);
+	public function getAdditionalFieldsForSubtype($subtype) {
+		return (array)t3lib_div::trimExplode(',', $this->subtypesAddList[$subtype]);
 	}
 
 	/**
-	 * @deprecated
+	 * Returns a list of fields that should be hidden for the given record subtype
+	 *
+	 * @param mixed $subtype
+	 * @return array
 	 */
-	public function getFieldListForSubtype($subtype) {
-		$fieldList = $this->fieldList;
-
-		$fieldList = array_diff($fieldList, $this->subtypesExcludeList[$subtype]);
-		$fieldList = array_merge($fieldList, $this->subtypesAddList[$subtype]);
-
-		return $fieldList;
+	public function getExcludedFieldsForSubtype($subtype) {
+		return (array)t3lib_div::trimExplode(',', $this->subtypesExcludeList[$subtype]);
 	}
 
+	/********************************************
+	 * Bitmask handling
+	 ********************************************/
+
+	/**
+	 * Returns TRUE if the type has a bitmask field by which other fields are excluded from being displayed
+	 *
+	 * @return bool
+	 */
 	public function hasBitmaskValueField() {
 		return !empty($this->bitmaskValueField);
 	}
 
+	/**
+	 * Returns the name of the field where the bitmask value is stored in.
+	 *
+	 * @return string
+	 */
 	public function getBitmaskValueField() {
 		return $this->bitmaskValueField;
 	}
 
-	public function getBitmaskExcludeList($bitmaskValue) {
+	/**
+	 * Get a list of fields that should be excluded according to a given bitmask value.
+	 *
+	 * This method looks at each bit and matches the given value against an array of masks. The entries in the array have
+	 * the sign and bit number as key and the comma-separated list of excluded fields as value, like this:
+	 * array('+0' => 'foo', '-1' => 'bar')
+	 *
+	 * @param integer $bitmaskValue The mask to check against
+	 * @return array The fields to exclude
+	 */
+	public function getExcludedFieldsForBitmask($bitmaskValue) {
 		$excludedList = array();
 
 		foreach ($this->bitmaskExcludelistBits as $bitKey => $fieldList) {
 			$bit = substr($bitKey, 1);
 			if (t3lib_div::testInt($bit)) {
 				$bit = t3lib_div::intInRange($bit, 0, 30);
-				if ((substr($bitKey, 0, 1) == '-' && !($bitmaskValue & pow(2, $bit))) ||
-				    (substr($bitKey, 0, 1) == '+' &&  ($bitmaskValue & pow(2, $bit)))
-				    ) {
+				if ( (substr($bitKey, 0, 1) == '-' && !($bitmaskValue & pow(2, $bit)))
+				  || (substr($bitKey, 0, 1) == '+' &&  ($bitmaskValue & pow(2, $bit)))
+				   ) {
 
 					$excludedList = array_merge($excludedList, t3lib_div::trimExplode(',', $fieldList, 1));
 				}

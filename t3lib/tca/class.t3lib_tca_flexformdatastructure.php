@@ -59,11 +59,11 @@ class t3lib_TCA_FlexFormDataStructure extends t3lib_TCA_DataStructure {
 		$this->control = $TCAinformation['ctrl'];
 		$this->palettes = $TCAinformation['palettes'];
 		$this->meta = $TCAinformation['meta'];
+			// TODO extract fields from sheets, store them + a representation of how the form should look
+		$this->sheets = $TCAinformation['sheets'];
 
 		$this->setLocalizationConfig();
 
-		$typeObject = $this->createTypeObjectFromSheets($TCAinformation['sheets']);
-		$this->types["0"] = $typeObject;
 		$this->definedTypeValues = array("0");
 	}
 
@@ -83,10 +83,9 @@ class t3lib_TCA_FlexFormDataStructure extends t3lib_TCA_DataStructure {
 		return $displayConfiguration;
 	}
 
-	protected function createTypeObjectFromSheets($sheets) {
-		$typeObject = t3lib_TCA_DataStructure_Type::createFromSheets($this, 1, $sheets);
-
-		return $typeObject;
+	protected function createTypeObject($typeValue) {
+		// TODO: create type object from field information here
+		$this->types[$typeValue] = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Type', $this, $typeValue, $this->rawTypes[$typeValue]);
 	}
 
 	public function getMetaValue($key) {

@@ -200,7 +200,7 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 	}
 
 	protected function createTypeObject($typeValue) {
-		$this->types[$typeValue] = t3lib_TCA_DataStructure_Type::createFromConfiguration($this, $typeValue, $this->rawTypes[$typeValue]);
+		$this->types[$typeValue] = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Type', $this, $typeValue, $this->rawTypes[$typeValue]);
 	}
 
 	public function createElementObject($name, $label, $specialConfiguration) {
