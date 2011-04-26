@@ -137,14 +137,7 @@ class t3lib_TCA_DataStructure_Type {
 		}
 
 		if (isset($configuration['widgetConfiguration'])) {
-			if (is_string($configuration['widgetConfiguration'])) {
-				$this->widgetConfiguration = json_decode($configuration['widgetConfiguration'], TRUE);
-				if ($this->widgetConfiguration === NULL) {
-					throw new RuntimeException('Decoding JSON widget configuration failed: ' . json_last_error(), 1303662376);
-				}
-			} else {
-				$this->widgetConfiguration = $configuration['widgetConfiguration'];
-			}
+			$this->widgetConfiguration = t3lib_TCA_DataStructure::parseWidgetConfiguration($configuration['widgetConfiguration']);
 		}
 	}
 

@@ -66,6 +66,13 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 	protected $displayConfigurations = array();
 
 	/**
+	 * The widget blocks defined for this data structure.
+	 *
+	 * @var array
+	 */
+	protected $widgetBlocks = array();
+
+	/**
 	 * Constructor for this class.
 	 *
 	 * Expects a TCA configuration as used in the normal PHP-based TCA. It has to have these sections: ctrl, columns,
@@ -78,6 +85,11 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 		$this->fields = $TCAinformation['columns'];
 		$this->control = $TCAinformation['ctrl'];
 		$this->palettes = $TCAinformation['palettes'];
+		$this->widgetBlocks = $TCAinformation['widgetBlocks'];
+
+		foreach ($this->widgetBlocks as $blockName => $blockConfiguration) {
+			$this->widgetBlocks[$blockName]['widgetConfiguration'] = self::parseWidgetConfiguration($blockConfiguration['widgetConfiguration']);
+		}
 
 		$this->rawTypes = $TCAinformation['types'];
 		$this->definedTypeValues = array_keys($this->rawTypes);
@@ -234,6 +246,70 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 
 		return $object;
 	}
+
+	/**
+	 * Parses a widget configuration from TCA to the unified array based widget tree format that is used by WidgetBuilder
+	 * in TCEforms.
+	 *
+	 * @param mixed $widgetConfiguration
+	 * @return array
+	 *
+	 * @throws RuntimeException  if an invalid JSON string is passed
+	 * @throws InvalidArgumentException  if an invalid widget configuration is given
+	 */
+	public static function parseWidgetConfiguration($widgetConfiguration) {
+		if (is_string($widgetConfiguration)) {
+			$parsedConfiguration = json_decode($widgetConfiguration, TRUE);
+			if ($parsedConfiguration === NULL) {
+				throw new RuntimeException('Decoding JSON widget configuration failed: ' . json_last_error(), 1303662376);
+			}
+		} elseif (is_array($widgetConfiguration)) {
+			$parsedConfiguration = $widgetConfiguration;
+		} else {
+			throw new RuntimeException('Invalid widget configuration format: expected JSON encoded string or array, got '
+			                           . gettype($widgetConfiguration), 1303845871);
+		}
+
+		return $parsedConfiguration;
+	}
+
+	/********************************************
+	 * Widget block handling
+	 ********************************************/
+
+	/**
+	 * Returns TRUE if a specified widget block exists in this data structure
+	 *
+	 * @param string $name The widget block name
+	 * @return bool
+	 */
+	public function hasWidgetBlock($name) {
+		return isset($this->widgetBlocks[$name]);
+	}
+
+	/**
+	 * Gets the configuration array for a widget block.
+	 *
+	 * @param string $name The widget block name
+	 * @return array
+	 */
+	public function getWidgetBlock($name) {
+		return $this->widgetBlocks[$name];
+	}
+
+	/**
+	 * Returns the widget configuration tree array for a block.
+	 *
+	 * @param string $name
+	 * @return array
+	 */
+	public function getWidgetConfigurationForBlock($name) {
+		return $this->widgetBlocks[$name]['widgetConfiguration'];
+	}
+
+	/********************************************
+	 * Showitem string handling
+	 ********************************************/
 
 	/**
 	 * Converts a showitem string from TCA to an array-based tree of widget configurations.

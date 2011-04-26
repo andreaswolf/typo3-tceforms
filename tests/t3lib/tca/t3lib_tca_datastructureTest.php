@@ -40,6 +40,11 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 	 */
 	private $fixture;
 
+	/**
+	 * @var array
+	 */
+	private $tcaFixture = array();
+
 	protected function setUpFixture($Tca) {
 		$this->fixture = new t3lib_TCA_DataStructure($Tca);
 	}
@@ -224,6 +229,51 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 		$obj2 = $fixture->getTypeConfiguration(1);
 
 		$this->assertSame($obj1, $obj2);
+	}
+
+
+	/********************************************
+	 * Widget block handling
+	 ********************************************/
+
+	protected function prepareWidgetBlockFixture() {
+		$this->tcaFixture = array(
+			'widgetBlocks' => array(
+				'blockOne' => array(
+					'widgetConfiguration' => '{"foo": "bar"}'
+				),
+				'blockTwo' => array(
+					'widgetConfiguration' => array('foo' => 'baz')
+				)
+			)
+		);
+		$this->setUpFixture($this->tcaFixture);
+	}
+
+	/**
+	 * @test
+	 * @group widgetBlocks
+	 */
+	public function widgetBlocksCanBeRetrievedFromDataStructure() {
+		$this->prepareWidgetBlockFixture();
+
+		$this->assertTrue($this->fixture->hasWidgetBlock('blockOne'));
+		$this->assertTrue($this->fixture->hasWidgetBlock('blockTwo'));
+
+		$this->assertEquals(array('widgetConfiguration' => array('foo' => 'bar')), $this->fixture->getWidgetBlock('blockOne'));
+		$this->assertEquals(array('widgetConfiguration' => array('foo' => 'baz')), $this->fixture->getWidgetBlock('blockTwo'));
+	}
+
+	/**
+	 * @test
+	 * @depends widgetBlocksCanBeRetrievedFromDataStructure
+	 * @group widgetBlocks
+	 */
+	public function widgetBlockConfigurationsCanBeRetrievedFrom() {
+		$this->prepareWidgetBlockFixture();
+
+		$this->assertEquals(array('foo' => 'bar'), $this->fixture->getWidgetConfigurationForBlock('blockOne'));
+		$this->assertEquals(array('foo' => 'baz'), $this->fixture->getWidgetConfigurationForBlock('blockTwo'));
 	}
 
 
