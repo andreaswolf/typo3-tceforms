@@ -34,6 +34,16 @@
  * @subpackage t3lib
  */
 class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
+
+	/**
+	 * @var t3lib_TCA_DataStructure
+	 */
+	private $fixture;
+
+	protected function setUpFixture($Tca) {
+		$this->fixture = new t3lib_TCA_DataStructure($Tca);
+	}
+
 	/**
 	 * @test
 	 * @covers t3lib_TCA_DataStructure::hasControlValue
@@ -214,6 +224,205 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 		$obj2 = $fixture->getTypeConfiguration(1);
 
 		$this->assertSame($obj1, $obj2);
+	}
+
+
+	/********************************************
+	 * Showitem string handling
+	 ********************************************/
+
+	/**
+	 * @test
+	 * @group showitemString
+	 */
+	public function showitemStringWithoutTabsIsConvertedToVbox() {
+		$showitemFixture = 'field1, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertTypeShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('vbox', $widgetConfiguration['type']);
+	}
+
+	/**
+	 * @test
+	 * @depends showitemStringWithoutTabsIsConvertedToVbox
+	 * @group showitemString
+	 */
+	public function fieldnamesInShowitemStringAreConvertedToFieldWidgets() {
+		$showitemFixture = 'field1, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertTypeShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('field', $widgetConfiguration['items'][0]['type']);
+		$this->assertEquals('field', $widgetConfiguration['items'][1]['type']);
+	}
+
+	/**
+	 * @test
+	 * @depends showitemStringWithoutTabsIsConvertedToVbox
+	 * @group showitemString
+	 */
+	public function fieldnamesFromShowitemStringAreSetInWidgetConfiguration() {
+		$showitemFixture = 'field1, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertTypeShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('field1', $widgetConfiguration['items'][0]['field']);
+		$this->assertEquals('field2', $widgetConfiguration['items'][1]['field']);
+	}
+
+	/**
+	 * @test
+	 * @depends showitemStringWithoutTabsIsConvertedToVbox
+	 * @group showitemString
+	 */
+	public function additionalDataIsRemovedFromFieldnameWhenConvertingShowitemString() {
+		$showitemFixture = 'field1;;;';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertTypeShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('field1', $widgetConfiguration['items'][0]['field']);
+	}
+
+	/**
+	 * @test
+	 * @group showitemString
+	 */
+	public function sheetSeparatorsInShowitemStringAreResolvedToTabpanelAndTabs() {
+		$showitemFixture = 'field1, --div--, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertTypeShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('tabpanel', $widgetConfiguration['type']);
+		$this->assertEquals('tab', $widgetConfiguration['items'][0]['type']);
+		$this->assertEquals('tab', $widgetConfiguration['items'][1]['type']);
+	}
+
+	/**
+	 * @test
+	 * @depends sheetSeparatorsInShowitemStringAreResolvedToTabpanelAndTabs
+	 * @group showitemString
+	 */
+	public function sheetSeparatorsInShowitemStringAreNotAddedAsFields() {
+		$showitemFixture = 'field1, --div--, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertTypeShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		foreach ($widgetConfiguration['items'] as $tab) {
+			foreach ($tab['items'] as $item) {
+				$this->assertNotEquals('--div--', $item['field']);
+			}
+		}
+	}
+
+	/**
+	 * @test
+	 * @depends sheetSeparatorsInShowitemStringAreResolvedToTabpanelAndTabs
+	 * @group showitemString
+	 */
+	public function fieldsFromShowitemStringAreStoredOnCorrectTab() {
+		$showitemFixture = 'field1, --div--, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertTypeShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('field1', $widgetConfiguration['items'][0]['items'][0]['field']);
+		$this->assertEquals('field2', $widgetConfiguration['items'][1]['items'][0]['field']);
+	}
+
+	/**
+	 * @test
+	 * @group showitemString
+	 */
+	public function palettesFromShowitemStringAreResolvedToBlocks() {
+		// TODO implement palette and block handling in DataStructure
+		$showitemFixture = '--palette--;;paletteRef';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertTypeShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('paletteRef', $widgetConfiguration['items'][0]['block']);
+	}
+
+	/**
+	 * @test
+	 * @group showitemString
+	 */
+	public function paletteShowitemStringWithoutLinebreakIsConvertedToHbox() {
+		$showitemFixture = 'field1, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('hbox', $widgetConfiguration['type']);
+	}
+
+	/**
+	 * @test
+	 * @depends paletteShowitemStringWithoutLinebreakIsConvertedToHbox
+	 * @group showitemString
+	 */
+	public function fieldnamesInPaletteShowitemStringAreConvertedToFieldWidgets() {
+		$showitemFixture = 'field1, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('field', $widgetConfiguration['items'][0]['type']);
+		$this->assertEquals('field', $widgetConfiguration['items'][1]['type']);
+	}
+
+	/**
+	 * @test
+	 * @depends paletteShowitemStringWithoutLinebreakIsConvertedToHbox
+	 * @group showitemString
+	 */
+	public function fieldsFromPaletteShowitemStringAreStoredInCorrectLine() {
+		$showitemFixture = 'field1, --linebreak--, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('field1', $widgetConfiguration['items'][0]['items'][0]['field']);
+		$this->assertEquals('field2', $widgetConfiguration['items'][1]['items'][0]['field']);
+	}
+
+	/**
+	 * @test
+	 * @group showitemString
+	 */
+	public function paletteLinebreaksAreConvertedToVbox() {
+		$showitemFixture = 'field1, --linebreak--, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('vbox', $widgetConfiguration['type']);
+	}
+
+	/**
+	 * @test
+	 * @depends paletteLinebreaksAreConvertedToVbox
+	 * @group showitemString
+	 */
+	public function paletteLinebreaksAreNotAddedAsFields() {
+		$showitemFixture = 'field1, --linebreak--, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		foreach ($widgetConfiguration['items'] as $line) {
+			foreach ($line['items'] as $item) {
+				$this->assertNotEquals('--linebreak--', $item['field']);
+			}
+		}
+	}
+
+	/**
+	 * @test
+	 * @depends paletteLinebreaksAreConvertedToVbox
+	 * @group showitemString
+	 */
+	public function lineHboxesInPaletteAreWrappedInVbox() {
+		$showitemFixture = 'field1, --linebreak--, field2';
+		$this->setUpFixture(array());
+		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+
+		$this->assertEquals('hbox', $widgetConfiguration['items'][0]['type']);
+		$this->assertEquals('hbox', $widgetConfiguration['items'][1]['type']);
 	}
 }
 

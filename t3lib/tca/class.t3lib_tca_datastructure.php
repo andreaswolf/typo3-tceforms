@@ -1,4 +1,30 @@
 <?php
+/***************************************************************
+ *  Copyright notice
+ *
+ *  (c) 2011 Andreas Wolf <andreas.wolf@ikt-werk.de>
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
+
 
 /**
  * Abstraction class for the data structures used in the TYPO3 Table Configuration Array (TCA).
@@ -19,7 +45,7 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 
 	/**
 	 * The configuration objects of all defined palettes
-     * This holds information from e.g. $TCA[$tableName]['palettes']
+	 * This holds information from e.g. $TCA[$tableName]['palettes']
 	 *
 	 * @var array<t3lib_TCA_DataStructure_Palette>
 	 */
@@ -28,7 +54,7 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 	/**
 	 * The raw information on the types for this data structure. See $types for a parsed version.
 	 * Parsing is done automatically on access.
-     * This holds information from e.g. $TCA[$tableName]['types']
+	 * This holds information from e.g. $TCA[$tableName]['types']
 	 *
 	 * @var array
 	 */
@@ -207,6 +233,124 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 		$object = new t3lib_TCA_DataStructure_Field($this, $name);
 
 		return $object;
+	}
+
+	/**
+	 * Converts a showitem string from TCA to an array-based tree of widget configurations.
+	 *
+	 * @param string $showitemString The showitem string as taken from TCA[$table][types]
+	 * @return array
+	 */
+	public function convertTypeShowitemStringToWidgetConfigurationArray($showitemString) {
+		return $this->convertShowitemStringToWidgetConfigurationArray($showitemString, '--div--', 'vbox', 'tab', 'tabpanel',
+		                                                              array($this, 'typeShowitemElementCallbackHandler'));
+	}
+
+	/**
+	 * Converts the showitem string from a palette configuration to an array-based tree of widget configurations
+	 *
+	 * @param  $showitemString The showitem string as taken from TCA[$table][palettes]
+	 * @return array
+	 */
+	public function convertPaletteShowitemStringToWidgetConfigurationArray($showitemString) {
+		return $this->convertShowitemStringToWidgetConfigurationArray($showitemString, '--linebreak--', 'hbox', 'hbox', 'vbox');
+	}
+
+	/**
+	 * Internal helper for converting a showitem string to a widget configuration array.
+	 *
+	 * @param string $showitemString  The showitem string, directly taken from $TCA
+	 * @param string $dividerElement  The pseudo-field used to divide the fields into different groups (tabs, lines)
+	 * @param string $wrapTypeWithoutDivider  The widget type to wrap around all fields if no divider is present
+	 * @param string $elementWrapTypeWithDivider  The widget type to wrap around the fields in one group
+	 * @param string $outerWrapTypeWithDivider  The widget type to wrap around all groups
+	 * @param callback $elementCallback  Callback for handling elements. Arguments are: the complete item string
+	 * @return array
+	 */
+	protected function convertShowitemStringToWidgetConfigurationArray($showitemString, $dividerElement,
+		$wrapTypeWithoutDivider, $elementWrapTypeWithDivider, $outerWrapTypeWithDivider, $elementCallback = NULL) {
+		$items = t3lib_div::trimExplode(',', $showitemString);
+
+		$hasDivider = (substr_count($showitemString, $dividerElement) > 0);
+
+		$widgetConfigurations = array();
+		$lines = array();
+		foreach ($items as $item) {
+			list ($fieldname) = t3lib_div::trimExplode(';', $item);
+
+			switch ($fieldname) {
+				case $dividerElement:
+					$lines[] = array(
+						'type' => $elementWrapTypeWithDivider,
+						'items' => $widgetConfigurations
+					);
+					$widgetConfigurations = array();
+
+					continue 2;
+					break;
+
+				default:
+					$widgetConfiguration = NULL;
+					if (is_callable($elementCallback)) {
+						$widgetConfiguration = call_user_func($elementCallback, $item);
+					}
+
+					if (empty($widgetConfiguration)) {
+						$widgetConfigurations[] = array(
+							'type' => 'field',
+							'field' => $fieldname
+						);
+					} else {
+						$widgetConfigurations[] = $widgetConfiguration;
+						$widgetConfiguration = NULL;
+					}
+
+					break;
+			}
+		}
+
+		if ($hasDivider) {
+			$boxType = $outerWrapTypeWithDivider;
+
+			$lines[] = array(
+				'type' => $elementWrapTypeWithDivider,
+				'items' => $widgetConfigurations
+			);
+			$widgetConfigurations = $lines;
+		} else {
+			$boxType = $wrapTypeWithoutDivider;
+		}
+
+		return array(
+			'type' => $boxType,
+			'items' => $widgetConfigurations
+		);
+	}
+
+	/**
+	 * Callback handler for fields in a regular type showitem string. This handler is neccessary for e.g. handling top-level
+	 * palettes, which only occur in TCA[$table][types], not TCA[$table][palettes]
+	 *
+	 * @param string $item semicolon separated string taken from the showitem string
+	 * @return array
+	 */
+	protected function typeShowitemElementCallbackHandler($item) {
+		list ($fieldname, $label, $part3, $part4, $part5) = t3lib_div::trimExplode(';', $item);
+
+		$widgetConfig = array();
+		switch ($fieldname) {
+			case '--palette--':
+				$paletteName = $part3;
+
+				$widgetConfig = array(
+					'block' => $paletteName,
+					'label' => $label
+				);
+
+				break;
+		}
+
+		return $widgetConfig;
 	}
 }
 
