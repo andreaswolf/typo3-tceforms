@@ -94,10 +94,14 @@ class t3lib_TCA_DataStructure_TypeTest extends Tx_Phpunit_TestCase {
 		);
 	}
 
-	protected function setUpFixtureWithConfiguration(array $configuration) {
+	protected function setUpFixtureWithConfiguration(array $configuration, $mockedDataStructure = NULL) {
 		// TODO change this mock to t3lib_DataStructure_Abstract as soon as PHPUnit is able to mock concrete methods in abstract classes
-		$this->mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
-		$this->fixture = new t3lib_TCA_DataStructure_Type($this->mockedDataStructure, uniqid(), $configuration);
+		if (!is_object($mockedDataStructure)) {
+			$this->mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
+			$this->fixture = new t3lib_TCA_DataStructure_Type($this->mockedDataStructure, uniqid(), $configuration);
+		} else {
+			$this->fixture = new t3lib_TCA_DataStructure_Type($mockedDataStructure, uniqid(), $configuration);
+		}
 	}
 
 	/**
@@ -214,6 +218,26 @@ class t3lib_TCA_DataStructure_TypeTest extends Tx_Phpunit_TestCase {
 		$this->assertContains('foo', $excludeList);
 		$this->assertContains('bar', $excludeList);
 		$this->assertNotContains('baz', $excludeList);
+	}
+
+
+	/**********************************
+	 * Showitem string
+	 **********************************/
+
+	/**
+	 * @test
+	 */
+	public function showitemStringIsResolvedToWidgetConfiguration() {
+		$configuration = array(
+			'showitem' => 'field1, field2'
+		);
+		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure');
+		$mockedDataStructure->expects($this->once())->method('convertTypeShowitemStringToWidgetConfigurationArray')
+		  ->with($this->equalTo($configuration['showitem']));
+		$this->setUpFixtureWithConfiguration($configuration, $mockedDataStructure);
+
+		$this->fixture->getWidgetConfiguration();
 	}
 
 

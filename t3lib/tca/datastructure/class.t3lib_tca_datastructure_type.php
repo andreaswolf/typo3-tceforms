@@ -138,6 +138,8 @@ class t3lib_TCA_DataStructure_Type {
 
 		if (isset($configuration['widgetConfiguration'])) {
 			$this->widgetConfiguration = t3lib_TCA_DataStructure::parseWidgetConfiguration($configuration['widgetConfiguration']);
+		} elseif (isset($configuration['showitem'])) {
+			$this->widgetConfiguration = $this->dataStructure->convertTypeShowitemStringToWidgetConfigurationArray($configuration['showitem']);
 		}
 	}
 
