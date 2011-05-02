@@ -46,16 +46,71 @@ class t3lib_TCEforms_WidgetBuilder {
 		return $this;
 	}
 
+	/**
+	 * Builds an abstract widget tree for a record type. This abstract tree can be combined with a record object,
+	 * creating a concrete tree with real field widgets (instead of FieldProxy widgets).
+	 *
+	 * @return void
+	 *
+	 * @see bindWidgetTreeToRecord()
+	 */
+	public function buildWidgetTreeForType(t3lib_TCA_DataStructure_Type $type) {
+		/*
+		 * TODO for caching:
+		 *  - check cache; if entry is present, return it
+		 *  - cache built arrays
+		 *
+		 * TODO _Type should add display conditions to subtype add/exclude fields (instead of fiddling around with add/exclude lists)
+		 */
+		$widgetConfiguration = $type->getWidgetConfiguration();
+		$abstractWidgetTree = $this->buildRecursiveWidgetArray($widgetConfiguration);
+
+		return $abstractWidgetTree;
+	}
+
 	// (presumably) called by Form/Context after a record has been added
 	// TODO document
-	public function buildWidgetTreeForRecord(t3lib_TCEforms_Context $context, t3lib_TCEforms_Record $record) {
-		/**
+	public function bindWidgetTreeToRecord(t3lib_TCEforms_ContainerWidget $widgetTreeRoot, t3lib_TCEforms_Record $record, $wp = NULL) {
+		/*
 		 * TODO:
-		 *  - get data structure record
-		 *  - find out how display information is stored in record
-		 *  - decode information into an array of widget configs
-		 *  - build widgets out of this array
+		 *  - honor subtype value if any -> this should be done by display conditions inside the widget objects
 		 */
+			// a two-dimensional stack: the first level contains an array for each nesting level, the second level contains
+			// the config elements with a reference back to their parent widget
+		$widgetStack = new SplDoublyLinkedList();
+		$widgetStack->setIteratorMode(SplDoublyLinkedList::IT_MODE_FIFO | SplDoublyLinkedList::IT_MODE_DELETE);
+
+		$widgetStack->push($widgetTreeRoot);
+
+		foreach ($widgetStack as $widgetObject) {
+			/** @var $widgetObject t3lib_TCEforms_Widget */
+			if (is_a($widgetObject, 't3lib_TCEforms_ContainerWidget')) {
+				$childWidgets = $widgetObject->getChildWidgets();
+
+				foreach ($childWidgets as $childWidget) {
+					$widgetStack->push($childWidget);
+				}
+			}
+
+			if (is_a($widgetObject, 't3lib_TCEforms_Widget_FieldProxy')) {
+				$newWidgetObject = $this->createWidgetObjectFromProxy($widgetObject);
+
+				/** @var $parentObject t3lib_TCEforms_ContainerWidget */
+				$parentObject = $widgetObject->getParentWidget();
+				$parentObject->replaceChildWidget($widgetObject, $newWidgetObject);
+			}
+		}
+	}
+
+	/**
+	 * Creates a real field widget from a field proxy.
+	 *
+	 * @param t3lib_TCEforms_Widget_FieldProxy $proxyObject
+	 * @return t3lib_TCEforms_FieldWidget
+	 */
+	public function createWidgetObjectFromProxy(t3lib_TCEforms_Widget_FieldProxy $proxyObject) {
+		// TODO implement
+		return t3lib_div::makeInstance('t3lib_TCEforms_Widget_AbstractField');
 	}
 
 	public function buildRecursiveWidgetArray(array $widgetConfigurations) {

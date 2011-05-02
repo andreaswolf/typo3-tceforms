@@ -47,6 +47,86 @@ class t3lib_TCEforms_WidgetBuilderTest extends Tx_Phpunit_TestCase {
 	/**
 	 * @test
 	 */
+	public function buildWidgetTreeForTypeTransformsWidgetConfigurationOfTypeToWidgetTree() {
+		$widgetConfig = array(
+			array(
+				'type' => 'field',
+				'field' => 'foo'
+			),
+			array(
+				'type' => 'field',
+				'field' => 'bar'
+			)
+		);
+		$mockedType = $this->getMock('t3lib_TCA_DataStructure_Type', array(), array(), '', FALSE);
+		$mockedType->expects($this->once())->method('getWidgetConfiguration')->will($this->returnValue($widgetConfig));
+
+		/** @var $fixture t3lib_TCEforms_WidgetBuilder */
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetBuilder', array('buildRecursiveWidgetArray'));
+		$fixture->expects($this->once())->method('buildRecursiveWidgetArray')->with($this->equalTo($widgetConfig));
+
+		$fixture->buildWidgetTreeForType($mockedType);
+	}
+
+	/**
+	 * @test
+	 */
+	public function buildWidgetTreeForTypeReturnsArrayWithBuiltWidgetConfiguration() {
+		$mockedType = $this->getMock('t3lib_TCA_DataStructure_Type', array(), array(), '', FALSE);
+		$mockedType->expects($this->once())->method('getWidgetConfiguration')->will($this->returnValue(array()));
+		$mockedWidgetTreeRoot = $this->getMock('t3lib_TCEforms_ContainerWidget');
+
+		/** @var $fixture t3lib_TCEforms_WidgetBuilder */
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetBuilder', array('buildRecursiveWidgetArray'));
+		$fixture->expects($this->once())->method('buildRecursiveWidgetArray')->will($this->returnValue($mockedWidgetTreeRoot));
+
+		$widgetTree = $fixture->buildWidgetTreeForType($mockedType);
+
+		$this->assertEquals($mockedWidgetTreeRoot, $widgetTree);
+	}
+
+	/**
+	 * @test
+	 */
+	public function bindWidgetTreeToRecordLoopsOverSubwidgetsOfContainers() {
+		$subwidgets = array(
+			$this->getMock('t3lib_TCEforms_ContainerWidget'),
+			$this->getMock('t3lib_TCEforms_Widget')
+		);
+		$mockedRecord = $this->getMock('t3lib_TCEforms_Record', array(), array(), '', FALSE);
+		$widgetTreeRoot = $this->getMock('t3lib_TCEforms_ContainerWidget');
+		$widgetTreeRoot->expects($this->once())->method('getChildWidgets')->will($this->returnValue($subwidgets));
+		$subwidgets[0]->expects($this->once())->method('getChildWidgets')->will($this->returnValue(array()));
+		// TODO add more expectations and assertions as soon as the tested method does more things
+
+		$this->fixture->bindWidgetTreeToRecord($widgetTreeRoot, $mockedRecord);
+	}
+
+	/**
+	 * @test
+	 */
+	public function bindWidgetTreeToRecordReplacesFieldProxyObjectsByRealFields() {
+		// TODO replace use of equalTo() in with() by identicalTo() as soon as PHPUnit supports object identity matching for parameter matchers
+		$widgetTreeRoot = $this->getMock('t3lib_TCEforms_ContainerWidget');
+		$mockedWidgetProxy = $this->getMock('t3lib_TCEforms_Widget_FieldProxy', array(), array(), '', FALSE);
+		$mockedRealWidget = $this->getMock('t3lib_TCEforms_Widget_AbstractField', array(), array(), '', FALSE);
+		$mockedRecord = $this->getMock('t3lib_TCEforms_Record', array(), array(), '', FALSE);
+
+		$mockedWidgetProxy->expects(($this->once()))->method('getParentWidget')->will($this->returnValue($widgetTreeRoot));
+		$widgetTreeRoot->expects($this->once())->method('getChildWidgets')->will($this->returnValue(array($mockedWidgetProxy)));
+		$widgetTreeRoot->expects($this->once())->method('replaceChildWidget')
+		  ->with($this->equalTo($mockedWidgetProxy), $this->equalTo($mockedRealWidget));
+
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetBuilder', array('createWidgetObjectFromProxy'));
+		$fixture->expects($this->once())->method('createWidgetObjectFromProxy')->with($this->equalTo($mockedWidgetProxy))
+		  ->will($this->returnValue($mockedRealWidget));
+
+		$fixture->bindWidgetTreeToRecord($widgetTreeRoot, $mockedRecord);
+	}
+
+	/**
+	 * @test
+	 */
 	public function buildRecursiveWidgetArrayUsesFactoryToBuildWidgets() {
 		$widgetConfig = array(
 			array('type' => 'foo'),
