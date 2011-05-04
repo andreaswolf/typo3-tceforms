@@ -75,6 +75,23 @@ class t3lib_TCEforms_WidgetRegistryTest extends Tx_Phpunit_TestCase {
 		$this->assertEquals($classname, $this->fixture->getWidgetClass($type));
 		$this->assertEquals($classname, $this->fixture->getWidgetClass($classname));
 	}
+
+	/**
+	 * @test
+	 */
+	public function getWidgetTypeReturnsCorrectTypeForClassnameAndObject() {
+		$type = uniqid();
+		$classname = uniqid('t3lib_TCEforms_MockedWidget');
+		$GLOBALS['TYPO3_CONF_VARS']['TCEFORMS']['widgetTypes'] = array(
+			$type => $classname
+		);
+
+			// mock a class for type checks
+		$mockedWidget = $this->getMock('t3lib_TCEforms_Widget', array(), array(), $classname);
+
+		$this->assertEquals($type, $this->fixture->getWidgetType($mockedWidget));
+		$this->assertEquals($type, $this->fixture->getWidgetType($classname));
+	}
 }
 
 ?>

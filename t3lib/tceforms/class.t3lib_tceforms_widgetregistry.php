@@ -68,6 +68,34 @@ class t3lib_TCEforms_WidgetRegistry implements t3lib_Singleton {
 
 		return $className;
 	}
+
+	/**
+	 * Returns the widget type for a given widget class name or an object.
+	 *
+	 * @param string|object $classNameOrObject
+	 * @return string
+	 *
+	 * @throws InvalidArgumentException If no widget type is found for the argument.
+	 */
+	public function getWidgetType($classNameOrObject) {
+		$type = '';
+
+		if (is_object($classNameOrObject)) {
+			$classNameOrObject = get_class($classNameOrObject);
+		}
+
+		if (class_exists($classNameOrObject)) {
+			$type = array_search($classNameOrObject, $GLOBALS['TYPO3_CONF_VARS']['TCEFORMS']['widgetTypes']);
+
+			if ($type === FALSE) {
+				throw new RuntimeException("No type could be found for class $classNameOrObject", 1304518958);
+			}
+		} else {
+			// TODO throw exception
+		}
+
+		return $type;
+	}
 }
 
 ?>
