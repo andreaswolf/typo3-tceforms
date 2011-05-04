@@ -9,7 +9,7 @@
  *  This script is part of the TYPO3 project. The TYPO3 project is
  *  free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Freef Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
  *
  *  The GNU General Public License can be found at
@@ -28,47 +28,39 @@
 
 
 /**
- * Abstract widget base class
+ * Abstract base class for all renderers
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  * @package TYPO3
  * @subpackage t3lib
  */
-abstract class t3lib_TCEforms_Widget_Abstract implements t3lib_TCEforms_Widget {
-	protected $parentWidget = NULL;
+abstract class t3lib_TCEforms_AbstractRenderer implements t3lib_TCEforms_Renderer {
+	public function renderWidgetTree(t3lib_TCEforms_ContainerWidget $treeRoot) {
+		$renderedContents = '';
 
-	/**
-	 * The configuration for this widget
-	 *
-	 * @var array
-	 */
-	protected $configuration;
+		/** @var $childWidgets t3lib_TCEforms_Widget[] */
+		$childWidgets = $treeRoot->getChildWidgets();
+		/** @var $currentWidget t3lib_TCEforms_Widget */
+		foreach ($childWidgets as $currentWidget) {
+			if (is_a($currentWidget, 't3lib_TCEforms_ContainerWidget')) {
+				$renderedContents .= $this->renderWidgetTree($currentWidget);
+			} else {
+				$renderedContents .= $this->renderWidget($currentWidget);
+			}
+		}
 
-	public function __construct(array $configuration) {
-		$this->configuration = $configuration;
+		$renderedContents = $this->renderContainerWidget($treeRoot, $renderedContents);
+
+		return $renderedContents;
 	}
 
-	public function hasParentWidget() {
-		return !($this->parentWidget === NULL);
+	protected function renderWidget(t3lib_TCEforms_Widget $widget) {
+		return $widget->render($this);
 	}
 
-	public function getParentWidget() {
-		return $this->parentWidget;
+	protected function renderContainerWidget(t3lib_TCEforms_ContainerWidget $containerWidget, $subwidgetContents) {
+		return $containerWidget->renderContainer($this, $subwidgetContents);
 	}
-
-	public function setParentWidget(t3lib_TCEforms_ContainerWidget $parentWidget) {
-		$this->parentWidget = $parentWidget;
-	}
-
-	/**
-	 * Renders this widget and returns the rendered contents
-	 *
-	 * @param t3lib_TCEforms_Renderer $renderer
-	 * @return string
-	 */
-	public function render(t3lib_TCEforms_Renderer $renderer) {
-	}
-
 }
 
 ?>

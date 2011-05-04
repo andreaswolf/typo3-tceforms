@@ -28,47 +28,14 @@
 
 
 /**
- * Abstract widget base class
+ * Interface for TCEforms renderers
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  * @package TYPO3
  * @subpackage t3lib
  */
-abstract class t3lib_TCEforms_Widget_Abstract implements t3lib_TCEforms_Widget {
-	protected $parentWidget = NULL;
-
-	/**
-	 * The configuration for this widget
-	 *
-	 * @var array
-	 */
-	protected $configuration;
-
-	public function __construct(array $configuration) {
-		$this->configuration = $configuration;
-	}
-
-	public function hasParentWidget() {
-		return !($this->parentWidget === NULL);
-	}
-
-	public function getParentWidget() {
-		return $this->parentWidget;
-	}
-
-	public function setParentWidget(t3lib_TCEforms_ContainerWidget $parentWidget) {
-		$this->parentWidget = $parentWidget;
-	}
-
-	/**
-	 * Renders this widget and returns the rendered contents
-	 *
-	 * @param t3lib_TCEforms_Renderer $renderer
-	 * @return string
-	 */
-	public function render(t3lib_TCEforms_Renderer $renderer) {
-	}
-
+interface t3lib_TCEforms_Renderer {
+	public function renderWidgetTree(t3lib_TCEforms_ContainerWidget $widget);
 }
 
 ?>

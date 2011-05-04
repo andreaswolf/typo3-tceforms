@@ -43,5 +43,5 @@ interface t3lib_TCEforms_Widget {
 
 	public function setParentWidget(t3lib_TCEforms_ContainerWidget $parentWidget);
 
-	//public function render(t3lib_TCEforms_Renderer $renderer);
+	public function render(t3lib_TCEforms_Renderer $renderer);
 }

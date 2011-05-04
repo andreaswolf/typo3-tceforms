@@ -70,10 +70,6 @@ abstract class t3lib_TCEforms_Widget_AbstractContainer extends t3lib_TCEforms_Wi
 		$this->childWidgets[$key] = $newWidget;
 	}
 
-	public function renderChildWidgets() {
-		// TODO: Implement renderChildWidgets() method.
-	}
-
 	public function isPossibleChildWidget(t3lib_TCEforms_Widget $widget) {
 		// TODO: Implement isPossibleChildWidget() method.
 	}
@@ -82,6 +78,16 @@ abstract class t3lib_TCEforms_Widget_AbstractContainer extends t3lib_TCEforms_Wi
 		foreach ($this->childWidgets as $index => $widget) {
 			$this->childWidgets[$index] = clone $widget;
 		}
+	}
+
+	/**
+	 * Renders this widgets.
+	 *
+	 * @param t3lib_TCEforms_Renderer $renderer
+	 * @return string
+	 */
+	public function renderContainer(t3lib_TCEforms_Renderer $renderer, $childWidgetContents) {
+		// TODO: Implement render() method.
 	}
 }
 
