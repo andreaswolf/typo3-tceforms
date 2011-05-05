@@ -45,21 +45,11 @@ interface t3lib_TCEforms_ContainerWidget extends t3lib_TCEforms_Widget {
 
 	public function isPossibleChildWidget(t3lib_TCEforms_Widget $widget);
 
-	public function renderChildWidgets();
-
 	public function hasChildWidgets();
 
 	public function replaceChildWidget(t3lib_TCEforms_Widget $oldWidget, t3lib_TCEforms_Widget $newWidget);
 
-	/**
-	 * Sets the rendered contents of the child widgets of this widget
-	 *
-	 * @param string $childContents
-	 * @return void
-	 */
-	public function setChildWidgetContents($childContents);
-
-	public function renderContainer(t3lib_TCEforms_Renderer $renderer, $childWidgetContents);
+	public function renderContainer(t3lib_TCEforms_Renderer $renderer, $templateFile, $childWidgetContents);
 }
 
 ?>

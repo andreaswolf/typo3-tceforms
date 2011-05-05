@@ -41,7 +41,7 @@ class t3lib_TCEforms_AbstractRendererTest extends Tx_Phpunit_TestCase {
 	private $fixture;
 
 	public function setUp() {
-		$this->fixture = $this->getMockForAbstractClass('t3lib_TCEforms_AbstractRenderer');
+		$this->fixture = $this->getMock('t3lib_TCEforms_AbstractRenderer', array('getTemplateFileForWidget'));
 	}
 
 	/**
@@ -56,7 +56,7 @@ class t3lib_TCEforms_AbstractRendererTest extends Tx_Phpunit_TestCase {
 		$childA->expects($this->once())->method('render')->will($this->returnValue('childA'));
 		$childB->expects($this->once())->method('render')->will($this->returnValue('childB'));
 
-		$treeRoot->expects($this->once())->method('renderContainer')->with($this->anything(), $this->equalTo('childAchildB'));
+		$treeRoot->expects($this->once())->method('renderContainer')->with($this->anything(), $this->anything(), $this->equalTo('childAchildB'));
 
 		$this->fixture->renderWidgetTree($treeRoot);
 	}
@@ -70,8 +70,8 @@ class t3lib_TCEforms_AbstractRendererTest extends Tx_Phpunit_TestCase {
 		$childAA = $this->getMock('t3lib_TCEforms_Widget');
 
 		$treeRoot->expects($this->once())->method('getChildWidgets')->will($this->returnValue(array($childA)));
-		$treeRoot->expects($this->once())->method('renderContainer')->with($this->anything(), $this->equalTo('childA'));
-		$childA->expects($this->once())->method('renderContainer')->with($this->anything(), $this->equalTo('childAA'))->will($this->returnValue('childA'));
+		$treeRoot->expects($this->once())->method('renderContainer')->with($this->anything(), $this->anything(), $this->equalTo('childA'));
+		$childA->expects($this->once())->method('renderContainer')->with($this->anything(), $this->anything(), $this->equalTo('childAA'))->will($this->returnValue('childA'));
 		$childA->expects($this->once())->method('getChildWidgets')->will($this->returnValue(array($childAA)));
 		$childAA->expects($this->once())->method('render')->will($this->returnValue('childAA'));
 

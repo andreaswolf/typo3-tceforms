@@ -64,9 +64,10 @@ abstract class t3lib_TCEforms_Widget_Abstract implements t3lib_TCEforms_Widget {
 	 * Renders this widget and returns the rendered contents
 	 *
 	 * @param t3lib_TCEforms_Renderer $renderer
+	 * @param string $templateFile The template to use
 	 * @return string
 	 */
-	public function render(t3lib_TCEforms_Renderer $renderer) {
+	public function render(t3lib_TCEforms_Renderer $renderer, $templateFile) {
 	}
 
 }

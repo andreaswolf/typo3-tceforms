@@ -117,8 +117,8 @@ class t3lib_TCEforms_WidgetBuilderTest extends Tx_Phpunit_TestCase {
 		$widgetTreeRoot->expects($this->once())->method('replaceChildWidget')
 		  ->with($this->equalTo($mockedWidgetProxy), $this->equalTo($mockedRealWidget));
 
-		$fixture = $this->getMock('t3lib_TCEforms_WidgetBuilder', array('createWidgetObjectFromProxy'));
-		$fixture->expects($this->once())->method('createWidgetObjectFromProxy')->with($this->equalTo($mockedWidgetProxy))
+		$fixture = $this->getMock('t3lib_TCEforms_WidgetBuilder', array('createFieldWidgetFromProxy'));
+		$fixture->expects($this->once())->method('createFieldWidgetFromProxy')->with($this->equalTo($mockedWidgetProxy))
 		  ->will($this->returnValue($mockedRealWidget));
 
 		$fixture->bindWidgetTreeToRecord($widgetTreeRoot, $mockedRecord);

@@ -35,6 +35,42 @@
  * @subpackage t3lib
  */
 abstract class t3lib_TCEforms_AbstractRenderer implements t3lib_TCEforms_Renderer {
+
+	/**
+	 * @var t3lib_TCEforms_WidgetRegistry
+	 */
+	protected $registry;
+
+	/**
+	 * The format used by this renderer. This may be an arbitrary string, but it should be lowercase and ASCII only,
+	 * as it may be used in filenames.
+	 *
+	 * Set this in inherited renderer classes.
+	 *
+	 * @var string
+	 */
+	protected $format = '';
+
+	/**
+	 * The file extension used by this renderer. This should conform to the usual rules for filenames.
+	 *
+	 * Set this in inherited renderer classes.
+	 *
+	 * @var string
+	 */
+	protected $fileExtension = '';
+
+	/**
+	 * Sets the widget registry.
+	 *
+	 * @param t3lib_TCEforms_WidgetRegistry $registry
+	 * @return t3lib_TCEforms_AbstractRenderer
+	 */
+	public function setRegistry(t3lib_TCEforms_WidgetRegistry $registry) {
+		$this->registry = $registry;
+		return $this;
+	}
+
 	public function renderWidgetTree(t3lib_TCEforms_ContainerWidget $treeRoot) {
 		$renderedContents = '';
 
@@ -55,11 +91,22 @@ abstract class t3lib_TCEforms_AbstractRenderer implements t3lib_TCEforms_Rendere
 	}
 
 	protected function renderWidget(t3lib_TCEforms_Widget $widget) {
-		return $widget->render($this);
+		$template = $this->getTemplateFileForWidget($widget);
+		return $widget->render($this, $template);
 	}
 
 	protected function renderContainerWidget(t3lib_TCEforms_ContainerWidget $containerWidget, $subwidgetContents) {
-		return $containerWidget->renderContainer($this, $subwidgetContents);
+		$template = $this->getTemplateFileForWidget($containerWidget);
+		return $containerWidget->renderContainer($this, $template, $subwidgetContents);
+	}
+
+	protected function getTemplateFileForWidget(t3lib_TCEforms_Widget $widget) {
+		$type = $this->registry->getWidgetType($widget);
+
+		$templatePath = PATH_typo3 . 'templates/tceforms/';
+		$template = sprintf('%s%s%s.%s.%s', $templatePath, DIRECTORY_SEPARATOR, $type, $this->format, $this->fileExtension);
+
+		return $template;
 	}
 }
 

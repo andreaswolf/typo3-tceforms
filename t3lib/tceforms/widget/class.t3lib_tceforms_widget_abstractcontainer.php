@@ -84,10 +84,18 @@ abstract class t3lib_TCEforms_Widget_AbstractContainer extends t3lib_TCEforms_Wi
 	 * Renders this widgets.
 	 *
 	 * @param t3lib_TCEforms_Renderer $renderer
+	 * @param string $templateFile
+	 * @param string $childWidgetContents
 	 * @return string
 	 */
-	public function renderContainer(t3lib_TCEforms_Renderer $renderer, $childWidgetContents) {
-		// TODO: Implement render() method.
+	public function renderContainer(t3lib_TCEforms_Renderer $renderer, $templateFile, $childWidgetContents) {
+		$field = $this;
+
+		ob_start();
+		include($templateFile);
+		$renderedContents = ob_get_flush();
+
+		return $renderedContents;
 	}
 }
 

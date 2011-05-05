@@ -26,6 +26,8 @@
  ***************************************************************/
 
 
+require_once 'vfsStream/vfsStream.php';
+
 /**
  * Testcase for the abstract container widget
  *
@@ -158,6 +160,45 @@ class t3lib_TCEforms_Widget_AbstractContainerTest extends Tx_Phpunit_TestCase {
 
 		$childWidgets = $this->fixture->getChildWidgets();
 		$this->assertEquals(array($mockedChildWidgets[0], $newChildWidget, $mockedChildWidgets[2]), $childWidgets);
+	}
+
+	protected function setupStreamFile($basedir, $filename, $contents) {
+		vfsStream::setup($basedir);
+		$templateFile = vfsStream::newFile($filename)->setContent($contents);
+		vfsStreamWrapper::getRoot()->addChild($templateFile);
+	}
+
+	/**
+	 * @test
+	 */
+	public function renderContainerReturnsContentsFromTemplateFile() {
+		$baseDir = 'basedir';
+		$templateFileName = 'template.example';
+		$templateContent = 'exampleTemplateContent ' . uniqid();
+		$this->setupStreamFile($baseDir, $templateFileName, $templateContent);
+		$templateFilePath = vfsStream::url("$baseDir/$templateFileName");
+		$mockedRenderer = $this->getMock('t3lib_TCEforms_Renderer');
+
+		$renderedContents = $this->fixture->renderContainer($mockedRenderer, $templateFilePath, '');
+
+		$this->assertContains($templateContent, (string)$renderedContents);
+	}
+
+	/**
+	 * @test
+	 */
+	public function phpContentFromTemplatesGetsExecuted() {
+		$baseDir = 'basedir';
+		$templateFileName = 'template.example';
+		$templateTextContent = 'exampleTemplateContent ' . uniqid();
+		$templateCode = '<?php echo "' . $templateTextContent . '"; ?>';
+		$this->setupStreamFile($baseDir, $templateFileName, $templateCode);
+		$templateFilePath = vfsStream::url("$baseDir/$templateFileName");
+		$mockedRenderer = $this->getMock('t3lib_TCEforms_Renderer');
+
+		$renderedContents = $this->fixture->renderContainer($mockedRenderer, $templateFilePath, '');
+
+		$this->assertEquals($templateTextContent, (string)$renderedContents);
 	}
 }
 
