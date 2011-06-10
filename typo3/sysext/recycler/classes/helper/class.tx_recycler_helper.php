@@ -27,7 +27,6 @@
  * @author	Julian Kleinhans <typo3@kj187.de>
  * @package	TYPO3
  * @subpackage	tx_recycler
- * @version $Id$
  */
 class tx_recycler_helper {
 
@@ -44,7 +43,7 @@ class tx_recycler_helper {
 	 * @param	string		$cmd: The command that sould be performed ('new' or 'edit')
 	 * @param	string		$table: The table to check access for
 	 * @param	string		$theUid: The record uid of the table
-	 * @return	boolean		Returns true is the user has access, or false if not
+	 * @return	boolean		Returns TRUE is the user has access, or FALSE if not
 	 */
 	public static function checkAccess($table, $row) {
 		// Checking if the user has permissions? (Only working as a precaution, because the final permission check is always down in TCE. But it's good to notify the user on beforehand...)
@@ -80,7 +79,7 @@ class tx_recycler_helper {
 			}
 		}
 
-		return $hasAccess ? true : false;
+		return $hasAccess ? TRUE : FALSE;
 	}
 
 	/**
@@ -158,10 +157,10 @@ class tx_recycler_helper {
 	 *
 	 * @param	string		$tableName: Name of the table to get TCA for
 	 * @return	mixed		TCA of the table used in the current context (array)
-	 *						or false (boolean) if something went wrong
+	 *						or FALSE (boolean) if something went wrong
 	 */
 	public static function getTableTCA($tableName) {
-		$TCA = false;
+		$TCA = FALSE;
 		if (isset($GLOBALS['TCA'][$tableName])) {
 			$TCA = $GLOBALS['TCA'][$tableName];
 		}

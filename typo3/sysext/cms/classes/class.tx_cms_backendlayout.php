@@ -73,6 +73,7 @@ class tx_cms_BackendLayout {
 		$tsConfig  = t3lib_BEfunc::getModTSconfig($id, 'TCEFORM.tt_content.colPos');
 		$tcaConfig = $GLOBALS['TCA']['tt_content']['columns']['colPos']['config'];
 
+		/** @var $tceForms t3lib_TCEForms */
 		$tceForms = t3lib_div::makeInstance('t3lib_TCEForms');
 
 		$tcaItems = $tcaConfig['items'];
@@ -97,7 +98,7 @@ class tx_cms_BackendLayout {
 	 * Gets the selected backend layout
 	 *
 	 * @param  int  $id
-	 * @return array|null  $backendLayout
+	 * @return array|NULL  $backendLayout
 	 */
 	public function getSelectedBackendLayout($id) {
 		$rootline = t3lib_BEfunc::BEgetRootLine($id);
@@ -117,10 +118,10 @@ class tx_cms_BackendLayout {
 					$backendLayoutUid = $selectedBackendLayout;
 				}
 				break;
-			} else if ($selectedBackendLayoutNextLevel == -1 && $page['uid'] != $id) {
+			} elseif ($selectedBackendLayoutNextLevel == -1 && $page['uid'] != $id) {
 					// Some previous page in our rootline sets layout_next to "None"
 				break;
-			} else if ($selectedBackendLayoutNextLevel > 0 && $page['uid'] != $id) {
+			} elseif ($selectedBackendLayoutNextLevel > 0 && $page['uid'] != $id) {
 					// Some previous page in our rootline sets some backend_layout, use it
 				$backendLayoutUid = $selectedBackendLayoutNextLevel;
 				break;
@@ -136,6 +137,7 @@ class tx_cms_BackendLayout {
 			);
 
 			if ($backendLayout) {
+				/** @var $parser t3lib_TSparser */
 				$parser = t3lib_div::makeInstance('t3lib_TSparser');
 				$parser->parse($backendLayout['config']);
 
@@ -149,7 +151,7 @@ class tx_cms_BackendLayout {
 						if (isset($row['columns.']) && is_array($row['columns.'])) {
 							foreach ($row['columns.'] as $column) {
 								$backendLayout['__items'][] = array(
-									$column['name'],
+									t3lib_div::isFirstPartOfStr($column['name'], 'LLL:') ? $GLOBALS['LANG']->sL($column['name']) : $column['name'],
 									$column['colPos'],
 									NULL
 								);

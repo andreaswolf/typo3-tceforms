@@ -24,8 +24,6 @@
 
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
- *
- * $Id$
  */
 
 
@@ -41,7 +39,7 @@ abstract class tx_rsaauth_abstract_storage {
 	/**
 	 * Retrieves the key from the storage
 	 *
-	 * @return	string	The key or null
+	 * @return	string	The key or NULL
 	 */
 	abstract public function get();
 

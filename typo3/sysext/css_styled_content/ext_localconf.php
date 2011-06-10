@@ -1,5 +1,4 @@
 <?php
-# TYPO3 CVS ID: $Id$
 
 if (!defined ('TYPO3_MODE')) 	die ('Access denied.');
 
@@ -43,6 +42,7 @@ $TYPO3_CONF_VARS['SC_OPTIONS']['ext/install']['compat_version']['tx_cssstyledcon
 	// Register ourselves as "content rendering template" (providing the hooks of "static template 43" = content (default) )
 $TYPO3_CONF_VARS['FE']['contentRenderingTemplates'] = array(
 	'cssstyledcontent/static/',
+	'cssstyledcontent/static/v4.5/',
 	'cssstyledcontent/static/v4.4/',
 	'cssstyledcontent/static/v4.3/',
 	'cssstyledcontent/static/v4.2/',

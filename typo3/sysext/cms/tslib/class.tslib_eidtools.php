@@ -33,8 +33,6 @@
  * initialize parts of the FE environment as needed,
  * eg. Frontend User session, Database connection etc.
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
@@ -89,16 +87,16 @@ final class tslib_eidtools {
 	 * Connecting to database. If the function fails, last error message
 	 * can be retrieved using $GLOBALS['TYPO3_DB']->sql_error().
 	 *
-	 * @return	boolean		true if connection was successful
+	 * @return	boolean		TRUE if connection was successful
 	 */
 	public static function connectDB()	{
-		static $dbConnected = false;
+		static $dbConnected = FALSE;
 
 		if (!$dbConnected) {
 			// Attempt to connect to the database
 			if ($GLOBALS['TYPO3_DB']->sql_pconnect(TYPO3_db_host, TYPO3_db_username, TYPO3_db_password) &&
 					$GLOBALS['TYPO3_DB']->sql_select_db(TYPO3_db)) {
-				$dbConnected = true;
+				$dbConnected = TRUE;
 			}
 		}
 		return $dbConnected;
@@ -124,18 +122,18 @@ final class tslib_eidtools {
 	 */
 	public static function initTCA() {
 		// Some badly made extensions attempt to manipulate TCA in a wrong way
-		// (inside ext_localconf.php). Therefore $TCA may become an array
+		// (inside ext_localconf.php). Therefore $GLOBALS['TCA'] may become an array
 		// but in fact it is not loaded. The check below ensure that
 		// TCA is still loaded if such bad extensions are installed
 		if (!is_array($GLOBALS['TCA']) || !isset($GLOBALS['TCA']['pages'])) {
 			// Load TCA using TSFE
-			self::getTSFE()->includeTCA(false);
+			self::getTSFE()->includeTCA(FALSE);
 		}
 	}
 
 	/**
 	 * Makes TCA for the extension available inside eID. Use this function if
-	 * you need not to include the whole $TCA. However, you still need to call
+	 * you need not to include the whole $GLOBALS['TCA']. However, you still need to call
 	 * t3lib_div::loadTCA() if you want to access column array!
 	 *
 	 * @param	string		$extensionKey	Extension key
@@ -160,7 +158,7 @@ final class tslib_eidtools {
 	 */
 	private static function getTSFE() {
 		// Cached instance
-		static $tsfe = null;
+		static $tsfe = NULL;
 
 		if (is_null($tsfe)) {
 			$tsfe = t3lib_div::makeInstance('tslib_fe', $GLOBALS['TYPO3_CONF_VARS'], 0, 0);

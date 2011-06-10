@@ -30,7 +30,6 @@
  *
  * @package TYPO3
  * @subpackage t3lib_error
- * @version $Id$
  */
 abstract class t3lib_error_AbstractExceptionHandler implements t3lib_error_ExceptionHandlerInterface, t3lib_Singleton {
 	const CONTEXT_WEB = 'WEB';
@@ -67,6 +66,10 @@ abstract class t3lib_error_AbstractExceptionHandler implements t3lib_error_Excep
 		$logTitle = 'Core: Exception handler (' . $context . ')';
 		$logMessage = 'Uncaught TYPO3 Exception: ' . $exceptionCodeNumber . $exception->getMessage() . ' | ' .
 					  get_class($exception) . ' thrown in file ' . $filePathAndName . ' in line ' . $exception->getLine();
+		if ($context === 'WEB') {
+			$logMessage .= '. Requested URL: ' . t3lib_div::getIndpEnv('TYPO3_REQUEST_URL');
+		}
+
 		$backtrace = $exception->getTrace();
 
 			// write error message to the configured syslogs
@@ -138,7 +141,25 @@ abstract class t3lib_error_AbstractExceptionHandler implements t3lib_error_Excep
 		}
 	}
 
-
+	/**
+	 * Sends the HTTP Status 500 code, if $exception is *not* a t3lib_error_http_StatusException
+	 * and headers are not sent, yet.
+	 *
+	 * @param Exception $exception
+	 * @return void
+	 */
+	protected function sendStatusHeaders(Exception $exception) {
+		if (method_exists($exception, 'getStatusHeaders')) {
+			$headers = $exception->getStatusHeaders();
+		} else {
+			$headers = array(t3lib_utility_Http::HTTP_STATUS_500);
+		}
+		if (!headers_sent()) {
+			foreach($headers as $header) {
+				header($header);
+			}
+		}
+	}
 }
 
 if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['t3lib/error/class.t3lib_error_abstractexceptionhandler.php'])) {

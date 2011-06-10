@@ -27,7 +27,6 @@
 /**
  * Contains class for loading database groups
  *
- * $Id$
  * Revised for TYPO3 3.6 September/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -48,7 +47,7 @@
  *  538:	 function convertPosNeg($valueArray,$fTable,$nfTable)
  *  560:	 function getFromDB()
  *  595:	 function readyForInterface()
- *  621:	 function countItems($returnAsArray = true)
+ *  621:	 function countItems($returnAsArray = TRUE)
  *  636:	 function updateRefIndex($table,$id)
  *
  * TOTAL FUNCTIONS: 12
@@ -802,8 +801,6 @@ class t3lib_loadDBGroup {
 	 * @see t3lib_transferdata::renderRecord()
 	 */
 	function readyForInterface() {
-		global $TCA;
-
 		if (!is_array($this->itemArray)) {
 			return FALSE;
 		}
@@ -814,7 +811,7 @@ class t3lib_loadDBGroup {
 
 		foreach ($this->itemArray as $key => $val) {
 			$theRow = $this->results[$val['table']][$val['id']];
-			if ($theRow && is_array($TCA[$val['table']])) {
+			if ($theRow && is_array($GLOBALS['TCA'][$val['table']])) {
 				$label = t3lib_div::fixed_lgd_cs(strip_tags(t3lib_BEfunc::getRecordTitle($val['table'], $theRow)), $titleLen);
 				$label = ($label) ? $label : '[...]';
 				$output[] = str_replace(',', '', $val['table'] . '_' . $val['id'] . '|' . rawurlencode($label));
@@ -860,7 +857,7 @@ class t3lib_loadDBGroup {
 	 * @param	string		$parentUid: The uid of the parent record
 	 * @param	array		$parentConf: The TCA configuration of the parent field embedding the child records
 	 * @param	array		$childRec: The record row of the child record
-	 * @return	boolean		Returns true if looking from the symmetric ("other") side to the relation.
+	 * @return	boolean		Returns TRUE if looking from the symmetric ("other") side to the relation.
 	 */
 	function isOnSymmetricSide($parentUid, $parentConf, $childRec) {
 		return t3lib_div::testInt($childRec['uid']) && $parentConf['symmetric_field'] && $parentUid == $childRec[$parentConf['symmetric_field']]

@@ -28,8 +28,6 @@
  * @author		Markus Friedrich <markus.friedrich@dkd.de>
  * @package		TYPO3
  * @subpackage	tx_scheduler
- *
- * $Id$
  */
 class tx_scheduler_TestTask extends tx_scheduler_Task {
 
@@ -47,7 +45,7 @@ class tx_scheduler_TestTask extends tx_scheduler_Task {
 	 * @return	void
 	 */
 	public function execute() {
-		$success = false;
+		$success = FALSE;
 
 		if (!empty($this->email)) {
 				// If an email address is defined, send a message to it

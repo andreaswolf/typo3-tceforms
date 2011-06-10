@@ -16,8 +16,6 @@
  * This code is public domain, you are free to do whatever you want with it,
  * including adding it to your own project which can be under any license.
  *
- * $Id$
- *
  * @author	Travis Puderbaugh <kallahar@quickwired.com>
  * @author	Jigal van Hemert <jigal@xs4all.nl>
  * @package	RemoveXSS
@@ -84,8 +82,8 @@ final class RemoveXSS {
 		//only process potential words
 		if (count($ra) > 0) {
 			// keep replacing as long as the previous round replaced something
-			$found = true;
-			while ($found == true) {
+			$found = TRUE;
+			while ($found == TRUE) {
 				$val_before = $val;
 				for ($i = 0; $i < sizeof($ra); $i++) {
 					$pattern = '';

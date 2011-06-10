@@ -26,8 +26,6 @@
 ***************************************************************/
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
- *
- * $Id$
  */
 
 $GLOBALS['LANG']->includeLLFile('EXT:tstemplate_objbrowser/locallang.xml');
@@ -193,7 +191,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 	 * @return	[type]		...
 	 */
 	function main()	{
-		global $SOBE,$BE_USER,$BACK_PATH,$TCA_DESCR,$TCA,$CLIENT,$TYPO3_CONF_VARS;
+		global $BACK_PATH;
 		global $tmpl,$tplRow,$theConstants;
 
 		$POST = t3lib_div::_POST();
@@ -220,7 +218,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 		$existTemplate = $this->initialize_editor($this->pObj->id,$template_uid);		// initialize
 		if ($existTemplate)	{
 			$theOutput .= '<h4 style="margin-bottom:5px;">' . $GLOBALS['LANG']->getLL('currentTemplate') . ' <img ' .
-				t3lib_iconWorks::skinImg($BACK_PATH, t3lib_iconWorks::getIcon('sys_template', $tplRow)) . ' align="top" /> <strong>' .
+				t3lib_iconWorks::skinImg($GLOBALS['BACK_PATH'], t3lib_iconWorks::getIcon('sys_template', $tplRow)) . ' align="top" /> <strong>' .
 				$this->pObj->linkWrapTemplateTitle($tplRow["title"], ($bType == "setup" ? "config" : "constants")) . '</strong>' .
 				htmlspecialchars(trim($tplRow["sitetitle"]) ? ' - (' . $tplRow["sitetitle"] . ')' : '') . '</h4>';
 			if ($manyTemplatesMenu)	{
@@ -334,7 +332,7 @@ class tx_tstemplateobjbrowser extends t3lib_extobjbase {
 		$tmpl->fixedLgd=$this->pObj->MOD_SETTINGS["ts_browser_fixedLgd"];
 		$tmpl->linkObjects = TRUE;
 		$tmpl->ext_regLinenumbers = TRUE;
-		$tmpl->ext_regComments = $this->pObj->MOD_SETTINGS['ts_browser_showComments'];;
+		$tmpl->ext_regComments = $this->pObj->MOD_SETTINGS['ts_browser_showComments'];
 		$tmpl->bType=$bType;
 		$tmpl->resourceCheck=1;
 		$tmpl->uplPath = PATH_site.$tmpl->uplPath;

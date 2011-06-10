@@ -29,7 +29,6 @@
 /**
  * Contains HMENU class object.
  *
- * $Id: class.tslib_content.php 7905 2010-06-13 14:42:33Z ohader $
  * @author Xavier Perseguers <typo3@perseguers.ch>
  * @author Steffen Kamper <steffen@typo3.org>
  */
@@ -50,6 +49,10 @@ class tslib_content_HierarchicalMenu extends tslib_content_Abstract {
 			$cls = strtolower($conf[1]);
 
 			if (t3lib_div::inList($GLOBALS['TSFE']->tmpl->menuclasses, $cls)) {
+
+				if (isset($conf['excludeUidList.'])) {
+					$conf['excludeUidList'] = $this->cObj->stdWrap($conf['excludeUidList'], $conf['excludeUidList.']);
+				}
 
 				if (isset($conf['special.']['value.'])) {
 					$conf['special.']['value'] = $this->cObj->stdWrap($conf['special.']['value'], $conf['special.']['value.']);

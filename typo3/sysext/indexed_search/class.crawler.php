@@ -602,7 +602,7 @@ class tx_indexedsearch_crawler {
 	 * @param	string		URL string to check
 	 * @param	array		Array of already indexed URLs (input url is looked up here and must not exist already)
 	 * @param	string		Base URL of the indexing process (input URL must be "inside" the base URL!)
-	 * @return	string		Returls the URL if OK, otherwise false
+	 * @return	string		Returls the URL if OK, otherwise FALSE
 	 */
 	function checkUrl($url,$urlLog,$baseUrl)	{
 		$url = preg_replace('/\/\/$/','/',$url);
@@ -794,7 +794,7 @@ class tx_indexedsearch_crawler {
 	}
 
 	/**
-	 * Checks if $url has any of the URls in the $url_deny "list" in it and if so, returns true.
+	 * Checks if $url has any of the URls in the $url_deny "list" in it and if so, returns TRUE.
 	 *
 	 * @param	string		URL to test
 	 * @param	string		String where URLs are separated by line-breaks; If any of these strings is the first part of $url, the function returns TRUE (to indicate denial of decend)

@@ -30,7 +30,6 @@
  *
  * @author Sebastian Kurfürst <sebastian@garbage-group.de>
  * @author Steffen Kamper <info@sk-typo3.de>
- * @version $Id$
  */
 class tx_coreupdates_notinmenu extends Tx_Install_Updates_Base {
 	protected $title = 'Update Pages with Doktype "Not in menu"';
@@ -40,16 +39,16 @@ class tx_coreupdates_notinmenu extends Tx_Install_Updates_Base {
 	 * Checks if an update is needed
 	 *
 	 * @param	string		&$description: The description for the update
-	 * @return	boolean		whether an update is needed (true) or not (false)
+	 * @return	boolean		whether an update is needed (TRUE) or not (FALSE)
 	 */
 	public function checkForUpdate(&$description) {
-		$result = false;
+		$result = FALSE;
 		$description = 'Removes the deprecated pages doktype "Not in menu". It sets the successing flag "Not in menu" for the corresponding pages instead.';
 
 		if ($this->versionNumber >= 4002000) {
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid', 'pages', 'doktype=5', '', '', '1');
 			if($GLOBALS['TYPO3_DB']->sql_num_rows($res)) {
-				$result = true;
+				$result = TRUE;
 			}
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
 		}
@@ -62,10 +61,10 @@ class tx_coreupdates_notinmenu extends Tx_Install_Updates_Base {
 	 *
 	 * @param	array		&$dbQueries: queries done in this update
 	 * @param	mixed		&$customMessages: custom messages
-	 * @return	boolean		whether it worked (true) or not (false)
+	 * @return	boolean		whether it worked (TRUE) or not (FALSE)
 	 */
 	public function performUpdate(&$dbQueries, &$customMessages) {
-		$result = false;
+		$result = FALSE;
 		if($this->versionNumber >= 4002000)	{
 			$updateArray = array(
 				'doktype' => 1,
@@ -78,7 +77,7 @@ class tx_coreupdates_notinmenu extends Tx_Install_Updates_Base {
 			if ($GLOBALS['TYPO3_DB']->sql_error()) {
 				$customMessages = 'SQL-ERROR: ' . htmlspecialchars($GLOBALS['TYPO3_DB']->sql_error());
 			} else {
-				$result = true;
+				$result = TRUE;
 			}
 		}
 		return $result;

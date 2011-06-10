@@ -27,8 +27,6 @@
 /**
  * Plugin 'Content rendering' for the 'css_styled_content' extension.
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
@@ -532,7 +530,7 @@ class tx_cssstyledcontent_pi1 extends tslib_pibase {
 		$renderGlobalCaption = !$conf['captionSplit'] && !$conf['imageTextSplit'] && is_array($conf['caption.']);
 		if ($imgCount == 1) {
 				// If we just have one image, the caption relates to the image, so it is not "global"
-			$renderGlobalCaption = false;
+			$renderGlobalCaption = FALSE;
 		}
 
 			// Use the calculated information (amount of images, if global caption is wanted) to choose a different rendering method for the images-block
@@ -1022,7 +1020,7 @@ class tx_cssstyledcontent_pi1 extends tslib_pibase {
 	 * Returns an object reference to the hook object if any
 	 *
 	 * @param	string		Name of the function you want to call / hook key
-	 * @return	object		Hook object, if any. Otherwise null.
+	 * @return	object		Hook object, if any. Otherwise NULL.
 	 */
 	function hookRequest($functionName) {
 		global $TYPO3_CONF_VARS;

@@ -130,7 +130,7 @@ class tx_wizardcrpages_webfunc_2 extends t3lib_extobjbase {
 					$thePid = $this->pObj->id;
 				}
 
-				$firstRecord = true;
+				$firstRecord = TRUE;
 				$previousIdentifier = '';
 
 				foreach ($data['pages'] as $identifier => $dat) {
@@ -139,7 +139,7 @@ class tx_wizardcrpages_webfunc_2 extends t3lib_extobjbase {
 					} else {
 						$data['pages'][$identifier]['hidden'] = t3lib_div::_GP('hidePages') ? 1 : 0;
 						if ($firstRecord) {
-							$firstRecord = false;
+							$firstRecord = FALSE;
 							$data['pages'][$identifier]['pid'] = $thePid;
 						} else {
 							$data['pages'][$identifier]['pid'] = '-' . $previousIdentifier;
@@ -206,7 +206,7 @@ class tx_wizardcrpages_webfunc_2 extends t3lib_extobjbase {
 				'<br /><br />
 				<input type="checkbox" name="createInListEnd" id="createInListEnd" value="1" /> <label for="createInListEnd">'.$LANG->getLL('wiz_newPages_listEnd').'</label><br />
 				<input type="checkbox" name="hidePages" id="hidePages" value="1" /> <label for="hidePages">'.$LANG->getLL('wiz_newPages_hidePages').'</label><br /><br />
-				<input type="submit" name="create" value="' . $LANG->getLL('wiz_newPages_lCreate') . '" onclick="return confirm(' . $GLOBALS['LANG']->JScharCode($GLOBALS['LANG']->getLL('wiz_newPages_lCreate_msg1')) . ')" />&nbsp;<input type="reset" value="' . $LANG->getLL('wiz_newPages_lReset') . '" /><br />';
+				<input type="submit" name="create" value="' . $LANG->getLL('wiz_newPages_lCreate') . '" />&nbsp;<input type="reset" value="' . $LANG->getLL('wiz_newPages_lReset') . '" /><br />';
 
 				// Add ExtJS inline code
 				$extCode = '

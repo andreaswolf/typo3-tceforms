@@ -27,8 +27,6 @@
 /**
  * Index search frontend
  *
- * $Id$
- *
  * Creates a searchform for indexed search. Indexing must be enabled
  * for this to make sense.
  *
@@ -215,7 +213,7 @@ class tx_indexedsearch extends tslib_pibase {
 			foreach ($TYPO3_CONF_VARS['EXTCONF']['indexed_search']['external_parsers'] as $extension => $_objRef)	{
 				$this->external_parsers[$extension] = t3lib_div::getUserObj($_objRef);
 
-					// Init parser and if it returns false, unset its entry again:
+					// Init parser and if it returns FALSE, unset its entry again:
 				if (!$this->external_parsers[$extension]->softInit($extension))	{
 					unset($this->external_parsers[$extension]);
 				}
@@ -423,7 +421,7 @@ class tx_indexedsearch extends tslib_pibase {
 	 *
 	 * $defOp is the default operator. 1=OR, 0=AND
 	 *
-	 * @param	boolean		If true, the default operator will be OR, not AND
+	 * @param	boolean		If TRUE, the default operator will be OR, not AND
 	 * @return	array		Returns array with search words if any found
 	 */
 	function getSearchWords($defOp)	{
@@ -988,17 +986,16 @@ class tx_indexedsearch extends tslib_pibase {
 
 		switch((string)$this->piVars['media'])	{
 			case '0':		// '0' => 'Kun TYPO3 sider',
-				$out = 'AND IP.item_type='.$GLOBALS['TYPO3_DB']->fullQuoteStr('0', 'index_phash');;
-			break;
+				$out = 'AND IP.item_type=' . $GLOBALS['TYPO3_DB']->fullQuoteStr('0', 'index_phash');
+				break;
 			case '-2':		// All external documents
-				$out = 'AND IP.item_type!='.$GLOBALS['TYPO3_DB']->fullQuoteStr('0', 'index_phash');;
-			break;
+				$out = 'AND IP.item_type!=' . $GLOBALS['TYPO3_DB']->fullQuoteStr('0', 'index_phash');
+				break;
 			case '-1':	// All content
-				$out='';
-			break;
+				$out = '';
+				break;
 			default:
-				$out = 'AND IP.item_type='.$GLOBALS['TYPO3_DB']->fullQuoteStr($this->piVars['media'], 'index_phash');
-			break;
+				$out = 'AND IP.item_type=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($this->piVars['media'], 'index_phash');
 		}
 
 		return $out;
@@ -1203,7 +1200,7 @@ class tx_indexedsearch extends tslib_pibase {
 	 * ? Should it also check for gr_list "0,-1"?
 	 *
 	 * @param	array		Result row array.
-	 * @return	boolean		Returns true if resume can safely be shown
+	 * @return	boolean		Returns TRUE if resume can safely be shown
 	 */
 	function checkResume($row)	{
 
@@ -1249,7 +1246,7 @@ class tx_indexedsearch extends tslib_pibase {
 	/**
 	 * Returns "DESC" or "" depending on the settings of the incoming highest/lowest result order (piVars['desc']
 	 *
-	 * @param	boolean		If true, inverse the order which is defined by piVars['desc']
+	 * @param	boolean		If TRUE, inverse the order which is defined by piVars['desc']
 	 * @return	string		" DESC" or ""
 	 */
 	function isDescending($inverse=FALSE)	{
@@ -1956,7 +1953,7 @@ class tx_indexedsearch extends tslib_pibase {
 	 * Returns the resume for the search-result.
 	 *
 	 * @param	array		Search result row
-	 * @param	boolean		If noMarkup is false, then the index_fulltext table is used to select the content of the page, split it with regex to display the search words in the text.
+	 * @param	boolean		If noMarkup is FALSE, then the index_fulltext table is used to select the content of the page, split it with regex to display the search words in the text.
 	 * @param	integer		String length
 	 * @return	string		HTML string		...
 	 */
@@ -2046,7 +2043,7 @@ class tx_indexedsearch extends tslib_pibase {
 										preg_replace('/^[^[:space:]]+[[:space:]]/','',$GLOBALS['TSFE']->csConvObj->crop('utf-8',$parts[$k],-($postPreLgd-$postPreLgd_offset)));
 					}
 				}
-				$summaryLgd+= $GLOBALS['TSFE']->csConvObj->strlen('utf-8', $output[$k]);;
+				$summaryLgd+= $GLOBALS['TSFE']->csConvObj->strlen('utf-8', $output[$k]);
 
 					// Protect output:
 				$output[$k] = htmlspecialchars($output[$k]);
@@ -2358,7 +2355,7 @@ class tx_indexedsearch extends tslib_pibase {
 	 * Returns if an item type is a multipage item type
 	 *
 	 * @param	string		Item type
-	 * @return	boolean		True if multipage capable
+	 * @return	boolean		TRUE if multipage capable
 	 */
 	function multiplePagesType($item_type)	{
 		return is_object($this->external_parsers[$item_type]) && $this->external_parsers[$item_type]->isMultiplePageExtension($item_type);
@@ -2378,7 +2375,7 @@ class tx_indexedsearch extends tslib_pibase {
 	 * Returns an object reference to the hook object if any
 	 *
 	 * @param	string		Name of the function you want to call / hook key
-	 * @return	object		Hook object, if any. Otherwise null.
+	 * @return	object		Hook object, if any. Otherwise NULL.
 	 */
 	function hookRequest($functionName) {
 		global $TYPO3_CONF_VARS;

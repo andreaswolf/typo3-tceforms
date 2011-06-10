@@ -27,7 +27,6 @@
 /**
  * Contains class for icon generation in the backend
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  * XHTML compliant
  *
@@ -178,13 +177,11 @@ final class t3lib_iconWorks {
 	 * @see getIconImage()
 	 */
 	public static function getIcon($table, $row = array(), $shaded = FALSE) {
-		global $TCA, $PAGES_TYPES, $ICON_TYPES;
-
 			// Flags:
 		$doNotRenderUserGroupNumber = TRUE; // If set, then the usergroup number will NOT be printed unto the icon. NOTICE. the icon is generated only if a default icon for groups is not found... So effectively this is ineffective...
 
 			// Shadow:
-		if ($TCA[$table]['ctrl']['versioningWS']) {
+		if ($GLOBALS['TCA'][$table]['ctrl']['versioningWS']) {
 			switch ((int) $row['t3ver_state']) {
 				case 1:
 					return 'gfx/i/shadow_hide.png';
@@ -208,15 +205,15 @@ final class t3lib_iconWorks {
 				$row['doktype'] = t3lib_pageSelect::DOKTYPE_HIDE_IN_MENU;
 			} // Workaround to change the icon if "Hide in menu" was set
 
-			if (!$iconfile = $PAGES_TYPES[$row['doktype']]['icon']) {
-				$iconfile = $PAGES_TYPES['default']['icon'];
+			if (!$iconfile = $GLOBALS['PAGES_TYPES'][$row['doktype']]['icon']) {
+				$iconfile = $GLOBALS['PAGES_TYPES']['default']['icon'];
 			}
-			if ($row['module'] && $ICON_TYPES[$row['module']]['icon']) {
-				$iconfile = $ICON_TYPES[$row['module']]['icon'];
+			if ($row['module'] && $GLOBALS['ICON_TYPES'][$row['module']]['icon']) {
+				$iconfile = $GLOBALS['ICON_TYPES'][$row['module']]['icon'];
 			}
 		} else {
-			if (!$iconfile = $TCA[$table]['ctrl']['typeicons'][$row[$TCA[$table]['ctrl']['typeicon_column']]]) {
-				$iconfile = (($TCA[$table]['ctrl']['iconfile']) ? $TCA[$table]['ctrl']['iconfile'] : $table . '.gif');
+			if (!$iconfile = $GLOBALS['TCA'][$table]['ctrl']['typeicons'][$row[$GLOBALS['TCA'][$table]['ctrl']['typeicon_column']]]) {
+				$iconfile = (($GLOBALS['TCA'][$table]['ctrl']['iconfile']) ? $GLOBALS['TCA'][$table]['ctrl']['iconfile'] : $table . '.gif');
 			}
 		}
 
@@ -243,8 +240,8 @@ final class t3lib_iconWorks {
 			// + $shaded which is also boolean!
 
 			// Icon state based on "enableFields":
-		if (is_array($TCA[$table]['ctrl']['enablecolumns'])) {
-			$enCols = $TCA[$table]['ctrl']['enablecolumns'];
+		if (is_array($GLOBALS['TCA'][$table]['ctrl']['enablecolumns'])) {
+			$enCols = $GLOBALS['TCA'][$table]['ctrl']['enablecolumns'];
 				// If "hidden" is enabled:
 			if ($enCols['disabled']) {
 				if ($row[$enCols['disabled']]) {
@@ -281,7 +278,7 @@ final class t3lib_iconWorks {
 		}
 
 			// If "deleted" flag is set (only when listing records which are also deleted!)
-		if ($col = $row[$TCA[$table]['ctrl']['delete']]) {
+		if ($col = $row[$GLOBALS['TCA'][$table]['ctrl']['delete']]) {
 			$deleted = TRUE;
 		}
 			// Detecting extendToSubpages (for pages only)
@@ -862,7 +859,12 @@ final class t3lib_iconWorks {
 					$recordType[5] = str_replace('###TYPE###', $row[$column], $GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['mask']);
 				}
 				if (isset($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['userFunc'])) {
-					$recordType[6] = t3lib_div::callUserFunction($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['userFunc'], array('row' => $row), $ref);
+					$parameters = array('row' => $row);
+					$recordType[6] = t3lib_div::callUserFunction(
+						$GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['userFunc'],
+						$parameters,
+						$ref
+					);
 				}
 			} else {
 				foreach ($recordType AS $key => $type) {
@@ -963,6 +965,17 @@ final class t3lib_iconWorks {
 			$status['protectedSection'] = TRUE;
 		}
 
+			// Hook: allow some other process to influence the choice of icon overlay
+			// The method called receives the table name, the current row and the current status array as parameters
+			// The status array should be passed as a reference and in order to be modified within the hook
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_iconworks.php']['overrideIconOverlay'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_iconworks.php']['overrideIconOverlay'] as $classRef) {
+				$hookObject = t3lib_div::getUserObj($classRef);
+				if (method_exists($hookObject, 'overrideIconOverlay')) {
+					$hookObject->overrideIconOverlay($table, $row, $status);
+				}
+			}
+		}
 
 			// now only show the status with the highest priority
 		$priorities = $GLOBALS['TBE_STYLES']['spriteIconApi']['spriteIconRecordOverlayPriorities'];

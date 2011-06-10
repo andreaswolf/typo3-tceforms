@@ -31,8 +31,6 @@
  * This will use the setting in TYPO3_CONF_VARS to choose the correct transport
  * for it to work out-of-the-box.
  *
- * $Id$
- *
  * @author Ernesto Baschny <ernst@cron-it.de>
  * @package TYPO3
  * @subpackage t3lib
@@ -79,7 +77,7 @@ class t3lib_mail_MboxTransport implements Swift_Transport {
 	 * @return int
 	 * @throws Exception
 	 */
-	public function send(Swift_Mime_Message $message, &$failedRecipients = null) {
+	public function send(Swift_Mime_Message $message, &$failedRecipients = NULL) {
 		$message->generateId();
 
 			// Create a mbox-like header
@@ -120,7 +118,7 @@ class t3lib_mail_MboxTransport implements Swift_Transport {
 	 * Determine the best-use reverse path for this message
 	 *
 	 * @param Swift_Mime_Message $message
-	 * @return mixed|null
+	 * @return mixed|NULL
 	 */
 	private function getReversePath(Swift_Mime_Message $message) {
 		$return = $message->getReturnPath();

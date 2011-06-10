@@ -28,8 +28,6 @@
 /**
  * Class to handle system commands.
  *
- * $Id: class.t3lib_utility_command.php $
- *
  * @author	Steffen Kamper <steffen@typo3.org>
  */
 final class t3lib_utility_Command {
@@ -37,13 +35,13 @@ final class t3lib_utility_Command {
 
 	/**
 	 * Wrapper function for php exec function
-	 * Needs to be central to have better control and possible fix for safe_mode/low php version restrictions as occurred with IM/GM issues
+	 * Needs to be central to have better control and possible fix for issues
 	 *
 	 * @static
 	 * @param  string  $command
-	 * @param  null|array $output
+	 * @param  NULL|array $output
 	 * @param  integer $returnValue
-	 * @return null|array
+	 * @return NULL|array
 	 */
 	public static function exec($command, &$output = NULL, &$returnValue = 0) {
 		if (TYPO3_OS == 'WIN' && version_compare(phpversion(), '5.3.0', '<')) {

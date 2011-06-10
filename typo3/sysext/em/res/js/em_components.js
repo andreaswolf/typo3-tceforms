@@ -28,7 +28,6 @@
  * @author Steffen Kamper <info@sk-typo3.de>
  * @package TYPO3
  * @subpackage extension manager
- * @version $Id: $
  */
 Ext.ns('TYPO3.EM', 'TYPO3.EM.GridColumns', 'TYPO3.EM.ExtDirect', 'TYPO3.EMSOAP.ExtDirect');
 
@@ -354,6 +353,9 @@ TYPO3.EM.GridColumns.ExtensionAuthor = {
 		} else {
 			return t;
 		}
+	},
+	groupRenderer: function(value) {
+		return value;
 	}
 };
 

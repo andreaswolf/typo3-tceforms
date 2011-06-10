@@ -1,6 +1,4 @@
 #
-# TYPO3 SVN ID: $Id$
-#
 
 
 #
@@ -261,7 +259,7 @@ CREATE TABLE pages_language_overlay (
   deleted tinyint(3) unsigned DEFAULT '0' NOT NULL,
   subtitle varchar(255) DEFAULT '' NOT NULL,
   nav_title varchar(255) DEFAULT '' NOT NULL,
-  media tinytext,
+  media text,
   keywords text,
   description text,
   abstract text,
@@ -291,7 +289,7 @@ CREATE TABLE sys_domain (
   cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
   hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
   domainName varchar(80) DEFAULT '' NOT NULL,
-  redirectTo varchar(120) DEFAULT '' NOT NULL,
+  redirectTo varchar(255) DEFAULT '' NOT NULL,
   redirectHttpStatusCode int(4) unsigned DEFAULT '301' NOT NULL,
   sorting int(10) unsigned DEFAULT '0' NOT NULL,
   prepend_params int(10) DEFAULT '0' NOT NULL,

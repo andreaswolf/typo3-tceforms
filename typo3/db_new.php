@@ -30,7 +30,6 @@
  * This script lets users choose a new database element to create.
  * Includes a wizard mode for visually pointing out the position of new pages
  *
- * $Id$
  * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compliant
  *
@@ -95,7 +94,7 @@ class localPageTree extends t3lib_pageTree {
 	 * Here the branch is expanded if the current id matches the global id for the listing/new
 	 *
 	 * @param	integer		The ID (page id) of the element
-	 * @return	boolean		Returns true if the IDs matches
+	 * @return	boolean		Returns TRUE if the IDs matches
 	 */
 	function expandNext($id)	{
 		return $id==$GLOBALS['SOBE']->id ? 1 : 0;
@@ -153,12 +152,11 @@ class SC_db_new {
 	 * @return	void
 	 */
 	function init()	{
-		global $BE_USER,$LANG,$BACK_PATH;
 
 			// page-selection permission clause (reading)
-		$this->perms_clause = $BE_USER->getPagePermsClause(1);
+		$this->perms_clause = $GLOBALS['BE_USER']->getPagePermsClause(1);
 
-			// this will hide records from display - it has nothing todo with user rights!!
+			// this will hide records from display - it has nothing to do with user rights!!
 		if ($pidList = $GLOBALS['BE_USER']->getTSConfigVal('options.hideRecords.pages')) {
 			if ($pidList = $GLOBALS['TYPO3_DB']->cleanIntList($pidList)) {
 				$this->perms_clause .= ' AND pages.uid NOT IN ('.$pidList.')';
@@ -171,7 +169,7 @@ class SC_db_new {
 
 			// Create instance of template class for output
 		$this->doc = t3lib_div::makeInstance('template');
-		$this->doc->backPath = $BACK_PATH;
+		$this->doc->backPath = $GLOBALS['BACK_PATH'];
 		$this->doc->setModuleTemplate('templates/db_new.html');
 		$this->doc->JScode='';
 
@@ -180,7 +178,7 @@ class SC_db_new {
 
 			// Creating content
 		$this->content='';
-		$this->content.=$this->doc->header($LANG->sL('LLL:EXT:lang/locallang_core.php:db_new.php.pagetitle'));
+		$this->content.=$this->doc->header($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:db_new.php.pagetitle'));
 
 			// Id a positive id is supplied, ask for the page record with permission information contained:
 		if ($this->id > 0)	{
@@ -193,17 +191,17 @@ class SC_db_new {
 
 			$this->pidInfo=t3lib_BEfunc::getRecord('pages',$this->pageinfo['pid']);
 				// Checking the permissions for the user with regard to the parent page: Can he create new pages, new content record, new page after?
-			if ($BE_USER->doesUserHaveAccess($this->pageinfo,8))	{
+			if ($GLOBALS['BE_USER']->doesUserHaveAccess($this->pageinfo, 8)) {
 				$this->newPagesInto=1;
 			}
-			if ($BE_USER->doesUserHaveAccess($this->pageinfo,16))	{
+			if ($GLOBALS['BE_USER']->doesUserHaveAccess($this->pageinfo, 16)) {
 				$this->newContentInto=1;
 			}
 
-			if (($BE_USER->isAdmin()||is_array($this->pidInfo)) && $BE_USER->doesUserHaveAccess($this->pidInfo,8))	{
+			if (($GLOBALS['BE_USER']->isAdmin() || is_array($this->pidInfo)) && $GLOBALS['BE_USER']->doesUserHaveAccess($this->pidInfo, 8)) {
 				$this->newPagesAfter=1;
 			}
-		} elseif ($BE_USER->isAdmin())	{
+		} elseif ($GLOBALS['BE_USER']->isAdmin()) {
 				// Admins can do it all
 			$this->newPagesInto=1;
 			$this->newContentInto=1;
@@ -222,10 +220,9 @@ class SC_db_new {
 	 * @return	void
 	 */
 	function main()	{
-		global $BE_USER,$LANG;
 
 			// If there was a page - or if the user is admin (admins has access to the root) we proceed:
-		if ($this->pageinfo['uid'] || $BE_USER->isAdmin())	{
+		if ($this->pageinfo['uid'] || $GLOBALS['BE_USER']->isAdmin()) {
 				// Acquiring TSconfig for this module/current page:
 			$this->web_list_modTSconfig = t3lib_BEfunc::getModTSconfig($this->pageinfo['uid'],'mod.web_list');
 			$this->allowedNewTables = t3lib_div::trimExplode(',',$this->web_list_modTSconfig['properties']['allowedNewTables'],1);
@@ -275,7 +272,7 @@ class SC_db_new {
 			$markers['CONTENT'] = $this->content;
 
 				// Build the <body> for the module
-			$this->content = $this->doc->startPage($LANG->sL('LLL:EXT:lang/locallang_core.php:db_new.php.pagetitle'));
+			$this->content = $this->doc->startPage($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:db_new.php.pagetitle'));
 			$this->content.= $this->doc->moduleBody($this->pageinfo, $docHeaderButtons, $markers);
 			$this->content.= $this->doc->endPage();
 			$this->content = $this->doc->insertStylesAndJS($this->content);
@@ -288,8 +285,6 @@ class SC_db_new {
 	 * @return	array	all available buttons as an assoc. array
 	 */
 	protected function getButtons()	{
-		global $LANG, $BACK_PATH;
-
 		$buttons = array(
 			'csh' => '',
 			'back' => '',
@@ -302,7 +297,7 @@ class SC_db_new {
 		if (!$this->pagesOnly)	{	// Regular new element:
 				// New page
 			if ($this->showNewRecLink('pages'))	{
-				$buttons['new_page'] = '<a href="' . htmlspecialchars(t3lib_div::linkThisScript(array('pagesOnly' => '1'))) . '" title="' . $LANG->sL('LLL:EXT:cms/layout/locallang.xml:newPage', 1) . '">' .
+				$buttons['new_page'] = '<a href="' . htmlspecialchars(t3lib_div::linkThisScript(array('pagesOnly' => '1'))) . '" title="' . $GLOBALS['LANG']->sL('LLL:EXT:cms/layout/locallang.xml:newPage', 1) . '">' .
 						t3lib_iconWorks::getSpriteIcon('actions-page-new') .
 					'</a>';
 			}
@@ -347,12 +342,11 @@ class SC_db_new {
 	 *
 	 * @return	void
 	 */
-	function pagesOnly()	{
-		global $LANG;
-
+	function pagesOnly() {
+		/** @var $posMap t3lib_positionMap */
 		$posMap = t3lib_div::makeInstance('t3lib_positionMap');
 		$this->code.='
-			<h3>'.htmlspecialchars($LANG->getLL('selectPosition')).':</h3>
+			<h3>' . htmlspecialchars($GLOBALS['LANG']->getLL('selectPosition')) . ':</h3>
 		';
 		$this->code.= $posMap->positionTree($this->id,$this->pageinfo,$this->perms_clause,$this->R_URI);
 	}
@@ -364,7 +358,7 @@ class SC_db_new {
 	 */
 	function regularNew()	{
 
-		$doNotShowFullDescr = false;
+		$doNotShowFullDescr = FALSE;
 			// Initialize array for accumulating table rows:
 		$this->tRows = array();
 
@@ -555,7 +549,7 @@ class SC_db_new {
 			// user sort
 		$pageTS = t3lib_BEfunc::getPagesTSconfig($this->id);
 		if (isset($pageTS['mod.']['wizards.']['newRecord.']['order'])) {
-			$this->newRecordSortList = t3lib_div::trimExplode(',', $pageTS['mod.']['wizards.']['newRecord.']['order'], true);
+			$this->newRecordSortList = t3lib_div::trimExplode(',', $pageTS['mod.']['wizards.']['newRecord.']['order'], TRUE);
 		}
 		uksort($this->tRows, array($this, 'sortNewRecordsByConfig'));
 
@@ -566,7 +560,7 @@ class SC_db_new {
 			$row = '<tr>
 						<td nowrap="nowrap">' . $halfLine . '<br />' .
 						$firstLevel . '' . $iconFile[$key] . '&nbsp;<strong>' . $value['title'] . '</strong>' .
-						'</td><td>' . t3lib_BEfunc::wrapInHelp($table, '') . '</td>
+						'</td><td>&nbsp;<br />' . t3lib_BEfunc::wrapInHelp($key, '') . '</td>
 						</tr>';
 			$count = count($value['html']) - 1;
 			foreach ($value['html'] as $recordKey => $record) {
@@ -644,7 +638,7 @@ class SC_db_new {
 	 * @param	boolean		If $addContentTable is set, then a new contentTable record is created together with pages
 	 * @return	string		The link.
 	 */
-	function linkWrap($linkText, $table, $pid, $addContentTable = false) {
+	function linkWrap($linkText, $table, $pid, $addContentTable = FALSE) {
 		$parameters = '&edit[' . $table . '][' . $pid . ']=new';
 
 		if ($table == 'pages'
@@ -663,37 +657,36 @@ class SC_db_new {
 	}
 
 	/**
-	 * Returns true if the tablename $checkTable is allowed to be created on the page with record $pid_row
+	 * Returns TRUE if the tablename $checkTable is allowed to be created on the page with record $pid_row
 	 *
 	 * @param	array		Record for parent page.
 	 * @param	string		Table name to check
-	 * @return	boolean		Returns true if the tablename $checkTable is allowed to be created on the page with record $pid_row
+	 * @return	boolean		Returns TRUE if the tablename $checkTable is allowed to be created on the page with record $pid_row
 	 */
 	function isTableAllowedForThisPage($pid_row, $checkTable)	{
-		global $TCA, $PAGES_TYPES;
 		if (!is_array($pid_row))	{
 			if ($GLOBALS['BE_USER']->user['admin'])	{
-				return true;
+				return TRUE;
 			} else {
-				return false;
+				return FALSE;
 			}
 		}
 			// be_users and be_groups may not be created anywhere but in the root.
 		if ($checkTable=='be_users' || $checkTable=='be_groups')	{
-			return false;
+			return FALSE;
 		}
 			// Checking doktype:
 		$doktype = intval($pid_row['doktype']);
-		if (!$allowedTableList = $PAGES_TYPES[$doktype]['allowedTables'])	{
-			$allowedTableList = $PAGES_TYPES['default']['allowedTables'];
+		if (!$allowedTableList = $GLOBALS['PAGES_TYPES'][$doktype]['allowedTables']) {
+			$allowedTableList = $GLOBALS['PAGES_TYPES']['default']['allowedTables'];
 		}
-		if (strstr($allowedTableList,'*') || t3lib_div::inList($allowedTableList,$checkTable))	{		// If all tables or the table is listed as a allowed type, return true
-			return true;
+		if (strstr($allowedTableList,'*') || t3lib_div::inList($allowedTableList,$checkTable))	{		// If all tables or the table is listed as a allowed type, return TRUE
+			return TRUE;
 		}
 	}
 
 	/**
-	 * Returns true if:
+	 * Returns TRUE if:
 	 * - $allowedNewTables and $deniedNewTables are empty
 	 * - the table is not found in $deniedNewTables and $allowedNewTables is not set or the $table tablename is found in $allowedNewTables
 	 *
@@ -703,20 +696,20 @@ class SC_db_new {
 	 * @param	string		Table name to test if in allowedTables
 	 * @param	array		Array of new tables that are allowed.
 	 * @param	array		Array of new tables that are not allowed.
-	 * @return	boolean		Returns true if a link for creating new records should be displayed for $table
+	 * @return	boolean		Returns TRUE if a link for creating new records should be displayed for $table
 	 */
 	function showNewRecLink($table, array $allowedNewTables=array(), array $deniedNewTables=array()) {
 		$allowedNewTables = ($allowedNewTables ? $allowedNewTables : $this->allowedNewTables);
 		$deniedNewTables = ($deniedNewTables ? $deniedNewTables : $this->deniedNewTables);
 			// No deny/allow tables are set:
 		if (!count($allowedNewTables) && !count($deniedNewTables)) {
-			return true;
+			return TRUE;
 			// If table is not denied (which takes precedence over allowed tables):
 		} elseif (!in_array($table, $deniedNewTables) && (!count($allowedNewTables) || in_array($table, $allowedNewTables))) {
-			return true;
+			return TRUE;
 			// If table is denied or allowed tables are set, but table is not part of:
 		} else {
-			return false;
+			return FALSE;
 		}
 	}
 }

@@ -31,7 +31,6 @@
  * Used by the update wizard in the install tool.
  *
  * @author	Benjamin Mack <benni@typo3.org>
- * @version $Id$
  */
 abstract class Tx_Install_Updates_Base {
 
@@ -93,7 +92,7 @@ abstract class Tx_Install_Updates_Base {
 	 *
 	 * @param	array		&$dbQueries: queries done in this update
 	 * @param	mixed		&$customMessages: custom messages
-	 * @return	boolean		whether it worked (true) or not (false)
+	 * @return	boolean		whether it worked (TRUE) or not (FALSE)
 	 */
 	// public abstract function performUpdate(&$dbQueries, &$customMessages);
 
@@ -101,7 +100,7 @@ abstract class Tx_Install_Updates_Base {
 	 * Checks if user input is valid
 	 *
 	 * @param	string		pointer to output custom messages
-	 * @return	boolean		true if user input is correct, then the update is performed. When false, return to getUserInput
+	 * @return	boolean		TRUE if user input is correct, then the update is performed. When FALSE, return to getUserInput
 	 */
 	// public abstract function checkUserInput(&$customMessages);
 
@@ -197,7 +196,7 @@ abstract class Tx_Install_Updates_Base {
 	public function getExtensionManagerConnection() {
 			// Create an instance of language, if necessary.
 			// Needed in order to make the em_index work
-		if (!isset($GLOBALS['LANG'])) {
+		if (!is_object($GLOBALS['LANG'])) {
 			$GLOBALS['LANG'] = t3lib_div::makeInstance('language');
 			$GLOBALS['LANG']->csConvObj = t3lib_div::makeInstance('t3lib_cs');
 		}

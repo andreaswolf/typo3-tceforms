@@ -40,7 +40,6 @@
  * @author      Chuck Hagenbuch <chuck@horde.org
  * @copyright   2001-2010 Richard Heyes
  * @license     http://opensource.org/licenses/bsd-license.php New BSD License
- * @version     CVS: $Id: RFC822.php 294749 2010-02-08 08:22:25Z clockwerx $
  * @link        http://pear.php.net/package/Mail/
  *
  * Incorporated in TYPO3 by Ernesto Baschny <ernst@cron-it.de>
@@ -60,7 +59,7 @@
  * How do I use it?
  *
  * $address_string = 'My Group: "Richard" <richard@localhost> (A comment), ted@example.com (Ted Bloggs), Barney;';
- * $structure = Mail_RFC822::parseAddressList($address_string, 'example.com', true)
+ * $structure = Mail_RFC822::parseAddressList($address_string, 'example.com', TRUE)
  * print_r($structure);
  *
  * @author  Richard Heyes <richard@phpguru.org>
@@ -106,13 +105,13 @@ class t3lib_mail_Rfc822AddressesParser {
 	 * The current error message, if any.
 	 * @var string $error
 	 */
-	private $error = null;
+	private $error = NULL;
 
 	/**
 	 * An internal counter/pointer.
 	 * @var integer $index
 	 */
-	private $index = null;
+	private $index = NULL;
 
 	/**
 	 * The number of groups that have been found in the address list.
@@ -125,7 +124,7 @@ class t3lib_mail_Rfc822AddressesParser {
 	 * A limit after which processing stops
 	 * @var int $limit
 	 */
-	private $limit = null;
+	private $limit = NULL;
 
 	/**
 	 * Sets up the object.
@@ -135,7 +134,7 @@ class t3lib_mail_Rfc822AddressesParser {
 	 * @param string  $default_domain  Default domain/host etc. If not supplied, will be set to localhost.
 	 * @param boolean $validate		Whether to validate atoms. Turn this off if you need to run addresses through before encoding the personal names, for instance.
 	 */
-	public function __construct($address = null, $default_domain = null, $validate = null, $limit = null) {
+	public function __construct($address = NULL, $default_domain = NULL, $validate = NULL, $limit = NULL) {
 		if (isset($address)) $this->address = $address;
 		if (isset($default_domain)) $this->default_domain = $default_domain;
 		if (isset($validate)) $this->validate = $validate;
@@ -154,7 +153,7 @@ class t3lib_mail_Rfc822AddressesParser {
 	 *
 	 * @return array A structured array of addresses.
 	 */
-	public function parseAddressList($address = null, $default_domain = null, $validate = null, $limit = null) {
+	public function parseAddressList($address = NULL, $default_domain = NULL, $validate = NULL, $limit = NULL) {
 		if (isset($address)) $this->address = $address;
 		if (isset($default_domain)) $this->default_domain = $default_domain;
 		if (isset($validate)) $this->validate = $validate;
@@ -162,8 +161,8 @@ class t3lib_mail_Rfc822AddressesParser {
 
 		$this->structure = array();
 		$this->addresses = array();
-		$this->error = null;
-		$this->index = null;
+		$this->error = NULL;
+		$this->index = NULL;
 
 		// Unfold any long lines in $this->address.
 		$this->address = preg_replace('/\r?\n/', "\r\n", $this->address);
@@ -171,7 +170,7 @@ class t3lib_mail_Rfc822AddressesParser {
 
 		while ($this->address = $this->_splitAddresses($this->address));
 
-		if ($this->address === false || isset($this->error)) {
+		if ($this->address === FALSE || isset($this->error)) {
 			throw new Exception($this->error, 1294681466);
 		}
 
@@ -180,7 +179,7 @@ class t3lib_mail_Rfc822AddressesParser {
 		foreach ($this->addresses as $address) {
 			$valid = $this->_validateAddress($address);
 
-			if ($valid === false || isset($this->error)) {
+			if ($valid === FALSE || isset($this->error)) {
 				throw new Exception($this->error, 1294681467);
 			}
 
@@ -204,12 +203,12 @@ class t3lib_mail_Rfc822AddressesParser {
 
 		if ($this->_isGroup($address) && !isset($this->error)) {
 			$split_char = ';';
-			$is_group = true;
+			$is_group = TRUE;
 		} elseif (!isset($this->error)) {
 			$split_char = ',';
-			$is_group = false;
+			$is_group = FALSE;
 		} elseif (isset($this->error)) {
-			return false;
+			return FALSE;
 		}
 
 		// Split the string based on the above ten or so lines.
@@ -222,14 +221,14 @@ class t3lib_mail_Rfc822AddressesParser {
 			// brackets/quotes etc then something's fubar.
 
 			// First check there's a colon at all:
-			if (strpos($string, ':') === false) {
+			if (strpos($string, ':') === FALSE) {
 				$this->error = 'Invalid address: ' . $string;
-				return false;
+				return FALSE;
 			}
 
 			// Now check it's outside of brackets/quotes:
 			if (!$this->_splitCheck(explode(':', $string), ':')) {
-				return false;
+				return FALSE;
 			}
 
 			// We must have a group at this point, so increase the counter:
@@ -281,7 +280,7 @@ class t3lib_mail_Rfc822AddressesParser {
 			$string2 = $this->_splitCheck($parts, ':');
 			return ($string2 !== $string);
 		} else {
-			return false;
+			return FALSE;
 		}
 	}
 
@@ -306,7 +305,7 @@ class t3lib_mail_Rfc822AddressesParser {
 					$string = $string . $char . $parts[$i + 1];
 				} else {
 					$this->error = 'Invalid address spec. Unclosed bracket or quotes';
-					return false;
+					return FALSE;
 				}
 			} else {
 				$this->index = $i;
@@ -322,13 +321,13 @@ class t3lib_mail_Rfc822AddressesParser {
 	 *
 	 * @access private
 	 * @param string $string  The string to check.
-	 * @return boolean  True if there are unclosed quotes inside the string,
-	 *				  false otherwise.
+	 * @return boolean  TRUE if there are unclosed quotes inside the string,
+	 *				  FALSE otherwise.
 	 */
 	protected function _hasUnclosedQuotes($string) {
 		$string = trim($string);
 		$iMax = strlen($string);
-		$in_quote = false;
+		$in_quote = FALSE;
 		$i = $slashes = 0;
 
 		for (; $i < $iMax; ++$i) {
@@ -359,7 +358,7 @@ class t3lib_mail_Rfc822AddressesParser {
 	 * @access private
 	 * @param string $string The string to check.
 	 * @param string $chars  The characters to check for.
-	 * @return boolean True if there are unclosed brackets inside the string, false otherwise.
+	 * @return boolean TRUE if there are unclosed brackets inside the string, FALSE otherwise.
 	 */
 	protected function _hasUnclosedBrackets($string, $chars) {
 		$num_angle_start = substr_count($string, $chars[0]);
@@ -370,7 +369,7 @@ class t3lib_mail_Rfc822AddressesParser {
 
 		if ($num_angle_start < $num_angle_end) {
 			$this->error = 'Invalid address spec. Unmatched quote or bracket (' . $chars . ')';
-			return false;
+			return FALSE;
 		} else {
 			return ($num_angle_start > $num_angle_end);
 		}
@@ -405,11 +404,11 @@ class t3lib_mail_Rfc822AddressesParser {
 	 * @return mixed False on failure, or a structured array of address information on success.
 	 */
 	protected function _validateAddress($address) {
-		$is_group = false;
+		$is_group = FALSE;
 		$addresses = array();
 
 		if ($address['group']) {
-			$is_group = true;
+			$is_group = TRUE;
 
 			// Get the group part of the name
 			$parts = explode(':', $address['address']);
@@ -419,7 +418,7 @@ class t3lib_mail_Rfc822AddressesParser {
 			// And validate the group part of the name.
 			if (!$this->_validatePhrase($groupname)) {
 				$this->error = 'Group name did not validate.';
-				return false;
+				return FALSE;
 			}
 
 			$address['address'] = ltrim(substr($address['address'], strlen($groupname . ':')));
@@ -442,7 +441,7 @@ class t3lib_mail_Rfc822AddressesParser {
 		// Then errors were appearing.
 		if (!count($addresses)) {
 			$this->error = 'Empty group.';
-			return false;
+			return FALSE;
 		}
 
 		// Trim the whitespace from all of the address strings.
@@ -458,7 +457,7 @@ class t3lib_mail_Rfc822AddressesParser {
 				if (empty($this->error)) {
 					$this->error = 'Validation failed for: ' . $addresses[$i];
 				}
-				return false;
+				return FALSE;
 			}
 		}
 
@@ -493,16 +492,16 @@ class t3lib_mail_Rfc822AddressesParser {
 			// If quoted string:
 			if (substr($part, 0, 1) == '"') {
 				if (!$this->_validateQuotedString($part)) {
-					return false;
+					return FALSE;
 				}
 				continue;
 			}
 
 			// Otherwise it's an atom:
-			if (!$this->_validateAtom($part)) return false;
+			if (!$this->_validateAtom($part)) return FALSE;
 		}
 
-		return true;
+		return TRUE;
 	}
 
 	/**
@@ -521,25 +520,25 @@ class t3lib_mail_Rfc822AddressesParser {
 	protected function _validateAtom($atom) {
 		if (!$this->validate) {
 			// Validation has been turned off; assume the atom is okay.
-			return true;
+			return TRUE;
 		}
 
 		// Check for any char from ASCII 0 - ASCII 127
 		if (!preg_match('/^[\\x00-\\x7E]+$/i', $atom, $matches)) {
-			return false;
+			return FALSE;
 		}
 
 		// Check for specials:
 		if (preg_match('/[][()<>@,;\\:". ]/', $atom)) {
-			return false;
+			return FALSE;
 		}
 
 		// Check for control characters (ASCII 0-31):
 		if (preg_match('/[\\x00-\\x1F]+/', $atom)) {
-			return false;
+			return FALSE;
 		}
 
-		return true;
+		return TRUE;
 	}
 
 	/**
@@ -606,8 +605,8 @@ class t3lib_mail_Rfc822AddressesParser {
 			$phrase = trim($name);
 			$route_addr = trim(substr($mailbox, strlen($name . '<'), -1));
 
-			if ($this->_validatePhrase($phrase) === false || ($route_addr = $this->_validateRouteAddr($route_addr)) === false) {
-				return false;
+			if ($this->_validatePhrase($phrase) === FALSE || ($route_addr = $this->_validateRouteAddr($route_addr)) === FALSE) {
+				return FALSE;
 			}
 
 			// Only got addr-spec
@@ -619,8 +618,8 @@ class t3lib_mail_Rfc822AddressesParser {
 				$addr_spec = $mailbox;
 			}
 
-			if (($addr_spec = $this->_validateAddrSpec($addr_spec)) === false) {
-				return false;
+			if (($addr_spec = $this->_validateAddrSpec($addr_spec)) === FALSE) {
+				return FALSE;
 			}
 		}
 
@@ -641,7 +640,7 @@ class t3lib_mail_Rfc822AddressesParser {
 		}
 
 		$mailbox = $mbox;
-		return true;
+		return TRUE;
 	}
 
 	/**
@@ -657,7 +656,7 @@ class t3lib_mail_Rfc822AddressesParser {
 	 */
 	protected function _validateRouteAddr($route_addr) {
 		// Check for colon.
-		if (strpos($route_addr, ':') !== false) {
+		if (strpos($route_addr, ':') !== FALSE) {
 			$parts = explode(':', $route_addr);
 			$route = $this->_splitCheck($parts, ':');
 		} else {
@@ -669,20 +668,20 @@ class t3lib_mail_Rfc822AddressesParser {
 		if ($route === $route_addr) {
 			unset($route);
 			$addr_spec = $route_addr;
-			if (($addr_spec = $this->_validateAddrSpec($addr_spec)) === false) {
-				return false;
+			if (($addr_spec = $this->_validateAddrSpec($addr_spec)) === FALSE) {
+				return FALSE;
 			}
 		} else {
 			// Validate route part.
-			if (($route = $this->_validateRoute($route)) === false) {
-				return false;
+			if (($route = $this->_validateRoute($route)) === FALSE) {
+				return FALSE;
 			}
 
 			$addr_spec = substr($route_addr, strlen($route . ':'));
 
 			// Validate addr-spec part.
-			if (($addr_spec = $this->_validateAddrSpec($addr_spec)) === false) {
-				return false;
+			if (($addr_spec = $this->_validateAddrSpec($addr_spec)) === FALSE) {
+				return FALSE;
 			}
 		}
 
@@ -710,7 +709,7 @@ class t3lib_mail_Rfc822AddressesParser {
 
 		foreach ($domains as $domain) {
 			$domain = str_replace('@', '', trim($domain));
-			if (!$this->_validateDomain($domain)) return false;
+			if (!$this->_validateDomain($domain)) return FALSE;
 		}
 
 		return $route;
@@ -738,7 +737,7 @@ class t3lib_mail_Rfc822AddressesParser {
 
 		foreach ($sub_domains as $sub_domain) {
 			if (!$this->_validateSubdomain(trim($sub_domain)))
-				return false;
+				return FALSE;
 		}
 
 		// Managed to get here, so return input.
@@ -755,13 +754,13 @@ class t3lib_mail_Rfc822AddressesParser {
 	 */
 	protected function _validateSubdomain($subdomain) {
 		if (preg_match('|^\[(.*)]$|', $subdomain, $arr)) {
-			if (!$this->_validateDliteral($arr[1])) return false;
+			if (!$this->_validateDliteral($arr[1])) return FALSE;
 		} else {
-			if (!$this->_validateAtom($subdomain)) return false;
+			if (!$this->_validateAtom($subdomain)) return FALSE;
 		}
 
 		// Got here, so return successful.
-		return true;
+		return TRUE;
 	}
 
 	/**
@@ -789,7 +788,7 @@ class t3lib_mail_Rfc822AddressesParser {
 		$addr_spec = trim($addr_spec);
 
 		// Split on @ sign if there is one.
-		if (strpos($addr_spec, '@') !== false) {
+		if (strpos($addr_spec, '@') !== FALSE) {
 			$parts = explode('@', $addr_spec);
 			$local_part = $this->_splitCheck($parts, '@');
 			$domain = substr($addr_spec, strlen($local_part . '@'));
@@ -800,8 +799,8 @@ class t3lib_mail_Rfc822AddressesParser {
 			$domain = $this->default_domain;
 		}
 
-		if (($local_part = $this->_validateLocalPart($local_part)) === false) return false;
-		if (($domain = $this->_validateDomain($domain)) === false) return false;
+		if (($local_part = $this->_validateLocalPart($local_part)) === FALSE) return FALSE;
+		if (($domain = $this->_validateDomain($domain)) === FALSE) return FALSE;
 
 		// Got here so return successful.
 		return array('local_part' => $local_part, 'domain' => $domain);
@@ -831,10 +830,10 @@ class t3lib_mail_Rfc822AddressesParser {
 		foreach ($words as $word) {
 			// If this word contains an unquoted space, it is invalid. (6.2.4)
 			if (strpos($word, ' ') && $word[0] !== '"') {
-				return false;
+				return FALSE;
 			}
 
-			if ($this->_validatePhrase(trim($word)) === false) return false;
+			if ($this->_validatePhrase(trim($word)) === FALSE) return FALSE;
 		}
 
 		// Managed to get here, so return the input.

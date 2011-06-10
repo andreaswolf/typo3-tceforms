@@ -34,9 +34,9 @@
  * @subpackage	core
  */
 class TYPO3AJAX {
-	protected $ajaxId        = null;
-	protected $errorMessage  = null;
-	protected $isError       = false;
+	protected $ajaxId        = NULL;
+	protected $errorMessage  = NULL;
+	protected $isError       = FALSE;
 	protected $content       = array();
 	protected $contentFormat = 'plain';
 	protected $charset       = 'utf-8';
@@ -97,10 +97,10 @@ class TYPO3AJAX {
 	 * overwrites the existing content with the first parameter
 	 *
 	 * @param	array		the new content
-	 * @return	mixed		the old content as array; if the new content was not an array, false is returned
+	 * @return	mixed		the old content as array; if the new content was not an array, FALSE is returned
 	 */
 	public function setContent($content) {
-		$oldcontent = false;
+		$oldcontent = FALSE;
 		if (is_array($content)) {
 			$oldcontent = $this->content;
 			$this->content = $content;
@@ -114,10 +114,10 @@ class TYPO3AJAX {
 	 *
 	 * @param	string		the new content key where the content should be added in the content array
 	 * @param	string		the new content to add
-	 * @return	mixed		the old content; if the old content didn't exist before, false is returned
+	 * @return	mixed		the old content; if the old content didn't exist before, FALSE is returned
 	 */
 	public function addContent($key, $content) {
-		$oldcontent = false;
+		$oldcontent = FALSE;
 		if (array_key_exists($key, $this->content)) {
 			$oldcontent = $this->content[$key];
 		}
@@ -174,7 +174,7 @@ class TYPO3AJAX {
 	 */
 	public function setError($errorMsg = '') {
 		$this->errorMessage = $errorMsg;
-		$this->isError = true;
+		$this->isError = TRUE;
 	}
 
 
@@ -279,7 +279,7 @@ class TYPO3AJAX {
 		$content = json_encode($this->content);
 
 		header('Content-type: application/json; charset='.$this->requestCharset);
-		header('X-JSON: '.($this->contentFormat != 'jsonbody' ? $content : true));
+		header('X-JSON: '.($this->contentFormat != 'jsonbody' ? $content : TRUE));
 
 			// bring content in xhr.responseText except when in "json head only" mode
 		if ($this->contentFormat != 'jsonhead') {

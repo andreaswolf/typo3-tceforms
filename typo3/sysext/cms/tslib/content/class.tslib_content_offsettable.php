@@ -29,7 +29,6 @@
 /**
  * Contains OTABLE class object.
  *
- * $Id: class.tslib_content.php 7905 2010-06-13 14:42:33Z ohader $
  * @author Xavier Perseguers <typo3@perseguers.ch>
  * @author Steffen Kamper <steffen@typo3.org>
  */
@@ -53,7 +52,7 @@ class tslib_content_OffsetTable extends tslib_content_Abstract {
 		}
 
 		$offset = isset($conf['offset.'])
-			? $this->cObj->tsdWrap($conf['offset'], $conf['offset.'])
+			? $this->cObj->stdWrap($conf['offset'], $conf['offset.'])
 			: $conf['offset'];
 
 		$content = $controlTable->start($this->cObj->cObjGet($conf), $offset);

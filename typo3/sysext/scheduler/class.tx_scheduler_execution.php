@@ -32,8 +32,6 @@
  *
  * @package		TYPO3
  * @subpackage	tx_scheduler
- *
- * $Id$
  */
 class tx_scheduler_Execution {
 
@@ -59,7 +57,7 @@ class tx_scheduler_Execution {
 	protected $interval;
 
 	/**
-	 * Flag for concurrent executions: true if allowed, false otherwise (default)
+	 * Flag for concurrent executions: TRUE if allowed, FALSE otherwise (default)
 	 *
 	 * @var	boolean	$multiple
 	 */
@@ -146,7 +144,7 @@ class tx_scheduler_Execution {
 	/**
 	 * This method is used to set the multiple execution flag
 	 *
-	 * @param	boolean		$multiple: true if concurrent executions are allowed, false otherwise
+	 * @param	boolean		$multiple: TRUE if concurrent executions are allowed, FALSE otherwise
 	 * @return	void
 	 */
 	public function setMultiple($multiple) {
@@ -156,7 +154,7 @@ class tx_scheduler_Execution {
 	/**
 	 * This method is used to get the multiple execution flag
 	 *
-	 * @return	boolean		true if concurrent executions are allowed, false otherwise
+	 * @return	boolean		TRUE if concurrent executions are allowed, FALSE otherwise
 	 */
 	public function getMultiple() {
 		return $this->multiple;
@@ -187,8 +185,8 @@ class tx_scheduler_Execution {
 	 * is created and its start date is in the past (even for only a few seconds),
 	 * the next run time calculation (which happens upon saving) will disable
 	 * that task, because it was meant to run only once and is in the past.
-	 * Setting this flag to true preserves this task for a single run.
-	 * Upon next execution, this flag is set to false.
+	 * Setting this flag to TRUE preserves this task for a single run.
+	 * Upon next execution, this flag is set to FALSE.
 	 *
 	 * @param	boolean		Is newly created single execution?
 	 * @return	void
@@ -235,7 +233,7 @@ class tx_scheduler_Execution {
 				if ($this->cronCmd) {
 						// If it uses cron-like syntax, calculate next date
 					$date = $this->getNextCronExecution();
-				} else if ($this->interval == 0) {
+				} elseif ($this->interval == 0) {
 						// If not and there's no interval either, it's a singe execution: use start date
 					$date = $this->start;
 				} else {
@@ -271,7 +269,7 @@ class tx_scheduler_Execution {
 	/**
 	 * Checks if the schedule for a task is started or not
 	 *
-	 * @return	boolean		True if the schedule is already active, false otherwise
+	 * @return	boolean		TRUE if the schedule is already active, FALSE otherwise
 	 */
 	public function isStarted() {
 		return $this->start < time();
@@ -280,7 +278,7 @@ class tx_scheduler_Execution {
 	/**
 	 * Checks if the schedule for a task is passed or not
 	 *
-	 * @return	boolean		True if the schedule is not active anymore, false otherwise
+	 * @return	boolean		TRUE if the schedule is not active anymore, FALSE otherwise
 	 */
 	public function isEnded() {
 		if (empty($this->end)) {

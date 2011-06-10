@@ -27,7 +27,6 @@
 /**
  * Contains a class for formmail
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -38,7 +37,7 @@
  *
  *
  *   69: class t3lib_formmail
- *   95:	 function start($V,$base64=false)
+ *   95:	 function start($V,$base64=FALSE)
  *  172:	 function addAttachment($file, $filename)
  *
  * TOTAL FUNCTIONS: 2
@@ -100,7 +99,7 @@ class t3lib_formmail {
 	 * @param	boolean		Whether to base64 encode the mail content
 	 * @return	void
 	 */
-	function start($valueList, $base64 = false) {
+	function start($valueList, $base64 = FALSE) {
 
 		$this->mailMessage = t3lib_div::makeInstance('t3lib_mail_Message');
 
@@ -229,10 +228,10 @@ class t3lib_formmail {
 					->setTo($this->recipient)
 					->setPriority($this->priority);
 			$replyTo = $this->replyToName ? array($this->replyToAddress => $this->replyToName) : array($this->replyToAddress);
-			$this->mailMessage->addReplyTo($replyTo);
+			$this->mailMessage->setReplyTo($replyTo);
 			$this->mailMessage->getHeaders()->addTextHeader('Organization', $this->organisation);
 			if ($valueList['recipient_copy']) {
-				$this->mailMessage->addCc($this->parseAddresses($valueList['recipient_copy']));
+				$this->mailMessage->setCc($this->parseAddresses($valueList['recipient_copy']));
 			}
 			if ($this->characterSet) {
 				$this->mailMessage->setCharset($this->characterSet);
@@ -264,7 +263,7 @@ class t3lib_formmail {
 		}
 		return $string;
 	}
-	
+
 	/**
 	 * Parses mailbox headers and turns them into an array.
 	 *

@@ -29,8 +29,6 @@
  *
  * This class handles all Ajax calls coming from ExtJS
  *
- * $Id: class.tx_em_Connection_ExtDirectServer.php 2083 2010-03-22 00:48:31Z steffenk $
- *
  * @author	Steffen Kamper <info@sk-typo3.de>
  */
 
@@ -302,7 +300,7 @@ class tx_em_Connection_ExtDirectServer {
 		}
 
 		return array(
-			'success' => true,
+			'success' => TRUE,
 			'data' => $parameter['data'],
 			'html' => $html,
 		);
@@ -393,7 +391,7 @@ class tx_em_Connection_ExtDirectServer {
 				$fileArray[] = array(
 					'id' => ($node == '' ? '' : $node . '/') . $dir,
 					'text' => htmlspecialchars($dir),
-					'leaf' => false,
+					'leaf' => FALSE,
 					'qtip' => ''
 				);
 			}
@@ -406,7 +404,7 @@ class tx_em_Connection_ExtDirectServer {
 			$fileArray[] = array(
 				'id' => $node . '/' . $file,
 				'text' => $fileInfo[0],
-				'leaf' => true,
+				'leaf' => TRUE,
 				'qtip' => $fileInfo[1],
 				'iconCls' => $fileInfo[4],
 				'fileType' => $fileInfo[3],
@@ -1257,7 +1255,7 @@ class tx_em_Connection_ExtDirectServer {
 						}
 					} else {
 							//translation is up to date
-						$result[$lang] = $okIcon . $GLOBALS['LANG']->sL('LLL:EXT:em/language/locallang.xml:translation_status_uptodate');;
+						$result[$lang] = $okIcon . $GLOBALS['LANG']->sL('LLL:EXT:em/language/locallang.xml:translation_status_uptodate');
 					}
 				}
 

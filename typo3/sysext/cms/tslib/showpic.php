@@ -28,7 +28,6 @@
  * Shows a picture from uploads/* in enlarged format in a separate window.
  * Picture file and settings is supplied by GET-parameters: file, width, height, sample, alternativeTempPath, effects, frame, bodyTag, title, wrap, md5
  *
- * $Id$
  * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  *
  * @author		Kasper Skårhøj	<kasperYYYY@typo3.com>
@@ -54,11 +53,7 @@
 // *******************************
 // Set error reporting
 // *******************************
-if (defined('E_DEPRECATED')) {
-	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
-} else {
-	error_reporting(E_ALL ^ E_NOTICE);
-}
+error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
 
 
 // ***********************
@@ -227,11 +222,17 @@ class SC_tslib_showpic {
 		$GLOBALS['TYPO3_DB']->sql_pconnect(TYPO3_db_host, TYPO3_db_username, TYPO3_db_password);
 		$GLOBALS['TYPO3_DB']->sql_select_db(TYPO3_db);
 
-		if (strstr($this->width.$this->height, 'm')) {$max='m';} else {$max='';}
+		if (strstr($this->width . $this->height, 'm')) {
+			$max = 'm';
+		} else {
+			$max = '';
+		}
 
 		$this->height = t3lib_div::intInRange($this->height,0);
 		$this->width = t3lib_div::intInRange($this->width,0);
-		if ($this->frame)	{$this->frame = intval($this->frame);}
+		if ($this->frame) {
+			$this->frame = intval($this->frame);
+		}
 		$imgInfo = $img->imageMagickConvert($this->file,'web',$this->width.$max,$this->height,$img->IMparams($this->effects),$this->frame,'');
 
 			// Create HTML output:

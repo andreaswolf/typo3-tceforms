@@ -27,8 +27,6 @@
 /**
  * Module: Extension manager, (un-)install extensions
  *
- * $Id: class.tx_em_install.php 2073 2010-03-19 10:42:38Z steffenk $
- *
  * @author	Steffen Kamper <info@sk-typo3.de>
  */
 
@@ -224,7 +222,7 @@ class tx_em_Install {
 										if (!$content) {
 											$messageContent = sprintf($GLOBALS['LANG']->getLL('ext_import_success_folder'), $extDirPath) . '<br />';
 
-											$uploadSucceed = true;
+											$uploadSucceed = TRUE;
 
 											// Fix TYPO3_MOD_PATH for backend modules in extension:
 											$modules = t3lib_div::trimExplode(',', $EM_CONF['module'], 1);
@@ -417,8 +415,8 @@ class tx_em_Install {
 	 */
 	function checkDependencies($extKey, $conf, $instExtInfo) {
 		$content = '';
-		$depError = false;
-		$depIgnore = false;
+		$depError = FALSE;
+		$depIgnore = FALSE;
 		$msg = array();
 		$depsolver = t3lib_div::_POST('depsolver');
 
@@ -428,7 +426,7 @@ class tx_em_Install {
 					$msg[] = '<br />' . sprintf($GLOBALS['LANG']->getLL('checkDependencies_ignored'),
 						$depK) . '
 						<input type="hidden" value="1" name="depsolver[ignore][' . $depK . ']" />';
-					$depIgnore = true;
+					$depIgnore = TRUE;
 					continue;
 				}
 				if ($depK == 'php') {
@@ -442,14 +440,14 @@ class tx_em_Install {
 							$phpv, $versionRange[0]);
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $depK . ']" id="checkIgnore_' . $depK . '" />
 							<label for="checkIgnore_' . $depK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_requirement') . '</label>';
-						$depError = true;
+						$depError = TRUE;
 						continue;
 					} elseif ($versionRange[1] != '0.0.0' && version_compare($phpv, $versionRange[1], '>')) {
 						$msg[] = '<br />' . sprintf($GLOBALS['LANG']->getLL('checkDependencies_php_too_high'),
 							$phpv, $versionRange[1]);
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $depK . ']" id="checkIgnore_' . $depK . '" />
 							<label for="checkIgnore_' . $depK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_requirement') . '</label>';
-						$depError = true;
+						$depError = TRUE;
 						continue;
 					}
 
@@ -475,14 +473,14 @@ class tx_em_Install {
 							$t3version, $versionRange[0]);
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $depK . ']" id="checkIgnore_' . $depK . '" />
 							<label for="checkIgnore_' . $depK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_requirement') . '</label>';
-						$depError = true;
+						$depError = TRUE;
 						continue;
 					} elseif ($versionRange[1] != '0.0.0' && version_compare($t3version, $versionRange[1], '>')) {
 						$msg[] = '<br />' . sprintf($GLOBALS['LANG']->getLL('checkDependencies_typo3_too_high'),
 							$t3version, $versionRange[1]);
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $depK . ']" id="checkIgnore_' . $depK . '" />
 							<label for="checkIgnore_' . $depK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_requirement') . '</label>';
-						$depError = true;
+						$depError = TRUE;
 						continue;
 					}
 				} elseif (strlen($depK) && !t3lib_extMgm::isLoaded($depK)) { // strlen check for braindead empty dependencies coming from extensions...
@@ -512,7 +510,7 @@ class tx_em_Install {
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $depK . ']" id="checkIgnore_' . $depK . '" />
 							<label for="checkIgnore_' . $depK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_ext_requirement') . '</label>';
 					}
-					$depError = true;
+					$depError = TRUE;
 				} else {
 					$versionRange = tx_em_Tools::splitVersionRange($depV);
 					if ($versionRange[0] != '0.0.0' && version_compare($instExtInfo[$depK]['EM_CONF']['version'], $versionRange[0], '<')) {
@@ -520,14 +518,14 @@ class tx_em_Install {
 							$depK, $instExtInfo[$depK]['EM_CONF']['version'], $versionRange[0]);
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $depK . ']" id="checkIgnore_' . $depK . '" />
 							<label for="checkIgnore_' . $depK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_requirement') . '</label>';
-						$depError = true;
+						$depError = TRUE;
 						continue;
 					} elseif ($versionRange[1] != '0.0.0' && version_compare($instExtInfo[$depK]['EM_CONF']['version'], $versionRange[1], '>')) {
 						$msg[] = '<br />' . sprintf($GLOBALS['LANG']->getLL('checkDependencies_ext_too_high'),
 							$depK, $instExtInfo[$depK]['EM_CONF']['version'], $versionRange[1]);
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $depK . ']" id="checkIgnore_' . $depK . '" />
 							<label for="checkIgnore_' . $depK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_requirement') . '</label>';
-						$depError = true;
+						$depError = TRUE;
 						continue;
 					}
 				}
@@ -542,8 +540,8 @@ class tx_em_Install {
 		}
 
 		// Check conflicts with other extensions:
-		$conflictError = false;
-		$conflictIgnore = false;
+		$conflictError = FALSE;
+		$conflictIgnore = FALSE;
 		$msg = array();
 
 		if (isset($conf['constraints']['conflicts']) && is_array($conf['constraints']['conflicts'])) {
@@ -552,7 +550,7 @@ class tx_em_Install {
 					$msg[] = '<br />' . sprintf($GLOBALS['LANG']->getLL('checkDependencies_conflict_ignored'),
 						$conflictK) . '
 						<input type="hidden" value="1" name="depsolver[ignore][' . $conflictK . ']" />';
-					$conflictIgnore = true;
+					$conflictIgnore = TRUE;
 					continue;
 				}
 				if (t3lib_extMgm::isLoaded($conflictK)) {
@@ -576,7 +574,7 @@ class tx_em_Install {
 							'" target="_blank">' . $GLOBALS['LANG']->getLL('checkDependencies_remove_now') . '</a>';
 					$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $conflictK . ']" id="checkIgnore_' . $conflictK . '" />
 						<label for="checkIgnore_' . $conflictK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_conflict') . '</label>';
-					$conflictError = true;
+					$conflictError = TRUE;
 				}
 			}
 		}
@@ -588,15 +586,15 @@ class tx_em_Install {
 
 		// Check suggests on other extensions:
 		if (isset($conf['constraints']['suggests']) && is_array($conf['constraints']['suggests'])) {
-			$suggestion = false;
-			$suggestionIgnore = false;
+			$suggestion = FALSE;
+			$suggestionIgnore = FALSE;
 			$msg = array();
 			foreach ($conf['constraints']['suggests'] as $suggestK => $suggestV) {
 				if ($depsolver['ignore'][$suggestK]) {
 					$msg[] = '<br />' . sprintf($GLOBALS['LANG']->getLL('checkDependencies_suggestion_ignored'),
 						$suggestK) . '
 				<input type="hidden" value="1" name="depsolver[ignore][' . $suggestK . ']" />';
-					$suggestionIgnore = true;
+					$suggestionIgnore = TRUE;
 					continue;
 				}
 				if (!t3lib_extMgm::isLoaded($suggestK)) {
@@ -626,7 +624,7 @@ class tx_em_Install {
 						$msg[] = '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" value="1" name="depsolver[ignore][' . $suggestK . ']" id="checkIgnore_' . $suggestK . '" />
 							<label for="checkIgnore_' . $suggestK . '">' . $GLOBALS['LANG']->getLL('checkDependencies_ignore_suggestion') . '</label>';
 					}
-					$suggestion = true;
+					$suggestion = TRUE;
 				}
 			}
 			if ($suggestion || $suggestionIgnore) {
@@ -809,7 +807,7 @@ class tx_em_Install {
 	 *
 	 * @param	string		Extension key
 	 * @param	array		Extension information array
-	 * @param	boolean		If true, returns array with info.
+	 * @param	boolean		If TRUE, returns array with info.
 	 * @return	mixed		If $infoOnly, returns array with information. Otherwise performs update.
 	 */
 	function checkDBupdates($extKey, $extInfo, $infoOnly = 0) {
@@ -884,8 +882,8 @@ class tx_em_Install {
 						$dbStatus['static'][$table]['count'] = $insertCount[$table];
 
 						$out .= '<tr>
-							<td><input type="checkbox" name="TYPO3_INSTALL[database_import][' . $table . ']" checked="checked" value="' . md5($definition) . '" /></td>
-							<td><strong>' . $table . '</strong></td>
+							<td><input type="checkbox" id="check_table_' . $table . '" name="TYPO3_INSTALL[database_import][' . $table . ']" checked="checked" value="' . md5($definition) . '" /></td>
+							<td><strong><label for="check_table_' . $table . '">' . $table . '</label></strong></td>
 							<td><img src="clear.gif" width="10" height="1" alt="" /></td>
 							<td nowrap="nowrap">' .
 								($insertCount[$table] ?
@@ -1249,7 +1247,7 @@ class tx_em_Install {
 	 *
 	 * @param	string		Extension key
 	 * @param	array		Extension information array
-	 * @param	boolean		If true, the form HTML content is returned, otherwise the content is set in $this->content.
+	 * @param	boolean		If TRUE, the form HTML content is returned, otherwise the content is set in $this->content.
 	 * @param	string		Submit-to URL (supposedly)
 	 * @param	string		Additional form fields to include.
 	 * @return	string		Depending on $output. Can return the whole form.

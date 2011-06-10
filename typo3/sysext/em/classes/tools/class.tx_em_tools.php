@@ -27,8 +27,6 @@
 ***************************************************************/
 /**
  * class.tx_em_tools.php
- *
- * $Id: class.tx_em_tools.php 2084 2010-03-22 01:46:37Z steffenk $
  */
 
 /**
@@ -102,12 +100,24 @@ final class tx_em_Tools {
 	 *
 	 * @param string $file		Full path to zip file
 	 * @param string $path		Path to change to before extracting
-	 * @return boolean	True on success, false in failure
+	 * @return boolean	TRUE on success, FALSE in failure
 	 */
 	public static function unzip($file, $path) {
-		if (strlen($GLOBALS['TYPO3_CONF_VARS']['BE']['unzip_path'])) {
+		$unzipPath = trim($GLOBALS['TYPO3_CONF_VARS']['BE']['unzip_path']);
+		if (strlen($unzipPath)) {
+			if (substr($unzipPath, -1) !== '/' && is_dir($unzipPath)) {
+				// Make sure the path ends with a slash
+				$unzipPath.= '/';
+			}
+
 			chdir($path);
-			$cmd = $GLOBALS['TYPO3_CONF_VARS']['BE']['unzip_path'] . ' -o ' . escapeshellarg($file);
+				// for compatiblity reasons, we have to accept the full path of the unzip command
+				// or the directory containing the unzip binary
+			if (substr($unzipPath, -1) === '/') {
+				$cmd = $unzipPath . 'unzip -o ' . escapeshellarg($file);
+			} else {
+				$cmd = $unzipPath . ' -o ' . escapeshellarg($file);
+			}
 			t3lib_utility_Command::exec($cmd, $list, $ret);
 			return ($ret === 0);
 		} else {
@@ -303,7 +313,7 @@ final class tx_em_Tools {
 	 */
 	public static function includeEMCONF($path, $_EXTKEY) {
 		$EM_CONF = NULL;
-		@include($path);
+		include($path);
 		if (is_array($EM_CONF[$_EXTKEY])) {
 			return self::fixEMCONF($EM_CONF[$_EXTKEY]);
 		}
@@ -473,12 +483,12 @@ final class tx_em_Tools {
 	}
 
 	/**
-	 * Evaluates differences in version numbers with three parts, x.x.x. Returns true if $v1 is greater than $v2
+	 * Evaluates differences in version numbers with three parts, x.x.x. Returns TRUE if $v1 is greater than $v2
 	 *
 	 * @param	string		Version number 1
 	 * @param	string		Version number 2
 	 * @param	integer		Tolerance factor. For instance, set to 1000 to ignore difference in dev-version (third part)
-	 * @return	boolean		True if version 1 is greater than version 2
+	 * @return	boolean		TRUE if version 1 is greater than version 2
 	 */
 	public static function versionDifference($v1, $v2, $div = 1) {
 		return floor(self::makeVersion($v1, 'int') / $div) > floor(self::makeVersion($v2, 'int') / $div);
@@ -486,12 +496,12 @@ final class tx_em_Tools {
 
 
 	/**
-	 * Returns true if the $str is found as the first part of a string in $array
+	 * Returns TRUE if the $str is found as the first part of a string in $array
 	 *
 	 * @param	string		String to test with.
 	 * @param	array		Input array
 	 * @param	boolean		If set, the test is case insensitive
-	 * @return	boolean		True if found.
+	 * @return	boolean		TRUE if found.
 	 */
 	public static function first_in_array($str, $array, $caseInsensitive = FALSE) {
 		if ($caseInsensitive) {
@@ -804,7 +814,7 @@ final class tx_em_Tools {
 	 *
 	 * @param	string		Scope: G, L, S
 	 * @param	string		Extension lock-type (eg. "L" or "G")
-	 * @return	boolean		True if installation is allowed.
+	 * @return	boolean		TRUE if installation is allowed.
 	 */
 	public static function importAsType($type, $lockType = '') {
 		switch ($type) {
@@ -823,10 +833,10 @@ final class tx_em_Tools {
 	}
 
 	/**
-	 * Returns true if extensions in scope, $type, can be deleted (or installed for that sake)
+	 * Returns TRUE if extensions in scope, $type, can be deleted (or installed for that sake)
 	 *
 	 * @param	string		Scope: "G" or "L"
-	 * @return	boolean		True if possible.
+	 * @return	boolean		TRUE if possible.
 	 */
 	public static function deleteAsType($type) {
 		switch ($type) {
@@ -847,7 +857,7 @@ final class tx_em_Tools {
 	 *
 	 * @param	array		Array of directories to create relative to extDirPath, eg. "blabla", "blabla/blabla" etc...
 	 * @param	string		Absolute path to directory.
-	 * @return	mixed		Returns false on success or an error string
+	 * @return	mixed		Returns FALSE on success or an error string
 	 */
 	public static function createDirsInPath($dirs, $extDirPath) {
 		if (is_array($dirs)) {
@@ -1062,7 +1072,7 @@ final class tx_em_Tools {
 			return rename($file, $newName);
 		}
 
-		return false;
+		return FALSE;
 	}
 
 

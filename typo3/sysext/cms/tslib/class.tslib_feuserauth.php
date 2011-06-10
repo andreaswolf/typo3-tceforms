@@ -28,7 +28,6 @@
  * Front End session user. Login and session data
  * Included from index_ts.php
  *
- * $Id$
  * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -100,7 +99,7 @@ class tslib_feUserAuth extends t3lib_userAuth {
 	var $formfield_permanent = 'permalogin';	// formfield with 0 or 1 // 1 = permanent login enabled // 0 = session is valid for a browser session only
 	var $security_level = '';					// sets the level of security. *'normal' = clear-text. 'challenged' = hashed password/username from form in $formfield_uident. 'superchallenged' = hashed password hashed again with username.
 
-	var $auth_timeout_field = 6000;				// Server session lifetime. If > 0: session-timeout in seconds. If false or <0: no timeout. If string: The string is a fieldname from the usertable where the timeout can be found.
+	var $auth_timeout_field = 6000;				// Server session lifetime. If > 0: session-timeout in seconds. If FALSE or <0: no timeout. If string: The string is a fieldname from the usertable where the timeout can be found.
 
 	var $lifetime = 0;				// Client session lifetime. 0 = Session-cookies. If session-cookies, the browser will stop the session when the browser is closed. Otherwise this specifies the lifetime of a cookie that keeps the session.
 	protected $sessionDataLifetime = 86400;		// Lifetime of session data in seconds.
@@ -204,7 +203,7 @@ class tslib_feUserAuth extends t3lib_userAuth {
 			if(strlen($isPermanent) != 1) {
 				$isPermanent = $GLOBALS['TYPO3_CONF_VARS']['FE']['permalogin'];
 			} elseif(!$isPermanent) {
-				$this->forceSetCookie = true; // To make sure the user gets a session cookie and doesn't keep a possibly existing time based cookie, we need to force seeting the session cookie here
+				$this->forceSetCookie = TRUE; // To make sure the user gets a session cookie and doesn't keep a possibly existing time based cookie, we need to force seeting the session cookie here
 			}
 			$isPermanent = $isPermanent?1:0;
 		} elseif($GLOBALS['TYPO3_CONF_VARS']['FE']['permalogin'] == 2) {
@@ -551,14 +550,14 @@ class tslib_feUserAuth extends t3lib_userAuth {
 	 * This calls the parent function but additionally tries to look up the session ID in the "fe_session_data" table.
 	 *
 	 * @param	integer		Claimed Session ID
-	 * @return	boolean		Returns true if a corresponding session was found in the database
+	 * @return	boolean		Returns TRUE if a corresponding session was found in the database
 	 */
 	function isExistingSessionRecord($id) {
 			// Perform check in parent function
 		$count = parent::isExistingSessionRecord($id);
 
 			// Check if there are any fe_session_data records for the session ID the client claims to have
-		if ($count == false) {
+		if ($count == FALSE) {
 			$statement = $GLOBALS['TYPO3_DB']->prepare_SELECTquery(
 				'content',
 				'fe_session_data',
@@ -567,28 +566,10 @@ class tslib_feUserAuth extends t3lib_userAuth {
 			$res = $statement->execute(array(':hash' => $id));
 			if ($res !== FALSE) {
 				if ($sesDataRow = $statement->fetch()) {
-					$count = true;
+					$count = TRUE;
 					$this->sesData = unserialize($sesDataRow['content']);
 				}
 				$statement->free();
-			}
-		}
-
-			// @deprecated: Check for commerce basket records. The following lines should be removed once a fixed commerce version is released.
-			// Extensions like commerce which have their own session table should just put some small bit of data into fe_session_data using $GLOBALS['TSFE']->fe_user->setKey('ses', ...) to make the session stable.
-		if ($count == false && t3lib_extMgm::isLoaded('commerce')) {
-			t3lib_div::deprecationLog("EXT:commerce specific code in tslib_feuserauth::isExistingSessionRecord() is deprecated. Will be removed in 4.6");
-
-			$dbres = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-							'*',
-							'tx_commerce_baskets',
-							'sid=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($id, 'tx_commerce_baskets')
-						);
-			if ($dbres !== false) {
-				if ($sesDataRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbres)) {
-					$count = true;
-				}
-				$GLOBALS['TYPO3_DB']->sql_free_result($dbres);
 			}
 		}
 

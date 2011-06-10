@@ -26,8 +26,6 @@
  *
  * @author Stanislas Rolland <typo3(arobas)sjbr.ca>
  *
- * TYPO3 SVN ID: $Id$
- *
  */
 class tx_rtehtmlarea_textstyle extends tx_rtehtmlarea_api {
 
@@ -47,7 +45,7 @@ class tx_rtehtmlarea_textstyle extends tx_rtehtmlarea_api {
 		'textstylelabel'	=> 'I[text_style]',
 		'textstyle'		=> 'TextStyle',
 		);
-	protected $requiresClassesConfiguration = true;			// True if the extension requires the PageTSConfig Classes configuration
+	protected $requiresClassesConfiguration = TRUE;			// TRUE if the extension requires the PageTSConfig Classes configuration
 
 } // end of class
 

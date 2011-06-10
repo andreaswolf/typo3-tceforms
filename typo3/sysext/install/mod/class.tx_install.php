@@ -27,8 +27,6 @@
 /**
  * Contains the class for the Install Tool
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @author	Ingmar Schlecht <ingmar@typo3.org>
  */
@@ -139,19 +137,21 @@
  *
  */
 
-// include requirements definition:
+	// include requirements definition:
 require_once(t3lib_extMgm::extPath('install') . 'requirements.php');
 
-// include update classes
-require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_charsetdefaults.php');
-require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_compatversion.php');
-require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_cscsplit.php');
-require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_notinmenu.php');
-require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_mergeadvanced.php');
-require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_installsysexts.php');
-require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_imagescols.php');
-require_once(t3lib_extMgm::extPath('install').'updates/class.tx_coreupdates_installnewsysexts.php');
+	// include session handling
 require_once(t3lib_extMgm::extPath('install') . 'mod/class.tx_install_session.php');
+
+	// include update classes
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_charsetdefaults.php');
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_compatversion.php');
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_cscsplit.php');
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_notinmenu.php');
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_mergeadvanced.php');
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_installsysexts.php');
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_imagescols.php');
+require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_installnewsysexts.php');
 require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_statictemplates.php');
 require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_t3skin.php');
 require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_compressionlevel.php');
@@ -162,8 +162,6 @@ require_once(t3lib_extMgm::extPath('install') . 'updates/class.tx_coreupdates_im
 
 /**
  * Install Tool module
- *
- * $Id$
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @author	Ingmar Schlecht <ingmar@typo3.org>
@@ -267,8 +265,8 @@ class tx_install extends t3lib_install {
 	 *
 	 * @return void
 	 */
-	function tx_install() {
-		parent::t3lib_install();
+	function __construct() {
+		parent::__construct();
 
 		if (!$GLOBALS['TYPO3_CONF_VARS']['BE']['installToolPassword']) {
 			$this->outputErrorAndExit('Install Tool deactivated.<br />You must enable it by setting a password in typo3conf/localconf.php. If you insert the line below, the password will be \'joh316\':<br /><br />$TYPO3_CONF_VARS[\'BE\'][\'installToolPassword\'] = \'bacb98acf97e0b6112b1d1b650b84971\';', 'Fatal error');
@@ -400,12 +398,12 @@ class tx_install extends t3lib_install {
 	}
 
 	/**
-	 * Returns true if submitted password is ok.
+	 * Returns TRUE if submitted password is ok.
 	 *
 	 * If password is ok, set session as "authorized".
 	 *
-	 * @return boolean true if the submitted password was ok and session was
-	 *                 authorized, false otherwise
+	 * @return boolean TRUE if the submitted password was ok and session was
+	 *                 authorized, FALSE otherwise
 	 */
 	function checkPassword() {
 		$p = t3lib_div::_GP('password');
@@ -424,7 +422,7 @@ class tx_install extends t3lib_install {
 					'From: TYPO3 Install Tool WARNING <>'
 				);
 			}
-			return true;
+			return TRUE;
 		} else {
 				// Bad password, send warning:
 			if ($p) {
@@ -441,7 +439,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 					);
 				}
 			}
-			return false;
+			return FALSE;
 		}
 	}
 
@@ -878,7 +876,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 							behind. Therefore the script is invoked from the
 							backend init.php file, which allows access if the
 							constant \'TYPO3_enterInstallScript\' has been
-							defined and is not false. That is and should be the
+							defined and is not FALSE. That is and should be the
 							case <em>only</em> when calling the script
 							\'typo3/install/index.php\' - this script!
 						</p>
@@ -929,8 +927,6 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 				break;
 			}
 		}
-
-		$this->formProtection->persistTokens();
 	}
 
 	/**
@@ -2161,13 +2157,13 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 										$value = str_replace(LF, "' . LF . '", $value);
 									}
 									if (preg_match('/^boolean/i', $description)) {
-											// When submitting settings in the Install Tool, values that default to "false" or "true"
+											// When submitting settings in the Install Tool, values that default to "FALSE" or "true"
 											// in config_default.php will be sent as "0" resp. "1". Therefore, reset the values
 											// to their boolean equivalent.
-										if ($GLOBALS['TYPO3_CONF_VARS'][$k][$vk] === false && $value === '0') {
-											$value = false;
-										} elseif ($GLOBALS['TYPO3_CONF_VARS'][$k][$vk] === true && $value === '1') {
-											$value = true;
+										if ($GLOBALS['TYPO3_CONF_VARS'][$k][$vk] === FALSE && $value === '0') {
+											$value = FALSE;
+										} elseif ($GLOBALS['TYPO3_CONF_VARS'][$k][$vk] === TRUE && $value === '1') {
+											$value = TRUE;
 										}
 									}
 
@@ -2386,7 +2382,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		// Mail tests
 		if (TYPO3_OS == 'WIN') {
 			$smtp = ini_get('SMTP');
-			$bad_smtp = false;
+			$bad_smtp = FALSE;
 			if (!t3lib_div::validIP($smtp)) {
 				$smtp_addr = @gethostbyname($smtp);
 				$bad_smtp = ($smtp_addr == $smtp);
@@ -2574,21 +2570,21 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 
 			// Check availability of PHP session support
 		if (extension_loaded('session')) {
-			$this->message($ext, 'PHP sessions availiable', '
+			$this->message($ext, 'PHP sessions available', '
 				<p>
-					<em>PHP Sessions availiabe</em>
+					<em>PHP Sessions available</em>
 					<br />
 					PHP is compiled with session support and session support is
 					available.
 				</p>
 			', -1);
 		} else {
-			$this->message($ext, 'PHP Sessions not availiabe', '
+			$this->message($ext, 'PHP Sessions not available', '
 				<p>
 					PHP is not compiled with session support, or session support
 					is disabled in php.ini.
 					<br />
-					TYPO3 needs session support
+					TYPO3 needs session support.
 				</p>
 			', 3);
 		}
@@ -3138,7 +3134,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		}
 
 		$cmd = t3lib_div::imageMagickCommand($file, $parameters, $path);
-		$retVal = false;
+		$retVal = FALSE;
 		t3lib_utility_Command::exec($cmd, $retVal);
 		$string = $retVal[0];
 		list(,$ver) = explode('Magick', $string);
@@ -3743,7 +3739,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						$newdbname=trim($this->INSTALL['localconf.php']['NEW_DATABASE_NAME']);
 						if (!preg_match('/[^[:alnum:]_-]/',$newdbname)) {
 							if ($result = $GLOBALS['TYPO3_DB']->sql_pconnect(TYPO3_db_host, TYPO3_db_username, TYPO3_db_password)) {
-								if ($GLOBALS['TYPO3_DB']->admin_query('CREATE DATABASE '.$newdbname)) {
+								if ($GLOBALS['TYPO3_DB']->admin_query('CREATE DATABASE ' . $newdbname . ' CHARACTER SET utf8')) {
 									$this->INSTALL['localconf.php']['typo_db'] = $newdbname;
 									$this->messages[]= "Database '".$newdbname."' created";
 								} else {
@@ -3839,15 +3835,9 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 								if (doubleval($version) > 0 && doubleval($version) < 4) {
 										// Assume GraphicsMagick
 									$value_ext = 'gm';
-								} elseif (doubleval($version) < 5) {
-										// Assume ImageMagick 4.x
-									$value_ext = '';
-								} elseif (doubleval($version) >= 6) {
+								} else {
 										// Assume ImageMagick 6.x
 									$value_ext = 'im6';
-								} else	{
-										// Assume ImageMagick 5.x
-									$value_ext = 'im5';
 								}
 								if (strcmp(strtolower($GLOBALS['TYPO3_CONF_VARS']['GFX']['im_version_5']), $value_ext)) {
 									$this->setValueInLocalconfFile($lines, '$TYPO3_CONF_VARS[\'GFX\'][\'im_version_5\']', $value_ext);
@@ -4092,10 +4082,6 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 							$formArray['im_path'] = array($path);
 							$found = 1;
 						}
-					} elseif (!$found) {
-						$formArray['im_version_5']=array('im5');
-						$formArray['im_path']=array($path);
-						$found=1;
 					}
 				} elseif ($dat['gm']) {
 					$formArray['im_version_5']=array('gm');
@@ -4128,7 +4114,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 
 
 	/**
-	 * Returns true if TTF lib is installed.
+	 * Returns TRUE if TTF lib is installed.
 	 *
 	 * @return boolean TRUE if TrueType support
 	 */
@@ -4537,16 +4523,15 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		';
 
 			// Various checks to detect IM/GM version mismatches
-		$mismatch=false;
+		$mismatch=FALSE;
 		switch (strtolower($GLOBALS['TYPO3_CONF_VARS']['GFX']['im_version_5'])) {
 			case 'gm':
-				if (doubleval($im_path_version)>=2)	$mismatch=true;
-			break;
-			case 'im4':
-				if (doubleval($im_path_version)>=5)	$mismatch=true;
+				if (doubleval($im_path_version)>=2)	$mismatch=TRUE;
 			break;
 			default:
-				if (($GLOBALS['TYPO3_CONF_VARS']['GFX']['im_version_5']?true:false) != (doubleval($im_path_version)>=5))	$mismatch=true;
+				if (($GLOBALS['TYPO3_CONF_VARS']['GFX']['im_version_5'] ? TRUE : FALSE) != (doubleval($im_path_version) >= 6)) {
+					$mismatch = TRUE;
+				}
 			break;
 		}
 
@@ -4574,7 +4559,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 			$this->message('Image Processing', 'Image Processing disabled!', '
 				<p>
 					Image Processing is disabled by the config flag
-					[GFX][image_processing] set to false (zero)
+					[GFX][image_processing] set to FALSE (zero)
 				</p>
 			', 2);
 			$this->output($this->outputWrapper($this->printAll()));
@@ -4828,7 +4813,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						if (!@is_file($mask))	die('Error: '.$mask.' was not a file');
 
 					$output = $imageProc->tempPath.$imageProc->filenamePrefix.t3lib_div::shortMD5($imageProc->alternativeOutputKey.'combine1').'.jpg';
-					$imageProc->combineExec($input,$overlay,$mask,$output, true);
+					$imageProc->combineExec($input,$overlay,$mask,$output, TRUE);
 					$fileInfo = $imageProc->getImageDimensions($output);
 					$result = $this->displayTwinImage($fileInfo[3],$imageProc->IM_commands);
 					$this->message($headCode,'Combine using a GIF mask with only black and white',$result[0],$result[1]);
@@ -4843,7 +4828,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 						if (!@is_file($mask))	die('Error: '.$mask.' was not a file');
 
 					$output = $imageProc->tempPath.$imageProc->filenamePrefix.t3lib_div::shortMD5($imageProc->alternativeOutputKey.'combine2').'.jpg';
-					$imageProc->combineExec($input,$overlay,$mask,$output, true);
+					$imageProc->combineExec($input,$overlay,$mask,$output, TRUE);
 					$fileInfo = $imageProc->getImageDimensions($output);
 					$result = $this->displayTwinImage($fileInfo[3],$imageProc->IM_commands);
 					$this->message($headCode,'Combine using a JPG mask with graylevels',$result[0],$result[1]);
@@ -6869,7 +6854,7 @@ REMOTE_ADDR was '".t3lib_div::getIndpEnv('REMOTE_ADDR')."' (".t3lib_div::getIndp
 		$content = '';
 		switch($type) {
 			case 'get_form':
-				$content.= $this->generateUpdateDatabaseForm_checkboxes($arr_update['clear_table'],'Clear tables (use with care!)',false,true);
+				$content.= $this->generateUpdateDatabaseForm_checkboxes($arr_update['clear_table'],'Clear tables (use with care!)',FALSE,TRUE);
 
 				$content.= $this->generateUpdateDatabaseForm_checkboxes($arr_update['add'],'Add fields');
 				$content.= $this->generateUpdateDatabaseForm_checkboxes($arr_update['change'],'Changing fields',(t3lib_extMgm::isLoaded('dbal')?0:1),0,$arr_update['change_currentValue']);
@@ -7494,6 +7479,7 @@ $out="
 	 * @return void
 	 */
 	function includeTCA() {
+			// this line hast to stay, as included files use $TCA in global scope
 		global $TCA;
 
 		include (TYPO3_tables_script ? PATH_typo3conf.TYPO3_tables_script : PATH_t3lib.'stddb/tables.php');
@@ -7509,7 +7495,7 @@ $out="
 			include (PATH_typo3conf.TYPO3_extTableDef_script);
 		}
 
-		foreach ($TCA as $table => $conf) {
+		foreach ($GLOBALS['TCA'] as $table => $conf) {
 			t3lib_div::loadTCA($table);
 		}
 	}
@@ -7701,12 +7687,6 @@ $out="
 				$this->stylesheets[] = '<link rel="stylesheet" type="text/css" href="' .
 					t3lib_div::createVersionNumberedFilename($this->backPath .
 						'sysext/install/Resources/Public/Stylesheets/ie7.css'
-				) . '" />';
-				// IE6
-			} elseif (intval($browserInfo['version']) < 7) {
-				$this->stylesheets[] = '<link rel="stylesheet" type="text/css" href="' .
-					t3lib_div::createVersionNumberedFilename($this->backPath .
-						'sysext/install/Resources/Public/Stylesheets/ie6.css'
 				) . '" />';
 			}
 		}
@@ -8094,7 +8074,7 @@ $out="
 					This will let you analyze and verify that everything in your
 					installation is in order. In addition, you can configure advanced
 					TYPO3 options in this step.
-		 		</li>
+				</li>
 				<li>
 					<a href="../../index.php">
 						Visit the frontend
@@ -8105,9 +8085,9 @@ $out="
 						Login to the backend
 					</a>
 					<br />
-			 		(Default username: <em>admin</em>, default password: <em>password</em>.)
+					(Default username: <em>admin</em>, default password: <em>password</em>.)
 				</li>
-			 </ul>
+			</ul>
 		';
 	}
 
@@ -8352,7 +8332,7 @@ $out="
 
 	/**
 	 * Returns HTML-code, which is a visual representation of a multidimensional array
-	 * Returns false if $array_in is not an array
+	 * Returns FALSE if $array_in is not an array
 	 *
 	 * @param mixed $incomingValue Array to view
 	 * @return string HTML output

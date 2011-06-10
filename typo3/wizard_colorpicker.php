@@ -27,7 +27,6 @@
 /**
  * Colorpicker wizard
  *
- * $Id $
  * Revised for TYPO3 3.7 May/2004 by Kasper Skårhøj
  *
  * @author	Mathias Schreiber <schreiber@wmdb.de>
@@ -81,7 +80,7 @@ class SC_wizard_colorpicker {
 	var $fieldName;		// Form name (from opener script)
 	var $formName;		// Field name (from opener script)
 	var $md5ID;			// ID of element in opener script for which to set color.
-	var $showPicker;	// Internal: If false, a frameset is rendered, if true the content of the picker script.
+	var $showPicker;	// Internal: If FALSE, a frameset is rendered, if TRUE the content of the picker script.
 
 		// Static:
 	var $HTMLcolorList = "aqua,black,blue,fuchsia,gray,green,lime,maroon,navy,olive,purple,red,silver,teal,yellow,white";

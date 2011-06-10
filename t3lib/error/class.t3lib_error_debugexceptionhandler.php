@@ -32,7 +32,6 @@
  *
  * @package TYPO3
  * @subpackage t3lib_error
- * @version $Id$
  */
 class t3lib_error_DebugExceptionHandler extends t3lib_error_AbstractExceptionHandler {
 
@@ -53,20 +52,13 @@ class t3lib_error_DebugExceptionHandler extends t3lib_error_AbstractExceptionHan
 	 * @author Robert Lemke <robert@typo3.org>
 	 */
 	public function echoExceptionWeb(Exception $exception) {
-		if (!headers_sent()) {
-			header("HTTP/1.1 500 Internal Server Error");
-		}
+		$this->sendStatusHeaders($exception);
 
 		$filePathAndName = $exception->getFile();
 
 		$exceptionCodeNumber = ($exception->getCode() > 0) ? '#' . $exception->getCode() . ': ' : '';
 
-		/**
-		 * TODO: 25.09.2009
-		 * either remove this line or let the link point to site that offers error information for TYPO3
-		 */
-
-			//		$moreInformationLink = ($exceptionCodeNumber != '') ? '(<a href="' . TYPO3_URL_EXCEPTION . $exception->getCode() . '">More information</a>)' : '';
+		$moreInformationLink = ($exceptionCodeNumber != '') ? '(<a href="' . TYPO3_URL_EXCEPTION . 'debug/' . $exception->getCode() . '" target="_blank">More information</a>)' : '';
 		$backtraceCode = $this->getBacktraceCode($exception->getTrace());
 
 		$this->writeLogEntries($exception, self::CONTEXT_WEB);
@@ -121,7 +113,7 @@ class t3lib_error_DebugExceptionHandler extends t3lib_error_AbstractExceptionHan
 						">
 						<div style="width: 100%; background-color: #515151; color: white; padding: 2px; margin: 0 0 6px 0;">Uncaught TYPO3 Exception</div>
 						<div style="width: 100%; padding: 2px; margin: 0 0 6px 0;">
-							<strong style="color: #BE0027;">' . $exceptionCodeNumber . $exception->getMessage() . '</strong> ' . /* $moreInformationLink .*/
+							<strong style="color: #BE0027;">' . $exceptionCodeNumber . $exception->getMessage() . '</strong> ' . $moreInformationLink .
 			 '<br />
 							<br />
 							<span class="ExceptionProperty">' . get_class($exception) . '</span> thrown in file<br />

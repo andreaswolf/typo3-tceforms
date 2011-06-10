@@ -27,7 +27,6 @@
 /**
  * Shows information about a database or file item
  *
- * $Id$
  * Revised for TYPO3 3.7 May/2004 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -100,8 +99,13 @@ class transferData extends t3lib_transferData	{
 		$config = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
 		switch($config['type'])	{
 			case 'input':
-				if (isset($config['checkbox']) && $content==$config['checkbox'])	{$content=''; break;}
-				if (t3lib_div::inList($config['eval'],'date'))	{$content = Date($GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'],$content); }
+				if (isset($config['checkbox']) && $content == $config['checkbox']) {
+					$content = '';
+					break;
+				}
+				if (t3lib_div::inList($config['eval'],'date')) {
+					$content = Date($GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'], $content);
+				}
 			break;
 			case 'group':
 			break;
@@ -137,7 +141,7 @@ class SC_show_item {
 
 		// Internal, static:
 	var $perms_clause;	// Page select clause
-	var $access;		// If true, access to element is granted
+	var $access;		// If TRUE, access to element is granted
 	var $type;			// Which type of element: "file" or "db"
 	var $doc;			// Document Template Object
 
@@ -155,25 +159,25 @@ class SC_show_item {
 	 * @return	void
 	 */
 	function init()	{
-		global $BE_USER,$BACK_PATH,$TCA;
+		global $BACK_PATH;
 
 			// Setting input variables.
 		$this->table = t3lib_div::_GET('table');
 		$this->uid = t3lib_div::_GET('uid');
 
 			// Initialize:
-		$this->perms_clause = $BE_USER->getPagePermsClause(1);
-		$this->access = 0;	// Set to true if there is access to the record / file.
+		$this->perms_clause = $GLOBALS['BE_USER']->getPagePermsClause(1);
+		$this->access = 0;	// Set to TRUE if there is access to the record / file.
 		$this->type = '';	// Sets the type, "db" or "file". If blank, nothing can be shown.
 
 			// Checking if the $table value is really a table and if the user has access to it.
-		if (isset($TCA[$this->table]))	{
+		if (isset($GLOBALS['TCA'][$this->table])) {
 			t3lib_div::loadTCA($this->table);
 			$this->type = 'db';
 			$this->uid = intval($this->uid);
 
 				// Check permissions and uid value:
-			if ($this->uid && $BE_USER->check('tables_select',$this->table))	{
+			if ($this->uid && $GLOBALS['BE_USER']->check('tables_select',$this->table)) {
 				if ((string)$this->table=='pages')	{
 					$this->pageinfo = t3lib_BEfunc::readPageAccess($this->uid,$this->perms_clause);
 					$this->access = is_array($this->pageinfo) ? 1 : 0;
@@ -225,14 +229,14 @@ class SC_show_item {
 			$returnLinkTag = $returnLink ? '<a href="' . $returnLink . '" class="typo3-goBack">' : '<a href="#" onclick="window.close();">';
 
 				// render type by user func
-			$typeRendered = false;
+			$typeRendered = FALSE;
 			if (is_array ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/show_item.php']['typeRendering'])) {
 				foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/show_item.php']['typeRendering'] as $classRef) {
 					$typeRenderObj = t3lib_div::getUserObj($classRef);
 					if(is_object($typeRenderObj) && method_exists($typeRenderObj, 'isValid') && method_exists($typeRenderObj, 'render'))	{
 						if ($typeRenderObj->isValid($this->type, $this)) {
 							$this->content .=  $typeRenderObj->render($this->type, $this);
-							$typeRendered = true;
+							$typeRendered = TRUE;
 							break;
 						}
 					}
@@ -267,7 +271,6 @@ class SC_show_item {
 	 * @return	void
 	 */
 	function renderDBInfo()	{
-		global $TCA;
 
 			// Print header, path etc:
 		$code = $this->doc->getHeader($this->table,$this->row,$this->pageinfo['_thePath'],1).'<br />';
@@ -278,11 +281,11 @@ class SC_show_item {
 		$i = 0;
 
 			// Traverse the list of fields to display for the record:
-		$fieldList = t3lib_div::trimExplode(',', $TCA[$this->table]['interface']['showRecordFieldList'], 1);
+		$fieldList = t3lib_div::trimExplode(',', $GLOBALS['TCA'][$this->table]['interface']['showRecordFieldList'], 1);
 		foreach ($fieldList as $name) {
 			$name = trim($name);
-			if ($TCA[$this->table]['columns'][$name])	{
-				if (!$TCA[$this->table]['columns'][$name]['exclude'] || $GLOBALS['BE_USER']->check('non_exclude_fields', $this->table . ':' . $name)) {
+			if ($GLOBALS['TCA'][$this->table]['columns'][$name]) {
+				if (!$GLOBALS['TCA'][$this->table]['columns'][$name]['exclude'] || $GLOBALS['BE_USER']->check('non_exclude_fields', $this->table . ':' . $name)) {
 					$i++;
 					$tableRows[] = '
 						<tr>
@@ -302,8 +305,8 @@ class SC_show_item {
 
 			// Add path and table information in the bottom:
 		$code = '';
-		$code.= $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.path').': '.t3lib_div::fixed_lgd_cs($this->pageinfo['_thePath'],-48).'<br />';
-		$code.= $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.table').': '.$GLOBALS['LANG']->sL($TCA[$this->table]['ctrl']['title']).' ('.$this->table.') - UID: '.$this->uid.'<br />';
+		$code .= $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.path') . ': ' . t3lib_div::fixed_lgd_cs($this->pageinfo['_thePath'], -48) . '<br />';
+		$code .= $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.table') . ': ' . $GLOBALS['LANG']->sL($GLOBALS['TCA'][$this->table]['ctrl']['title']) . ' (' . $this->table . ') - UID: ' . $this->uid . '<br />';
 		$this->content.= $this->doc->section('', $code);
 
 			// References:
@@ -327,7 +330,7 @@ class SC_show_item {
 		$imgObj->mayScaleUp = 0;
 		$imgObj->absPrefix = PATH_site;
 
-			// Read Image Dimensions (returns false if file was not an image type, otherwise dimensions in an array)
+			// Read Image Dimensions (returns FALSE if file was not an image type, otherwise dimensions in an array)
 		$imgInfo = '';
 		$imgInfo = $imgObj->getImageDimensions($this->file);
 

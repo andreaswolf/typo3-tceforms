@@ -28,8 +28,6 @@
  * Contains an implementation of the mediaWizardProvider supporting some
  * well known providers.
  *
- * $Id: $
-
  * @author	Aishwara M.B.<aishu.moorthy@gmail.com>
  * @author	Steffen Kamper <info@sk-typo3.de>
  * @author	Ernesto Baschny <ernst@cron-it.de>
@@ -121,7 +119,7 @@ class tslib_mediaWizardCoreProvider implements tslib_mediaWizardProvider {
 				// it's a channel
 			$parts = explode('/', $url);
 			$videoId = $parts[count($parts) - 1];
-		} else if (preg_match('/v=([^(\&|$)]*)/', $url, $matches)) {
+		} elseif (preg_match('/v=([^(\&|$)]*)/', $url, $matches)) {
 			$videoId = $matches[1];
 		}
 

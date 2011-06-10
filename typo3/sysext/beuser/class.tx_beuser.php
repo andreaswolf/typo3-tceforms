@@ -27,8 +27,6 @@
 /**
  * Class, adding SU link to context menu
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
@@ -67,12 +65,11 @@ class tx_beuser {
 	 * @return	array		Modified $menuItems array
 	 */
 	function main(&$backRef,$menuItems,$table,$uid)	{
-		global $BE_USER,$TCA,$LANG;
-
 		$localItems = array();	// Accumulation of local items.
 
 			// Detecting menu level
-		if ($BE_USER->isAdmin() && !$backRef->cmLevel && $table == 'be_users')	{	// LEVEL: Primary menu.
+		if ($GLOBALS['BE_USER']->isAdmin() && !$backRef->cmLevel && $table == 'be_users') {
+			// LEVEL: Primary menu.
 
 				// "SU" element added:
 			$url = 'mod.php?M=tools_beuser&SwitchUser='.rawurlencode($uid).'&switchBackUser=1';
@@ -96,7 +93,7 @@ class tx_beuser {
 	function includeLL()	{
 		global $LANG;
 
-		$LOCAL_LANG = $LANG->includeLLFile('EXT:extra_page_cm_options/locallang.php',FALSE);
+		$LOCAL_LANG = $GLOBALS['LANG']->includeLLFile('EXT:extra_page_cm_options/locallang.php', FALSE);
 		return $LOCAL_LANG;
 	}
 }

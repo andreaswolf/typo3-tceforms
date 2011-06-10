@@ -34,8 +34,6 @@ $BE_USER->modAccess($MCONF, 1);
  * @author		Ingo Renner <ingo@typo3.org>
  * @package		TYPO3
  * @subpackage	tx_reports
- *
- * $Id$
  */
 class tx_reports_Module extends t3lib_SCbase {
 
@@ -184,7 +182,7 @@ class tx_reports_Module extends t3lib_SCbase {
 			}
 		}
 
-		$this->content .= $this->doc->section($title, $content, false, true);
+		$this->content .= $this->doc->section($title, $content, FALSE, TRUE);
 	}
 
 	/**

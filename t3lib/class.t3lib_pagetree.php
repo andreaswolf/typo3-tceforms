@@ -27,7 +27,6 @@
 /**
  * Generate a page-tree, non-browsable.
  *
- * $Id$
  * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -100,7 +99,7 @@ class t3lib_pageTree extends t3lib_treeView {
 	}
 
 	/**
-	 * Returns true/false if the next level for $id should be expanded - and all levels should, so we always return 1.
+	 * Returns TRUE/FALSE if the next level for $id should be expanded - and all levels should, so we always return 1.
 	 *
 	 * @param	integer		ID (uid) to test for (see extending classes where this is checked againts session data)
 	 * @return	boolean

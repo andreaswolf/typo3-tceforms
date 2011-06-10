@@ -28,8 +28,6 @@
  * @author		François Suter <francois@typo3.org>
  * @package		TYPO3
  * @subpackage	tx_scheduler
- *
- * $Id$
  */
 class tx_scheduler_TestTask_AdditionalFieldProvider implements tx_scheduler_AdditionalFieldProvider {
 
@@ -81,20 +79,20 @@ class tx_scheduler_TestTask_AdditionalFieldProvider implements tx_scheduler_Addi
 
 	/**
 	 * This method checks any additional data that is relevant to the specific task
-	 * If the task class is not relevant, the method is expected to return true
+	 * If the task class is not relevant, the method is expected to return TRUE
 	 *
 	 * @param	array					$submittedData: reference to the array containing the data submitted by the user
 	 * @param	tx_scheduler_Module		$parentObject: reference to the calling object (Scheduler's BE module)
-	 * @return	boolean					True if validation was ok (or selected class is not relevant), false otherwise
+	 * @return	boolean					TRUE if validation was ok (or selected class is not relevant), FALSE otherwise
 	 */
 	public function validateAdditionalFields(array &$submittedData, tx_scheduler_Module $parentObject) {
 		$submittedData['email'] = trim($submittedData['email']);
 
 		if (empty($submittedData['email'])) {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:scheduler/mod1/locallang.xml:msg.noEmail'), t3lib_FlashMessage::ERROR);
-			$result = false;
+			$result = FALSE;
 		} else {
-			$result = true;
+			$result = TRUE;
 		}
 
 		return $result;

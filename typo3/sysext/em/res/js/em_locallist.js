@@ -28,7 +28,6 @@
  * @author Steffen Kamper <info@sk-typo3.de>
  * @package TYPO3
  * @subpackage extension manager
- * @version $Id: $
  */
 Ext.ns('TYPO3.EM', 'TYPO3.EM.GridColumns');
 
@@ -359,7 +358,7 @@ TYPO3.EM.LocalList = Ext.extend(Ext.grid.GridPanel, {
 				},
 				datachanged: function(store) {
 					Ext.getCmp('displayExtensionLabel').setText(TYPO3.lang.extensions + ' ' + store.data.length);
-					var hasFilters = false;
+					var hasFilters = store.hasStoreFilter();
 					TYPO3.EM.Filters.filters.each(function (filter) {
 						if (filter.active) {
 							hasFilters = true;
@@ -411,6 +410,21 @@ TYPO3.EM.LocalList = Ext.extend(Ext.grid.GridPanel, {
 				}
 
 				return true;
+			},
+
+			hasStoreFilter: function() {
+				return (TYPO3.settings.EM.hide_obsolete || TYPO3.settings.EM.hide_shy || TYPO3.settings.EM.display_installed);
+			},
+
+			clearStoreFilters: function(scope) {
+				Ext.each(scope.filterMenuButton.menu.items.items, function(item) {
+					item.setChecked(false, true);
+				});
+				TYPO3.settings.EM.hide_obsolete = TYPO3.settings.EM.hide_shy = TYPO3.settings.EM.display_installed = 0;
+				TYPO3.EM.ExtDirect.saveSetting('display_installed', 0);
+				TYPO3.EM.ExtDirect.saveSetting('hide_shy', 0);
+				TYPO3.EM.ExtDirect.saveSetting('hide_obsolete', 0);
+				scope.filterRecords();
 			},
 
 			highlightSearch: function(value) {
@@ -533,6 +547,7 @@ TYPO3.EM.LocalList = Ext.extend(Ext.grid.GridPanel, {
 					text: TYPO3.lang.cmd_ClearAllFilters,
 					ref: '../doClearFilters',
 					handler: function() {
+						this.localstore.clearStoreFilters(this);
 						TYPO3.EM.Filters.clearFilters();
 					},
 					scope: this,

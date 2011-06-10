@@ -26,8 +26,6 @@
  * This class contains compression functions for the TYPO3 Frontend. It can be
  * used only in EXT:cms/tslib/index_ts.php
  *
- * $Id$
- *
  * @author	Dmitry Dulepov <dmitry@typo3.org>
  * @package	TYPO3
  * @subpackage	tx_cms
@@ -56,7 +54,7 @@ class tslib_fecompression implements t3lib_Singleton {
 	function compressionOutputHandler($outputBuffer, $mode) {
 		// Compress the content
 		$outputBuffer = ob_gzhandler($outputBuffer, $mode);
-		if ($outputBuffer !== false) {
+		if ($outputBuffer !== FALSE) {
 			// Save compressed size
 			$this->contentLength += strlen($outputBuffer);
 

@@ -26,9 +26,8 @@
 ***************************************************************/
 /**
  * Form-data processing
- * included from index_ts.php
+ * Included from index_ts.php
  *
- * $Id$
  * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -217,7 +216,7 @@ class tslib_feTCE	{
 	/**
 	 * Method available to the submit scripts for creating insert queries.
 	 * Automatically adds tstamp, crdate, cruser_id field/value pairs.
-	 * Will allow only field names which are either found in $TCA[...][columns] OR in the $this->extraList
+	 * Will allow only field names which are either found in $GLOBALS['TCA'][...][columns] OR in the $this->extraList
 	 * Executes an insert query!
 	 *
 	 * @param	string		The table name for which to create the insert statement
@@ -236,7 +235,11 @@ class tslib_feTCE	{
 			$dataArr[$field] = $GLOBALS['EXEC_TIME'];
 			$extraList .= ',' . $field;
 		}
-		if ($GLOBALS['TCA'][$table]['ctrl']['cruser_id'])	{$field=$GLOBALS['TCA'][$table]['ctrl']['cruser_id']; $dataArr[$field]=0; $extraList.=','.$field;}
+		if ($GLOBALS['TCA'][$table]['ctrl']['cruser_id']) {
+			$field = $GLOBALS['TCA'][$table]['ctrl']['cruser_id'];
+			$dataArr[$field] = 0;
+			$extraList .= ',' . $field;
+		}
 
 		unset($dataArr['uid']);	// uid can never be set
 		$insertFields = array();
@@ -270,7 +273,7 @@ class tslib_feTCE	{
 			}
 
 			if ($cacheCmd == intval($GLOBALS['TSFE']->id)) {
-					// Setting no_cache true if the cleared-cache page is the current page!
+					// Setting no_cache TRUE if the cleared-cache page is the current page!
 				$GLOBALS['TSFE']->set_no_cache();
 			}
 		}

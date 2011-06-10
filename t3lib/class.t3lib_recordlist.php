@@ -27,7 +27,6 @@
 /**
  * Library with a single function addElement that returns tablerows based on some input.
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  * XHTML compliant
  *
@@ -344,7 +343,6 @@ class t3lib_recordList {
 	 * @return	void
 	 */
 	function initializeLanguages() {
-		global $TCA, $LANG;
 
 			// Look up page overlays:
 		$this->pageOverlays = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(

@@ -30,7 +30,6 @@
  * The script configures constants, includes libraries and does a little logic here and there in order to instantiate the right classes to create the webpage.
  * All the real data processing goes on in the "tslib/" classes which this script will include and use as needed.
  *
- * $Id$
  * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -46,17 +45,13 @@ if (version_compare(phpversion(), '5.2', '<'))	die ('TYPO3 requires PHP 5.2.0 or
 // *******************************
 // Set error reporting
 // *******************************
-if (defined('E_DEPRECATED')) {
-	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
-} else {
-	error_reporting(E_ALL ^ E_NOTICE);
-}
+error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
 
 
 // ******************
 // Constants defined
 // ******************
-$TYPO3_MISC['microtime_start'] = microtime(true);
+$TYPO3_MISC['microtime_start'] = microtime(TRUE);
 define('TYPO3_OS', stristr(PHP_OS,'win')&&!stristr(PHP_OS,'darwin')?'WIN':'');
 define('TYPO3_MODE','FE');
 
@@ -279,7 +274,7 @@ if (is_array($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/index_ts.php']['preBeUser']))
 $BE_USER = NULL;
 /** @var $BE_USER t3lib_tsfeBeUserAuth */
 if ($_COOKIE['be_typo_user']) {		// If the backend cookie is set, we proceed and checks if a backend user is logged in.
-	$TYPO3_MISC['microtime_BE_USER_start'] = microtime(true);
+	$TYPO3_MISC['microtime_BE_USER_start'] = microtime(TRUE);
 	$TT->push('Back End user initialized','');
 
 			// the value this->formfield_status is set to empty in order to disable login-attempts to the backend account through this script
@@ -298,7 +293,7 @@ if ($_COOKIE['be_typo_user']) {		// If the backend cookie is set, we proceed and
 			$TSFE->beUserLogin=0;
 		}
 	$TT->pull();
-	$TYPO3_MISC['microtime_BE_USER_end'] = microtime(true);
+	$TYPO3_MISC['microtime_BE_USER_end'] = microtime(TRUE);
 } elseif ($TSFE->ADMCMD_preview_BEUSER_uid)	{
 
 		// the value this->formfield_status is set to empty in order to disable login-attempts to the backend account through this script
@@ -471,7 +466,7 @@ if ($TSFE->isINTincScript())		{
 // ***************
 // Output content
 // ***************
-$sendTSFEContent = false;
+$sendTSFEContent = FALSE;
 if ($TSFE->isOutputting())	{
 	$TT->push('Print Content','');
 	$TSFE->processOutput();
@@ -488,7 +483,7 @@ if ($TSFE->isOutputting())	{
 				// Special feature: Include libraries
 			foreach ($EXTiS_config as $EXTiS_cPart) {
 				if (isset($EXTiS_cPart['conf']['includeLibs']) && $EXTiS_cPart['conf']['includeLibs']) {
-					$EXTiS_resourceList = t3lib_div::trimExplode(',',$EXTiS_cPart['conf']['includeLibs'], true);
+					$EXTiS_resourceList = t3lib_div::trimExplode(',',$EXTiS_cPart['conf']['includeLibs'], TRUE);
 					$TSFE->includeLibraries($EXTiS_resourceList);
 				}
 			}
@@ -511,7 +506,7 @@ if ($TSFE->isOutputting())	{
 
 		$TT->pull();
 	} else {
-		$sendTSFEContent = true;
+		$sendTSFEContent = TRUE;
 	}
 	$TT->pull();
 }
@@ -526,7 +521,7 @@ $TSFE->storeSessionData();
 // ***********
 // Statistics
 // ***********
-$TYPO3_MISC['microtime_end'] = microtime(true);
+$TYPO3_MISC['microtime_end'] = microtime(TRUE);
 $TSFE->setParseTime();
 if ($TSFE->isOutputting() && (!empty($TSFE->TYPO3_CONF_VARS['FE']['debug']) || !empty($TSFE->config['config']['debug']))) {
 	$TSFE->content .=  LF . '<!-- Parsetime: ' . $TSFE->scriptParseTime . 'ms -->';

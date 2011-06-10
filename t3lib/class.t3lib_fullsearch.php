@@ -28,8 +28,6 @@
  * Class used in module tools/dbint (advanced search) and which may hold code specific for that module
  * However the class has a general principle in it which may be used in the web/export module.
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @coauthor	Jo Hasenau <info@cybercraft.de>
  */
@@ -359,8 +357,7 @@ class t3lib_fullsearch {
 	 * @return	[type]		...
 	 */
 	function queryMaker() {
-		global $TCA;
-
+		$output = '';
 		if (is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['t3lib_fullsearch'])) {
 			$this->hookArray = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['t3lib_fullsearch'];
 		}
@@ -387,7 +384,7 @@ class t3lib_fullsearch {
 		$mQ = $GLOBALS['SOBE']->MOD_SETTINGS['search_query_makeQuery'];
 
 			// Make form elements:
-		if ($qGen->table && is_array($TCA[$qGen->table])) {
+		if ($qGen->table && is_array($GLOBALS['TCA'][$qGen->table])) {
 			if ($mQ) {
 					// Show query
 				$qGen->enablePrefix = 1;
@@ -412,7 +409,7 @@ class t3lib_fullsearch {
 
 				$res = @$GLOBALS['TYPO3_DB']->sql_query($qExplain);
 				if ($GLOBALS['TYPO3_DB']->sql_error()) {
-					$out .= '<BR><strong>Error:</strong><BR><font color="red"><strong>' . $GLOBALS['TYPO3_DB']->sql_error() . '</strong></font>';
+					$out = '<BR><strong>Error:</strong><BR><font color="red"><strong>' . $GLOBALS['TYPO3_DB']->sql_error() . '</strong></font>';
 					$output .= $GLOBALS['SOBE']->doc->section('SQL error', $out, 0, 1);
 				} else {
 					$cPR = $this->getQueryResultCode($mQ, $res, $qGen->table);
@@ -433,8 +430,7 @@ class t3lib_fullsearch {
 	 * @return	[type]		...
 	 */
 	function getQueryResultCode($mQ, $res, $table) {
-		global $TCA;
-		$output = '';
+		$out = '';
 		$cPR = array();
 		switch ($mQ) {
 			case 'count':
@@ -445,7 +441,7 @@ class t3lib_fullsearch {
 			case 'all':
 				$rowArr = array();
 				while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-					$rowArr[] = $this->resultRowDisplay($row, $TCA[$table], $table);
+					$rowArr[] = $this->resultRowDisplay($row, $GLOBALS['TCA'][$table], $table);
 					$lrow = $row;
 				}
 				if (is_array($this->hookArray['beforeResultTable'])) {
@@ -454,7 +450,8 @@ class t3lib_fullsearch {
 					}
 				}
 				if (count($rowArr)) {
-					$out .= '<table border="0" cellpadding="2" cellspacing="1" width="100%">' . $this->resultRowTitles($lrow, $TCA[$table], $table) . implode(LF, $rowArr) . '</table>';
+					$out .= '<table border="0" cellpadding="2" cellspacing="1" width="100%">' .
+							$this->resultRowTitles($lrow, $GLOBALS['TCA'][$table], $table) . implode(LF, $rowArr) . '</table>';
 				}
 				if (!$out) {
 					$out = '<em>No rows selected!</em>';
@@ -470,7 +467,7 @@ class t3lib_fullsearch {
 						$rowArr[] = $this->csvValues(array_keys($row), ',', '');
 						$first = 0;
 					}
-					$rowArr[] = $this->csvValues($row, ',', '"', $TCA[$table], $table);
+					$rowArr[] = $this->csvValues($row, ',', '"', $GLOBALS['TCA'][$table], $table);
 				}
 				if (count($rowArr)) {
 					$out .= '<textarea name="whatever" rows="20" wrap="off"' . $GLOBALS['SOBE']->doc->formWidthText($this->formW, '', 'off') . ' class="fixed-font">' . t3lib_div::formatForTextarea(implode(LF, $rowArr)) . '</textarea>';
@@ -582,17 +579,17 @@ class t3lib_fullsearch {
 	 * @return	[type]		...
 	 */
 	function search() {
-		global $TCA;
 		$SET = $GLOBALS['SOBE']->MOD_SETTINGS;
 		$swords = $SET['sword'];
 
+		$out = '';
 		$limit = 200;
 		$showAlways = 0;
 		if ($swords) {
-			foreach ($TCA as $table => $value) {
+			foreach ($GLOBALS['TCA'] as $table => $value) {
 					// Get fields list
 				t3lib_div::loadTCA($table);
-				$conf = $TCA[$table];
+				$conf = $GLOBALS['TCA'][$table];
 
 					// avoid querying tables with no columns
 				if (empty($conf['columns'])) {
@@ -699,11 +696,10 @@ class t3lib_fullsearch {
 	 * @return	[type]		...
 	 */
 	function getProcessedValueExtra($table, $fN, $fV, $conf, $splitString) {
-		global $TCA;
 			// Analysing the fields in the table.
-		if (is_array($TCA[$table])) {
+		if (is_array($GLOBALS['TCA'][$table])) {
 			t3lib_div::loadTCA($table);
-			$fC = $TCA[$table]['columns'][$fN];
+			$fC = $GLOBALS['TCA'][$table]['columns'][$fN];
 			$fields = $fC['config'];
 			$fields['exclude'] = $fC['exclude'];
 			if (is_array($fC) && $fC['label']) {
@@ -925,7 +921,6 @@ class t3lib_fullsearch {
 					}
 				}
 			}
-			global $TCA;
 			if (stristr($fieldSetup['allowed'], ',')) {
 				$from_table_Arr = explode(',', $fieldSetup['allowed']);
 				$useTablePrefix = 1;
@@ -965,13 +960,13 @@ class t3lib_fullsearch {
 					$tablePrefix = $from_table . '_';
 				}
 				$counter = 1;
-				if (is_array($TCA[$from_table])) {
+				if (is_array($GLOBALS['TCA'][$from_table])) {
 					t3lib_div::loadTCA($from_table);
-					$labelField = $TCA[$from_table]['ctrl']['label'];
-					$altLabelField = $TCA[$from_table]['ctrl']['label_alt'];
-					if ($TCA[$from_table]['columns'][$labelField]['config']['items']) {
-						reset($TCA[$from_table]['columns'][$labelField]['config']['items']);
-						while (list(, $labelArray) = each($TCA[$from_table]['columns'][$labelField]['config']['items'])) {
+					$labelField = $GLOBALS['TCA'][$from_table]['ctrl']['label'];
+					$altLabelField = $GLOBALS['TCA'][$from_table]['ctrl']['label_alt'];
+					if ($GLOBALS['TCA'][$from_table]['columns'][$labelField]['config']['items']) {
+						reset($GLOBALS['TCA'][$from_table]['columns'][$labelField]['config']['items']);
+						while (list(, $labelArray) = each($GLOBALS['TCA'][$from_table]['columns'][$labelField]['config']['items'])) {
 							if (substr($labelArray[0], 0, 4) == 'LLL:') {
 								$labelFieldSelect[$labelArray[1]] = $GLOBALS['LANG']->sL($labelArray[0]);
 							} else {
@@ -980,9 +975,9 @@ class t3lib_fullsearch {
 						}
 						$useSelectLabels = 1;
 					}
-					if ($TCA[$from_table]['columns'][$altLabelField]['config']['items']) {
-						reset($TCA[$from_table]['columns'][$altLabelField]['config']['items']);
-						foreach ($TCA[$from_table]['columns'][$altLabelField]['config']['items'] as $altLabelArray) {
+					if ($GLOBALS['TCA'][$from_table]['columns'][$altLabelField]['config']['items']) {
+						reset($GLOBALS['TCA'][$from_table]['columns'][$altLabelField]['config']['items']);
+						foreach ($GLOBALS['TCA'][$from_table]['columns'][$altLabelField]['config']['items'] as $altLabelArray) {
 							if (substr($altLabelArray[0], 0, 4) == 'LLL:') {
 								$altLabelFieldSelect[$altLabelArray[1]] = $GLOBALS['LANG']->sL($altLabelArray[0]);
 							} else {

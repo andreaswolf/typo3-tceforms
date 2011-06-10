@@ -30,8 +30,6 @@
  * interaction.
  * This class is instantiated globally as $TYPO3_DB in TYPO3 scripts.
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
@@ -279,7 +277,7 @@ class t3lib_DB {
 	 * Creates and executes a SELECT query, selecting fields ($select) from two/three tables joined
 	 * Use $mm_table together with $local_table or $foreign_table to select over two tables. Or use all three tables to select the full MM-relation.
 	 * The JOIN is done with [$local_table].uid <--> [$mm_table].uid_local  / [$mm_table].uid_foreign <--> [$foreign_table].uid
-	 * The function is very useful for selecting MM-relations between tables adhering to the MM-format used by TCE (TYPO3 Core Engine). See the section on $TCA in Inside TYPO3 for more details.
+	 * The function is very useful for selecting MM-relations between tables adhering to the MM-format used by TCE (TYPO3 Core Engine). See the section on $GLOBALS['TCA'] in Inside TYPO3 for more details.
 	 *
 	 * Usage: 12 (spec. ext. sys_action, sys_messages, sys_todos)
 	 *
@@ -412,7 +410,7 @@ class t3lib_DB {
 	 * @param	string		$field: Name of the field to use in the COUNT() expression (e.g. '*')
 	 * @param	string		$table: Name of the table to count rows for
 	 * @param	string		$where: (optional) WHERE statement of the query
-	 * @return	mixed		Number of rows counter (integer) or false if something went wrong (boolean)
+	 * @return	mixed		Number of rows counter (integer) or FALSE if something went wrong (boolean)
 	 */
 	public function exec_SELECTcountRows($field, $table, $where = '') {
 		$count = FALSE;
@@ -455,7 +453,7 @@ class t3lib_DB {
 	 * @param	string		See exec_INSERTquery()
 	 * @param	array		See exec_INSERTquery()
 	 * @param	string/array		See fullQuoteArray()
-	 * @return	string		Full SQL query for INSERT (unless $fields_values does not contain any elements in which case it will be false)
+	 * @return	string		Full SQL query for INSERT (unless $fields_values does not contain any elements in which case it will be FALSE)
 	 */
 	function INSERTquery($table, $fields_values, $no_quote_fields = FALSE) {
 
@@ -489,7 +487,7 @@ class t3lib_DB {
 	 * @param	array		Field names
 	 * @param	array		Table rows. Each row should be an array with field values mapping to $fields
 	 * @param	string/array		See fullQuoteArray()
-	 * @return	string		Full SQL query for INSERT (unless $rows does not contain any elements in which case it will be false)
+	 * @return	string		Full SQL query for INSERT (unless $rows does not contain any elements in which case it will be FALSE)
 	 */
 	public function INSERTmultipleRows($table, array $fields, array $rows, $no_quote_fields = FALSE) {
 			// Table and fieldnames should be "SQL-injection-safe" when supplied to this
@@ -1165,7 +1163,7 @@ class t3lib_DB {
 		$isLocalhost = ($TYPO3_db_host == 'localhost' || $TYPO3_db_host == '127.0.0.1');
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['no_pconnect']) {
 			if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['dbClientCompress'] && !$isLocalhost) {
-					// We use PHP's default value for 4th parameter (new_link), which is false.
+					// We use PHP's default value for 4th parameter (new_link), which is FALSE.
 					// See PHP sources, for example: file php-5.2.5/ext/mysql/php_mysql.c,
 					// function php_mysql_do_connect(), near line 525
 				$this->link = @mysql_connect($TYPO3_db_host, $TYPO3_db_username, $TYPO3_db_password, FALSE, MYSQL_CLIENT_COMPRESS);
@@ -1491,7 +1489,7 @@ class t3lib_DB {
 	 * Checks if recordset is valid and writes debugging inormation into devLog if not.
 	 *
 	 * @param	resource	$res	Recordset
-	 * @return	boolean	<code>false</code> if recordset is not valid
+	 * @return	boolean	<code>FALSE</code> if recordset is not valid
 	 */
 	function debug_check_recordset($res) {
 		if (!$res) {
@@ -1537,7 +1535,7 @@ class t3lib_DB {
 	 * @param	string		SQL query
 	 * @param	string		Table(s) from which to select. This is what comes right after "FROM ...". Required value.
 	 * @param	integer		Number of resulting rows
-	 * @return	boolean		True if explain was run, false otherwise
+	 * @return	boolean		TRUE if explain was run, FALSE otherwise
 	 */
 	protected function explain($query, $from_table, $row_count) {
 

@@ -27,8 +27,6 @@
 /**
  * TYPO3 SQL parser
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
@@ -2057,12 +2055,12 @@ class t3lib_sqlparser {
 						$output .= isset($v['func']['pos']) ? ', ' . $v['func']['pos'][0] : '';
 						$output .= ')';
 					} elseif (isset($v['func']) && $v['func']['type'] === 'IFNULL') {
-						$output = ' ' . trim($v['modifier']) . ' IFNULL(';
+						$output .= ' ' . trim($v['modifier']) . ' IFNULL(';
 						$output .= ($v['func']['table'] ? $v['func']['table'] . '.' : '') . $v['func']['field'];
 						$output .= ', ' . $v['func']['default'][1] . $this->compileAddslashes($v['func']['default'][0]) . $v['func']['default'][1];
 						$output .= ')';
 					} elseif (isset($v['func']) && $v['func']['type'] === 'FIND_IN_SET') {
-						$output = ' ' . trim($v['modifier']) . ' FIND_IN_SET(';
+						$output .= ' ' . trim($v['modifier']) . ' FIND_IN_SET(';
 						$output .= $v['func']['str'][1] . $v['func']['str'][0] . $v['func']['str'][1];
 						$output .= ', ' . ($v['func']['table'] ? $v['func']['table'] . '.' : '') . $v['func']['field'];
 						$output .= ')';
@@ -2164,7 +2162,7 @@ class t3lib_sqlparser {
 	 *
 	 * @param	string		Part definition of string; "SELECT" = fieldlist (also ORDER BY and GROUP BY), "FROM" = table list, "WHERE" = Where clause.
 	 * @param	string		SQL string to verify parsability of
-	 * @return	mixed		Returns array with string 1 and 2 if error, otherwise false
+	 * @return	mixed		Returns array with string 1 and 2 if error, otherwise FALSE
 	 */
 	public function debug_parseSQLpart($part, $str) {
 		$retVal = FALSE;
@@ -2188,8 +2186,8 @@ class t3lib_sqlparser {
 	 *
 	 * @param	string		SQL String 1
 	 * @param	string		SQL string 2
-	 * @param	boolean		If true, the strings are compared insensitive to case
-	 * @return	mixed		Returns array with string 1 and 2 if error, otherwise false
+	 * @param	boolean		If TRUE, the strings are compared insensitive to case
+	 * @return	mixed		Returns array with string 1 and 2 if error, otherwise FALSE
 	 */
 	public function debug_parseSQLpartCompare($str, $newStr, $caseInsensitive = FALSE) {
 		if ($caseInsensitive) {

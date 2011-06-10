@@ -28,7 +28,6 @@
  * Libraries for pagegen.php
  * The script "pagegen.php" is included by "index_ts.php" when a page is not cached but needs to be rendered.
  *
- * $Id$
  * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  * XHTML compliant
  *
@@ -215,7 +214,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 			$GLOBALS['TSFE']->logDeprecatedTyposcript('config.doctype = html_5', 'It will be removed in TYPO3 4.7. Use html5 instead.');
 			$GLOBALS['TSFE']->config['config']['doctype'] = 'html5';
 		}
-		
+
 			// Setting XHTML-doctype from doctype
 		if (!$GLOBALS['TSFE']->config['config']['xhtmlDoctype'])	{
 			$GLOBALS['TSFE']->config['config']['xhtmlDoctype'] = $GLOBALS['TSFE']->config['config']['doctype'];
@@ -267,8 +266,15 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 			}
 		}
 
-		if (is_array($GLOBALS['TSFE']->pSetup['includeLibs.']))	{$incLibs=$GLOBALS['TSFE']->pSetup['includeLibs.'];} else {$incLibs=array();}
-		if (is_array($GLOBALS['TSFE']->tmpl->setup['includeLibs.']))	{$incLibs+=$GLOBALS['TSFE']->tmpl->setup['includeLibs.'];}	// toplevel 'includeLibs' is added to the PAGE.includeLibs. In that way, PAGE-libs get first priority, because if the key already exist, it's not altered. (Due to investigation by me)
+		if (is_array($GLOBALS['TSFE']->pSetup['includeLibs.'])) {
+			$incLibs = $GLOBALS['TSFE']->pSetup['includeLibs.'];
+		} else {
+			$incLibs = array();
+		}
+		if (is_array($GLOBALS['TSFE']->tmpl->setup['includeLibs.'])) {
+				// toplevel 'includeLibs' is added to the PAGE.includeLibs. In that way, PAGE-libs get first priority, because if the key already exist, it's not altered. (Due to investigation by me)
+			$incLibs += $GLOBALS['TSFE']->tmpl->setup['includeLibs.'];
+		}
 		if (count($incLibs))	{
 			foreach ($incLibs as $theLib) {
 				if (!is_array($theLib) && $incFile=$GLOBALS['TSFE']->tmpl->getFileName($theLib))	{
@@ -435,6 +441,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 					break;
 				case 'html5' :
 					$docTypeParts[] = '<!DOCTYPE html>';
+					$pageRenderer->setMetaCharsetTag('<meta charset="|" />');
 					break;
 				case 'none' :
 					break;
@@ -511,7 +518,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 		}
 
 			// Including CSS files
-		if (is_array($GLOBALS['TSFE']->tmpl->setup['plugin.'])) {
+		if (is_array($GLOBALS['TSFE']->tmpl->setup['plugin.']) && empty($GLOBALS['TSFE']->config['config']['removeDefaultCss'])) {
 			$temp_styleLines = array ();
 			foreach ($GLOBALS['TSFE']->tmpl->setup['plugin.'] as $key => $iCSScode) {
 				if (is_array($iCSScode) && $iCSScode['_CSS_DEFAULT_STYLE']) {
@@ -1142,25 +1149,25 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 	}
 
 	/**
-	 * Checks if the value defined in "config.linkVars" contains an allowed value. Otherwise, return false which means the value will not be added to any links.
+	 * Checks if the value defined in "config.linkVars" contains an allowed value. Otherwise, return FALSE which means the value will not be added to any links.
 	 *
 	 * @param	string		The string in which to find $needle
 	 * @param	string		The string to find in $haystack
-	 * @return	boolean		Returns true if $needle matches or is found in $haystack
+	 * @return	boolean		Returns TRUE if $needle matches or is found in $haystack
 	 */
 	public static function isAllowedLinkVarValue($haystack,$needle) {
-		$OK = false;
+		$OK = FALSE;
 
 		if ($needle=='int' || $needle=='integer')	{	// Integer
 
 			if (t3lib_div::testInt($haystack))	{
-				$OK = true;
+				$OK = TRUE;
 			}
 
 		} elseif (preg_match('/^\/.+\/[imsxeADSUXu]*$/', $needle))	{	// Regular expression, only "//" is allowed as delimiter
 
 			if (@preg_match($needle, $haystack))	{
-				$OK = true;
+				$OK = TRUE;
 			}
 
 		} elseif (strstr($needle,'-'))	{	// Range
@@ -1168,7 +1175,7 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 			if (t3lib_div::testInt($haystack))	{
 				$range = explode('-',$needle);
 				if ($range[0] <= $haystack && $range[1] >= $haystack)	{
-					$OK = true;
+					$OK = TRUE;
 				}
 			}
 
@@ -1176,11 +1183,11 @@ See <a href="http://wiki.typo3.org/index.php/TYPO3_3.8.1" target="_blank">wiki.t
 
 			$haystack = str_replace(' ','',$haystack);	// Trim the input
 			if (strstr('|'.$needle.'|', '|'.$haystack.'|'))	{
-				$OK = true;
+				$OK = TRUE;
 			}
 
 		} elseif (!strcmp($needle,$haystack))	{	// String comparison
-			$OK = true;
+			$OK = TRUE;
 		}
 
 		return $OK;

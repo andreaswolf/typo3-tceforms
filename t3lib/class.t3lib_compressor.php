@@ -32,7 +32,6 @@
  * @author	Steffen Gebert <steffen@steffen-gebert.de>
  * @package TYPO3
  * @subpackage t3lib
- * $Id$
  */
 class t3lib_Compressor {
 
@@ -226,7 +225,7 @@ class t3lib_Compressor {
 	 */
 	public function compressCssFile($filename) {
 			// generate the unique name of the file
-		$filenameAbsolute = t3lib_div::resolveBackPath(PATH_typo3 . substr($filename, strlen($GLOBALS['BACK_PATH'])));
+		$filenameAbsolute = t3lib_div::resolveBackPath(PATH_typo3 . $this->getFilenameFromMainDir($filename));
 		$unique = $filenameAbsolute . filemtime($filenameAbsolute) . filesize($filenameAbsolute);
 
 		$pathinfo = pathinfo($filename);

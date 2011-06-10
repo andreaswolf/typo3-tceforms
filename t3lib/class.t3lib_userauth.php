@@ -27,7 +27,6 @@
 /**
  * Contains a base class for authentication of users in TYPO3, both frontend and backend.
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -114,7 +113,7 @@ class t3lib_userAuth {
 	var $lastLogin_column = '';
 
 	var $enablecolumns = array(
-		'rootLevel' => '', // Boolean: If true, 'AND pid=0' will be a part of the query...
+		'rootLevel' => '', // Boolean: If TRUE, 'AND pid=0' will be a part of the query...
 		'disabled' => '',
 		'starttime' => '',
 		'endtime' => '',
@@ -127,7 +126,7 @@ class t3lib_userAuth {
 	var $formfield_status = ''; // formfield with status: *'login', 'logout'. If empty login is not verified.
 	var $security_level = 'normal'; // sets the level of security. *'normal' = clear-text. 'challenged' = hashed password/username from form in $formfield_uident. 'superchallenged' = hashed password hashed again with username.
 
-	var $auth_timeout_field = 0; // Server session lifetime. If > 0: session-timeout in seconds. If false or <0: no timeout. If string: The string is a fieldname from the usertable where the timeout can be found.
+	var $auth_timeout_field = 0; // Server session lifetime. If > 0: session-timeout in seconds. If FALSE or <0: no timeout. If string: The string is a fieldname from the usertable where the timeout can be found.
 	var $lifetime = 0; // Client session lifetime. 0 = Session-cookies. If session-cookies, the browser will stop the session when the browser is closed. Otherwise this specifies the lifetime of a cookie that keeps the session.
 	var $gc_time = 0; // GarbageCollection. Purge all server session data older than $gc_time seconds. 0 = default to $this->timeout or use 86400 seconds (1 day) if $this->lifetime is 0
 	var $gc_probability = 1; // Possibility (in percent) for GarbageCollection to be run.
@@ -136,7 +135,7 @@ class t3lib_userAuth {
 	var $sendNoCacheHeaders = TRUE; // If this is set, headers is sent to assure, caching is NOT done
 	var $getFallBack = FALSE; // If this is set, authentication is also accepted by the $_GET. Notice that the identification is NOT 128bit MD5 hash but reduced. This is done in order to minimize the size for mobile-devices, such as WAP-phones
 	var $hash_length = 32; // The ident-hash is normally 32 characters and should be! But if you are making sites for WAP-devices og other lowbandwidth stuff, you may shorten the length. Never let this value drop below 6. A length of 6 would give you more than 16 mio possibilities.
-	var $getMethodEnabled = FALSE; // Setting this flag true lets user-authetication happen from GET_VARS if POST_VARS are not set. Thus you may supply username/password from the URL.
+	var $getMethodEnabled = FALSE; // Setting this flag TRUE lets user-authetication happen from GET_VARS if POST_VARS are not set. Thus you may supply username/password from the URL.
 	var $lockIP = 4; // If set, will lock the session to the users IP address (all four numbers. Reducing to 1-3 means that only first, second or third part of the IP address is used).
 	var $lockHashKeyWords = 'useragent'; // Keyword list (commalist with no spaces!): "useragent". Each keyword indicates some information that can be included in a integer hash made to lock down usersessions. Configurable through $TYPO3_CONF_VARS[TYPO3_MODE]['lockHashKeyWords']
 
@@ -150,12 +149,12 @@ class t3lib_userAuth {
 	var $id; // Internal: Will contain session_id (MD5-hash)
 	var $cookieId; // Internal: Will contain the session_id gotten from cookie or GET method. This is used in statistics as a reliable cookie (one which is known to come from $_COOKIE).
 	var $loginFailure = FALSE; // Indicates if an authentication was started but failed
-	var $loginSessionStarted = FALSE; // Will be set to true if the login session is actually written during auth-check.
+	var $loginSessionStarted = FALSE; // Will be set to TRUE if the login session is actually written during auth-check.
 
 	var $user; // Internal: Will contain user- AND session-data from database (joined tables)
-	var $get_URL_ID = ''; // Internal: Will will be set to the url--ready (eg. '&login=ab7ef8d...') GET-auth-var if getFallBack is true. Should be inserted in links!
+	var $get_URL_ID = ''; // Internal: Will will be set to the url--ready (eg. '&login=ab7ef8d...') GET-auth-var if getFallBack is TRUE. Should be inserted in links!
 
-	var $newSessionID = FALSE; // Will be set to true if a new session ID was created
+	var $newSessionID = FALSE; // Will be set to TRUE if a new session ID was created
 	var $forceSetCookie = FALSE; // Will force the session cookie to be set everytime (lifetime must be 0)
 	var $dontSetCookie = FALSE; // Will prevent the setting of the session cookie (takes precedence over forceSetCookie)
 	var $challengeStoredInCookie = FALSE; // If set, the challenge value will be stored in a session as well so the server can check that is was not forged.
@@ -209,7 +208,7 @@ class t3lib_userAuth {
 			// Init vars.
 		$mode = '';
 		$this->newSessionID = FALSE;
-			// $id is set to ses_id if cookie is present. Else set to false, which will start a new session
+			// $id is set to ses_id if cookie is present. Else set to FALSE, which will start a new session
 		$id = $this->getCookie($this->name);
 		$this->svConfig = $TYPO3_CONF_VARS['SVCONF']['auth'];
 
@@ -826,7 +825,7 @@ class t3lib_userAuth {
 			} else {
 				$timeout = intval($this->auth_timeout_field); // Get timeout from object
 			}
-				// If timeout > 0 (true) and currenttime has not exceeded the latest sessions-time plus the timeout in seconds then accept user
+				// If timeout > 0 (TRUE) and currenttime has not exceeded the latest sessions-time plus the timeout in seconds then accept user
 				// Option later on: We could check that last update was at least x seconds ago in order not to update twice in a row if one script redirects to another...
 			if ($timeout > 0 && ($GLOBALS['EXEC_TIME'] < ($user['ses_tstamp'] + $timeout))) {
 				if (!$skipSessionUpdate) {
@@ -893,7 +892,7 @@ class t3lib_userAuth {
 	 * in the database. Don't care if session record is still valid or not.
 	 *
 	 * @param	integer		Claimed Session ID
-	 * @return	boolean		Returns true if a corresponding session was found in the database
+	 * @return	boolean		Returns TRUE if a corresponding session was found in the database
 	 */
 	function isExistingSessionRecord($id) {
 		$statement = $GLOBALS['TYPO3_DB']->prepare_SELECTquery(
@@ -1095,7 +1094,7 @@ class t3lib_userAuth {
 	}
 
 	/**
-	 * Sets $theUC as the internal variable ->uc IF $theUC is an array. If $theUC is false, the 'uc' content from the ->user array will be unserialized and restored in ->uc
+	 * Sets $theUC as the internal variable ->uc IF $theUC is an array. If $theUC is FALSE, the 'uc' content from the ->user array will be unserialized and restored in ->uc
 	 *
 	 * @param	mixed		If an array, then set as ->uc, otherwise load from user record
 	 * @return	void
@@ -1280,7 +1279,7 @@ class t3lib_userAuth {
 	 * @param	array		user data array
 	 * @param	array		login data array
 	 * @param	string		Alternative security_level. Used when authentication services wants to override the default.
-	 * @return	boolean		true if login data matched
+	 * @return	boolean		TRUE if login data matched
 	 */
 	function compareUident($user, $loginData, $security_level = '') {
 

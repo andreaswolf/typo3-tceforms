@@ -49,8 +49,6 @@ require_once(t3lib_extMgm::extPath('openid', 'sv1/class.tx_openid_store.php'));
 /**
  * Service "OpenID Authentication" for the "openid" extension.
  *
- * $Id$
- *
  * @author	Dmitry Dulepov <dmitry@typo3.org>
  * @package	TYPO3
  * @subpackage	tx_openid
@@ -80,7 +78,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 	 *
 	 * @var	Auth_OpenID_ConsumerResponse
 	 */
-	protected $openIDResponse = null;
+	protected $openIDResponse = NULL;
 
 	/**
 	 * A reference to the calling object
@@ -90,9 +88,9 @@ class tx_openid_sv1 extends t3lib_svbase {
 	protected $parentObject;
 
 	/**
-	 * If set to true, than libraries are already included.
+	 * If set to TRUE, than libraries are already included.
 	 */
-	protected static $openIDLibrariesIncluded = false;
+	protected static $openIDLibrariesIncluded = FALSE;
 
 	/**
 	 * Contructs the OpenID authentication service.
@@ -102,7 +100,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 		// is available in PHP, however the TYPO3 setting is not considered here:
 		if (!defined('Auth_Yadis_CURL_OVERRIDE')) {
 			if (!$GLOBALS['TYPO3_CONF_VARS']['SYS']['curlUse']) {
-				define('Auth_Yadis_CURL_OVERRIDE', true);
+				define('Auth_Yadis_CURL_OVERRIDE', TRUE);
 			}
 		}
 	}
@@ -113,10 +111,10 @@ class tx_openid_sv1 extends t3lib_svbase {
 	 * - GMP or BCMATH PHP extensions are installed and functional
 	 * - set_include_path() PHP function is available
 	 *
-	 * @return	boolean		true if service is available
+	 * @return	boolean		TRUE if service is available
 	 */
 	public function init() {
-		$available = false;
+		$available = FALSE;
 		if (extension_loaded('gmp')) {
 			$available = is_callable('gmp_init');
 		} elseif (extension_loaded('bcmath')) {
@@ -126,10 +124,10 @@ class tx_openid_sv1 extends t3lib_svbase {
 		}
 		// We also need set_include_path() PHP function
 		if (!is_callable('set_include_path')) {
-			$available = false;
+			$available = FALSE;
 			$this->writeDevLog('set_include_path() PHP function is not available. OpenID authentication is disabled.');
 		}
-		return $available ? parent::init() : false;
+		return $available ? parent::init() : FALSE;
 	}
 
 	/**
@@ -146,7 +144,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 		$this->loginData = $loginData;
 		$this->authenticationInformation = $authenticationInformation;
 		// If we are here after authentication by the OpenID server, get its response.
-		if (t3lib_div::_GP('tx_openid_mode') == 'finish' && $this->openIDResponse == null) {
+		if (t3lib_div::_GP('tx_openid_mode') == 'finish' && $this->openIDResponse == NULL) {
 			$this->includePHPOpenIDLibrary();
 			$openIDConsumer = $this->getOpenIDConsumer();
 			$this->openIDResponse = $openIDConsumer->complete($this->getReturnURL());
@@ -163,7 +161,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 	 * @return	mixed		User record (content of fe_users/be_users as appropriate for the current mode)
 	 */
 	public function getUser() {
-		$userRecord = null;
+		$userRecord = NULL;
 		if ($this->loginData['status'] == 'login') {
 			if ($this->openIDResponse instanceof Auth_OpenID_ConsumerResponse) {
 				$GLOBALS['BACK_PATH'] = $this->getBackPath();
@@ -176,7 +174,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 					$openIDIdentifier = $this->getFinalOpenIDIdentifier();
 					if ($openIDIdentifier) {
 						$userRecord = $this->getUserRecord($openIDIdentifier);
-						if ($userRecord != null) {
+						if ($userRecord != NULL) {
 							$this->writeLog('User \'%s\' logged in with OpenID \'%s\'',
 								$userRecord[$this->parentObject->formfield_uname], $openIDIdentifier);
 						} else {
@@ -194,7 +192,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 			// we must change the password in the record to a long random string so
 			// that this user cannot be authenticated with other service.
 			if (is_array($userRecord)) {
-				$userRecord[$this->authenticationInformation['db_user']['userident_column']] = uniqid($this->prefixId . LF, true);
+				$userRecord[$this->authenticationInformation['db_user']['userident_column']] = uniqid($this->prefixId . LF, TRUE);
 			}
 		}
 		return $userRecord;
@@ -257,7 +255,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 		if (!self::$openIDLibrariesIncluded) {
 
 			// Prevent further calls
-			self::$openIDLibrariesIncluded = true;
+			self::$openIDLibrariesIncluded = TRUE;
 
 			// PHP OpenID libraries requires adjustments of path settings
 			$oldIncludePath = get_include_path();
@@ -271,12 +269,12 @@ class tx_openid_sv1 extends t3lib_svbase {
 			if (!defined('Auth_OpenID_RAND_SOURCE')) {
 				if (TYPO3_OS == 'WIN') {
 					// No random generator on Windows!
-					define('Auth_OpenID_RAND_SOURCE', null);
+					define('Auth_OpenID_RAND_SOURCE', NULL);
 				} elseif (!is_readable('/dev/urandom')) {
 					if (is_readable('/dev/random')) {
 						define('Auth_OpenID_RAND_SOURCE', '/dev/random');
 					} else {
-						define('Auth_OpenID_RAND_SOURCE', null);
+						define('Auth_OpenID_RAND_SOURCE', NULL);
 					}
 				}
 			}
@@ -303,7 +301,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 	 * @return	array		Database fields from the table that corresponds to the current login mode (FE/BE)
 	 */
 	protected function getUserRecord($openIDIdentifier) {
-		$record = null;
+		$record = NULL;
 		if ($openIDIdentifier) {
 			$record = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('*',
 				$this->authenticationInformation['db_user']['table'],
@@ -388,7 +386,7 @@ class tx_openid_sv1 extends t3lib_svbase {
 			t3lib_utility_Http::redirect($redirectURL, t3lib_utility_Http::HTTP_STATUS_303);
 		} else {
 			$formHtml = $authenticationRequest->htmlMarkup($trustedRoot,
-							$returnURL, false, array('id' => 'openid_message'));
+							$returnURL, FALSE, array('id' => 'openid_message'));
 
 			// Display an error if the form markup couldn't be generated;
 			// otherwise, render the HTML.

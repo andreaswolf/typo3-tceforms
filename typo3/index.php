@@ -27,7 +27,6 @@
 /**
  * Login-screen of TYPO3.
  *
- * $Id$
  * Revised for TYPO3 3.6 December/2003 by Kasper Skårhøj
  * XHTML compliant
  *
@@ -178,7 +177,7 @@ class SC_index {
 	 * @return	void
 	 */
 	function main()	{
-		global $TBE_TEMPLATE, $TYPO3_CONF_VARS, $BE_USER;
+		global $TBE_TEMPLATE;
 
 			// Initialize template object:
 		$TBE_TEMPLATE->bodyTagAdditions = ' onload="startUp();"';
@@ -199,7 +198,7 @@ class SC_index {
 		$this->makeInterfaceSelectorBox();
 
 			// Creating form based on whether there is a login or not:
-		if (!$BE_USER->user['uid'])	{
+		if (!$GLOBALS['BE_USER']->user['uid']) {
 			$TBE_TEMPLATE->form = $this->startForm();
 			$loginForm = $this->makeLoginForm();
 		} else {
@@ -211,7 +210,7 @@ class SC_index {
 		}
 
 			// Starting page:
-		$this->content .= $TBE_TEMPLATE->startPage('TYPO3 Login: ' . htmlspecialchars($TYPO3_CONF_VARS['SYS']['sitename']), FALSE);
+		$this->content .= $TBE_TEMPLATE->startPage('TYPO3 Login: ' . htmlspecialchars($GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']), FALSE);
 
 			// Add login form:
 		$this->content.=$this->wrapLoginForm($loginForm);
@@ -245,16 +244,16 @@ class SC_index {
 		$markers = array(
 			'VALUE_USERNAME' => htmlspecialchars($this->u),
 			'VALUE_PASSWORD' => htmlspecialchars($this->p),
-			'VALUE_SUBMIT'   => $GLOBALS['LANG']->getLL('labels.submitLogin', true),
+			'VALUE_SUBMIT'   => $GLOBALS['LANG']->getLL('labels.submitLogin', TRUE),
 		);
 
 			// show an error message if the login command was successful already, otherwise remove the subpart
 		if (!$this->commandLI) {
 			$content = t3lib_parsehtml::substituteSubpart($content, '###LOGIN_ERROR###', '');
 		} else {
-			$markers['ERROR_MESSAGE'] = $GLOBALS['LANG']->getLL('error.login', true);
-			$markers['ERROR_LOGIN_TITLE'] = $GLOBALS['LANG']->getLL('error.login.title', true);
-			$markers['ERROR_LOGIN_DESCRIPTION'] = $GLOBALS['LANG']->getLL('error.login.description', true);
+			$markers['ERROR_MESSAGE'] = $GLOBALS['LANG']->getLL('error.login', TRUE);
+			$markers['ERROR_LOGIN_TITLE'] = $GLOBALS['LANG']->getLL('error.login.title', TRUE);
+			$markers['ERROR_LOGIN_DESCRIPTION'] = $GLOBALS['LANG']->getLL('error.login.description', TRUE);
 		}
 
 
@@ -262,7 +261,7 @@ class SC_index {
 		if (!($this->interfaceSelector && !$this->loginRefresh)) {
 			$content = t3lib_parsehtml::substituteSubpart($content, '###INTERFACE_SELECTOR###', '');
 		} else {
-			$markers['LABEL_INTERFACE'] = $GLOBALS['LANG']->getLL('labels.interface', true);
+			$markers['LABEL_INTERFACE'] = $GLOBALS['LANG']->getLL('labels.interface', TRUE);
 			$markers['VALUE_INTERFACE'] = $this->interfaceSelector;
 		}
 
@@ -279,16 +278,16 @@ class SC_index {
 	function makeLogoutForm() {
 		$content = t3lib_parsehtml::getSubpart($GLOBALS['TBE_TEMPLATE']->moduleTemplate, '###LOGOUT_FORM###');
 		$markers = array(
-			'LABEL_USERNAME' => $GLOBALS['LANG']->getLL('labels.username', true),
+			'LABEL_USERNAME' => $GLOBALS['LANG']->getLL('labels.username', TRUE),
 			'VALUE_USERNAME' => htmlspecialchars($GLOBALS['BE_USER']->user['username']),
-			'VALUE_SUBMIT'   => $GLOBALS['LANG']->getLL('labels.submitLogout', true),
+			'VALUE_SUBMIT'   => $GLOBALS['LANG']->getLL('labels.submitLogout', TRUE),
 		);
 
 			// remove the interface selector markers if it's not available
 		if (!$this->interfaceSelector_jump) {
 			$content = t3lib_parsehtml::substituteSubpart($content, '###INTERFACE_SELECTOR###', '');
 		} else {
-			$markers['LABEL_INTERFACE'] = $GLOBALS['LANG']->getLL('labels.interface', true);
+			$markers['LABEL_INTERFACE'] = $GLOBALS['LANG']->getLL('labels.interface', TRUE);
 			$markers['VALUE_INTERFACE'] = $this->interfaceSelector_jump;
 		}
 
@@ -322,24 +321,24 @@ class SC_index {
 
 				// the labels will be replaced later on, thus the other parts above
 				// can use these markers as well and it will be replaced
-			'HEADLINE'         => $GLOBALS['LANG']->getLL('headline', true),
-			'INFO_ABOUT'       => $GLOBALS['LANG']->getLL('info.about', true),
-			'INFO_RELOAD'      => $GLOBALS['LANG']->getLL('info.reset', true),
-			'INFO'             => $GLOBALS['LANG']->getLL('info.cookies_and_js', true),
-			'ERROR_JAVASCRIPT' => $GLOBALS['LANG']->getLL('error.javascript', true),
-			'ERROR_COOKIES'    => $GLOBALS['LANG']->getLL('error.cookies', true),
-			'ERROR_COOKIES_IGNORE' => $GLOBALS['LANG']->getLL('error.cookies_ignore', true),
-			'ERROR_CAPSLOCK'   => $GLOBALS['LANG']->getLL('error.capslock', true),
-			'ERROR_FURTHERHELP' => $GLOBALS['LANG']->getLL('error.furtherInformation', true),
-			'LABEL_DONATELINK' => $GLOBALS['LANG']->getLL('labels.donate', true),
-			'LABEL_USERNAME'   => $GLOBALS['LANG']->getLL('labels.username', true),
-			'LABEL_OPENID'     => $GLOBALS['LANG']->getLL('labels.openId', true),
-			'LABEL_PASSWORD'   => $GLOBALS['LANG']->getLL('labels.password', true),
-			'LABEL_WHATISOPENID' => $GLOBALS['LANG']->getLL('labels.whatIsOpenId', true),
-			'LABEL_SWITCHOPENID' => $GLOBALS['LANG']->getLL('labels.switchToOpenId', true),
-			'LABEL_SWITCHDEFAULT' => $GLOBALS['LANG']->getLL('labels.switchToDefault', true),
-			'CLEAR'            => $GLOBALS['LANG']->getLL('clear', true),
-			'LOGIN_PROCESS'    => $GLOBALS['LANG']->getLL('login_process', true),
+			'HEADLINE'         => $GLOBALS['LANG']->getLL('headline', TRUE),
+			'INFO_ABOUT'       => $GLOBALS['LANG']->getLL('info.about', TRUE),
+			'INFO_RELOAD'      => $GLOBALS['LANG']->getLL('info.reset', TRUE),
+			'INFO'             => $GLOBALS['LANG']->getLL('info.cookies_and_js', TRUE),
+			'ERROR_JAVASCRIPT' => $GLOBALS['LANG']->getLL('error.javascript', TRUE),
+			'ERROR_COOKIES'    => $GLOBALS['LANG']->getLL('error.cookies', TRUE),
+			'ERROR_COOKIES_IGNORE' => $GLOBALS['LANG']->getLL('error.cookies_ignore', TRUE),
+			'ERROR_CAPSLOCK'   => $GLOBALS['LANG']->getLL('error.capslock', TRUE),
+			'ERROR_FURTHERHELP' => $GLOBALS['LANG']->getLL('error.furtherInformation', TRUE),
+			'LABEL_DONATELINK' => $GLOBALS['LANG']->getLL('labels.donate', TRUE),
+			'LABEL_USERNAME'   => $GLOBALS['LANG']->getLL('labels.username', TRUE),
+			'LABEL_OPENID'     => $GLOBALS['LANG']->getLL('labels.openId', TRUE),
+			'LABEL_PASSWORD'   => $GLOBALS['LANG']->getLL('labels.password', TRUE),
+			'LABEL_WHATISOPENID' => $GLOBALS['LANG']->getLL('labels.whatIsOpenId', TRUE),
+			'LABEL_SWITCHOPENID' => $GLOBALS['LANG']->getLL('labels.switchToOpenId', TRUE),
+			'LABEL_SWITCHDEFAULT' => $GLOBALS['LANG']->getLL('labels.switchToDefault', TRUE),
+			'CLEAR'            => $GLOBALS['LANG']->getLL('clear', TRUE),
+			'LOGIN_PROCESS'    => $GLOBALS['LANG']->getLL('login_process', TRUE),
 			'SITELINK'         => '<a href="/">###SITENAME###</a>',
 
 				// global variables will now be replaced (at last)
@@ -355,14 +354,14 @@ class SC_index {
 	 * @return	void
 	 */
 	function checkRedirect()	{
-		global $BE_USER,$TBE_TEMPLATE;
+		global $TBE_TEMPLATE;
 
 			// Do redirect:
 			// If a user is logged in AND a) if either the login is just done (commandLI) or b) a loginRefresh is done or c) the interface-selector is NOT enabled (If it is on the other hand, it should not just load an interface, because people has to choose then...)
-		if ($BE_USER->user['uid'] && ($this->commandLI || $this->loginRefresh || !$this->interfaceSelector))	{
+		if ($GLOBALS['BE_USER']->user['uid'] && ($this->commandLI || $this->loginRefresh || !$this->interfaceSelector)) {
 
 				// If no cookie has been set previously we tell people that this is a problem. This assumes that a cookie-setting script (like this one) has been hit at least once prior to this instance.
-			if (!$_COOKIE[$BE_USER->name]) {
+			if (!$_COOKIE[$GLOBALS['BE_USER']->name]) {
 				if ($this->commandLI=='setCookie') {
 						// we tried it a second time but still no cookie
 						// 26/4 2005: This does not work anymore, because the saving of challenge values in $_SESSION means the system will act as if the password was wrong.
@@ -373,14 +372,14 @@ class SC_index {
 				}
 			}
 
-			if (($redirectToURL = (string)$BE_USER->getTSConfigVal('auth.BE.redirectToURL'))) {
+			if (($redirectToURL = (string)$GLOBALS['BE_USER']->getTSConfigVal('auth.BE.redirectToURL'))) {
 				$this->redirectToURL = $redirectToURL;
 				$this->GPinterface = '';
 			}
 
 				// store interface
-			$BE_USER->uc['interfaceSetup'] = $this->GPinterface;
-			$BE_USER->writeUC();
+			$GLOBALS['BE_USER']->uc['interfaceSetup'] = $this->GPinterface;
+			$GLOBALS['BE_USER']->writeUC();
 
 				// Based on specific setting of interface we set the redirect script:
 			switch ($this->GPinterface)	{
@@ -393,13 +392,14 @@ class SC_index {
 				break;
 			}
 
+			$formProtection = t3lib_formprotection_Factory::get();
 				// If there is a redirect URL AND if loginRefresh is not set...
 			if (!$this->loginRefresh)	{
+				$formProtection->storeSessionTokenInRegistry();
 				t3lib_utility_Http::redirect($this->redirectToURL);
 			} else {
-				$formprotection = t3lib_formprotection_Factory::get();
-				$accessToken = $formprotection->generateToken('refreshTokens');
-				$formprotection->persistTokens();
+				$formProtection->setSessionTokenFromRegistry();
+				$formProtection->persistSessionToken();
 				$TBE_TEMPLATE->JScode.=$TBE_TEMPLATE->wrapScriptTags('
 					if (parent.opener && (parent.opener.busy || parent.opener.TYPO3.loginRefresh)) {
 						if (parent.opener.TYPO3.loginRefresh) {
@@ -407,12 +407,11 @@ class SC_index {
 						} else {
 							parent.opener.busy.loginRefreshed();
 						}
-						parent.opener.TYPO3.loginRefresh.refreshTokens("' . $accessToken . '");
 						parent.close();
 					}
 				');
 			}
-		} elseif (!$BE_USER->user['uid'] && $this->commandLI) {
+		} elseif (!$GLOBALS['BE_USER']->user['uid'] && $this->commandLI) {
 			sleep(5);	// Wrong password, wait for 5 seconds
 		}
 	}
@@ -728,7 +727,7 @@ class SC_index {
 			}
 
 				// This function shows a warning, if user has capslock enabled
-				// parameter showWarning: shows warning if true and capslock active, otherwise only hides warning, if capslock gets inactive
+				// parameter showWarning: shows warning if TRUE and capslock active, otherwise only hides warning, if capslock gets inactive
 			function checkCapslock(e, showWarning) {
 				if (!isCapslock(e)) {
 					document.getElementById(\'t3-capslock\').style.display = \'none\';
@@ -737,7 +736,7 @@ class SC_index {
 				}
 			}
 
-				// Checks weather capslock is enabled (returns true if enabled, false otherwise)
+				// Checks weather capslock is enabled (returns TRUE if enabled, false otherwise)
 				// thanks to http://24ways.org/2007/capturing-caps-lock
 
 			function isCapslock(e) {

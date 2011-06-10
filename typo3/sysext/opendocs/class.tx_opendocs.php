@@ -58,7 +58,7 @@ class tx_opendocs implements backend_toolbarItem {
 	 *
 	 * @param	TYPO3backend	TYPO3 backend object reference
 	 */
-	public function __construct(TYPO3backend &$backendReference = null) {
+	public function __construct(TYPO3backend &$backendReference = NULL) {
 		$this->backendReference = $backendReference;
 		$this->loadDocsFromUserSession();
 	}
@@ -66,11 +66,11 @@ class tx_opendocs implements backend_toolbarItem {
 	/**
 	 * checks whether the user has access to this toolbar item
 	 *
-	 * @return  boolean  true if user has access, false if not
+	 * @return  boolean  TRUE if user has access, FALSE if not
 	 */
 	public function checkAccess() {
 		$conf = $GLOBALS['BE_USER']->getTSConfig('backendToolbarItem.tx_opendocs.disabled');
-		return ($conf['value'] == 1 ? false : true);
+		return ($conf['value'] == 1 ? FALSE : TRUE);
 	}
 
 	/**
@@ -93,7 +93,7 @@ class tx_opendocs implements backend_toolbarItem {
 		$this->addCssToBackend();
 		$numDocs      = count($this->openDocs);
 		$opendocsMenu = array();
-		$title        = $GLOBALS['LANG']->getLL('toolbaritem', true);
+		$title        = $GLOBALS['LANG']->getLL('toolbaritem', TRUE);
 
 			// toolbar item icon
 		$opendocsMenu[] = '<a href="#" class="toolbar-item">';
@@ -120,30 +120,30 @@ class tx_opendocs implements backend_toolbarItem {
 		$content         = '';
 
 		if (count($openDocuments)) {
-			$entries[] = '<tr><th colspan="3">' . $GLOBALS['LANG']->getLL('open_docs', true) . '</th></tr>';
+			$entries[] = '<tr><th colspan="3">' . $GLOBALS['LANG']->getLL('open_docs', TRUE) . '</th></tr>';
 
 			$i = 0;
 			foreach ($openDocuments as $md5sum => $openDocument) {
 				$i++;
-				$entries[] = $this->renderMenuEntry($openDocument, $md5sum, false, ($i == 1));
+				$entries[] = $this->renderMenuEntry($openDocument, $md5sum, FALSE, ($i == 1));
 			}
 		}
 
 			// if there are "recent documents" in the list, add them
 		if (count($recentDocuments)) {
-			$entries[] = '<tr><th colspan="3">' . $GLOBALS['LANG']->getLL('recent_docs', true) . '</th></tr>';
+			$entries[] = '<tr><th colspan="3">' . $GLOBALS['LANG']->getLL('recent_docs', TRUE) . '</th></tr>';
 
 			$i = 0;
 			foreach ($recentDocuments as $md5sum => $recentDocument) {
 				$i++;
-				$entries[] = $this->renderMenuEntry($recentDocument, $md5sum, true, ($i == 1));
+				$entries[] = $this->renderMenuEntry($recentDocument, $md5sum, TRUE, ($i == 1));
 			}
 		}
 
 		if (count($entries)) {
 			$content = '<table class="list" cellspacing="0" cellpadding="0" border="0">' . implode('', $entries) . '</table>';
 		} else {
-			$content = '<div class="no-docs">' . $GLOBALS['LANG']->getLL('no_docs', true) . '</div>';
+			$content = '<div class="no-docs">' . $GLOBALS['LANG']->getLL('no_docs', TRUE) . '</div>';
 		}
 
 		return $content;
@@ -154,7 +154,7 @@ class tx_opendocs implements backend_toolbarItem {
 	 *
 	 * @return	array	all recent documents as list-items
 	 */
-	public function renderMenuEntry($document, $md5sum, $isRecentDoc = false, $isFirstDoc = false) {
+	public function renderMenuEntry($document, $md5sum, $isRecentDoc = FALSE, $isFirstDoc = FALSE) {
 		$table  = $document[3]['table'];
 		$uid    = $document[3]['uid'];
 		$record = t3lib_BEfunc::getRecordWSOL($table, $uid);
@@ -172,7 +172,7 @@ class tx_opendocs implements backend_toolbarItem {
 		}
 
 		if (!$isRecentDoc) {
-			$title = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:rm.closeDoc', true);
+			$title = $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:rm.closeDoc', TRUE);
 
 				// open document
 			$closeIcon = t3lib_iconWorks::getSpriteIcon('actions-document-close');
@@ -255,7 +255,7 @@ class tx_opendocs implements backend_toolbarItem {
 	 * @param	TYPO3AJAX	object of type TYPO3AJAX
 	 * @return	string		list item HTML attibutes
 	 */
-	public function closeDocument($params = array(), TYPO3AJAX &$ajaxObj = null) {
+	public function closeDocument($params = array(), TYPO3AJAX &$ajaxObj = NULL) {
 		$md5sum = t3lib_div::_GP('md5sum');
 
 		if ($md5sum && isset($this->openDocs[$md5sum])) {
@@ -288,7 +288,7 @@ class tx_opendocs implements backend_toolbarItem {
 	 * @param	TYPO3AJAX	object of type TYPO3AJAX
 	 * @return	void
 	 */
-	public function renderAjax($params = array(), TYPO3AJAX &$ajaxObj = null) {
+	public function renderAjax($params = array(), TYPO3AJAX &$ajaxObj = NULL) {
 		$menuContent = $this->renderMenu();
 
 		$ajaxObj->addContent('opendocsMenu', $menuContent);

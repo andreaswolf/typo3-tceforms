@@ -27,7 +27,7 @@
 
 require_once('init.php');
 require_once('template.php');
-require_once('interfaces/interface.backend_toolbaritem.php');
+require_once(PATH_typo3 . 'interfaces/interface.backend_toolbaritem.php');
 
 require('classes/class.typo3logo.php');
 require('classes/class.modulemenu.php');
@@ -364,24 +364,22 @@ class TYPO3backend {
 	 * @return	string		html code snippet displaying the currently logged in user
 	 */
 	protected function getLoggedInUserLabel() {
-		global $BE_USER, $BACK_PATH;
-
-                $icon = t3lib_iconWorks::getSpriteIcon('status-user-'. ($BE_USER->isAdmin() ? 'admin' : 'backend'));
+		$icon = t3lib_iconWorks::getSpriteIcon('status-user-' . ($GLOBALS['BE_USER']->isAdmin() ? 'admin' : 'backend'));
 
 		$label = $GLOBALS['BE_USER']->user['realName'] ?
-			$BE_USER->user['realName'] . ' (' . $BE_USER->user['username'] . ')' :
-			$BE_USER->user['username'];
+			$GLOBALS['BE_USER']->user['realName'] . ' (' . $GLOBALS['BE_USER']->user['username'] . ')' :
+			$GLOBALS['BE_USER']->user['username'];
 
 			// Link to user setup if it's loaded and user has access
 		$link = '';
-		if (t3lib_extMgm::isLoaded('setup') && $BE_USER->check('modules','user_setup')) {
+		if (t3lib_extMgm::isLoaded('setup') && $GLOBALS['BE_USER']->check('modules','user_setup')) {
 			$link = '<a href="#" onclick="top.goToModule(\'user_setup\');this.blur();return false;">';
 		}
 
 		$username = '">'.$link.$icon.'<span>'.htmlspecialchars($label).'</span>'.($link?'</a>':'');
 
 			// superuser mode
-		if($BE_USER->user['ses_backuserid']) {
+		if ($GLOBALS['BE_USER']->user['ses_backuserid']) {
 			$username   = ' su-user">'.$icon.
 			'<span title="' . $GLOBALS['LANG']->getLL('switchtouser') . '">' .
 			$GLOBALS['LANG']->getLL('switchtousershort') . ' </span>' .
@@ -699,7 +697,7 @@ class TYPO3backend {
 		if(!$startModule)	{
 			if ($GLOBALS['BE_USER']->uc['startModule'])	{
 				$startModule = $GLOBALS['BE_USER']->uc['startModule'];
-			} else if($GLOBALS['BE_USER']->uc['startInTaskCenter'])	{
+			} elseif ($GLOBALS['BE_USER']->uc['startInTaskCenter'])	{
 				$startModule = 'user_task';
 			}
 		}
@@ -735,15 +733,15 @@ class TYPO3backend {
 	 * adds a javscript file to the backend after it has been checked that it exists
 	 *
 	 * @param	string	javascript file reference
-	 * @return	boolean	true if the javascript file was successfully added, false otherwise
+	 * @return	boolean	TRUE if the javascript file was successfully added, FALSE otherwise
 	 */
 	public function addJavascriptFile($javascriptFile) {
-		$jsFileAdded = false;
+		$jsFileAdded = FALSE;
 
 			//TODO add more checks if neccessary
 		if(file_exists(t3lib_div::resolveBackPath(PATH_typo3.$javascriptFile))) {
 			$this->jsFiles[] = $javascriptFile;
-			$jsFileAdded     = true;
+			$jsFileAdded     = TRUE;
 		}
 
 		return $jsFileAdded;
@@ -768,14 +766,14 @@ class TYPO3backend {
 	 *
 	 * @param	string	the css file's name with out the .css ending
 	 * @param	string	css file reference
-	 * @return	boolean	true if the css file was added, false otherwise
+	 * @return	boolean	TRUE if the css file was added, FALSE otherwise
 	 */
 	public function addCssFile($cssFileName, $cssFile) {
-		$cssFileAdded = false;
+		$cssFileAdded = FALSE;
 
 		if(empty($this->cssFiles[$cssFileName])) {
 			$this->cssFiles[$cssFileName] = $cssFile;
-			$cssFileAdded = true;
+			$cssFileAdded = TRUE;
  		}
 
 		return $cssFileAdded;

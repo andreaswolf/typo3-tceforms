@@ -28,7 +28,6 @@
  * Generating gif/png-files from TypoScript
  * Used by the menu-objects and imgResource in TypoScript.
  *
- * $Id$
  * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -347,7 +346,7 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 	}
 
 	/**
-	 * Initiates the image file generation if ->setup is true and if the file did not exist already.
+	 * Initiates the image file generation if ->setup is TRUE and if the file did not exist already.
 	 * Gets filename from fileName() and if file exists in typo3temp/ dir it will - of course - not be rendered again.
 	 * Otherwise rendering means calling ->make(), then ->output(), then ->destroy()
 	 *
@@ -673,7 +672,7 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 	 *
 	 * @param	string		Filename value OR the string "GIFBUILDER", see documentation in TSref for the "datatype" called "imgResource"
 	 * @param	array		TypoScript properties passed to the function. Either GIFBUILDER properties or imgResource properties, depending on the value of $file (whether that is "GIFBUILDER" or a file reference)
-	 * @return	array		Returns an array with file information if an image was returned. Otherwise false.
+	 * @return	array		Returns an array with file information if an image was returned. Otherwise FALSE.
 	 * @access private
 	 * @see tslib_cObj::getImgResource()
 	 */
@@ -712,7 +711,7 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 		if ($GLOBALS['TSFE']->config['config']['meaningfulTempFilePrefix']) {
 			/** @var $basicFileFunctions t3lib_basicFileFunctions */
 			$basicFileFunctions = t3lib_div::makeInstance('t3lib_basicFileFunctions');
-			
+
 			$meaningfulPrefix = implode('_', array_merge($this->combinedTextStrings, $this->combinedFileNames));
 			$meaningfulPrefix = $basicFileFunctions->cleanFileName($meaningfulPrefix);
 			$meaningfulPrefix = substr($meaningfulPrefix, 0, intval($GLOBALS['TSFE']->config['config']['meaningfulTempFilePrefix'])) . '_';
@@ -832,7 +831,7 @@ class tslib_gifBuilder extends t3lib_stdGraphic {
 	 * @return	integer		The maxium value of the given comma separated and calculated values
 	 */
 	protected function calculateMaximum($string) {
-		$parts = t3lib_div::trimExplode(',', $this->calcOffset($string), true);
+		$parts = t3lib_div::trimExplode(',', $this->calcOffset($string), TRUE);
 		$maximum = (count($parts) ? max($parts) : 0);
 		return $maximum;
 	}

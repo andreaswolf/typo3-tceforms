@@ -1,7 +1,6 @@
 /* - - - - - - - - - - - - - - - - - - - - -
 TCEforms
 
-$Id$
 - - - - - - - - - - - - - - - - - - - - - */
 img.t3-TCEforms-reqImg {
 	display: block;
@@ -84,7 +83,8 @@ table.typo3-TCEforms tr.typo3-TCEforms-recHeaderRow td {
 	padding-bottom: 20px;
 }
 
-table.wrapperTable tr.class-main2 td.palette-header {
+table.wrapperTable tr.class-main2 td.palette-header,
+table.wrapperTable1 .class-main12 td.palette-header {
 	padding-left: 10px;
 }
 

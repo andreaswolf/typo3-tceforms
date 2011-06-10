@@ -29,7 +29,6 @@
 /**
  * Contains LOAD_REGISTER class object.
  *
- * $Id: class.tslib_content.php 7905 2010-06-13 14:42:33Z ohader $
  * @author Xavier Perseguers <typo3@perseguers.ch>
  * @author Steffen Kamper <steffen@typo3.org>
  */
@@ -53,11 +52,11 @@ class tslib_content_LoadRegister extends tslib_content_Abstract {
 					$registerProperties = $register . '.';
 					if(isset($conf[$register]) && isset($conf[$registerProperties])) {
 						$theValue = $this->cObj->stdWrap($conf[$register], $conf[$registerProperties]);
-					} else if(isset($conf[$registerProperties])) {
+					} elseif(isset($conf[$registerProperties])) {
 						$theValue = $this->cObj->stdWrap('', $conf[$registerProperties]);
 					}
 					$GLOBALS['TSFE']->register[$register] = $theValue;
-					$isExecuted[$register] = true;
+					$isExecuted[$register] = TRUE;
 				}
 			}
 		}

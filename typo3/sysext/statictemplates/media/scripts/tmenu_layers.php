@@ -27,7 +27,6 @@
 /**
  * Contains the TMENU_LAYERS extension class, tslib_tmenu_layers
  *
- * $Id: tmenu_layers.php 5165 2009-03-09 18:28:59Z ohader $
  * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  * XHTML compliant
  *
@@ -245,10 +244,10 @@ GLV_restoreMenu["'.$this->WMid.'"] = "'.$this->WMactiveKey.'";
 	}
 
 	/**
-	 * Returns true if different from ''  OR if intval()!=0
+	 * Returns TRUE if different from ''  OR if intval()!=0
 	 *
 	 * @param	string		Value to evaluate
-	 * @return	boolean		true if $in is different from ''  OR if intval()!=0
+	 * @return	boolean		TRUE if $in is different from ''  OR if intval()!=0
 	 */
 	function isSetIntval($in)	{
 		return $this->mconf['blankStrEqFalse'] ? strcmp($in,'') : intval($in);
@@ -446,8 +445,14 @@ GLV_timeout_count++;
 				case 'right':
 				case 'bottom':
 					$add='';
-					if ($kind=='right')		{$add='GL_getObj(id).width'; $key = 'left';}
-					if ($kind=='bottom')	{$add='GL_getObj(id).height'; $key = 'top';}
+					if ($kind == 'right') {
+						$add = 'GL_getObj(id).width';
+						$key = 'left';
+					}
+					if ($kind == 'bottom') {
+						$add = 'GL_getObj(id).height';
+						$key = 'top';
+					}
 					$str = 'if (parseInt(GLV_menuOn["'.$this->WMid.'"].'.$key.')+'.$add.'>'.$integer.') GLV_menuOn["'.$this->WMid.'"].'.$key.'='.$integer.'-'.$add.';';
 				break;
 				default:

@@ -45,7 +45,7 @@
  *  146:     function wrapTitle($title,$row,$bank=0)
  *  165:     function printTree($treeArr = '')
  *  271:     function PMicon($row,$a,$c,$nextCount,$exp)
- *  292:     function PMiconATagWrap($icon, $cmd, $isExpand = true)
+ *  292:     function PMiconATagWrap($icon, $cmd, $isExpand = TRUE)
  *  309:     function getBrowsableTree()
  *  377:     function getTree($uid, $depth=999, $depthData='',$blankLineCode='',$subCSSclass='')
  *
@@ -72,14 +72,14 @@ class webPageTree extends t3lib_browseTree {
 	var $ext_IconMode;
 	var $ext_separateNotinmenuPages;
 	var $ext_alphasortNotinmenuPages;
-	var $ajaxStatus = false; // Indicates, whether the ajax call was successful, i.e. the requested page has been found
+	var $ajaxStatus = FALSE; // Indicates, whether the ajax call was successful, i.e. the requested page has been found
 
 	/**
 	 * Calls init functions
 	 *
 	 * @return	void
 	 */
-	function webPageTree() {
+	function __construct() {
 		$this->init();
 	}
 
@@ -194,17 +194,17 @@ class webPageTree extends t3lib_browseTree {
 			// -- evaluate AJAX request
 			// IE takes anchor as parameter
 		$PM = t3lib_div::_GP('PM');
-		if(($PMpos = strpos($PM, '#')) !== false) { $PM = substr($PM, 0, $PMpos); }
+		if(($PMpos = strpos($PM, '#')) !== FALSE) { $PM = substr($PM, 0, $PMpos); }
 		$PM = explode('_', $PM);
 		if ((TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_AJAX) && is_array($PM) && count($PM) == 4 && $PM[2] != 0) {
 			if($PM[1])	{
 				$expandedPageUid = $PM[2];
 				$ajaxOutput = '';
 				$invertedDepthOfAjaxRequestedItem = 0; // We don't know yet. Will be set later.
-				$doExpand = true;
+				$doExpand = TRUE;
 			} else	{
 				$collapsedPageUid = $PM[2];
-				$doCollapse = true;
+				$doCollapse = TRUE;
 			}
 		}
 
@@ -252,7 +252,7 @@ class webPageTree extends t3lib_browseTree {
 
 			// ajax request: collapse
 			if($doCollapse && $collapsedPageUid == $uid) {
-				$this->ajaxStatus = true;
+				$this->ajaxStatus = TRUE;
 				return $itemHTML;
 			}
 
@@ -264,7 +264,7 @@ class webPageTree extends t3lib_browseTree {
 				if($v['invertedDepth'] < $invertedDepthOfAjaxRequestedItem) {
 					$ajaxOutput .= $itemHTML;
 				} else {
-					$this->ajaxStatus = true;
+					$this->ajaxStatus = TRUE;
 					return $ajaxOutput;
 				}
 			}
@@ -273,7 +273,7 @@ class webPageTree extends t3lib_browseTree {
 		}
 
 		if($ajaxOutput) {
-			$this->ajaxStatus = true;
+			$this->ajaxStatus = TRUE;
 			return $ajaxOutput;
 		}
 
@@ -316,7 +316,7 @@ class webPageTree extends t3lib_browseTree {
 	 * @return	string		Link-wrapped input string
 	 * @access private
 	 */
-	function PMiconATagWrap($icon, $cmd, $isExpand = true)	{
+	function PMiconATagWrap($icon, $cmd, $isExpand = TRUE)	{
 		if ($this->thisScript) {
 				// activate dynamic ajax-based tree
 			$js = htmlspecialchars('Tree.load(\''.$cmd.'\', '.intval($isExpand).', this);');
@@ -377,7 +377,7 @@ class webPageTree extends t3lib_browseTree {
 				$uid = $rootRec['uid'];
 
 					// Add the root of the mount to ->tree
-				$this->tree[] = array('HTML'=>$firstHtml, 'row'=>$rootRec, 'bank'=>$this->bank, 'hasSub'=>true, 'invertedDepth'=>1000);
+				$this->tree[] = array('HTML'=>$firstHtml, 'row'=>$rootRec, 'bank'=>$this->bank, 'hasSub'=>TRUE, 'invertedDepth'=>1000);
 
 					// If the mount is expanded, go down:
 				if ($isOpen)	{
@@ -502,14 +502,14 @@ class webPageTree extends t3lib_browseTree {
 				'HTML'   => $HTML,
 				'hasSub' => $nextCount&&$this->expandNext($newID),
 				'isFirst'=> $a==1,
-				'isLast' => false,
+				'isLast' => FALSE,
 				'invertedDepth'=> $depth,
 				'blankLineCode'=> $blankLineCode,
 				'bank' => $this->bank
 			);
 		}
 
-		if($a) { $this->tree[$treeKey]['isLast'] = true; }
+		if($a) { $this->tree[$treeKey]['isLast'] = TRUE; }
 
 		$this->getDataFree($res);
 		$this->buffer_idH = $idH;

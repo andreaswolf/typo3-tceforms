@@ -24,8 +24,6 @@
 /**
  * Class for conversion between charsets.
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  * @author	Martin Kutschker <martin.t.kutschker@blackbox.net>
  */
@@ -51,12 +49,12 @@
  *
  *			  SECTION: Init functions
  *  911:	 function initCharset($charset)
- *  973:	 function initUnicodeData($mode=null)
+ *  973:	 function initUnicodeData($mode=NULL)
  * 1198:	 function initCaseFolding($charset)
  * 1260:	 function initToASCII($charset)
  *
  *			  SECTION: String operation functions
- * 1331:	 function substr($charset,$string,$start,$len=null)
+ * 1331:	 function substr($charset,$string,$start,$len=NULL)
  * 1384:	 function strlen($charset,$string)
  * 1414:	 function crop($charset,$string,$len,$crop='')
  * 1467:	 function strtrunc($charset,$string,$len)
@@ -67,7 +65,7 @@
  * 1567:	 function sb_char_mapping($str,$charset,$mode,$opt='')
  *
  *			  SECTION: Internal UTF-8 string operation functions
- * 1622:	 function utf8_substr($str,$start,$len=null)
+ * 1622:	 function utf8_substr($str,$start,$len=NULL)
  * 1655:	 function utf8_strlen($str)
  * 1676:	 function utf8_strtrunc($str,$len)
  * 1698:	 function utf8_strpos($haystack,$needle,$offset=0)
@@ -78,7 +76,7 @@
  *
  *			  SECTION: Internal EUC string operation functions
  * 1885:	 function euc_strtrunc($str,$len,$charset)
- * 1914:	 function euc_substr($str,$start,$charset,$len=null)
+ * 1914:	 function euc_substr($str,$start,$charset,$len=NULL)
  * 1939:	 function euc_strlen($str,$charset)
  * 1966:	 function euc_char2byte_pos($str,$pos,$charset)
  * 2007:	 function euc_char_mapping($str,$charset,$mode,$opt='')
@@ -634,7 +632,7 @@ class t3lib_cs {
 					$conv_str = mb_convert_encoding($str, $toCS, $fromCS);
 					if (FALSE !== $conv_str) {
 						return $conv_str;
-					} // returns false for unsupported charsets
+					} // returns FALSE for unsupported charsets
 					break;
 
 				case 'iconv':
@@ -1240,17 +1238,23 @@ class t3lib_cs {
 							$utf8_char = $this->UnumberToChar(hexdec($char));
 							if ($char != $lower) {
 								$arr = explode(' ', $lower);
-								for ($i = 0; isset($arr[$i]); $i++) $arr[$i] = $this->UnumberToChar(hexdec($arr[$i]));
+								for ($i = 0; isset($arr[$i]); $i++) {
+									$arr[$i] = $this->UnumberToChar(hexdec($arr[$i]));
+								}
 								$utf8CaseFolding['toLower'][$utf8_char] = implode('', $arr);
 							}
 							if ($char != $title && $title != $upper) {
 								$arr = explode(' ', $title);
-								for ($i = 0; isset($arr[$i]); $i++) $arr[$i] = $this->UnumberToChar(hexdec($arr[$i]));
+								for ($i = 0; isset($arr[$i]); $i++) {
+									$arr[$i] = $this->UnumberToChar(hexdec($arr[$i]));
+								}
 								$utf8CaseFolding['toTitle'][$utf8_char] = implode('', $arr);
 							}
 							if ($char != $upper) {
 								$arr = explode(' ', $upper);
-								for ($i = 0; isset($arr[$i]); $i++) $arr[$i] = $this->UnumberToChar(hexdec($arr[$i]));
+								for ($i = 0; isset($arr[$i]); $i++) {
+									$arr[$i] = $this->UnumberToChar(hexdec($arr[$i]));
+								}
 								$utf8CaseFolding['toUpper'][$utf8_char] = implode('', $arr);
 							}
 						}
@@ -1623,7 +1627,7 @@ class t3lib_cs {
 			}
 
 			/*
-			   if (abs($len)<$this->strlen($charset,$string))	{	// Has to use ->strlen() - otherwise multibyte strings ending with a multibyte char will return true here (which is not a catastrophe, but...)
+			   if (abs($len)<$this->strlen($charset,$string))	{	// Has to use ->strlen() - otherwise multibyte strings ending with a multibyte char will return TRUE here (which is not a catastrophe, but...)
 				   if ($len > 0)	{
 					   return substr($string,0,$i).$crop;
 				   } else {
@@ -1921,11 +1925,17 @@ class t3lib_cs {
 	function utf8_strtrunc($str, $len) {
 		$i = $len - 1;
 		if (ord($str{$i}) & 0x80) { // part of a multibyte sequence
-			for (; $i > 0 && !(ord($str{$i}) & 0x40); $i--) ; // find the first byte
+			for (; $i > 0 && !(ord($str{$i}) & 0x40); $i--) {
+				// find the first byte
+				;
+			}
 			if ($i <= 0) {
 				return '';
 			} // sanity check
-			for ($bc = 0, $mbs = ord($str{$i}); $mbs & 0x80; $mbs = $mbs << 1) $bc++; // calculate number of bytes
+			for ($bc = 0, $mbs = ord($str{$i}); $mbs & 0x80; $mbs = $mbs << 1) {
+				// calculate number of bytes
+				$bc++;
+			}
 			if ($bc + $i > $len) {
 				return substr($str, 0, $i);
 			}

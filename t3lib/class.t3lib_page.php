@@ -27,7 +27,6 @@
 /**
  * Contains a class with "Page functions" mainly for the frontend
  *
- * $Id$
  * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  * XHTML-trans compliant
  *
@@ -97,7 +96,7 @@ class t3lib_pageSelect {
 	var $sys_language_uid = 0;
 
 		// Versioning preview related:
-	var $versioningPreview = FALSE; // If true, versioning preview of other record versions is allowed. THIS MUST ONLY BE SET IF the page is not cached and truely previewed by a backend user!!!
+	var $versioningPreview = FALSE; // If TRUE, versioning preview of other record versions is allowed. THIS MUST ONLY BE SET IF the page is not cached and truely previewed by a backend user!!!
 	var $versioningWorkspaceId = 0; // Workspace ID for preview
 	var $workspaceCache = array();
 
@@ -140,7 +139,7 @@ class t3lib_pageSelect {
 	 * init() MUST be run directly after creating a new template-object
 	 * This sets the internal variable $this->where_hid_del to the correct where clause for page records taking deleted/hidden/starttime/endtime/t3ver_state into account
 	 *
-	 * @param	boolean		If $show_hidden is true, the hidden-field is ignored!! Normally this should be false. Is used for previewing.
+	 * @param	boolean		If $show_hidden is TRUE, the hidden-field is ignored!! Normally this should be FALSE. Is used for previewing.
 	 * @return	void
 	 * @see tslib_fe::fetch_the_id(), tx_tstemplateanalyzer::initialize_editor()
 	 */
@@ -369,12 +368,10 @@ class t3lib_pageSelect {
 	 * @param	string		Table name
 	 * @param	array		Record to overlay. Must containt uid, pid and $table]['ctrl']['languageField']
 	 * @param	integer		Pointer to the sys_language uid for content on the site.
-	 * @param	string		Overlay mode. If "hideNonTranslated" then records without translation will not be returned un-translated but unset (and return value is false)
-	 * @return	mixed		Returns the input record, possibly overlaid with a translation. But if $OLmode is "hideNonTranslated" then it will return false if no translation is found.
+	 * @param	string		Overlay mode. If "hideNonTranslated" then records without translation will not be returned un-translated but unset (and return value is FALSE)
+	 * @return	mixed		Returns the input record, possibly overlaid with a translation. But if $OLmode is "hideNonTranslated" then it will return FALSE if no translation is found.
 	 */
 	function getRecordOverlay($table, $row, $sys_language_content, $OLmode = '') {
-		global $TCA;
-
 		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getRecordOverlay'])) {
 			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['getRecordOverlay'] as $classRef) {
 				$hookObject = t3lib_div::getUserObj($classRef);
@@ -387,22 +384,27 @@ class t3lib_pageSelect {
 		}
 
 		if ($row['uid'] > 0 && $row['pid'] > 0) {
-			if ($TCA[$table] && $TCA[$table]['ctrl']['languageField'] && $TCA[$table]['ctrl']['transOrigPointerField']) {
-				if (!$TCA[$table]['ctrl']['transOrigPointerTable']) { // Will not be able to work with other tables (Just didn't implement it yet; Requires a scan over all tables [ctrl] part for first FIND the table that carries localization information for this table (which could even be more than a single table) and then use that. Could be implemented, but obviously takes a little more....)
+			if ($GLOBALS['TCA'][$table] && $GLOBALS['TCA'][$table]['ctrl']['languageField']
+				&& $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField']) {
+				if (!$GLOBALS['TCA'][$table]['ctrl']['transOrigPointerTable']) {
+						// Will not be able to work with other tables (Just didn't implement it yet; Requires a scan
+						// over all tables [ctrl] part for first FIND the table that carries localization information for
+						// this table (which could even be more than a single table) and then use that. Could be
+						// implemented, but obviously takes a little more....)
 
 						// Will try to overlay a record only if the sys_language_content value is larger than zero.
 					if ($sys_language_content > 0) {
 
 							// Must be default language or [All], otherwise no overlaying:
-						if ($row[$TCA[$table]['ctrl']['languageField']] <= 0) {
+						if ($row[$GLOBALS['TCA'][$table]['ctrl']['languageField']] <= 0) {
 
 								// Select overlay record:
 							$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 								'*',
 								$table,
 								'pid=' . intval($row['pid']) .
-								' AND ' . $TCA[$table]['ctrl']['languageField'] . '=' . intval($sys_language_content) .
-								' AND ' . $TCA[$table]['ctrl']['transOrigPointerField'] . '=' . intval($row['uid']) .
+								' AND ' . $GLOBALS['TCA'][$table]['ctrl']['languageField'] . '=' . intval($sys_language_content) .
+								' AND ' . $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'] . '=' . intval($row['uid']) .
 								$this->enableFields($table),
 								'',
 								'',
@@ -431,17 +433,19 @@ class t3lib_pageSelect {
 										$row['_LOCALIZED_UID'] = $olrow['uid'];
 									}
 								}
-							} elseif ($OLmode === 'hideNonTranslated' && $row[$TCA[$table]['ctrl']['languageField']] == 0) { // Unset, if non-translated records should be hidden. ONLY done if the source record really is default language and not [All] in which case it is allowed.
+							} elseif ($OLmode === 'hideNonTranslated' && $row[$GLOBALS['TCA'][$table]['ctrl']['languageField']] == 0) {
+									// Unset, if non-translated records should be hidden. ONLY done if the source record
+									// really is default language and not [All] in which case it is allowed.
 								unset($row);
 							}
 
 							// Otherwise, check if sys_language_content is different from the value of the record - that means a japanese site might try to display french content.
-						} elseif ($sys_language_content != $row[$TCA[$table]['ctrl']['languageField']]) {
+						} elseif ($sys_language_content != $row[$GLOBALS['TCA'][$table]['ctrl']['languageField']]) {
 							unset($row);
 						}
 					} else {
 							// When default language is displayed, we never want to return a record carrying another language!
-						if ($row[$TCA[$table]['ctrl']['languageField']] > 0) {
+						if ($row[$GLOBALS['TCA'][$table]['ctrl']['languageField']] > 0) {
 							unset($row);
 						}
 					}
@@ -858,9 +862,8 @@ class t3lib_pageSelect {
 	 * @return	mixed		Returns array (the record) if OK, otherwise blank/0 (zero)
 	 */
 	function checkRecord($table, $uid, $checkPage = 0) {
-		global $TCA;
 		$uid = intval($uid);
-		if (is_array($TCA[$table]) && $uid > 0) {
+		if (is_array($GLOBALS['TCA'][$table]) && $uid > 0) {
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', $table, 'uid = ' . $uid . $this->enableFields($table));
 			$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
@@ -895,10 +898,9 @@ class t3lib_pageSelect {
 	 * @see getPage_noCheck()
 	 */
 	function getRawRecord($table, $uid, $fields = '*', $noWSOL = FALSE) {
-		global $TCA;
 		$uid = intval($uid);
 			// Excluding pages here so we can ask the function BEFORE TCA gets initialized. Support for this is followed up in deleteClause()...
-		if ((is_array($TCA[$table]) || $table == 'pages') && $uid > 0) {
+		if ((is_array($GLOBALS['TCA'][$table]) || $table == 'pages') && $uid > 0) {
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields, $table, 'uid = ' . $uid . $this->deleteClause($table));
 			$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
@@ -926,8 +928,7 @@ class t3lib_pageSelect {
 	 * @return	mixed		Returns array (the record) if found, otherwise nothing (void)
 	 */
 	function getRecordsByField($theTable, $theField, $theValue, $whereClause = '', $groupBy = '', $orderBy = '', $limit = '') {
-		global $TCA;
-		if (is_array($TCA[$theTable])) {
+		if (is_array($GLOBALS['TCA'][$theTable])) {
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 				'*',
 				$theTable,
@@ -973,7 +974,7 @@ class t3lib_pageSelect {
 	 * @see tslib_TStemplate::start(), storeHash()
 	 */
 	public static function getHash($hash, $expTime = 0) {
-		$hashContent = null;
+		$hashContent = NULL;
 
 		if (TYPO3_UseCachingFramework) {
 			if (is_object($GLOBALS['typo3CacheManager'])) {
@@ -1034,26 +1035,25 @@ class t3lib_pageSelect {
 	}
 
 	/**
-	 * Returns the "AND NOT deleted" clause for the tablename given IF $TCA configuration points to such a field.
+	 * Returns the "AND NOT deleted" clause for the tablename given IF $GLOBALS['TCA'] configuration points to such a field.
 	 *
 	 * @param	string		Tablename
 	 * @return	string
 	 * @see enableFields()
 	 */
 	function deleteClause($table) {
-		global $TCA;
 		if (!strcmp($table, 'pages')) { // Hardcode for pages because TCA might not be loaded yet (early frontend initialization)
 			return ' AND pages.deleted=0';
 		} else {
-			return $TCA[$table]['ctrl']['delete'] ? ' AND ' . $table . '.' . $TCA[$table]['ctrl']['delete'] . '=0' : '';
+			return $GLOBALS['TCA'][$table]['ctrl']['delete'] ? ' AND ' . $table . '.' . $GLOBALS['TCA'][$table]['ctrl']['delete'] . '=0' : '';
 		}
 	}
 
 	/**
 	 * Returns a part of a WHERE clause which will filter out records with start/end times or hidden/fe_groups fields set to values that should de-select them according to the current time, preview settings or user login. Definitely a frontend function.
-	 * Is using the $TCA arrays "ctrl" part where the key "enablefields" determines for each table which of these features applies to that table.
+	 * Is using the $GLOBALS['TCA'] arrays "ctrl" part where the key "enablefields" determines for each table which of these features applies to that table.
 	 *
-	 * @param	string		Table name found in the $TCA array
+	 * @param	string		Table name found in the $GLOBALS['TCA'] array
 	 * @param	integer		If $show_hidden is set (0/1), any hidden-fields in records are ignored. NOTICE: If you call this function, consider what to do with the show_hidden parameter. Maybe it should be set? See tslib_cObj->enableFields where it's implemented correctly.
 	 * @param	array		Array you can pass where keys can be "disabled", "starttime", "endtime", "fe_group" (keys from "enablefields" in TCA) and if set they will make sure that part of the clause is not added. Thus disables the specific part of the clause. For previewing etc.
 	 * @param	boolean		If set, enableFields will be applied regardless of any versioning preview settings which might otherwise disable enableFields
@@ -1061,8 +1061,6 @@ class t3lib_pageSelect {
 	 * @see tslib_cObj::enableFields(), deleteClause()
 	 */
 	function enableFields($table, $show_hidden = -1, $ignore_array = array(), $noVersionPreview = FALSE) {
-		global $TYPO3_CONF_VARS;
-
 		if ($show_hidden == -1 && is_object($GLOBALS['TSFE'])) { // If show_hidden was not set from outside and if TSFE is an object, set it based on showHiddenPage and showHiddenRecords from TSFE
 			$show_hidden = $table == 'pages' ? $GLOBALS['TSFE']->showHiddenPage : $GLOBALS['TSFE']->showHiddenRecords;
 		}
@@ -1106,14 +1104,14 @@ class t3lib_pageSelect {
 
 						// Call hook functions for additional enableColumns
 						// It is used by the extension ingmar_accessctrl which enables assigning more than one usergroup to content and page records
-					if (is_array($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_page.php']['addEnableColumns'])) {
+					if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['addEnableColumns'])) {
 						$_params = array(
 							'table' => $table,
 							'show_hidden' => $show_hidden,
 							'ignore_array' => $ignore_array,
 							'ctrl' => $ctrl
 						);
-						foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_page.php']['addEnableColumns'] as $_funcRef) {
+						foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_page.php']['addEnableColumns'] as $_funcRef) {
 							$query .= t3lib_div::callUserFunction($_funcRef, $_params, $this);
 						}
 					}
@@ -1173,9 +1171,9 @@ class t3lib_pageSelect {
 	 * @see t3lib_BEfunc::fixVersioningPid(), versionOL(), getRootLine()
 	 */
 	function fixVersioningPid($table, &$rr) {
-		global $TCA;
-
-		if ($this->versioningPreview && is_array($rr) && $rr['pid'] == -1 && ($table == 'pages' || $TCA[$table]['ctrl']['versioningWS'])) { // Have to hardcode it for "pages" table since TCA is not loaded at this moment!
+		if ($this->versioningPreview && is_array($rr) && $rr['pid'] == -1
+			&& ($table == 'pages' || $GLOBALS['TCA'][$table]['ctrl']['versioningWS'])) {
+				// Have to hardcode it for "pages" table since TCA is not loaded at this moment!
 
 				// Check values for t3ver_oid and t3ver_wsid:
 			if (isset($rr['t3ver_oid']) && isset($rr['t3ver_wsid'])) { // If "t3ver_oid" is already a field, just set this:
@@ -1221,8 +1219,6 @@ class t3lib_pageSelect {
 	 * @see fixVersioningPid(), t3lib_BEfunc::workspaceOL()
 	 */
 	function versionOL($table, &$row, $unsetMovePointers = FALSE, $bypassEnableFieldsCheck = FALSE) {
-		global $TCA;
-
 		if ($this->versioningPreview && is_array($row)) {
 			$movePldSwap = $this->movePlhOL($table, $row); // will overlay any movePlhOL found with the real record, which in turn will be overlaid with its workspace version if any.
 			if ($wsAlt = $this->getWorkspaceVersionOfRecord($this->versioningWorkspaceId, $table, $row['uid'], implode(',', array_keys($row)), $bypassEnableFieldsCheck)) { // implode(',',array_keys($row)) = Using fields from original record to make sure no additional fields are selected. This is best for eg. getPageOverlay()
@@ -1278,13 +1274,12 @@ class t3lib_pageSelect {
 	 *
 	 * @param	string		Table name
 	 * @param	array		Row (passed by reference) - only online records...
-	 * @return	boolean		True if overlay is made.
+	 * @return	boolean		TRUE if overlay is made.
 	 * @see t3lib_BEfunc::movePlhOl()
 	 */
 	function movePlhOL($table, &$row) {
-		global $TCA;
-
-		if (($table == 'pages' || (int) $TCA[$table]['ctrl']['versioningWS'] >= 2) && (int) $row['t3ver_state'] === 3) { // Only for WS ver 2... (moving)
+		if (($table == 'pages' || (int) $GLOBALS['TCA'][$table]['ctrl']['versioningWS'] >= 2) && (int) $row['t3ver_state'] === 3) {
+				// Only for WS ver 2... (moving)
 
 				// If t3ver_move_id is not found, then find it... (but we like best if it is here...)
 			if (!isset($row['t3ver_move_id'])) {
@@ -1318,11 +1313,9 @@ class t3lib_pageSelect {
 	 * @see t3lib_BEfunc::getMovePlaceholder()
 	 */
 	function getMovePlaceholder($table, $uid, $fields = '*') {
-		global $TCA;
-
 		if ($this->versioningPreview) {
 			$workspace = (int) $this->versioningWorkspaceId;
-			if (($table == 'pages' || (int) $TCA[$table]['ctrl']['versioningWS'] >= 2) && $workspace !== 0) {
+			if (($table == 'pages' || (int) $GLOBALS['TCA'][$table]['ctrl']['versioningWS'] >= 2) && $workspace !== 0) {
 
 					// Select workspace version of record:
 				$row = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
@@ -1350,14 +1343,13 @@ class t3lib_pageSelect {
 	 * @param	string		Table name to select from
 	 * @param	integer		Record uid for which to find workspace version.
 	 * @param	string		Field list to select
-	 * @param	boolean		If true, enablefields are not checked for.
+	 * @param	boolean		If TRUE, enablefields are not checked for.
 	 * @return	mixed		If found, return record, otherwise other value: Returns 1 if version was sought for but not found, returns -1/-2 if record (offline/online) existed but had enableFields that would disable it. Returns FALSE if not in workspace or no versioning for record. Notice, that the enablefields of the online record is also tested.
 	 * @see t3lib_befunc::getWorkspaceVersionOfRecord()
 	 */
 	function getWorkspaceVersionOfRecord($workspace, $table, $uid, $fields = '*', $bypassEnableFieldsCheck = FALSE) {
-		global $TCA;
-
-		if ($workspace !== 0 && ($table == 'pages' || $TCA[$table]['ctrl']['versioningWS'])) { // Have to hardcode it for "pages" table since TCA is not loaded at this moment!
+		if ($workspace !== 0 && ($table == 'pages' || $GLOBALS['TCA'][$table]['ctrl']['versioningWS'])) {
+				// Have to hardcode it for "pages" table since TCA is not loaded at this moment!
 
 				// Setting up enableFields for version record:
 			if ($table == 'pages') {
@@ -1411,7 +1403,7 @@ class t3lib_pageSelect {
 	 * Checks if user has access to workspace.
 	 *
 	 * @param	int	$wsid	Workspace ID
-	 * @return	boolean	<code>true</code> if has access
+	 * @return	boolean	<code>TRUE</code> if has access
 	 */
 	function checkWorkspaceAccess($wsid) {
 		if (!$GLOBALS['BE_USER'] || !t3lib_extMgm::isLoaded('workspaces')) {
@@ -1422,7 +1414,8 @@ class t3lib_pageSelect {
 		}
 		else {
 			if ($wsid > 0) {
-				$ws = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('*', 'sys_workspace', 'uid=' . intval($wsid) . ' AND deleted=0'); // No $TCA yet!
+					// No $GLOBALS['TCA'] yet!
+				$ws = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('*', 'sys_workspace', 'uid=' . intval($wsid) . ' AND deleted=0');
 				if (!is_array($ws)) {
 					return FALSE;
 				}

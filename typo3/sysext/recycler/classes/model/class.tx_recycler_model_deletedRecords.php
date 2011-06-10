@@ -30,7 +30,6 @@ require_once(t3lib_extMgm::extPath('recycler', 'classes/helper/class.tx_recycler
  * @author	Julian Kleinhans <typo3@kj187.de>
  * @package	TYPO3
  * @subpackage	tx_recycler
- * @version $Id$
  */
 class tx_recycler_model_deletedRecords {
 	/**
@@ -185,8 +184,8 @@ class tx_recycler_model_deletedRecords {
 					$this->limit = implode(',', array($offset, $rowCount));
 
 						// do NOT query this depth; limit also does not need to be set, we set it anyways
-					$allowQuery = false;
-					$allowDepth = true;
+					$allowQuery = FALSE;
+					$allowDepth = TRUE;
 					$limit = ''; // won't be queried anyways
 					// if the result is < 0
 				} else {
@@ -213,7 +212,7 @@ class tx_recycler_model_deletedRecords {
 						$this->limit = implode(',', array($newOffset, 0));
 
 							// do not go into new depth
-						$allowDepth = false;
+						$allowDepth = FALSE;
 					} else {
 							// if the result now is <= limit's row count
 							// use the result as the temporary limit
@@ -228,21 +227,21 @@ class tx_recycler_model_deletedRecords {
 							// if the new row count is > 0
 						if ($newCount > 0) {
 							// go into new depth
-							$allowDepth = true;
+							$allowDepth = TRUE;
 						} else {
 								// if the new row count is <= 0 (only =0 makes sense though)
 								// do not go into new depth
-							$allowDepth = false;
+							$allowDepth = FALSE;
 						}
 					}
 
 						// allow query for this depth
-					$allowQuery = true;
+					$allowQuery = TRUE;
 				}
 			} else {
 				$limit = '';
-				$allowDepth = true;
-				$allowQuery = true;
+				$allowDepth = TRUE;
+				$allowQuery = TRUE;
 			}
 
 				// query for actual deleted records
@@ -255,7 +254,7 @@ class tx_recycler_model_deletedRecords {
 					'',
 					'',
 					$limit,
-					false
+					FALSE
 				);
 				if ($recordsToCheck) {
 					$this->checkRecordAccess($table, $recordsToCheck);
@@ -337,11 +336,11 @@ class tx_recycler_model_deletedRecords {
 			$tce->start('', '');
 			$tce->disableDeleteClause();
 			foreach ($recordsArray as $key => $record) {
-				$tce->deleteEl($record[0], $record[1], true, true);
+				$tce->deleteEl($record[0], $record[1], TRUE, TRUE);
 			}
-			return true;
+			return TRUE;
 		}
-		return false;
+		return FALSE;
 	}
 
 
@@ -351,15 +350,15 @@ class tx_recycler_model_deletedRecords {
 
 	/**
 	 * Undelete records
-	 * If $recursive is true all records below the page uid would be undelete too
+	 * If $recursive is TRUE all records below the page uid would be undelete too
 	 *
 	 * @param	string		$recordArray: Representation of the records
-	 * @param	boolean		$recursive: true/false
+	 * @param	boolean		$recursive: TRUE/FALSE
 	 * @return	boolean
 	 */
-	public function undeleteData($recordsArray, $recursive = false) {
+	public function undeleteData($recordsArray, $recursive = FALSE) {
 		require_once PATH_t3lib . 'class.t3lib_tcemain.php';
-		$result = false;
+		$result = FALSE;
 		$depth = 999;
 
 		$recordsArray = json_decode($recordsArray);
@@ -370,7 +369,7 @@ class tx_recycler_model_deletedRecords {
 
 			foreach ($recordsArray as $key => $row) {
 				$cmd[$row[0]][$row[1]]['undelete'] = 1;
-				if ($row[0] == 'pages' && $recursive == true) {
+				if ($row[0] == 'pages' && $recursive == TRUE) {
 					$this->loadData($row[1], '', $depth, '');
 					$childRecords = $this->getDeletedRows();
 					if (count($childRecords)>0) {
@@ -387,7 +386,7 @@ class tx_recycler_model_deletedRecords {
 				$tce = t3lib_div::makeInstance('t3lib_TCEmain');
 				$tce->start(array(), $cmd);
 				$tce->process_cmdmap();
-				$result = true;
+				$result = TRUE;
 			}
 		}
 

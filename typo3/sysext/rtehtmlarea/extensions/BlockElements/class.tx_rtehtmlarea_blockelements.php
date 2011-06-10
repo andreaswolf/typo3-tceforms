@@ -26,8 +26,6 @@
  *
  * @author Stanislas Rolland <typo3(arobas)sjbr.ca>
  *
- * TYPO3 SVN ID: $Id$
- *
  */
 class tx_rtehtmlarea_blockelements extends tx_rtehtmlarea_api {
 
@@ -99,8 +97,8 @@ class tx_rtehtmlarea_blockelements extends tx_rtehtmlarea_api {
 			$addItems = array();
 			$restrictTo = array('*');
 			$blockElementsOrder = $this->defaultBlockElementsOrder;
-			$prefixLabelWithTag = false;
-			$postfixLabelWithTag = false;
+			$prefixLabelWithTag = FALSE;
+			$postfixLabelWithTag = FALSE;
 
 				// Processing PageTSConfig
 			if (is_array($this->thisConfig['buttons.']) && is_array($this->thisConfig['buttons.']['formatblock.'])) {
@@ -120,8 +118,8 @@ class tx_rtehtmlarea_blockelements extends tx_rtehtmlarea_api {
 				if ($this->thisConfig['buttons.']['formatblock.']['orderItems']) {
 					$blockElementsOrder = 'none,'.t3lib_div::strtolower($this->thisConfig['buttons.']['formatblock.']['orderItems']);
 				}
-				$prefixLabelWithTag = ($this->thisConfig['buttons.']['formatblock.']['prefixLabelWithTag']) ? true : $prefixLabelWithTag;
-				$postfixLabelWithTag = ($this->thisConfig['buttons.']['formatblock.']['postfixLabelWithTag']) ? true : $postfixLabelWithTag;
+				$prefixLabelWithTag = ($this->thisConfig['buttons.']['formatblock.']['prefixLabelWithTag']) ? TRUE : $prefixLabelWithTag;
+				$postfixLabelWithTag = ($this->thisConfig['buttons.']['formatblock.']['postfixLabelWithTag']) ? TRUE : $postfixLabelWithTag;
 			}
 				// Processing old style configuration for hiding paragraphs
 			if ($this->thisConfig['hidePStyleItems']) {

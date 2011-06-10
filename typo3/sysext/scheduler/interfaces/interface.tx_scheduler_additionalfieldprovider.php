@@ -29,8 +29,6 @@
  * @author		Ingo Renner <ingo@typo3.org>
  * @package		TYPO3
  * @subpackage	tx_scheduler
- *
- * $Id$
  */
 interface tx_scheduler_AdditionalFieldProvider {
 
@@ -49,7 +47,7 @@ interface tx_scheduler_AdditionalFieldProvider {
 	 *
 	 * @param	array					An array containing the data submitted by the add/edit task form
 	 * @param	tx_scheduler_Module		Reference to the scheduler backend module
-	 * @return	boolean					True if validation was ok (or selected class is not relevant), false otherwise
+	 * @return	boolean					TRUE if validation was ok (or selected class is not relevant), FALSE otherwise
 	 */
 	public function validateAdditionalFields(array &$submittedData, tx_scheduler_Module $schedulerModule);
 

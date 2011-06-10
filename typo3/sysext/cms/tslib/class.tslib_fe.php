@@ -32,7 +32,6 @@
  * The class is instantiated as $GLOBALS['TSFE'] in index_ts.php.
  * The use of this class should be inspired by the order of function calls as found in index_ts.php.
  *
- * $Id$
  * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  * XHTML compliant
  *
@@ -197,11 +196,11 @@
 	var $type='';						// RO The type (int)
 	var $idParts=array();				// Loaded with the id, exploded by ','
 	var $cHash='';						// The submitted cHash
-	var $no_cache=''; 					// Page will not be cached. Write only true. Never clear value (some other code might have reasons to set it true)
+	var $no_cache=''; 					// Page will not be cached. Write only TRUE. Never clear value (some other code might have reasons to set it TRUE)
 	var $rootLine='';					// The rootLine (all the way to tree root, not only the current site!) (array)
 	var $page='';						// The pagerecord (array)
 	var $contentPid=0;					// This will normally point to the same value as id, but can be changed to point to another page from which content will then be displayed instead.
-	protected $originalShortcutPage = null;	// gets set when we are processing a page of type shortcut in the early stages opf init.php when we do not know about languages yet, used later in init.php to determine the correct shortcut in case a translation changes the shortcut target (array)
+	protected $originalShortcutPage = NULL;	// gets set when we are processing a page of type shortcut in the early stages opf init.php when we do not know about languages yet, used later in init.php to determine the correct shortcut in case a translation changes the shortcut target (array)
 
 	/**
 	 * sys_page-object, pagefunctions
@@ -253,7 +252,7 @@
 	 * @var t3lib_TStemplate
 	 */
 	var $tmpl='';
-	var $cacheTimeOutDefault = FALSE;		// Is set to the time-to-live time of cached pages. If false, default is 60*60*24, which is 24 hours.
+	var $cacheTimeOutDefault = FALSE;		// Is set to the time-to-live time of cached pages. If FALSE, default is 60*60*24, which is 24 hours.
 	var $cacheContentFlag = 0;			// Set internally if cached content is fetched from the database
 	var $cacheExpires=0;				// Set to the expire time of cached content
 	var $isClientCachable=FALSE;		// Set if cache headers allowing caching are sent.
@@ -411,6 +410,8 @@
 	protected $pageCache;
 	protected $pageCacheTags = array();
 
+		// caches the timestamp until a cache entry for this page is valid
+	protected $getCacheTimeoutCache = NULL;
 
 	/**
 	 * Class constructor
@@ -429,7 +430,7 @@
 	 * @return	void
 	 * @see index_ts.php
 	 */
-	function tslib_fe($TYPO3_CONF_VARS, $id, $type, $no_cache='', $cHash='', $jumpurl='',$MP='',$RDCT='')	{
+	function __construct($TYPO3_CONF_VARS, $id, $type, $no_cache='', $cHash='', $jumpurl='',$MP='',$RDCT='')	{
 
 			// Setting some variables:
 		$this->TYPO3_CONF_VARS = $TYPO3_CONF_VARS;
@@ -573,9 +574,7 @@
 		if (TYPO3_UseCachingFramework) {
 			$GLOBALS['TT']->push('Initializing the Caching System','');
 
-			$GLOBALS['typo3CacheManager'] = t3lib_div::makeInstance('t3lib_cache_Manager');
-			$GLOBALS['typo3CacheFactory'] = t3lib_div::makeInstance('t3lib_cache_Factory');
-			$GLOBALS['typo3CacheFactory']->setCacheManager($GLOBALS['typo3CacheManager']);
+			t3lib_cache::initializeCachingFramework();
 
 			try {
 				$this->pageCache = $GLOBALS['typo3CacheManager']->getCache(
@@ -741,7 +740,7 @@
 
 				// Backend user preview features:
 			if ($this->beUserLogin && ($GLOBALS['BE_USER']->adminPanel instanceof tslib_AdminPanel)) {
-				$this->fePreview = $GLOBALS['BE_USER']->adminPanel->extGetFeAdminValue('preview') ? true : false;
+				$this->fePreview = $GLOBALS['BE_USER']->adminPanel->extGetFeAdminValue('preview') ? TRUE : FALSE;
 
 					// If admin panel preview is enabled...
 				if ($this->fePreview)	{
@@ -1011,10 +1010,13 @@
 				if ($this->TYPO3_CONF_VARS['FE']['pageNotFound_handling'])	{
 					$this->pageNotFoundAndExit('The requested page does not exist!');
 				} else {
+					$title = 'Page Not Found';
 					$message = 'The requested page does not exist!';
-					header('HTTP/1.0 404 Page Not Found');
+					header(t3lib_utility_Http::HTTP_STATUS_404);
 					t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-					throw new RuntimeException($message, 1294587208);
+					$messagePage = t3lib_div::makeInstance('t3lib_message_ErrorpageMessage', $message, $title);
+					$messagePage->output();
+					exit;
 				}
 			}
 		}
@@ -1024,10 +1026,13 @@
 			if ($this->TYPO3_CONF_VARS['FE']['pageNotFound_handling'])	{
 				$this->pageNotFoundAndExit('The requested page does not exist!');
 			} else {
+				$title = 'Page Not Found';
 				$message = 'The requested page does not exist!';
-				header('HTTP/1.0 404 Page Not Found');
+				header(t3lib_utility_Http::HTTP_STATUS_404);
 				t3lib_div::sysLog($message, 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-				throw new RuntimeException($message, 1294587209);
+				$messagePage = t3lib_div::makeInstance('t3lib_message_ErrorpageMessage', $message, $title);
+				$messagePage->output();
+				exit;
 			}
 		}
 
@@ -1122,13 +1127,39 @@
 					}
 					$c++;
 				}
+				if (count($page) == 0) {
+					header(t3lib_utility_Http::HTTP_STATUS_404);
+					$title = 'Page Not Found';
+					$message = 'This page (ID ' . $thisUid . ') is of type "Shortcut" and configured to redirect to a subpage. '
+						. 'However, this page has no accessible subpages.';
+					$messagePage = t3lib_div::makeInstance('t3lib_message_ErrorpageMessage', $message, $title);
+					$messagePage->output();
+					exit;
+				}
 			break;
 			case t3lib_pageSelect::SHORTCUT_MODE_PARENT_PAGE:
 				$parent = $this->sys_page->getPage($thisUid);
 				$page = $this->sys_page->getPage($parent['pid']);
+				if (count($page) == 0) {
+					header(t3lib_utility_Http::HTTP_STATUS_404);
+					$title = 'Page Not Found';
+					$message = 'This page (ID ' . $thisUid . ') is of type "Shortcut" and configured to redirect to its parent page. '
+						. 'However, the parent page is not accessible.';
+					$messagePage = t3lib_div::makeInstance('t3lib_message_ErrorpageMessage', $message, $title);
+					$messagePage->output();
+					exit;
+				}
 			break;
 			default:
 				$page = $this->sys_page->getPage($idArray[0]);
+				if (count($page) == 0) {
+					header(t3lib_utility_Http::HTTP_STATUS_404);
+					$title = 'Page Not Found';
+					$message = 'This page (ID ' . $thisUid . ') is of type "Shortcut" and configured to redirect to a page, which is not accessible (ID ' . $idArray[0] . ').';
+					$messagePage = t3lib_div::makeInstance('t3lib_message_ErrorpageMessage', $message, $title);
+					$messagePage->output();
+					exit;
+				}
 			break;
 		}
 
@@ -1184,12 +1215,12 @@
 
 	/**
 	 * Checks page record for enableFields
-	 * Returns true if enableFields does not disable the page record.
+	 * Returns TRUE if enableFields does not disable the page record.
 	 * Takes notice of the ->showHiddenPage flag and uses SIM_ACCESS_TIME for start/endtime evaluation
 	 *
 	 * @param	array		The page record to evaluate (needs fields: hidden, starttime, endtime, fe_group)
 	 * @param	boolean		Bypass group-check
-	 * @return	boolean		True, if record is viewable.
+	 * @return	boolean		TRUE, if record is viewable.
 	 * @see tslib_cObj::getTreeList(), checkPagerecordForIncludeSection()
 	 */
 	function checkEnableFields($row,$bypassGroupCheck=FALSE)	{
@@ -1205,7 +1236,7 @@
 	 *
 	 * @param	array		The page record to evaluate (needs field: fe_group)
 	 * @param	mixed		List of group id's (comma list or array). Default is $this->gr_list
-	 * @return	boolean		True, if group access is granted.
+	 * @return	boolean		TRUE, if group access is granted.
 	 * @access private
 	 */
 	function checkPageGroupAccess($row, $groupList=NULL) {
@@ -1215,6 +1246,19 @@
 		if(!is_array($groupList)) {
 			$groupList = explode(',', $groupList);
 		}
+
+			// If the actual page has no fe_group, check the rootline for
+			// inherited fe_group due to extendToSubpage-property
+		if (intval($row['fe_group']) === 0) {
+			$rootLine = $this->sys_page->getRootLine($row['uid']);
+			foreach ($rootLine as $pageConf) {
+				if ($pageConf['fe_group'] != '' && $pageConf['extendToSubpages'] == 1) {
+					$row['fe_group'] = $pageConf['fe_group'];
+					break;
+				}
+			}
+		}
+
 		$pageGroupList = explode(',', $row['fe_group'] ? $row['fe_group'] : 0);
 		return count(array_intersect($groupList, $pageGroupList)) > 0;
 	}
@@ -1223,7 +1267,7 @@
 	 * Checks page record for include section
 	 *
 	 * @param	array		The page record to evaluate (needs fields: extendToSubpages + hidden, starttime, endtime, fe_group)
-	 * @return	boolean		Returns true if either extendToSubpages is not checked or if the enableFields does not disable the page record.
+	 * @return	boolean		Returns TRUE if either extendToSubpages is not checked or if the enableFields does not disable the page record.
 	 * @access private
 	 * @see checkEnableFields(), tslib_cObj::getTreeList(), checkRootlineForIncludeSection()
 	 */
@@ -1232,9 +1276,9 @@
 	}
 
 	/**
-	 * Checks if logins are allowed in the current branch of the page tree. Traverses the full root line and returns TRUE if logins are OK, otherwise false (and then the login user must be unset!)
+	 * Checks if logins are allowed in the current branch of the page tree. Traverses the full root line and returns TRUE if logins are OK, otherwise FALSE (and then the login user must be unset!)
 	 *
-	 * @return	boolean		returns TRUE if logins are OK, otherwise false (and then the login user must be unset!)
+	 * @return	boolean		returns TRUE if logins are OK, otherwise FALSE (and then the login user must be unset!)
 	 */
 	function checkIfLoginAllowedInBranch()	{
 
@@ -1295,7 +1339,7 @@
 
 	/**
 	 * This checks if there are ARGV-parameters in the QUERY_STRING and if so, those are used for the id
-	 * $this->id must be 'false' in order for any processing to happen in here
+	 * $this->id must be 'FALSE' in order for any processing to happen in here
 	 * If an id/alias value is extracted from the QUERY_STRING it is set in $this->id
 	 *
 	 * @return	void
@@ -1305,7 +1349,7 @@
 		if (!$this->id)	{
 			list($theAlias) = explode('&',t3lib_div::getIndpEnv('QUERY_STRING'));
 			$theAlias = trim($theAlias);
-			$this->id = ($theAlias != '' && strpos($theAlias, '=') === false) ? $theAlias : 0;
+			$this->id = ($theAlias != '' && strpos($theAlias, '=') === FALSE) ? $theAlias : 0;
 		}
 	}
 
@@ -1360,7 +1404,11 @@
 			$host = explode('.',t3lib_div::getIndpEnv('HTTP_HOST'));
 			while(count($host))	{
 				$pageUid = $this->sys_page->getDomainStartPage(implode('.',$host),t3lib_div::getIndpEnv('SCRIPT_NAME'),t3lib_div::getIndpEnv('REQUEST_URI'));
-				if ($pageUid)	return $pageUid; else array_shift($host);
+				if ($pageUid) {
+					return $pageUid;
+				} else {
+					array_shift($host);
+				}
 			}
 			return $pageUid;
 		} else {
@@ -1398,7 +1446,7 @@
 	 * Checks whether the pageUnavailableHandler should be used. To be used, pageUnavailable_handling must be set
 	 * and devIPMask must not match the current visitor's IP address.
 	 *
-	 * @return	boolean		True/false whether the pageUnavailable_handler should be used.
+	 * @return	boolean		TRUE/FALSE whether the pageUnavailable_handler should be used.
 	 */
 	function checkPageUnavailableHandler()	{
 		if($this->TYPO3_CONF_VARS['FE']['pageUnavailable_handling'] &&
@@ -1456,7 +1504,11 @@
 
 			// Create response:
 		if (gettype($code)=='boolean' || !strcmp($code,1))	{	// Simply boolean; Just shows TYPO3 error page with reason:
-			throw new RuntimeException('The page did not exist or was inaccessible.' . ($reason ? ' Reason: ' . htmlspecialchars($reason) : ''), 1294587213);
+			$title = 'Page Not Found';
+			$message = 'The page did not exist or was inaccessible.' . ($reason ? ' Reason: ' . htmlspecialchars($reason) : '');
+			$messagePage = t3lib_div::makeInstance('t3lib_message_ErrorpageMessage', $message, $title);
+			$messagePage->output();
+			exit;
 		} elseif (t3lib_div::isFirstPartOfStr($code,'USER_FUNCTION:')) {
 			$funcRef = trim(substr($code,14));
 			$params = array(
@@ -1482,10 +1534,14 @@
 			$url_parts = parse_url($code);
 			if ($url_parts['host'] == '')	{
 				$url_parts['host'] = t3lib_div::getIndpEnv('HTTP_HOST');
-				$code = t3lib_div::getIndpEnv('TYPO3_REQUEST_HOST') . $code;
-				$checkBaseTag = false;
+				if ($code{0} === '/') {
+					$code = t3lib_div::getIndpEnv('TYPO3_REQUEST_HOST') . $code;
+				} else {
+					$code = t3lib_div::getIndpEnv('TYPO3_REQUEST_DIR') . $code;
+				}
+				$checkBaseTag = FALSE;
 			} else {
-				$checkBaseTag = true;
+				$checkBaseTag = TRUE;
 			}
 
 				// Check recursion
@@ -1508,7 +1564,7 @@
 			list($header, $content) = explode(CRLF . CRLF, $res, 2);
 			$content.= CRLF;
 
-			if (false === $res) {
+			if (FALSE === $res) {
 					// Last chance -- redirect
 				t3lib_utility_Http::redirect($code);
 			} else {
@@ -1528,7 +1584,7 @@
 				if ($checkBaseTag)	{
 
 						// If content already has <base> tag, we do not need to do anything
-					if (false === stristr($content, '<base '))	{
+					if (FALSE === stristr($content, '<base '))	{
 
 							// Generate href for base tag
 						$base = $url_parts['scheme'] . '://';
@@ -1556,7 +1612,10 @@
 				echo $content;	// Output the content
 			}
 		} else {
-			throw new RuntimeException($reason ? htmlspecialchars($reason) : 'Page cannot be found.', 1294587216);
+			$title = 'Page Not Found';
+			$message = ($reason ? 'Reason: ' . htmlspecialchars($reason) : 'Page cannot be found.');
+			$messagePage = t3lib_div::makeInstance('t3lib_message_ErrorpageMessage', $message, $title);
+			$messagePage->output();
 		}
 		exit();
 	}
@@ -1827,7 +1886,7 @@
 
 			if (!is_array($cc)) {
 				$key = $this->id.'::'.$this->MP;
-				$isLocked = $this->acquirePageGenerationLock($this->pagesection_lockObj, $key);	// Returns true if the lock is active now
+				$isLocked = $this->acquirePageGenerationLock($this->pagesection_lockObj, $key);	// Returns TRUE if the lock is active now
 
 				if (!$isLocked) {
 						// Lock is no longer active, the data in "cache_pagesection" is now ready
@@ -2022,7 +2081,7 @@
 	 * @return	void
 	 */
 	function getConfigArray()	{
-		$setStatPageName = false;
+		$setStatPageName = FALSE;
 
 		if (!is_array($this->config) || is_array($this->config['INTincScript']) || $this->forceTemplateParsing)	{	// If config is not set by the cache (which would be a major mistake somewhere) OR if INTincScripts-include-scripts have been registered, then we must parse the template in order to get it
 				$GLOBALS['TT']->push('Parse template','');
@@ -2062,7 +2121,7 @@
 					}
 
 					if ($this->config['config']['typolinkEnableLinksAcrossDomains']) {
-						$this->config['config']['typolinkCheckRootline'] = true;
+						$this->config['config']['typolinkCheckRootline'] = TRUE;
 					}
 
 						// Set default values for removeDefaultJS, inlineStyle2TempFile and minifyJS so CSS and JS are externalized/minified if compatversion is higher than 4.0
@@ -2120,7 +2179,7 @@
 		}
 
 			// No cache
-		if ($this->config['config']['no_cache'])	{ $this->set_no_cache(); }		// Set $this->no_cache true if the config.no_cache value is set!
+		if ($this->config['config']['no_cache'])	{ $this->set_no_cache(); }		// Set $this->no_cache TRUE if the config.no_cache value is set!
 
 			// merge GET with defaultGetVars
 		if (!empty($this->config['config']['defaultGetVars.'])) {
@@ -2162,16 +2221,14 @@
 	 *******************************************/
 
 	/**
-	 * Get the compressed $TCA array for use in the front-end
-	 * A compressed $TCA array holds only the ctrl- and feInterface-part for each table. But the column-definitions are omitted in order to save some memory and be more efficient.
+	 * Get the compressed $GLOBALS['TCA'] array for use in the front-end
+	 * A compressed $GLOBALS['TCA'] array holds only the ctrl- and feInterface-part for each table. But the column-definitions are omitted in order to save some memory and be more efficient.
 	 * Operates on the global variable, $TCA
 	 *
 	 * @return	void
 	 * @see includeTCA()
 	 */
 	function getCompressedTCarray()	{
-		global $TCA;
-
 		$GLOBALS['TT']->push('Get Compressed TC array');
 		if (!$this->TCAloaded)	{
 				// Create hash string for storage / retrieval of cached content:
@@ -2183,24 +2240,24 @@
 
 			if ($this->TYPO3_CONF_VARS['EXT']['extCache'] != 0) {
 				// Try to fetch if cache is enabled
-				list($TCA, $this->TCAcachedExtras) = unserialize($this->sys_page->getHash($tempHash));
+				list($GLOBALS['TCA'], $this->TCAcachedExtras) = unserialize($this->sys_page->getHash($tempHash));
 			}
 
 				// If no result, create it:
-			if (!is_array($TCA))	{
+			if (!is_array($GLOBALS['TCA']))	{
 				$this->includeTCA(0);
 				$newTc = Array();
 				$this->TCAcachedExtras = array();	// Collects other information
 
-				foreach($TCA as $key => $val)		{
+				foreach($GLOBALS['TCA'] as $key => $val) {
 					$newTc[$key]['ctrl'] = $val['ctrl'];
 					$newTc[$key]['feInterface'] = $val['feInterface'];
 
 						// Collect information about localization exclusion of fields:
 					t3lib_div::loadTCA($key);
-					if (is_array($TCA[$key]['columns']))	{
+					if (is_array($GLOBALS['TCA'][$key]['columns'])) {
 						$this->TCAcachedExtras[$key]['l10n_mode'] = array();
-						foreach($TCA[$key]['columns'] as $fN => $fV)	{
+						foreach($GLOBALS['TCA'][$key]['columns'] as $fN => $fV) {
 							if ($fV['l10n_mode'])	{
 								$this->TCAcachedExtras[$key]['l10n_mode'][$fN] = $fV['l10n_mode'];
 							}
@@ -2208,7 +2265,7 @@
 					}
 				}
 
-				$TCA = $newTc;
+				$GLOBALS['TCA'] = $newTc;
 				// Store it in cache if cache is enabled
 				if ($this->TYPO3_CONF_VARS['EXT']['extCache'] != 0) {
 					$this->sys_page->storeHash($tempHash, serialize(array($newTc,$this->TCAcachedExtras)), 'SHORT_TC');
@@ -2225,14 +2282,15 @@
 	 * full TCA for the table, use t3lib_div::loadTCA($tableName) after calling
 	 * this function.
 	 *
-	 * @param	boolean		Probably, keep hands of this value. Just don't set it. (This may affect the first-ever time this function is called since if you set it to zero/false any subsequent call will still trigger the inclusion; In other words, this value will be set in $this->TCAloaded after inclusion and therefore if its false, another inclusion will be possible on the next call. See ->getCompressedTCarray())
+	 * @param	boolean		Probably, keep hands of this value. Just don't set it. (This may affect the first-ever time this function is called since if you set it to zero/FALSE any subsequent call will still trigger the inclusion; In other words, this value will be set in $this->TCAloaded after inclusion and therefore if its FALSE, another inclusion will be possible on the next call. See ->getCompressedTCarray())
 	 * @return	void
 	 * @see getCompressedTCarray()
 	 */
-	function includeTCA($TCAloaded=1)	{
-		global $TCA, $PAGES_TYPES, $TBE_MODULES;
+	function includeTCA($TCAloaded = 1) {
+			// do not remove this global declaration - it's used inside the ext_tables.php files
+		global $TCA;
 		if (!$this->TCAloaded)	{
-			$TCA = Array();
+			$GLOBALS['TCA'] = array();
 			include (TYPO3_tables_script ? PATH_typo3conf.TYPO3_tables_script : PATH_t3lib.'stddb/tables.php');
 				// Extension additions
 			if ($GLOBALS['TYPO3_LOADED_EXT']['_CACHEFILE'])	{
@@ -2529,7 +2587,7 @@
 						$EMAIL_VARS[$fieldKey] = $res;	// Set value if OK
 					} elseif ($integrityCheck)	{	// Otherwise abort:
 						$GLOBALS['TT']->setTSlogMessage('"Formmail" discovered a field ('.$fieldKey.') which could not be decoded to a valid string. Sending formmail aborted due to security reasons!',3);
-						return false;
+						return FALSE;
 					} else {
 						$GLOBALS['TT']->setTSlogMessage('"Formmail" discovered a field ('.$fieldKey.') which could not be decoded to a valid string. The security level accepts this, but you should consider a correct coding though!',2);
 					}
@@ -2707,7 +2765,7 @@
 	 *******************************************/
 
 	/**
-	 * Returns true if the page should be generated
+	 * Returns TRUE if the page should be generated
 	 * That is if jumpurl is not set and the cacheContentFlag is not set.
 	 *
 	 * @return	boolean
@@ -2723,7 +2781,7 @@
 	 * @return	void
 	 */
 	function tempPageCacheContent()	{
-		$this->tempContent = false;
+		$this->tempContent = FALSE;
 
 		if (!$this->no_cache)	{
 			$seconds = 30;
@@ -2780,15 +2838,11 @@
 	 * @return	void
 	 */
 	function realPageCacheContent()	{
-		$cache_timeout = $this->get_cache_timeout();		// seconds until a cached page is too old
-		$timeOutTime = $GLOBALS['EXEC_TIME']+$cache_timeout;
-		if ($this->config['config']['cache_clearAtMidnight'])	{
-			$midnightTime = mktime (0,0,0,date('m',$timeOutTime),date('d',$timeOutTime),date('Y',$timeOutTime));
-			if ($midnightTime > $GLOBALS['EXEC_TIME'])	{		// If the midnight time of the expire-day is greater than the current time, we may set the timeOutTime to the new midnighttime.
-				$timeOutTime = $midnightTime;
-			}
-		}
-		$this->tempContent = false;
+			// seconds until a cached page is too old
+		$cacheTimeout = $this->get_cache_timeout();
+		$timeOutTime = $GLOBALS['EXEC_TIME'] + $cacheTimeout;
+		$this->tempContent = FALSE;
+
 		$this->setPageCacheContent($this->content, $this->config, $timeOutTime);
 
 			// Hook for cache post processing (eg. writing static files!)
@@ -2933,13 +2987,13 @@
 	 *
 	 * @param	t3lib_lock	Reference to a locking object
 	 * @param	string		String to identify the lock in the system
-	 * @return	boolean		Returns true if the lock could be obtained, false otherwise (= process had to wait for existing lock to be released)
+	 * @return	boolean		Returns TRUE if the lock could be obtained, FALSE otherwise (= process had to wait for existing lock to be released)
 	 * @see releasePageGenerationLock()
 	 */
 	function acquirePageGenerationLock(&$lockObj, $key)	{
 		if ($this->no_cache || $this->headerNoCache()) {
 			t3lib_div::sysLog('Locking: Page is not cached, no locking required', 'cms', t3lib_div::SYSLOG_SEVERITY_INFO);
-			return true;	// No locking is needed if caching is disabled
+			return TRUE;	// No locking is needed if caching is disabled
 		}
 
 		try {
@@ -2947,10 +3001,10 @@
 				$lockObj = t3lib_div::makeInstance('t3lib_lock', $key, $this->TYPO3_CONF_VARS['SYS']['lockingMode']);
 			}
 
-			$success = false;
+			$success = FALSE;
 			if (strlen($key)) {
-					// true = Page could get locked without blocking
-					// false = Page could get locked but process was blocked before
+					// TRUE = Page could get locked without blocking
+					// FALSE = Page could get locked but process was blocked before
 				$success = $lockObj->acquire();
 				if ($lockObj->getLockStatus()) {
 					$lockObj->sysLog('Acquired lock');
@@ -2958,7 +3012,7 @@
 			}
 		} catch (Exception $e) {
 			t3lib_div::sysLog('Locking: Failed to acquire lock: '.$e->getMessage(), 'cms', t3lib_div::SYSLOG_SEVERITY_ERROR);
-			$success = false;	// If locking fails, return with false and continue without locking
+			$success = FALSE;	// If locking fails, return with FALSE and continue without locking
 		}
 
 		return $success;
@@ -2968,19 +3022,19 @@
 	 * Release the page generation lock
 	 *
 	 * @param	t3lib_lock	Reference to a locking object
-	 * @return	boolean		Returns true on success, false otherwise
+	 * @return	boolean		Returns TRUE on success, FALSE otherwise
 	 * @see acquirePageGenerationLock()
 	 */
 	function releasePageGenerationLock(&$lockObj) {
-		$success = false;
+		$success = FALSE;
 			// If lock object is set and was acquired (may also happen if no_cache was enabled during runtime), release it:
 		if (is_object($lockObj) && $lockObj instanceof t3lib_lock && $lockObj->getLockStatus()) {
 			$success = $lockObj->release();
 			$lockObj->sysLog('Released lock');
-			$lockObj = null;
+			$lockObj = NULL;
 			// Otherwise, if caching is disabled, no locking is required:
 		} elseif ($this->no_cache || $this->headerNoCache()) {
-			$success = true;
+			$success = TRUE;
 		}
 		return $success;
 	}
@@ -3030,7 +3084,7 @@
 		$this->newHash = $this->getHash();	// Same codeline as in getFromCache(). But $this->all has been changed by t3lib_TStemplate::start() in the meantime, so this must be called again!
 		$this->config['hash_base'] = $this->hash_base;	// For cache management informational purposes.
 
-		if (!is_object($this->pages_lockObj) || $this->pages_lockObj->getLockStatus()==false) {
+		if (!is_object($this->pages_lockObj) || $this->pages_lockObj->getLockStatus()==FALSE) {
 				// Here we put some temporary stuff in the cache in order to let the first hit generate the page. The temporary cache will expire after a few seconds (typ. 30) or will be cleared by the rendered page, which will also clear and rewrite the cache.
 			$this->tempPageCacheContent();
 		}
@@ -3141,7 +3195,7 @@
 			$this->realPageCacheContent();
 		} elseif ($this->tempContent)	{		// If there happens to be temporary content in the cache and the cache was not cleared due to new content, put it in... ($this->no_cache=0)
 			$this->clearPageCacheContent();
-			$this->tempContent = false;
+			$this->tempContent = FALSE;
 		}
 
 			// Release open locks
@@ -3172,7 +3226,7 @@
 			$this->INTincScript_process($INTiS_config);
 				// Check if there were new items added to INTincScript during the previous execution:
 			$INTiS_config = array_diff_assoc($this->config['INTincScript'], $INTiS_config);
-			$reprocess = (count($INTiS_config) ? true : false);
+			$reprocess = (count($INTiS_config) ? TRUE : FALSE);
 		} while($reprocess);
 
 		$GLOBALS['TT']->push('Substitute header section');
@@ -3193,7 +3247,7 @@
 	protected function INTincScript_includeLibs($INTiS_config) {
 		foreach($INTiS_config as $INTiS_cPart) {
 			if (isset($INTiS_cPart['conf']['includeLibs']) && $INTiS_cPart['conf']['includeLibs']) {
-				$INTiS_resourceList = t3lib_div::trimExplode(',', $INTiS_cPart['conf']['includeLibs'], true);
+				$INTiS_resourceList = t3lib_div::trimExplode(',', $INTiS_cPart['conf']['includeLibs'], TRUE);
 				$this->includeLibraries($INTiS_resourceList);
 			}
 		}
@@ -3291,7 +3345,7 @@ if (version == "n3") {
 	/**
 	 * Determines if there are any INTincScripts to include
 	 *
-	 * @return	boolean		Returns true if scripts are found (and not jumpurl)
+	 * @return	boolean		Returns TRUE if scripts are found (and not jumpurl)
 	 */
 	function isINTincScript()	{
 		return	(is_array($this->config['INTincScript']) && !$this->jumpurl);
@@ -3340,7 +3394,7 @@ if (version == "n3") {
 	 * Determines if content should be outputted.
 	 * Outputting content is done only if jumpUrl is NOT set.
 	 *
-	 * @return	boolean		Returns true if $this->jumpurl is not set.
+	 * @return	boolean		Returns TRUE if $this->jumpurl is not set.
 	 */
 	function isOutputting()	{
 
@@ -3576,7 +3630,7 @@ if (version == "n3") {
 	/**
 	 * Determines if any EXTincScripts should be included
 	 *
-	 * @return	boolean		True, if external php scripts should be included (set by PHP_SCRIPT_EXT cObjects)
+	 * @return	boolean		TRUE, if external php scripts should be included (set by PHP_SCRIPT_EXT cObjects)
 	 * @see tslib_cObj::PHP_SCRIPT
 	 */
 	function isEXTincScript()	{
@@ -3613,11 +3667,11 @@ if (version == "n3") {
 	 * Initialize file-based statistics handling: Check filename and permissions, and create the logfile if it does not exist yet.
 	 * This function should be called with care because it might overwrite existing settings otherwise.
 	 *
-	 * @return	boolean		True if statistics are enabled (will require some more processing after charset handling is initialized)
+	 * @return	boolean		TRUE if statistics are enabled (will require some more processing after charset handling is initialized)
 	 * @access private
 	 */
 	protected function statistics_init()	{
-		$setStatPageName = false;
+		$setStatPageName = FALSE;
 		$theLogFile = $this->TYPO3_CONF_VARS['FE']['logfile_dir'].strftime($this->config['config']['stat_apache_logfile']);
 
 			// Add PATH_site left to $theLogFile if the path is not absolute yet
@@ -3634,7 +3688,7 @@ if (version == "n3") {
 
 				if (@is_file($theLogFile) && @is_writable($theLogFile)) {
 					$this->config['stat_vars']['logFile'] = $theLogFile;
-					$setStatPageName = true;	// Set page name later on
+					$setStatPageName = TRUE;	// Set page name later on
 				} else {
 					$GLOBALS['TT']->setTSlogMessage('Could not set logfile path. Check filepath and permissions.',3);
 				}
@@ -3824,26 +3878,15 @@ if (version == "n3") {
 	 * @return	void
 	 */
 	function previewInfo()	{
-		if ($this->fePreview && (!isset($this->config['config']['disablePreviewNotification']) || intval($this->config['config']['disablePreviewNotification']) !== 1)) {
-				if ($this->fePreview === 2) {
-					$onclickForStoppingPreview = 'document.location="'.t3lib_div::getIndpEnv('TYPO3_SITE_URL').'index.php?ADMCMD_prev=LOGOUT&returnUrl='.rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')).'";return false;';
-					$text = 'Preview of workspace "'.$this->whichWorkspace(TRUE).'" ('.$this->whichWorkspace().')';
-					$html = $this->doWorkspacePreview() ? '<br/><input name="_" type="submit" value="Stop preview" onclick="'.htmlspecialchars($onclickForStoppingPreview).'" />' : '';
-				} else {
-					$text = 'PREVIEW!';
-					$html = '';
+		if ($this->fePreview !== 0) {
+			$previewInfo = '';
+			if (isset($this->TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_fe.php']['hook_previewInfo']) && is_array($this->TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_fe.php']['hook_previewInfo'])) {
+				$_params = array('pObj' => &$this);
+				foreach($this->TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_fe.php']['hook_previewInfo'] as $_funcRef) {
+					$previewInfo .= t3lib_div::callUserFunction($_funcRef,$_params,$this);
 				}
-
-				$stdMsg = '<div id="typo3-previewInfo" style="position: absolute; top: 20px; right: 20px; border: 2px solid #000; padding: 5px 5px; background: #f00; font: 1em Verdana; color: #000; font-weight: bold; z-index: 10001">'.htmlspecialchars($text).$html.'</div>';
-
-				if ($this->fePreview === 2) {
-					$temp_content = $this->config['config']['message_preview_workspace'] ?
-						@sprintf($this->config['config']['message_preview_workspace'], $this->whichWorkspace(TRUE),$this->whichWorkspace()) :
-						$stdMsg;
-				} else {
-					$temp_content = $this->config['config']['message_preview'] ? $this->config['config']['message_preview'] : $stdMsg;
-				}
-				echo $temp_content;
+			}
+			$this->content = str_ireplace('</body>',  $previewInfo . '</body>', $this->content);
 		}
 	}
 
@@ -3937,7 +3980,7 @@ if (version == "n3") {
 	 * @deprecated since TYPO3 4.3, will be removed in TYPO3 4.6, please use the "simulatestatic" sysext directly
 	 * @todo	Deprecated but still used in the Core!
 	 */
-	function makeSimulFileName($inTitle, $page, $type, $addParams = '', $no_cache = false) {
+	function makeSimulFileName($inTitle, $page, $type, $addParams = '', $no_cache = FALSE) {
 		t3lib_div::logDeprecatedFunction();
 
 		if (t3lib_extMgm::isLoaded('simulatestatic')) {
@@ -3954,7 +3997,7 @@ if (version == "n3") {
 				$this
 			);
 		} else {
-			return false;
+			return FALSE;
 		}
 	}
 
@@ -3976,7 +4019,7 @@ if (version == "n3") {
 				$this
 			);
 		} else {
-			return false;
+			return FALSE;
 		}
 	}
 
@@ -4059,7 +4102,7 @@ if (version == "n3") {
 		$n = $n + $offset;
 		if ($offset > 0 && $n > $end)	{
 			$n = $start + ($n - $end - 1);
-		} else if ($offset < 0 && $n < $start)	{
+		} elseif ($offset < 0 && $n < $start)	{
 			$n = $end - ($start - $n - 1);
 		}
 		return chr($n);
@@ -4089,7 +4132,7 @@ if (version == "n3") {
 					$out .= $this->encryptCharcode($charValue,0x2B,0x3A,$offset);
 				} elseif ($charValue >= 0x40 && $charValue <= 0x5A)	{	// A-Z @
 					$out .= $this->encryptCharcode($charValue,0x40,0x5A,$offset);
-				} else if ($charValue >= 0x61 && $charValue <= 0x7A)	{	// a-z
+				} elseif ($charValue >= 0x61 && $charValue <= 0x7A)	{	// a-z
 					$out .= $this->encryptCharcode($charValue,0x61,0x7A,$offset);
 				} else {
 					$out .= $string{$i};
@@ -4158,7 +4201,7 @@ if (version == "n3") {
 	 * Checks if a PHPfile may be included.
 	 *
 	 * @param	string		Relative path to php file
-	 * @return	boolean		Returns true if $GLOBALS['TYPO3_CONF_VARS']['FE']['noPHPscriptInclude'] is not set OR if the file requested for inclusion is found in one of the allowed paths.
+	 * @return	boolean		Returns TRUE if $GLOBALS['TYPO3_CONF_VARS']['FE']['noPHPscriptInclude'] is not set OR if the file requested for inclusion is found in one of the allowed paths.
 	 * @see tslib_cObj::PHP_SCRIPT(), tslib_feTCE::includeScripts(), tslib_menu::includeMakeMenu()
 	 */
 	function checkFileInclude($incFile)	{
@@ -4198,7 +4241,7 @@ if (version == "n3") {
 			$this->content = str_replace('"'.$GLOBALS['TYPO3_CONF_VARS']['BE']['fileadminDir'], '"'.$this->absRefPrefix.$GLOBALS['TYPO3_CONF_VARS']['BE']['fileadminDir'], $this->content);
 			$this->content = str_replace('"' . $GLOBALS['TYPO3_CONF_VARS']['BE']['RTE_imageStorageDir'], '"' . $this->absRefPrefix . $GLOBALS['TYPO3_CONF_VARS']['BE']['RTE_imageStorageDir'], $this->content);
 			// Process additional directories
-			$directories = t3lib_div::trimExplode(',', $GLOBALS['TYPO3_CONF_VARS']['FE']['additionalAbsRefPrefixDirectories'], true);
+			$directories = t3lib_div::trimExplode(',', $GLOBALS['TYPO3_CONF_VARS']['FE']['additionalAbsRefPrefixDirectories'], TRUE);
 			foreach ($directories as $directory) {
 				$this->content = str_replace('"' . $directory, '"' . $this->absRefPrefix . $directory, $this->content);
 			}
@@ -4271,7 +4314,7 @@ if (version == "n3") {
 
 	/**
 	 * Pass the content through tidy - a little program that cleans up HTML-code.
-	 * Requires $this->TYPO3_CONF_VARS['FE']['tidy'] to be true and $this->TYPO3_CONF_VARS['FE']['tidy_path'] to contain the filename/path of tidy including clean-up arguments for tidy. See default value in TYPO3_CONF_VARS in t3lib/config_default.php
+	 * Requires $this->TYPO3_CONF_VARS['FE']['tidy'] to be TRUE and $this->TYPO3_CONF_VARS['FE']['tidy_path'] to contain the filename/path of tidy including clean-up arguments for tidy. See default value in TYPO3_CONF_VARS in t3lib/config_default.php
 	 *
 	 * @param	string		The page content to clean up. Will be written to a temporary file which "tidy" is then asked to clean up. File content is read back and returned.
 	 * @return	string		Returns the
@@ -4330,9 +4373,9 @@ if (version == "n3") {
 	}
 
 	/**
-	 * Returns true if workspace preview is enabled
+	 * Returns TRUE if workspace preview is enabled
 	 *
-	 * @return	boolean		Returns true if workspace preview is enabled
+	 * @return	boolean		Returns TRUE if workspace preview is enabled
 	 */
 	function doWorkspacePreview()	{
 		return (string)$this->workspacePreview!=='';
@@ -4602,17 +4645,35 @@ if (version == "n3") {
 	 * @return	integer		The cache timeout for the current page.
 	 */
 	function get_cache_timeout() {
-			// Cache period was set for the page:
-		if ($this->page['cache_timeout']) {
-			$cacheTimeout = intval($this->page['cache_timeout']);
-			// Cache period was set for the whole site:
-		} elseif ($this->cacheTimeOutDefault) {
-			$cacheTimeout = $this->cacheTimeOutDefault;
-			// No cache period set at all, so we take one day (60*60*24 seconds = 86400 seconds):
-		} else {
-			$cacheTimeout = 86400;
+		if ($this->getCacheTimeoutCache == NULL) {
+			if ($this->page['cache_timeout']) {
+					// Cache period was set for the page:
+				$cacheTimeout = $this->page['cache_timeout'];
+			} elseif ($this->cacheTimeOutDefault) {
+					// Cache period was set for the whole site:
+				$cacheTimeout = $this->cacheTimeOutDefault;
+			} else {
+					// No cache period set at all, so we take one day (60*60*24 seconds = 86400 seconds):
+				$cacheTimeout = 86400;
+			}
+
+			if ($this->config['config']['cache_clearAtMidnight']) {
+				$timeOutTime = $GLOBALS['EXEC_TIME'] + $cacheTimeout;
+				$midnightTime = mktime(0, 0, 0, date('m', $timeOutTime), date('d', $timeOutTime), date('Y', $timeOutTime));
+					// If the midnight time of the expire-day is greater than the current time,
+					// we may set the timeOutTime to the new midnighttime.
+				if ($midnightTime > $GLOBALS['EXEC_TIME']) {
+					$cacheTimeout = $midnightTime - $GLOBALS['EXEC_TIME'];
+				}
+			} else {
+					// if cache_clearAtMidnight is not set calculate the timeout time for records on the page
+				$calculatedCacheTimeout = $this->calculatePageCacheTimeout();
+				$cacheTimeout = ($calculatedCacheTimeout < $cacheTimeout) ? $calculatedCacheTimeout : $cacheTimeout;
+			}
+			$this->getCacheTimeoutCache = $cacheTimeout;
 		}
-		return $cacheTimeout;
+
+		return $this->getCacheTimeoutCache;
 	}
 
 	/**
@@ -4752,7 +4813,10 @@ if (version == "n3") {
 
 		$ls = explode('|',TYPO3_languages);
 		foreach ($ls as $i => $v) {
-			if ($v==$this->lang)	{$this->langSplitIndex=$i; break;}
+			if ($v == $this->lang) {
+				$this->langSplitIndex = $i;
+				break;
+			}
 		}
 
 			// Setting charsets:
@@ -4805,6 +4869,122 @@ if (version == "n3") {
 			$this->csConvObj->convArray($_POST,$this->metaCharset,$this->renderCharset);
 			$GLOBALS['HTTP_POST_VARS'] = $_POST;
 		}
+	}
+
+	/**
+	 * Calculates page cache timeout according to the records with starttime/endtime on the page.
+	 *
+	 * @return int Page cache timeout or PHP_INT_MAX if cannot be determined
+	 */
+	protected function calculatePageCacheTimeout() {
+		$result = PHP_INT_MAX;
+
+			// Get the configuration
+		$tablesToConsider = $this->getCurrentPageCacheConfiguration();
+
+			// Get the time, rounded to the minute (do not polute MySQL cache!)
+			// It is ok that we do not take seconds into account here because this
+			// value will be substracted later. So we never get the time "before"
+			// the cache change.
+		$now = $GLOBALS['ACCESS_TIME'];
+
+			// Find timeout by checking every table
+		foreach ($tablesToConsider as $tableDef) {
+			$result = min($result, $this->getFirstTimeValueForRecord($tableDef, $now));
+		}
+
+			// We return + 1 second just to ensure that cache is definitely regenerated
+		return ($result == PHP_INT_MAX ? PHP_INT_MAX : $result - $now + 1);
+	}
+
+	/**
+	 * Obtains a list of table/pid pairs to consider for page caching.
+	 *
+	 * TS configuration looks like this:
+	 *
+	 * The cache lifetime of all pages takes starttime and endtime of news records of page 14 into account:
+	 *   config.cache.all = tt_news:14
+	 *
+	 * The cache lifetime of page 42 takes starttime and endtime of news records of page 15 and addresses of page 16 into account:
+	 *   config.cache.42 = tt_news:15,tt_address:16
+	 *
+	 * @return array Array of 'tablename:pid' pairs. There is at least a current page id in the array
+	 * @see tslib_fe::calculatePageCacheTimeout()
+	 */
+	protected function getCurrentPageCacheConfiguration() {
+		$result = array('tt_content:' . $this->id);
+		if (isset($this->config['config']['cache.'][$this->id])) {
+			$result = array_merge($result, t3lib_div::trimExplode(',', $this->config['config']['cache.'][$this->id]));
+		}
+		if (isset($this->config['config']['cache.']['all'])) {
+			$result = array_merge($result, t3lib_div::trimExplode(',', $this->config['config']['cache.']['all']));
+		}
+		return array_unique($result);
+	}
+
+	/**
+	 * Find the minimum starttime or endtime value in the table and pid that is greater than the current time.
+	 *
+	 * @param string $tableDef Table definition (format tablename:pid)
+	 * @param int $now "Now" time value
+	 * @return int Value of the next start/stop time or PHP_INT_MAX if not found
+	 * @see tslib_fe::calculatePageCacheTimeout()
+	 */
+	protected function getFirstTimeValueForRecord($tableDef, $now) {
+		$result = PHP_INT_MAX;
+
+		list($tableName, $pid) = t3lib_div::trimExplode(':', $tableDef);
+
+		if (empty($tableName) || empty($pid)) {
+			throw new InvalidArgumentException(
+				'Unexpected value for parameter $tableDef. Expected <tablename>:<pid>, got \'' . htmlspecialchars($tableDef) . '\'.',
+				1307190365
+			);
+		}
+			// Additional fields
+		$showHidden = ($tableName === 'pages' ? $this->showHiddenPage : $this->showHiddenRecords);
+		$enableFields = $this->sys_page->enableFields($tableName, $showHidden, array('starttime' => TRUE, 'endtime' => TRUE));
+
+			// saves the name of the starttime and endtime field in $tableName (if defined)
+		$timeFields = array();
+			// saves the SELECT parts of the SQL query
+		$selectFields = array();
+			// saves the WHERE parts of the SQL query
+		$whereConditions = array();
+
+		foreach (array('starttime', 'endtime') as $field) {
+				// there is no need to load TCA because we need only enable columns!
+			if (isset($GLOBALS['TCA'][$tableName]['ctrl']['enablecolumns'][$field])) {
+				$timeFields[$field] = $GLOBALS['TCA'][$tableName]['ctrl']['enablecolumns'][$field];
+				$selectFields[$field] = 'MIN(' . $timeFields[$field] . ') AS ' . $field;
+				$whereConditions[$field] = $timeFields[$field] . '>' . $now;
+			}
+		}
+
+			// if starttime or endtime are defined, evaluate them
+		if (count($timeFields)) {
+				// find the timestamp, when the current page's content changes the next time
+			$row = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
+					// MIN(starttime) AS starttime, MIN(endtime) AS endtime
+				implode(', ', $selectFields),
+				$tableName,
+					// pid=$pid AND starttime>$now AND $endtime>$now . $enablefields
+				'pid=' . intval($pid) . ' AND (' . implode(' OR ', $whereConditions) . ')' . $enableFields
+			);
+			if ($row) {
+				foreach ($timeFields as $timeField => $_) {
+						// if a MIN value is found, take it into account for the cache lifetime
+						// we have to filter out start/endtimes < $now, as the SQL query also returns
+						// rows with starttime < $now and endtime > $now (and using a starttime from the past
+						// would be wrong)
+					if (!is_null($row[$timeField]) && $row[$timeField] > $now) {
+						$result = min($result, $row[$timeField]);
+					}
+				}
+			}
+		}
+
+		return $result;
 	}
 }
 

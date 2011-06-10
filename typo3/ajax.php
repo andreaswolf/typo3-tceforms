@@ -30,10 +30,10 @@
  * @package	TYPO3
  */
 
-$TYPO3_AJAX = true;
+$TYPO3_AJAX = TRUE;
 
 // include t3lib_div at this time to get the GET/POST methods it provides
-require_once('../t3lib/class.t3lib_div.php');
+require_once(dirname(__FILE__) . '/../t3lib/class.t3lib_div.php');
 
 // first get the ajaxID
 $ajaxID = (string)t3lib_div::_GP('ajaxID');
@@ -67,11 +67,11 @@ $ajaxParams = array();
 	// evaluating the arguments and calling the AJAX method/function
 if (empty($ajaxID)) {
 	$ajaxObj->setError('No valid ajaxID parameter given.');
-} else if (empty($ajaxScript)) {
+} elseif (empty($ajaxScript)) {
 	$ajaxObj->setError('No backend function registered for ajaxID "'.$ajaxID.'".');
 } else {
-	$ret = t3lib_div::callUserFunction($ajaxScript, $ajaxParams, $ajaxObj, false, true);
-	if ($ret === false) {
+	$ret = t3lib_div::callUserFunction($ajaxScript, $ajaxParams, $ajaxObj, FALSE, TRUE);
+	if ($ret === FALSE) {
 		$ajaxObj->setError('Registered backend function for ajaxID "'.$ajaxID.'" was not found.');
 	}
 }

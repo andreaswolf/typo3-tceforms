@@ -27,7 +27,6 @@
 /**
  * Contains class for TYPO3 clipboard for records and files
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  * XHTML compliant
  *
@@ -137,15 +136,13 @@ class t3lib_clipboard {
 	 * @return	void
 	 */
 	function initializeClipboard() {
-		global $BE_USER;
-
 		$this->backPath = $GLOBALS['BACK_PATH'];
 
 			// Get data
-		$clipData = $BE_USER->getModuleData('clipboard', $BE_USER->getTSConfigVal('options.saveClipboard') ? '' : 'ses');
+		$clipData = $GLOBALS['BE_USER']->getModuleData('clipboard', $GLOBALS['BE_USER']->getTSConfigVal('options.saveClipboard') ? '' : 'ses');
 
 			// NumberTabs
-		$clNP = $BE_USER->getTSConfigVal('options.clipboardNumberPads');
+		$clNP = $GLOBALS['BE_USER']->getTSConfigVal('options.clipboardNumberPads');
 		if (t3lib_div::testInt($clNP) && $clNP >= 0) {
 			$this->numberTabs = t3lib_div::intInRange($clNP, 0, 20);
 		}
@@ -289,8 +286,6 @@ class t3lib_clipboard {
 	 * @return	string		HTML output
 	 */
 	function printClipboard() {
-		global $TBE_TEMPLATE, $LANG;
-
 		$out = array();
 		$elCount = count($this->elFromTable($this->fileMode ? '_FILE' : ''));
 
@@ -329,7 +324,7 @@ class t3lib_clipboard {
 		if ($elCount) {
 			if ($GLOBALS['BE_USER']->jsConfirmation(4)) {
 				$js = "
-			if(confirm(" . $GLOBALS['LANG']->JScharCode(sprintf($LANG->sL('LLL:EXT:lang/locallang_core.php:mess.deleteClip'), $elCount)) . ")){
+			if(confirm(" . $GLOBALS['LANG']->JScharCode(sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:mess.deleteClip'), $elCount)) . ")){
 				window.location.href='" . $this->deleteUrl(0, $this->fileMode ? 1 : 0) . "&redirect='+top.rawurlencode(window.location.href);
 			}
 					";
@@ -353,7 +348,7 @@ class t3lib_clipboard {
 				'</td>
 				<td>' .
 				'<a href="' . htmlspecialchars($rmall_url) . '#clip_head">' .
-				t3lib_iconWorks::getSpriteIcon('actions-document-close', array('title' => $LANG->sL('LLL:EXT:lang/locallang_core.php:buttons.clear', TRUE))) .
+				t3lib_iconWorks::getSpriteIcon('actions-document-close', array('title' => $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:buttons.clear', TRUE))) .
 				'</a></td>
 			</tr>';
 
@@ -812,8 +807,7 @@ class t3lib_clipboard {
 	 * @access private
 	 */
 	function saveClipboard() {
-		global $BE_USER;
-		$BE_USER->pushModuleData('clipboard', $this->clipData);
+		$GLOBALS['BE_USER']->pushModuleData('clipboard', $this->clipData);
 	}
 
 	/**
@@ -917,7 +911,7 @@ class t3lib_clipboard {
 	/**
 	 * Reports if the current pad has elements (does not check file/DB type OR if file/DBrecord exists or not. Only counting array)
 	 *
-	 * @return	boolean		True if elements exist.
+	 * @return	boolean		TRUE if elements exist.
 	 */
 	function isElements() {
 		return is_array($this->clipData[$this->current]['el']) && count($this->clipData[$this->current]['el']);

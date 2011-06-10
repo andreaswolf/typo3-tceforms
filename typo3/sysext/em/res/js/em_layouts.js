@@ -28,7 +28,6 @@
  * @author Steffen Kamper <info@sk-typo3.de>
  * @package TYPO3
  * @subpackage extension manager
- * @version $Id: $
  */
 Ext.ns('TYPO3.EM');
 
@@ -124,9 +123,11 @@ TYPO3.EM.Layouts = {
 	},
 	repositoryInfo: function() {
 		return new Ext.XTemplate(
-			'<span class="typo3-message message-notice" style="padding-right: 50px;">',
+			'<span class="typo3-message message-notice" ',
+			'qtip="{updated:this.updatedFormat}<br>' + TYPO3.lang.extensions_repository_short + ' {count}">',
 			'{updated:this.updatedFormat}&nbsp;&nbsp;',
-			TYPO3.lang.extensions_repository_short + ' {count}</span>',
+			TYPO3.lang.extensions_repository_short + ' {count}',
+			'</span>',
 			{
 				updatedFormat: function(value) {
 					return TYPO3.lang.ext_list_last_updated.replace('%s', value).replace('(', '').replace(')', '');

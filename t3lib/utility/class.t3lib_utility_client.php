@@ -28,8 +28,6 @@
 /**
  * Class to handle and determine browser specific information.
  *
- * $Id$
- *
  * @author	Oliver Hader <oliver@typo3.org>
  */
 final class t3lib_utility_Client {
@@ -45,7 +43,7 @@ final class t3lib_utility_Client {
 		$getBrowserInfoHooks =& $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/div/class.t3lib_utility_client.php']['getBrowserInfo'];
 		if (is_array($getBrowserInfoHooks)) {
 			foreach ($getBrowserInfoHooks as $hookFunction) {
-				$returnResult = true;
+				$returnResult = TRUE;
 				$hookParameters = array(
 					'userAgent' => &$userAgent,
 					'returnResult' => &$returnResult,
@@ -148,15 +146,13 @@ final class t3lib_utility_Client {
 				$browserInfo['all_systems'][] = 'mac';
 			}
 				// unixes
+		} elseif (strstr($userAgent, 'Android')) {
+			$browserInfo['system'] = 'linux'; // backwards compatible
+			$browserInfo['all_systems'][] = 'android';
+			$browserInfo['all_systems'][] = 'linux';
 		} elseif (strstr($userAgent, 'Linux')) {
-			if (strstr($userAgent, 'Android')) {
-				$browserInfo['system'] = 'linux'; // backwards compatible
-				$browserInfo['all_systems'][] = 'android';
-				$browserInfo['all_systems'][] = 'linux';
-			} else {
-				$browserInfo['system'] = 'linux';
-				$browserInfo['all_systems'][] = 'linux';
-			}
+			$browserInfo['system'] = 'linux';
+			$browserInfo['all_systems'][] = 'linux';
 		} elseif (strstr($userAgent, 'BSD')) {
 			$browserInfo['system'] = 'unix_bsd';
 			$browserInfo['all_systems'][] = 'unix_bsd';

@@ -27,7 +27,6 @@
 /**
  * Standard graphical functions
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -104,7 +103,7 @@
  *			  SECTION: ImageMagick API functions
  * 2499:	 function imageMagickIdentify($imagefile)
  * 2534:	 function imageMagickExec($input,$output,$params)
- * 2557:	 function combineExec($input,$overlay,$mask,$output, $handleNegation = false)
+ * 2557:	 function combineExec($input,$overlay,$mask,$output, $handleNegation = FALSE)
  * 2588:	 function wrapFileName($inputName)
  *
  *			  SECTION: Various IO functions
@@ -121,7 +120,7 @@
  * 2831:	 function imageCreateFromFile($sourceImg)
  * 2870:	 function imagecreate($w, $h)
  * 2885:	 function hexColor($col)
- * 2903:	 function unifyColors(&$img, $colArr, $closest = false)
+ * 2903:	 function unifyColors(&$img, $colArr, $closest = FALSE)
  *
  * TOTAL FUNCTIONS: 66
  * (This index is automatically created/updated by the extension "extdeveval")
@@ -150,7 +149,7 @@ class t3lib_stdGraphic {
 	var $imagecopyresized_fix = 0; // If set, imagecopyresized will not be called directly. For GD2 (some PHP installs?)
 	var $gifExtension = 'gif'; // This should be changed to 'png' if you want this class to read/make PNG-files instead!
 	var $gdlibExtensions = ''; // File formats supported by gdlib. This variable get's filled in "init" method
-	var $png_truecolor = FALSE; // Set to true if generated png's should be truecolor by default
+	var $png_truecolor = FALSE; // Set to TRUE if generated png's should be truecolor by default
 	var $truecolorColors = 0xffffff; // 16777216 Colors is the maximum value for PNG, JPEG truecolor images (24-bit, 8-bit / Channel)
 	var $enable_typo3temp_db_tracking = 0; // If set, then all files in typo3temp will be logged in a database table. In addition to being a log of the files with original filenames, it also serves to secure that the same image is not rendered simultaneously by two different processes.
 	var $imageFileExt = 'gif,jpg,jpeg,png,tif,bmp,tga,pcx,ai,pdf'; // Commalist of file extensions perceived as images by TYPO3. List should be set to 'gif,png,jpeg,jpg' if IM is not available. Lowercase and no spaces between!
@@ -165,13 +164,12 @@ class t3lib_stdGraphic {
 	);
 	var $NO_IMAGE_MAGICK = '';
 	var $V5_EFFECTS = 0;
-	var $im_version_4 = 0;
 	var $mayScaleUp = 1;
 
 		// Variables for testing, alternative usage etc.
 	var $filenamePrefix = ''; // Filename prefix for images scaled in imageMagickConvert()
 	var $imageMagickConvert_forceFileNameBody = ''; // Forcing the output filename of imageMagickConvert() to this value. However after calling imageMagickConvert() it will be set blank again.
-	var $dontCheckForExistingTempFile = 0; // This flag should always be false. If set true, imageMagickConvert will always write a new file to the tempdir! Used for debugging.
+	var $dontCheckForExistingTempFile = 0; // This flag should always be FALSE. If set TRUE, imageMagickConvert will always write a new file to the tempdir! Used for debugging.
 	var $dontCompress = 0; // Prevents imageMagickConvert() from compressing the gif-files with t3lib_div::gif_compress()
 	var $dontUnlinkTempFiles = 0; // For debugging ONLY!
 	var $alternativeOutputKey = ''; // For debugging only. Filenames will not be based on mtime and only filename (not path) will be used. This key is also included in the hash of the filename...
@@ -234,13 +232,14 @@ class t3lib_stdGraphic {
 			$this->gdlibExtensions .= ',gif';
 		}
 		if ($GLOBALS['TYPO3_CONF_VARS']['GFX']['png_truecolor']) {
-			$this->png_truecolor = true;
+			$this->png_truecolor = TRUE;
 		}
-		if (!$gfxConf['im_version_5']) {
-			t3lib_div::deprecationLog('The option $TYPO3_CONF_VARS[\'GFX\'][\'im_version_5\'] is not set, ImageMagic 4 is assumed. This is deprecated since TYPO3 4.5, support will be removed in TYPO3 4.6. Make sure to upgrade to ImageMagick version 6 or GraphichsMagick.');
-			$this->im_version_4 = true;
-		} elseif ($gfxConf['im_version_5'] === 'im5') {
-			t3lib_div::deprecationLog('The option $TYPO3_CONF_VARS[\'GFX\'][\'im_version_5\'] is set to \'im5\'. This is deprecated since TYPO3 4.5, support will be removed in TYPO3 4.6. Make sure to upgrade to ImageMagick version 6 or GraphichsMagick.');
+		if (!$gfxConf['im_version_5'] || $gfxConf['im_version_5'] === 'im4' || $gfxConf['im_version_5'] === 'im5') {
+			throw new RuntimeException(
+				'Your TYPO3 installation is configured to use an old version of ImageMagick, which is not supported anymore. ' .
+				'Please upgrade to ImageMagick version 6 or GraphicksMagick and set $TYPO3_CONF_VARS[\'GFX\'][\'im_version_5\'] appropriately.',
+				1305059666
+			);
 		}
 
 			// When GIFBUILDER gets used in truecolor mode
@@ -276,8 +275,8 @@ class t3lib_stdGraphic {
 			// This should be set if ImageMagick ver. 5+ is used.
 		if ($gfxConf['im_negate_mask']) {
 				// Boolean. Indicates if the mask images should be inverted first.
-				// This depends of the ImageMagick version. Below ver. 5.1 this should be false.
-				// Above ImageMagick version 5.2+ it should be true.
+				// This depends of the ImageMagick version. Below ver. 5.1 this should be FALSE.
+				// Above ImageMagick version 5.2+ it should be TRUE.
 				// Just set the flag if the masks works opposite the intension!
 			$this->maskNegate = ' -negate';
 		}
@@ -325,7 +324,7 @@ class t3lib_stdGraphic {
 	 *************************************************/
 
 	/**
-	 * Implements the "IMAGE" GIFBUILDER object, when the "mask" property is true.
+	 * Implements the "IMAGE" GIFBUILDER object, when the "mask" property is TRUE.
 	 * It reads the two images defined by $conf['file'] and $conf['mask'] and copies the $conf['file'] onto the input image pointer image using the $conf['mask'] as a grayscale mask
 	 * The operation involves ImageMagick for combining.
 	 *
@@ -397,7 +396,7 @@ class t3lib_stdGraphic {
 	}
 
 	/**
-	 * Implements the "IMAGE" GIFBUILDER object, when the "mask" property is false (using only $conf['file'])
+	 * Implements the "IMAGE" GIFBUILDER object, when the "mask" property is FALSE (using only $conf['file'])
 	 *
 	 * @param	pointer		GDlib image pointer
 	 * @param	array		TypoScript array with configuration for the GIFBUILDER object.
@@ -1910,14 +1909,11 @@ class t3lib_stdGraphic {
 		$result = $this->randomName() . '.' . $ext;
 		if (($reduce = t3lib_div::intInRange($cols, 0, ($ext == 'gif' ? 256 : $this->truecolorColors), 0)) > 0) {
 			$params = ' -colors ' . $reduce;
-			if (!$this->im_version_4) {
-					// IM4 doesn't have this options but forces them automatically if applicaple (<256 colors in image)
-				if ($reduce <= 256) {
-					$params .= ' -type Palette';
-				}
-				if ($ext == 'png' && $reduce <= 256) {
-					$prefix = 'png8:';
-				}
+			if ($reduce <= 256) {
+				$params .= ' -type Palette';
+			}
+			if ($ext == 'png' && $reduce <= 256) {
+				$prefix = 'png8:';
 			}
 			$this->imageMagickExec($file, $prefix . $result, $params);
 			if ($result) {
@@ -2201,7 +2197,7 @@ class t3lib_stdGraphic {
 				$h = $data['origH'];
 
 					// if no conversion should be performed
-					// this flag is true if the width / height does NOT dictate
+					// this flag is TRUE if the width / height does NOT dictate
 					// the image to be scaled!! (that is if no width / height is
 					// given or if the destination w/h matches the original image
 					// dimensions or if the option to not scale the image is set)
@@ -2309,7 +2305,7 @@ class t3lib_stdGraphic {
 	 * file exists!
 	 *
 	 * @param	array		$identifyResult: Result of the getImageDimensions function
-	 * @return	boolean		True if operation was successful
+	 * @return	boolean		TRUE if operation was successful
 	 * @author	Michael Stucki <michael@typo3.org> / Robert Lemke <rl@robertlemke.de>
 	 */
 	function cacheImageDimensions($identifyResult) {
@@ -2502,7 +2498,7 @@ class t3lib_stdGraphic {
 	 *
 	 * @param	string		Output imagefile
 	 * @param	string		Original basis file
-	 * @return	boolean		Returns true if the file is already being made; thus "true" means "Don't render the image again"
+	 * @return	boolean		Returns TRUE if the file is already being made; thus "TRUE" means "Don't render the image again"
 	 * @access private
 	 */
 	function file_exists_typo3temp_file($output, $orig = '') {
@@ -2682,7 +2678,7 @@ class t3lib_stdGraphic {
 	 ***********************************/
 
 	/**
-	 * Returns true if the input file existed
+	 * Returns TRUE if the input file existed
 	 *
 	 * @param	string		Input file to check
 	 * @return	string		Returns the filename if the file existed, otherwise empty.
@@ -2699,7 +2695,7 @@ class t3lib_stdGraphic {
 	 * Creates subdirectory in typo3temp/ if not already found.
 	 *
 	 * @param	string		Name of sub directory
-	 * @return	boolean		Result of t3lib_div::mkdir(), true if it went well.
+	 * @return	boolean		Result of t3lib_div::mkdir(), TRUE if it went well.
 	 */
 	function createTempSubDir($dirName) {
 

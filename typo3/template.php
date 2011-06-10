@@ -27,7 +27,6 @@
 /**
  * Contains class with layout/output function for TYPO3 Backend Scripts
  *
- * $Id$
  * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  * XHTML-trans compliant
  *
@@ -212,7 +211,7 @@ class template {
 	);
 
 		// DEV:
-	var $parseTimeFlag = 0;			// Will output the parsetime of the scripts in milliseconds (for admin-users). Set this to false when releasing TYPO3. Only for dev.
+	var $parseTimeFlag = 0;			// Will output the parsetime of the scripts in milliseconds (for admin-users). Set this to FALSE when releasing TYPO3. Only for dev.
 
 		// INTERNAL
 	var $charset = 'iso-8859-1';	// Default charset. see function initCharset()
@@ -223,7 +222,7 @@ class template {
 	var $pageHeaderBlock = '';
 	var $endOfPageJsBlock = '';
 
-	var $hasDocheader = true;
+	var $hasDocheader = TRUE;
 
 	/**
 	 * @var t3lib_PageRenderer
@@ -246,7 +245,7 @@ class template {
 	 *
 	 * @return	void
 	 */
-	function template()	{
+	function __construct()	{
 		global $TBE_STYLES;
 
 			// Initializes the page rendering object:
@@ -356,7 +355,7 @@ class template {
 	 * The link will load the top frame with the parameter "&item" which is the table,uid and listFr arguments imploded by "|": rawurlencode($table.'|'.$uid.'|'.$listFr)
 	 *
 	 * @param	string		String to be wrapped in link, typ. image tag.
-	 * @param	string		Table name/File path. If the icon is for a database record, enter the tablename from $TCA. If a file then enter the absolute filepath
+	 * @param	string		Table name/File path. If the icon is for a database record, enter the tablename from $GLOBALS['TCA']. If a file then enter the absolute filepath
 	 * @param	integer		If icon is for database record this is the UID for the record from $table
 	 * @param	boolean		Tells the top frame script that the link is coming from a "list" frame which means a frame from within the backend content frame.
 	 * @param	string		Additional GET parameters for the link to alt_clickmenu.php
@@ -382,7 +381,7 @@ class template {
 	 * @return	string		HTML string with linked icon(s)
 	 */
 	function viewPageIcon($id,$backPath,$addParams='hspace="3"')	{
-		global $BE_USER;
+
 			// If access to Web>List for user, then link to that module.
 		$str = t3lib_BEfunc::getListViewLink(
 			array(
@@ -421,7 +420,7 @@ class template {
 	}
 
 	/**
-	 * Returns true if click-menu layers can be displayed for the current user/browser
+	 * Returns TRUE if click-menu layers can be displayed for the current user/browser
 	 * Use this to test if click-menus (context sensitive menus) can and should be displayed in the backend.
 	 *
 	 * @return	boolean
@@ -463,15 +462,14 @@ class template {
 	 * @param	string		Table name
 	 * @param	array		Record row
 	 * @param	string		Alt text
-	 * @param	boolean		Set $noViewPageIcon true if you don't want a magnifier-icon for viewing the page in the frontend
+	 * @param	boolean		Set $noViewPageIcon TRUE if you don't want a magnifier-icon for viewing the page in the frontend
 	 * @param	array		$tWrap is an array with indexes 0 and 1 each representing HTML-tags (start/end) which will wrap the title
 	 * @return	string		HTML content
 	 */
 	function getHeader($table,$row,$path,$noViewPageIcon=0,$tWrap=array('',''))	{
-		global $TCA;
 		if (is_array($row) && $row['uid'])	{
 			$iconImgTag=t3lib_iconWorks::getSpriteIconForRecord($table, $row , array('title' => htmlspecialchars($path)));
-			$title= strip_tags($row[$TCA[$table]['ctrl']['label']]);
+			$title = strip_tags(t3lib_BEfunc::getRecordTitle($table, $row));
 			$viewPage = $noViewPageIcon ? '' : $this->viewPageIcon($row['uid'],$this->backPath,'');
 			if ($table=='pages')	$path.=' - '.t3lib_BEfunc::titleAttribForPages($row,'',0);
 		} else {
@@ -908,12 +906,11 @@ $str.=$this->docBodyTagBegin().
 
 <!-- Wrapping DIV-section for whole page END -->
 </div>':'') . $this->endOfPageJsBlock ;
-			t3lib_formprotection_Factory::get()->persistTokens();
 		}
 
 
 			// Logging: Can't find better place to put it:
-		if (TYPO3_DLOG)	t3lib_div::devLog('END of BACKEND session', 'template', 0, array('_FLUSH' => true));
+		if (TYPO3_DLOG)	t3lib_div::devLog('END of BACKEND session', 'template', 0, array('_FLUSH' => TRUE));
 
 		return $str;
 	}
@@ -1036,7 +1033,7 @@ $str.=$this->docBodyTagBegin().
 
 	/**
 	 * Begins an output section.
-	 * Returns the <div>-begin tag AND sets the ->sectionFlag true (if the ->sectionFlag is not already set!)
+	 * Returns the <div>-begin tag AND sets the ->sectionFlag TRUE (if the ->sectionFlag is not already set!)
 	 * You can call this function even if a section is already begun since the function will only return something if the sectionFlag is not already set!
 	 *
 	 * @return	string		HTML content
@@ -1076,7 +1073,7 @@ $str.=$this->docBodyTagBegin().
 
 	/**
 	 * If a form-tag is defined in ->form then and end-tag for that <form> element is outputted
-	 * Further a JavaScript section is outputted which will update the top.busy session-expiry object (unless $this->endJS is set to false)
+	 * Further a JavaScript section is outputted which will update the top.busy session-expiry object (unless $this->endJS is set to FALSE)
 	 *
 	 * @return	string		HTML content (<script> tag section)
 	 */
@@ -1509,21 +1506,26 @@ $str.=$this->docBodyTagBegin().
 	 * @return	string		<select> tag with content - a selector box for clearing the cache
 	 */
 	function clearCacheMenu($id,$addSaveOptions=0)	{
-		global $BE_USER;
 		$opt=array();
 		if ($addSaveOptions)	{
 			$opt[]='<option value="">'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.menu',1).'</option>';
 			$opt[]='<option value="TBE_EDITOR.checkAndDoSubmit(1);">'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.saveDoc',1).'</option>';
 			$opt[]='<option value="document.editform.closeDoc.value=-2; TBE_EDITOR.checkAndDoSubmit(1);">'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.saveCloseDoc',1).'</option>';
-			if ($BE_USER->uc['allSaveFunctions'])	$opt[]='<option value="document.editform.closeDoc.value=-3; TBE_EDITOR.checkAndDoSubmit(1);">'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.saveCloseAllDocs',1).'</option>';
+			if ($GLOBALS['BE_USER']->uc['allSaveFunctions']) {
+				$opt[] = '<option value="document.editform.closeDoc.value=-3; TBE_EDITOR.checkAndDoSubmit(1);">' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.saveCloseAllDocs', 1) . '</option>';
+			}
 			$opt[]='<option value="document.editform.closeDoc.value=2; document.editform.submit();">'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.closeDoc',1).'</option>';
 			$opt[]='<option value="document.editform.closeDoc.value=3; document.editform.submit();">'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.closeAllDocs',1).'</option>';
 			$opt[]='<option value=""></option>';
 		}
 		$opt[]='<option value="">[ '.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.clearCache_clearCache',1).' ]</option>';
 		if ($id) $opt[]='<option value="'.$id.'">'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.clearCache_thisPage',1).'</option>';
-		if ($BE_USER->isAdmin() || $BE_USER->getTSConfigVal('options.clearCache.pages')) $opt[]='<option value="pages">'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.clearCache_pages',1).'</option>';
-		if ($BE_USER->isAdmin() || $BE_USER->getTSConfigVal('options.clearCache.all')) $opt[]='<option value="all">'.$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.clearCache_all',1).'</option>';
+		if ($GLOBALS['BE_USER']->isAdmin() || $GLOBALS['BE_USER']->getTSConfigVal('options.clearCache.pages')) {
+			$opt[] = '<option value="pages">' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.clearCache_pages', 1) . '</option>';
+		}
+		if ($GLOBALS['BE_USER']->isAdmin() || $GLOBALS['BE_USER']->getTSConfigVal('options.clearCache.all')) {
+			$opt[] = '<option value="all">' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:rm.clearCache_all', 1) . '</option>';
+		}
 
 		$onChange = 'if (!this.options[this.selectedIndex].value) {
 				this.selectedIndex=0;
@@ -1531,7 +1533,7 @@ $str.=$this->docBodyTagBegin().
 				eval(this.options[this.selectedIndex].value);
 			} else {
 				window.location.href=\'' . $this->backPath .
-						'tce_db.php?vC=' . $BE_USER->veriCode() .
+						'tce_db.php?vC=' . $GLOBALS['BE_USER']->veriCode() .
 						t3lib_BEfunc::getUrlToken('tceAction') .
 						'&redirect=' . rawurlencode(t3lib_div::getIndpEnv('REQUEST_URI')) .
 						'&cacheCmd=\'+this.options[this.selectedIndex].value;
@@ -1905,9 +1907,9 @@ $str.=$this->docBodyTagBegin().
 		}
 		if (t3lib_div::isFirstPartOfStr($filename, 'EXT:')) {
 			$filename = t3lib_div::getFileAbsFileName($filename, TRUE, TRUE);
-		} else if (!t3lib_div::isAbsPath($filename)) {
+		} elseif (!t3lib_div::isAbsPath($filename)) {
 			$filename = t3lib_div::resolveBackPath($this->backPath . $filename);
-		} else if (!t3lib_div::isAllowedAbsPath($filename)) {
+		} elseif (!t3lib_div::isAllowedAbsPath($filename)) {
 			$filename = '';
 		}
 		$htmlTemplate = '';
@@ -1943,20 +1945,6 @@ $str.=$this->docBodyTagBegin().
 		$moduleBody = t3lib_parsehtml::getSubpart($this->moduleTemplate, '###FULLDOC###');
 			// Add CSS
 		$this->inDocStylesArray[] = 'html { overflow: hidden; }';
-			// Add JS code to the <head> for IE
-		$this->JScode.= $this->wrapScriptTags('
-				// workaround since IE6 cannot deal with relative height for scrolling elements
-			function resizeDocBody()	{
-				$("typo3-docbody").style.height = (document.body.offsetHeight - parseInt($("typo3-docheader").getStyle("height")));
-			}
-			if (Prototype.Browser.IE) {
-				var version = parseFloat(navigator.appVersion.split(\';\')[1].strip().split(\' \')[1]);
-				if (version == 6) {
-					Event.observe(window, "resize", resizeDocBody, false);
-					Event.observe(window, "load", resizeDocBody, false);
-				}
-			}
-		');
 
 			// Get the page path for the docheader
 		$markerArray['PAGEPATH'] = $this->getPagePath($pageRecord);
@@ -2022,7 +2010,7 @@ $str.=$this->docBodyTagBegin().
 				// Get the template for each float
 			$buttonTemplate = t3lib_parsehtml::getSubpart($this->moduleTemplate, '###BUTTON_GROUPS_' . strtoupper($key) . '###');
 				// Fill the button markers in this float
-			$buttonTemplate = t3lib_parsehtml::substituteMarkerArray($buttonTemplate, $buttons, '###|###', true);
+			$buttonTemplate = t3lib_parsehtml::substituteMarkerArray($buttonTemplate, $buttons, '###|###', TRUE);
 				// getting the wrap for each group
 			$buttonWrap = t3lib_parsehtml::getSubpart($this->moduleTemplate, '###BUTTON_GROUP_WRAP###');
 				// looping through the groups (max 6) and remove the empty groups
@@ -2096,7 +2084,7 @@ $str.=$this->docBodyTagBegin().
 	 * @return	string	Page info
 	 */
 	protected function getPageInfo($pageRecord) {
-		global $BE_USER;
+
 				// Add icon with clickmenu, etc:
 		if ($pageRecord['uid'])	{	// If there IS a real page
 			$alttext = t3lib_BEfunc::getRecordIconAltText($pageRecord, 'pages');
@@ -2108,7 +2096,7 @@ $str.=$this->docBodyTagBegin().
 		} else {	// On root-level of page tree
 				// Make Icon
 			$iconImg = t3lib_iconWorks::getSpriteIcon('apps-pagetree-root', array('title' => htmlspecialchars($GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'])));
-			if($BE_USER->user['admin']) {
+			if ($GLOBALS['BE_USER']->user['admin']) {
 				$theIcon = $GLOBALS['SOBE']->doc->wrapClickMenuOnIcon($iconImg, 'pages', 0);
 			} else {
 				$theIcon = $iconImg;

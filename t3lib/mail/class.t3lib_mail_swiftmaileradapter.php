@@ -28,8 +28,6 @@
 /**
  * Hook subscriber for using Swift Mailer with the t3lib_utility_mail function
  *
- * $Id$
- *
  * @author	Jigal van Hemert <jigal@xs4all.nl>
  * @package TYPO3
  * @subpackage t3lib
@@ -242,9 +240,9 @@ class t3lib_mail_SwiftMailerAdapter implements t3lib_mail_MailerAdapter {
 						if ($matches[2]) {
 							$charset = trim($matches[3]);
 						}
-					} else if (preg_match('/^content-transfer-encoding:(.*)$/i', $line, $matches)) {
+					} elseif (preg_match('/^content-transfer-encoding:(.*)$/i', $line, $matches)) {
 						$encoding = trim($matches[1]);
-					} else if (strlen(trim($line)) == 0) {
+					} elseif (strlen(trim($line)) == 0) {
 							// empty line before actual content of this part
 						break;
 					}

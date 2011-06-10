@@ -28,8 +28,6 @@
 /**
  * Class to handle debug
  *
- * $Id: $
- *
  *
  * @author	 Steffen Kamper <steffen@typo3.org>
  * @package TYPO3
@@ -315,7 +313,7 @@ final class t3lib_utility_Debug {
 	/**
 	 * Returns HTML-code, which is a visual representation of a multidimensional array
 	 * use t3lib_div::print_array() in order to print an array
-	 * Returns false if $array_in is not an array
+	 * Returns FALSE if $array_in is not an array
 	 *
 	 * @param	mixed		Array to view
 	 * @return	string		HTML output

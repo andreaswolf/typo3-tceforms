@@ -1,5 +1,4 @@
 <?php
-# TYPO3 SVN ID: $Id$
 if (!defined ('TYPO3_MODE')) 	die ('Access denied.');
 
 t3lib_extMgm::addUserTSConfig('
@@ -143,17 +142,8 @@ Contact me: | tv=check | 1
 				CType = search
 			}
 		}
-		login {
-			icon = gfx/c_wiz/login_form.gif
-			title = LLL:EXT:cms/layout/locallang_db_new_content_el.xml:forms_login_title
-			description = LLL:EXT:cms/layout/locallang_db_new_content_el.xml:forms_login_description
-			tt_content_defValues {
-				CType = login
-			}
-		}
-
 	}
-	forms.show = mailform,search,login
+	forms.show = mailform,search
 
 	plugins.header = LLL:EXT:cms/layout/locallang_db_new_content_el.xml:plugins
 	plugins.elements {
@@ -201,7 +191,10 @@ if (TYPO3_MODE === 'FE') {
 }
 
 	// register search keys
-$GLOBALS ['TYPO3_CONF_VARS']['SYS']['livesearch']['page'] = 'pages';
-$GLOBALS ['TYPO3_CONF_VARS']['SYS']['livesearch']['content'] = 'tt_content';
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['livesearch']['page'] = 'pages';
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['livesearch']['content'] = 'tt_content';
+
+	//register hook to show preview info
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['hook_previewInfo']['cms'] = 'EXT:cms/tslib/hooks/class.tx_cms_fehooks.php:tx_cms_fehooks->hook_previewInfo';
 
 ?>

@@ -29,7 +29,6 @@
 /**
  * Contains FORM class object.
  *
- * $Id: class.tslib_content.php 7905 2010-06-13 14:42:33Z ohader $
  * @author Xavier Perseguers <typo3@perseguers.ch>
  * @author Steffen Kamper <steffen@typo3.org>
  */
@@ -684,7 +683,7 @@ class tslib_content_Form extends tslib_content_Abstract {
 					if ($confData['type'] == 'label') {
 						$labelLayout = isset($conf['LABEL.']['layout.'])
 							? $this->cObj->stdWrap($conf['LABEL.']['layout'], $conf['LABEL.']['layout.'])
-							: $conf['CHECK.']['layout'];
+							: $conf['LABEL.']['layout'];
 						if ($labelLayout) {
 							$result = $labelLayout;
 						}

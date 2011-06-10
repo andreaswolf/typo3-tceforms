@@ -26,8 +26,6 @@
  *
  * @author Stanislas Rolland <typo3(arobas)sjbr.ca>
  *
- * TYPO3 SVN ID: $Id$
- *
  */
 class tx_rtehtmlarea_inlineelements extends tx_rtehtmlarea_api {
 
@@ -148,8 +146,8 @@ class tx_rtehtmlarea_inlineelements extends tx_rtehtmlarea_api {
 			$hideItems = array();
 			$restrictTo = array('*');
 			$inlineElementsOrder = $this->defaultInlineElementsOrder;
-			$prefixLabelWithTag = false;
-			$postfixLabelWithTag = false;
+			$prefixLabelWithTag = FALSE;
+			$postfixLabelWithTag = FALSE;
 
 				// Processing PageTSConfig
 			if (is_array($this->thisConfig['buttons.']) && is_array($this->thisConfig['buttons.']['formattext.'])) {
@@ -160,15 +158,15 @@ class tx_rtehtmlarea_inlineelements extends tx_rtehtmlarea_api {
 					// Restriction clause
 				if ($this->thisConfig['buttons.']['formattext.']['restrictTo']) {
 					$restrictTo = t3lib_div::trimExplode(',', $this->htmlAreaRTE->cleanList('none,'.$this->thisConfig['buttons.']['formattext.']['restrictTo']), 1);
-				} else if ($this->thisConfig['buttons.']['formattext.']['restrictToItems']) {
+				} elseif ($this->thisConfig['buttons.']['formattext.']['restrictToItems']) {
 					$restrictTo = t3lib_div::trimExplode(',', $this->htmlAreaRTE->cleanList('none,'.$this->thisConfig['buttons.']['formattext.']['restrictToItems']), 1);
 				}
 					// Elements order
 				if ($this->thisConfig['buttons.']['formattext.']['orderItems']) {
 					$inlineElementsOrder = 'none,'.$this->thisConfig['buttons.']['formattext.']['orderItems'];
 				}
-				$prefixLabelWithTag = ($this->thisConfig['buttons.']['formattext.']['prefixLabelWithTag'])?true:$prefixLabelWithTag;
-				$postfixLabelWithTag = ($this->thisConfig['buttons.']['formattext.']['postfixLabelWithTag'])?true:$postfixLabelWithTag;
+				$prefixLabelWithTag = ($this->thisConfig['buttons.']['formattext.']['prefixLabelWithTag'])?TRUE:$prefixLabelWithTag;
+				$postfixLabelWithTag = ($this->thisConfig['buttons.']['formattext.']['postfixLabelWithTag'])?TRUE:$postfixLabelWithTag;
 			}
 
 			$inlineElementsOrder = array_diff(t3lib_div::trimExplode(',', $this->htmlAreaRTE->cleanList($inlineElementsOrder), 1), $hideItems);

@@ -30,8 +30,6 @@
  * which are default for most TYPO3 installations. Soft References can also be userdefined.
  * The Soft Reference parsers are used by the system to find these references and process them accordingly in import/export actions and copy operations.
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
@@ -130,7 +128,7 @@ class t3lib_softrefproc {
 	 * @param	string		The softlink parser key. This is only interesting if more than one parser is grouped in the same class. That is the case with this parser.
 	 * @param	array		Parameters of the softlink parser. Basically this is the content inside optional []-brackets after the softref keys. Parameters are exploded by ";"
 	 * @param	string		If running from inside a FlexForm structure, this is the path of the tag.
-	 * @return	array		Result array on positive matches, see description above. Otherwise false
+	 * @return	array		Result array on positive matches, see description above. Otherwise FALSE
 	 */
 	function findRef($table, $field, $uid, $content, $spKey, $spParams, $structurePath = '') {
 
@@ -206,7 +204,7 @@ class t3lib_softrefproc {
 	 *
 	 * @param	string		The input content to analyse
 	 * @param	array		Parameters set for the softref parser key in TCA/columns
-	 * @return	array		Result array on positive matches, see description above. Otherwise false
+	 * @return	array		Result array on positive matches, see description above. Otherwise FALSE
 	 */
 	function findRef_images($content, $spParams) {
 
@@ -272,7 +270,7 @@ class t3lib_softrefproc {
 	 *
 	 * @param	string		The input content to analyse
 	 * @param	array		Parameters set for the softref parser key in TCA/columns. value "linkList" will split the string by comma before processing.
-	 * @return	array		Result array on positive matches, see description above. Otherwise false
+	 * @return	array		Result array on positive matches, see description above. Otherwise FALSE
 	 * @see tslib_content::typolink(), getTypoLinkParts()
 	 */
 	function findRef_typolink($content, $spParams) {
@@ -309,7 +307,7 @@ class t3lib_softrefproc {
 	 *
 	 * @param	string		The input content to analyse
 	 * @param	array		Parameters set for the softref parser key in TCA/columns
-	 * @return	array		Result array on positive matches, see description above. Otherwise false
+	 * @return	array		Result array on positive matches, see description above. Otherwise FALSE
 	 * @see tslib_content::typolink(), getTypoLinkParts()
 	 */
 	function findRef_typolink_tag($content, $spParams) {
@@ -345,7 +343,7 @@ class t3lib_softrefproc {
 	 *
 	 * @param	string		The input content to analyse
 	 * @param	array		Parameters set for the softref parser key in TCA/columns
-	 * @return	array		Result array on positive matches, see description above. Otherwise false
+	 * @return	array		Result array on positive matches, see description above. Otherwise FALSE
 	 */
 	function findRef_TStemplate($content, $spParams) {
 		$elements = array();
@@ -427,7 +425,7 @@ class t3lib_softrefproc {
 	 *
 	 * @param	string		The input content to analyse
 	 * @param	array		Parameters set for the softref parser key in TCA/columns
-	 * @return	array		Result array on positive matches, see description above. Otherwise false
+	 * @return	array		Result array on positive matches, see description above. Otherwise FALSE
 	 */
 	function findRef_TSconfig($content, $spParams) {
 		$elements = array();
@@ -450,7 +448,7 @@ class t3lib_softrefproc {
 	 *
 	 * @param	string		The input content to analyse
 	 * @param	array		Parameters set for the softref parser key in TCA/columns
-	 * @return	array		Result array on positive matches, see description above. Otherwise false
+	 * @return	array		Result array on positive matches, see description above. Otherwise FALSE
 	 */
 	function findRef_email($content, $spParams) {
 		$resultArray = array();
@@ -490,7 +488,7 @@ class t3lib_softrefproc {
 	 *
 	 * @param	string		The input content to analyse
 	 * @param	array		Parameters set for the softref parser key in TCA/columns
-	 * @return	array		Result array on positive matches, see description above. Otherwise false
+	 * @return	array		Result array on positive matches, see description above. Otherwise FALSE
 	 */
 	function findRef_url($content, $spParams) {
 		$resultArray = array();
@@ -534,7 +532,7 @@ class t3lib_softrefproc {
 	 *
 	 * @param	string		The input content to analyse
 	 * @param	array		Parameters set for the softref parser key in TCA/columns
-	 * @return	array		Result array on positive matches, see description above. Otherwise false
+	 * @return	array		Result array on positive matches, see description above. Otherwise FALSE
 	 */
 	function findRef_extension_fileref($content, $spParams) {
 		$resultArray = array();
@@ -665,7 +663,10 @@ class t3lib_softrefproc {
 					$finalTagParts['filepath'] = rawurldecode($splitLinkParam[0]);
 					$finalTagParts['query'] = $splitLinkParam[1];
 				}
-			} else { // integer or alias (alias is without slashes or periods or commas, that is 'nospace,alphanum_x,lower,unique' according to definition in $TCA!)
+			} else {
+					// integer or alias (alias is without slashes or periods or commas, that is
+					// 'nospace,alphanum_x,lower,unique' according to definition in $GLOBALS['TCA']!)
+
 				$finalTagParts['LINK_TYPE'] = 'page';
 
 				$link_params_parts = explode('#', $link_param);

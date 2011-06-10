@@ -61,7 +61,7 @@ class tx_t3editor implements t3lib_Singleton {
 	 *
 	 * @var		bool
 	 */
-	protected $_isEnabled = true;
+	protected $_isEnabled = TRUE;
 
 	/**
 	 * sets the type of code to edit (::MODE_TYPOSCRIPT, ::MODE_JAVASCRIPT)
@@ -128,7 +128,7 @@ class tx_t3editor implements t3lib_Singleton {
 	}
 
 	/**
-	 * @return	boolean		true if the t3editor is enabled
+	 * @return	boolean		TRUE if the t3editor is enabled
 	 */
 	public function isEnabled() {
 		return $this->_isEnabled;
@@ -457,7 +457,7 @@ class tx_t3editor implements t3lib_Singleton {
 		if((TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_AJAX)) {
 			$ajaxObj->setContentFormat('json');
 			$codeType = t3lib_div::_GP('t3editor_savetype');
-			$savingsuccess = false;
+			$savingsuccess = FALSE;
 
 			if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/t3editor/classes/class.tx_t3editor.php']['ajaxSaveCode'])) {
 				$_params = array(

@@ -27,7 +27,7 @@
 /**
  * Contains the initialization of global TYPO3 variables among which $TCA is the most significant.
  *
- * The list in order of apperance is: $PAGES_TYPES, $ICON_TYPES, $TCA, $TBE_MODULES, $TBE_STYLES, $FILEICONS
+ * The list in order of appearance is: $PAGES_TYPES, $ICON_TYPES, $TCA, $TBE_MODULES, $TBE_STYLES, $FILEICONS
  * These variables are first of all used in the backend but to some degree in the frontend as well. (See references)
  * See the document "Inside TYPO3" for a description of each variable in addition to the comment associated with each.
  *
@@ -40,8 +40,6 @@
  * or extend this information, please make an extension which does so.
  * Thus you preserve backwards compatibility.
  *
- *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -109,7 +107,7 @@ $ICON_TYPES = array();
  * Only the "pages" table is defined fully in this file - the others are only defined for the "ctrl" part and the columns are defined in detail in the associated file, "tbl_be.php"
  *
  * NOTE: The (default) icon for a table is defined 1) as a giffile named 'gfx/i/[tablename].gif' or 2) as the value of [table][ctrl][iconfile]
- * NOTE: [table][ctrl][rootLevel] goes NOT for pages. Apart from that if rootLevel is true, records can ONLY be created on rootLevel. If it's false records can ONLY be created OUTSIDE rootLevel
+ * NOTE: [table][ctrl][rootLevel] goes NOT for pages. Apart from that if rootLevel is TRUE, records can ONLY be created on rootLevel. If it's FALSE records can ONLY be created OUTSIDE rootLevel
  */
 $TCA = array();
 
@@ -221,7 +219,7 @@ $TCA['be_users'] = array(
 		),
 		'mainpalette' => '1',
 		'useColumnsForDefaultValues' => 'usergroup,lockToDomain,options,db_mountpoints,file_mountpoints,fileoper_perms,userMods',
-		'dividers2tabs' => true,
+		'dividers2tabs' => TRUE,
 		'dynamicConfigFile' => 'T3LIB:tbl_be.php',
 		'versioningWS_alwaysAllowLiveEdit' => TRUE
 	)
@@ -256,7 +254,7 @@ $TCA['be_groups'] = array(
 		),
 		'title' => 'LLL:EXT:lang/locallang_tca.php:be_groups',
 		'useColumnsForDefaultValues' => 'lockToDomain, fileoper_perms',
-		'dividers2tabs' => true,
+		'dividers2tabs' => TRUE,
 		'dynamicConfigFile' => 'T3LIB:tbl_be.php',
 		'versioningWS_alwaysAllowLiveEdit' => TRUE
 	)
@@ -585,6 +583,7 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'apps-filetree-root',
 	'apps-pagetree-backend-user',
 	'apps-pagetree-backend-user-hideinmenu',
+	'apps-pagetree-collapse',
 	'apps-pagetree-drag-copy-above',
 	'apps-pagetree-drag-copy-below',
 	'apps-pagetree-drag-move-above',
@@ -594,6 +593,7 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'apps-pagetree-drag-new-between',
 	'apps-pagetree-drag-new-inside',
 	'apps-pagetree-drag-place-denied',
+	'apps-pagetree-expand',
 	'apps-pagetree-folder-contains-approve',
 	'apps-pagetree-folder-contains-board',
 	'apps-pagetree-folder-contains-fe_users',
@@ -762,6 +762,8 @@ $GLOBALS['TBE_STYLES']['spriteIconApi']['coreSpriteImageNames'] = array(
 	'status-warning-in-use',
 	'status-warning-lock'
 );
+
+
 
 
 

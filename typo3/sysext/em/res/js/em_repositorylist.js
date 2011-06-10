@@ -28,7 +28,6 @@
  * @author Steffen Kamper <info@sk-typo3.de>
  * @package TYPO3
  * @subpackage extension manager
- * @version $Id: $
  */
 Ext.ns('TYPO3.EM', 'TYPO3.EM.GridColumns', 'TYPO3.EM.ExtDirect');
 
@@ -108,7 +107,7 @@ TYPO3.EM.RepositoryList = Ext.extend(Ext.grid.GridPanel, {
 			},
 			baseParams: {
 				query: '',
-				repository: 1,
+				repository: TYPO3.settings.EM.selectedRepository,
 				start: 0,
 				limit: 50
 

@@ -59,11 +59,11 @@ class ModuleMenu {
 	public function __construct() {
 
 		$this->backPath    = '';
-		$this->linkModules = true;
+		$this->linkModules = TRUE;
 
 			// Loads the backend modules available for the logged in user.
 		$this->moduleLoader = t3lib_div::makeInstance('t3lib_loadModules');
-		$this->moduleLoader->observeWorkspaces = true;
+		$this->moduleLoader->observeWorkspaces = TRUE;
 		$this->moduleLoader->load($GLOBALS['TBE_MODULES']);
 		$this->loadedModules = $this->moduleLoader->modules;
 
@@ -222,7 +222,7 @@ class ModuleMenu {
 					'navigationFrameScriptParam' => NULL,
 					'navigationComponentId' => NULL,
 				);
-			} else if (is_array($moduleData['sub'])) {
+			} elseif (is_array($moduleData['sub'])) {
 				foreach($moduleData['sub'] as $submoduleName => $submoduleData) {
 					$submoduleLink = t3lib_div::resolveBackPath($submoduleData['script']);
 
@@ -352,7 +352,7 @@ class ModuleMenu {
 	/**
 	 * turns linking of modules on or off
 	 *
-	 * @param	boolean		status for linking modules with a-tags, set to false to turn lining off
+	 * @param	boolean		status for linking modules with a-tags, set to FALSE to turn lining off
 	 */
 	public function setLinkModules($linkModules) {
 		if(!is_bool($linkModules)) {

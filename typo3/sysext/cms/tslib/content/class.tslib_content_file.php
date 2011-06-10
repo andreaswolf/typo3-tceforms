@@ -29,7 +29,6 @@
 /**
  * Contains FILE class object.
  *
- * $Id: class.tslib_content.php 7905 2010-06-13 14:42:33Z ohader $
  * @author Xavier Perseguers <typo3@perseguers.ch>
  * @author Steffen Kamper <steffen@typo3.org>
  */
@@ -47,7 +46,7 @@ class tslib_content_File extends tslib_content_Abstract {
 			? $this->cObj->stdWrap($conf['file'], $conf['file.'])
 			: $conf['file'];
 
-		$theValue = $this->cObj->fileResource($file, trim($this->cObj->getAltParam($conf, false)));
+		$theValue = $this->cObj->fileResource($file, trim($this->cObj->getAltParam($conf, FALSE)));
 
 		$linkWrap =  isset($conf['linkWrap.'])
 			? $this->cObj->stdWrap($conf['linkWrap'], $conf['linkWrap.'])

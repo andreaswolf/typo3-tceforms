@@ -29,7 +29,6 @@
  * Contains the update class for the split of css styled content templates. Used by the update wizard in the install tool.
  *
  * @author Susanne Moog <typo3@susanne-moog.de>
- * @version $Id$
  */
 class tx_coreupdates_cscsplit extends Tx_Install_Updates_Base {
 	protected $title = 'Split TypoScript Templates from CSS Styled Content';
@@ -38,7 +37,7 @@ class tx_coreupdates_cscsplit extends Tx_Install_Updates_Base {
 	 * Function which checks if update is needed. Called in the beginning of an update process.
 	 *
 	 * @param	string		pointer to description for the update
-	 * @return	boolean		true if update is needs to be performed, false otherwise.
+	 * @return	boolean		TRUE if update is needs to be performed, FALSE otherwise.
 	 */
 	function checkForUpdate(&$description) {
 		$templates = $this->getTemplatesWithCsc($dbQueries, $customMessages);
@@ -50,9 +49,9 @@ class tx_coreupdates_cscsplit extends Tx_Install_Updates_Base {
 				'<p>The wizard will automatically choose the right template according to your compatibility version. So if you want to ' .
 				'change the rendering back to an older version, you will have to use the changeCompatibilityVersion wizard above ' .
 				'first, and then return back to this one.</p>';
-			return true;
+			return TRUE;
 		}
-		return false;
+		return FALSE;
 	}
 
 	/**
@@ -60,16 +59,16 @@ class tx_coreupdates_cscsplit extends Tx_Install_Updates_Base {
 	 *
 	 * @param	array		pointer where to insert all DB queries made, so they can be shown to the user if wanted
 	 * @param	string		pointer to output custom messages
-	 * @return	boolean		true if update succeeded, false otherwise
+	 * @return	boolean		TRUE if update succeeded, FALSE otherwise
 	 */
 	function performUpdate(&$dbQueries, &$customMessages) {
 		$templates = $this->getTemplatesWithCsc($dbQueries, $customMessages);
 		$templates = $this->findUpdateableTemplatesWithCsc($templates);
 		$this->updateCscTemplates($templates, $dbQueries, $customMessages);
 		if ($customMessages) {
-			return false;
+			return FALSE;
 		} else {
-			return true;
+			return TRUE;
 		}
 	}
 
@@ -112,41 +111,46 @@ class tx_coreupdates_cscsplit extends Tx_Install_Updates_Base {
 		$templatesCount = count($allTemplates);
 		$updateableTemplates = array();
 		for ($i = 0; $i < $templatesCount; $i++) {
-			$templateNeedsUpdate = false;
+			$templateNeedsUpdate = FALSE;
 			$includedTemplates = explode(',', $allTemplates[$i]['include_static_file']);
 			$includedTemplatesCount = count($includedTemplates);
 			// loop through every entry in the "include static file"
 			for ($j = 0; $j < $includedTemplatesCount; $j++) {
-				if (strpos($includedTemplates[$j], 'css_styled_content') !== false) {
+				if (strpos($includedTemplates[$j], 'css_styled_content') !== FALSE) {
 					if ($compatVersion <= t3lib_div::int_from_ver('3.8')) {
 						if ($includedTemplates[$j] != 'EXT:css_styled_content/static/v3.8/') {
 							$includedTemplates[$j] = 'EXT:css_styled_content/static/v3.8/';
-							$templateNeedsUpdate = true;
+							$templateNeedsUpdate = TRUE;
 						}
 					} elseif ($compatVersion <= t3lib_div::int_from_ver('4.1')) {
 						if ($includedTemplates[$j] != 'EXT:css_styled_content/static/v3.9/') {
 							$includedTemplates[$j] = 'EXT:css_styled_content/static/v3.9/';
-							$templateNeedsUpdate = true;
+							$templateNeedsUpdate = TRUE;
 						}
 					} elseif ($compatVersion <= t3lib_div::int_from_ver('4.2')) {
 						if ($includedTemplates[$j] != 'EXT:css_styled_content/static/v4.2/') {
 							$includedTemplates[$j] = 'EXT:css_styled_content/static/v4.2/';
-							$templateNeedsUpdate = true;
+							$templateNeedsUpdate = TRUE;
 						}
 					} elseif ($compatVersion <= t3lib_div::int_from_ver('4.3')) {
 						if ($includedTemplates[$j] != 'EXT:css_styled_content/static/v4.3/') {
 							$includedTemplates[$j] = 'EXT:css_styled_content/static/v4.3/';
-							$templateNeedsUpdate = true;
+							$templateNeedsUpdate = TRUE;
 						}
 					} elseif ($compatVersion <= t3lib_div::int_from_ver('4.4')) {
 						if ($includedTemplates[$j] != 'EXT:css_styled_content/static/v4.4/') {
 							$includedTemplates[$j] = 'EXT:css_styled_content/static/v4.4/';
-							$templateNeedsUpdate = true;
+							$templateNeedsUpdate = TRUE;
 						}
-					} elseif ($compatVersion === $currentVersion || $compatVersion > '4.5') {
+					} elseif ($compatVersion <= t3lib_div::int_from_ver('4.5')) {
+						if ($includedTemplates[$j] != 'EXT:css_styled_content/static/v4.5/') {
+							$includedTemplates[$j] = 'EXT:css_styled_content/static/v4.5/';
+							$templateNeedsUpdate = TRUE;
+						}
+					} elseif ($compatVersion === $currentVersion || $compatVersion > '4.6') {
 						if ($includedTemplates[$j] != 'EXT:css_styled_content/static/') {
 							$includedTemplates[$j] = 'EXT:css_styled_content/static/';
-							$templateNeedsUpdate = true;
+							$templateNeedsUpdate = TRUE;
 						}
 					}
 				}

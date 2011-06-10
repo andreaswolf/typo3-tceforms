@@ -159,7 +159,7 @@ class tx_indexedsearch_indexer {
 	var $tstamp_minAge = 0;		// If set, this tells a minimum limit before a document can be indexed again. This is regardless of mtime.
 	var $maxExternalFiles = 0;	// Max number of external files to index.
 
-	var $forceIndexing = FALSE;		// If true, indexing is forced despite of hashes etc.
+	var $forceIndexing = FALSE;		// If TRUE, indexing is forced despite of hashes etc.
 	var $crawlerActive = FALSE;		// Set when crawler is detected (internal)
 
 		// INTERNALS:
@@ -275,7 +275,7 @@ class tx_indexedsearch_indexer {
 								// Configuration of behavior:
 							$this->conf['index_externals'] = $pObj->config['config']['index_externals'];	// Whether to index external documents like PDF, DOC etc. (if possible)
 							$this->conf['index_descrLgd'] = $pObj->config['config']['index_descrLgd'];		// Length of description text (max 250, default 200)
-							$this->conf['index_metatags'] = isset($pObj->config['config']['index_metatags']) ? $pObj->config['config']['index_metatags'] : true;
+							$this->conf['index_metatags'] = isset($pObj->config['config']['index_metatags']) ? $pObj->config['config']['index_metatags'] : TRUE;
 
 								// Set to zero:
 							$this->conf['recordUid'] = 0;
@@ -345,7 +345,7 @@ class tx_indexedsearch_indexer {
 			// Configuration of behavior:
 		$this->conf['index_externals'] = 1;	// Whether to index external documents like PDF, DOC etc. (if possible)
 		$this->conf['index_descrLgd'] = 200;		// Length of description text (max 250, default 200)
-		$this->conf['index_metatags'] = true;	// Whether to index document keywords and description (if present)
+		$this->conf['index_metatags'] = TRUE;	// Whether to index document keywords and description (if present)
 
 			// Init and start indexing:
 		$this->init();
@@ -487,7 +487,7 @@ class tx_indexedsearch_indexer {
 				$this->external_parsers[$extension] = t3lib_div::getUserObj($_objRef);
 				$this->external_parsers[$extension]->pObj = $this;
 
-					// Init parser and if it returns false, unset its entry again:
+					// Init parser and if it returns FALSE, unset its entry again:
 				if (!$this->external_parsers[$extension]->initParser($extension))	{
 					unset($this->external_parsers[$extension]);
 				}
@@ -692,7 +692,7 @@ class tx_indexedsearch_indexer {
 
 	/**
 	 * Finds first occurence of embracing tags and returns the embraced content and the original string with
-	 * the tag removed in the two passed variables. Returns false if no match found. ie. useful for finding
+	 * the tag removed in the two passed variables. Returns FALSE if no match found. ie. useful for finding
 	 * <title> of document or removing <script>-sections
 	 *
 	 * @param	string		String to search in
@@ -700,14 +700,14 @@ class tx_indexedsearch_indexer {
 	 * @param	string		Passed by reference: Content inside found tag
 	 * @param	string		Passed by reference: Content after found tag
 	 * @param	string		Passed by reference: Attributes of the found tag.
-	 * @return	boolean		Returns false if tag was not found, otherwise true.
+	 * @return	boolean		Returns FALSE if tag was not found, otherwise TRUE.
 	 */
 	function embracingTags($string,$tagName,&$tagContent,&$stringAfter,&$paramList) {
 		$endTag = '</'.$tagName.'>';
 		$startTag = '<'.$tagName;
 
 		$isTagInText = stristr($string,$startTag);		// stristr used because we want a case-insensitive search for the tag.
-		if(!$isTagInText) return false;	// if the tag was not found, return false
+		if(!$isTagInText) return FALSE;	// if the tag was not found, return FALSE
 
 		list($paramList,$isTagInText) = explode('>',substr($isTagInText,strlen($startTag)),2);
 		$afterTagInText = stristr($isTagInText,$endTag);
@@ -720,14 +720,14 @@ class tx_indexedsearch_indexer {
 			$stringAfter = $isTagInText;
 		}
 
-		return true;
+		return TRUE;
 	}
 
 	/**
 	 * Removes content that shouldn't be indexed according to TYPO3SEARCH-tags.
 	 *
 	 * @param	string		HTML Content, passed by reference
-	 * @return	boolean		Returns true if a TYPOSEARCH_ tag was found, otherwise false.
+	 * @return	boolean		Returns TRUE if a TYPOSEARCH_ tag was found, otherwise FALSE.
 	 */
 	function typoSearchTags(&$body) {
 		$expBody = preg_split('/\<\!\-\-[\s]?TYPO3SEARCH_/',$body);
@@ -746,9 +746,9 @@ class tx_indexedsearch_indexer {
 					$prev = $val;
 				}
 			}
-			return true;
+			return TRUE;
 		} else {
-			return false;
+			return FALSE;
 		}
 	}
 
@@ -818,7 +818,7 @@ class tx_indexedsearch_indexer {
 							$crawler->addQueueEntry_callBack(0,$params,'EXT:indexed_search/class.crawler.php:&tx_indexedsearch_files',$this->conf['id']);
 							$this->log_setTSlogMessage('media "'.$params['document'].'" added to "crawler" queue.',1);
 						} else {
-							$this->indexRegularDocument($linkInfo['href'], false, $linkSource, $ext);
+							$this->indexRegularDocument($linkInfo['href'], FALSE, $linkSource, $ext);
 						}
 					} else {
 						if (is_object($crawler))	{
@@ -881,7 +881,7 @@ class tx_indexedsearch_indexer {
 		$htmlParts = $htmlParser->splitTags('base', $html);
 		foreach ($htmlParts as $index => $tagData) {
 			if (($index % 2) !== 0) {
-				$tagAttributes = $htmlParser->get_tag_attributes($tagData, true);
+				$tagAttributes = $htmlParser->get_tag_attributes($tagData, TRUE);
 				$firstTagName = $htmlParser->getFirstTagName($tagData);
 				if (strtolower($firstTagName) == 'base') {
 					$href = $tagAttributes[0]['href'];
@@ -939,7 +939,7 @@ class tx_indexedsearch_indexer {
 	 *
 	 * @param	string		The URL
 	 * @param	integer		Timeout (seconds?)
-	 * @return	mixed		If no answer, returns false. Otherwise an array where HTTP headers are keys
+	 * @return	mixed		If no answer, returns FALSE. Otherwise an array where HTTP headers are keys
 	 */
 	function getUrlHeaders($url)	{
 		$content = t3lib_div::getURL($url,2);	// Try to get the headers only
@@ -1438,7 +1438,11 @@ class tx_indexedsearch_indexer {
 		if ($retRaw)	return $tmp;
 
 			// Otherwise create hash and return integer
-		if($tmp=='') $ret=0; else $ret=hexdec(substr(md5($tmp),0,7));
+		if ($tmp == '') {
+			$ret = 0;
+		} else {
+			$ret = hexdec(substr(md5($tmp), 0, 7));
+		}
 		return $ret;
 	}
 
@@ -1793,7 +1797,7 @@ class tx_indexedsearch_indexer {
 	/**
 	 * Check content hash in phash table
 	 *
-	 * @return	mixed		Returns true if the page needs to be indexed (that is, there was no result), otherwise the phash value (in an array) of the phash record to which the grlist_record should be related!
+	 * @return	mixed		Returns TRUE if the page needs to be indexed (that is, there was no result), otherwise the phash value (in an array) of the phash record to which the grlist_record should be related!
 	 */
 	function checkContentHash()	{
 			// With this query the page will only be indexed if it's content is different from the same "phash_grouping" -page.
@@ -1806,11 +1810,11 @@ class tx_indexedsearch_indexer {
 
 	/**
 	 * Check content hash for external documents
-	 * Returns true if the document needs to be indexed (that is, there was no result)
+	 * Returns TRUE if the document needs to be indexed (that is, there was no result)
 	 *
 	 * @param	integer		phash value to check (phash_grouping)
 	 * @param	integer		Content hash to check
-	 * @return	boolean		Returns true if the document needs to be indexed (that is, there was no result)
+	 * @return	boolean		Returns TRUE if the document needs to be indexed (that is, there was no result)
 	 */
 	function checkExternalDocContentHash($hashGr,$content_md5h)	{
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', 'index_phash A', 'A.phash_grouping='.intval($hashGr).' AND A.contentHash='.intval($content_md5h));

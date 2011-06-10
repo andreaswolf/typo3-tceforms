@@ -28,8 +28,6 @@
  * @author		François Suter <francois@typo3.org>
  * @package		TYPO3
  * @subpackage	tx_scheduler
- *
- * $Id$
  */
 class tx_scheduler_SleepTask_AdditionalFieldProvider implements tx_scheduler_AdditionalFieldProvider {
 
@@ -55,7 +53,7 @@ class tx_scheduler_SleepTask_AdditionalFieldProvider implements tx_scheduler_Add
 			if ($parentObject->CMD == 'add') {
 					// In case of new task and if field is empty, set default sleep time
 				$taskInfo['sleepTime'] = 30;
-			} else if ($parentObject->CMD == 'edit') {
+			} elseif ($parentObject->CMD == 'edit') {
 					// In case of edit, set to internal value if no data was submitted already
 				$taskInfo['sleepTime'] = $task->sleepTime;
 			} else {
@@ -80,20 +78,20 @@ class tx_scheduler_SleepTask_AdditionalFieldProvider implements tx_scheduler_Add
 
 	/**
 	 * This method checks any additional data that is relevant to the specific task
-	 * If the task class is not relevant, the method is expected to return true
+	 * If the task class is not relevant, the method is expected to return TRUE
 	 *
 	 * @param	array					$submittedData: reference to the array containing the data submitted by the user
 	 * @param	tx_scheduler_Module		$parentObject: reference to the calling object (Scheduler's BE module)
-	 * @return	boolean					True if validation was ok (or selected class is not relevant), false otherwise
+	 * @return	boolean					TRUE if validation was ok (or selected class is not relevant), FALSE otherwise
 	 */
 	public function validateAdditionalFields(array &$submittedData, tx_scheduler_Module $parentObject) {
 		$submittedData['sleepTime'] = intval($submittedData['sleepTime']);
 
 		if ($submittedData['sleepTime'] < 0) {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:scheduler/mod1/locallang.xml:msg.invalidSleepTime'), t3lib_FlashMessage::ERROR);
-			$result = false;
+			$result = FALSE;
 		} else {
-			$result = true;
+			$result = TRUE;
 		}
 		return $result;
 	}

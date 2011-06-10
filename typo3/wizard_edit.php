@@ -27,7 +27,6 @@
 /**
  * Wizard to edit records from group/select lists in TCEforms
  *
- * $Id$
  * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -88,8 +87,6 @@ class SC_wizard_edit {
 	 * @return	void
 	 */
 	function main()	{
-		global $TCA;
-
 		if ($this->doClose)	{
 			$this->closeWindow();
 		} else {
@@ -98,7 +95,7 @@ class SC_wizard_edit {
 			$table = $this->P['table'];
 			$field = $this->P['field'];
 			t3lib_div::loadTCA($table);
-			$config = $TCA[$table]['columns'][$field]['config'];
+			$config = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
 			$fTable = $this->P['currentValue']<0 ? $config['neg_foreign_table'] : $config['foreign_table'];
 
 				// Detecting the various allowed field type setups and acting accordingly.

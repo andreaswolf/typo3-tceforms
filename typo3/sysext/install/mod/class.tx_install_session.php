@@ -32,8 +32,6 @@
  *
  * @package TYPO3
  * @subpackage tx_install
- *
- * @version $Id$
  */
 class tx_install_session {
 
@@ -125,7 +123,7 @@ class tx_install_session {
 			$sessionCreationError .= 'The PHP option session.auto-start is enabled. Disable this option in php.ini or .htaccess:<br />';
 			$sessionCreationError .= '<pre>php_value session.auto_start Off</pre>';
 			throw new RuntimeException($sessionCreationError, 1294587485);
-		} else if (defined('SID')) {
+		} elseif (defined('SID')) {
 			$sessionCreationError = 'Session already started by session_start().<br />';
 			$sessionCreationError .= 'Make sure no installed extension is starting a session in its ext_localconf.php or ext_tables.php.';
 			throw new RuntimeException($sessionCreationError, 1294587486);
@@ -185,7 +183,7 @@ class tx_install_session {
 	/**
 	 * Checks whether we already have an active session.
 	 *
-	 * @return boolean true if there is an active session, false otherwise
+	 * @return boolean TRUE if there is an active session, FALSE otherwise
 	 */
 	public function hasSession() {
 		return (isset($_SESSION['created']));
@@ -235,7 +233,7 @@ class tx_install_session {
 	/**
 	 * Check if we have an already authorized session
 	 *
-	 * @return boolean True if this session has been authorized before (by a correct password)
+	 * @return boolean TRUE if this session has been authorized before (by a correct password)
 	 */
 	public function isAuthorized() {
 		if (!$_SESSION['authorized']) {
@@ -250,10 +248,10 @@ class tx_install_session {
 
 	/**
 	 * Check if our session is expired.
-	 * Useful only right after a false "isAuthorized" to see if this is the
+	 * Useful only right after a FALSE "isAuthorized" to see if this is the
 	 * reason for not being authorized anymore.
 	 *
-	 * @return boolean True if an authorized session exists, but is expired
+	 * @return boolean TRUE if an authorized session exists, but is expired
 	 */
 	public function isExpired() {
 		if (!$_SESSION['authorized']) {

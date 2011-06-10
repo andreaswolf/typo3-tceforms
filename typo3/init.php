@@ -49,7 +49,6 @@
  * For a detailed description of this script, the scope of constants and variables in it,
  * please refer to the document "Inside TYPO3"
  *
- * $Id$
  * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -60,17 +59,13 @@
 // *******************************
 // Checking PHP version
 // *******************************
-if (version_compare(phpversion(), '5.2', '<'))	die ('TYPO3 requires PHP 5.2.0 or higher.');
+if (version_compare(phpversion(), '5.3', '<'))	die ('TYPO3 requires PHP 5.3.0 or higher.');
 
 
 // *******************************
 // Set error reporting
 // *******************************
-if (defined('E_DEPRECATED')) {
-	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
-} else {
-	error_reporting(E_ALL ^ E_NOTICE);
-}
+error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
 
 // *******************************
 // Prevent any unwanted output that may corrupt AJAX/compression. Note: this does
@@ -234,9 +229,7 @@ $PARSETIME_START = t3lib_div::milliseconds();		// Is set to the system time in m
 // ***********************************
 
 if (TYPO3_UseCachingFramework) {
-	$typo3CacheManager = t3lib_div::makeInstance('t3lib_cache_Manager');
-	$typo3CacheFactory = t3lib_div::makeInstance('t3lib_cache_Factory');
-	$typo3CacheFactory->setCacheManager($typo3CacheManager);
+	t3lib_cache::initializeCachingFramework();
 
 	t3lib_cache::initPageCache();
 	t3lib_cache::initPageSectionCache();
@@ -413,7 +406,7 @@ $spriteManager->loadCacheFile();
 // *******************************
 /*
 	NOTICE:
-	if constant TYPO3_PROCEED_IF_NO_USER is defined true (in the mainscript), this script will return even though a user did not log in!
+	if constant TYPO3_PROCEED_IF_NO_USER is defined TRUE (in the mainscript), this script will return even though a user did not log in!
 */
 $BE_USER = t3lib_div::makeInstance('t3lib_beUserAuth');	// New backend user object
 $BE_USER->warningEmail = $TYPO3_CONF_VARS['BE']['warning_email_addr'];
@@ -434,6 +427,8 @@ $FILEMOUNTS = $BE_USER->returnFilemounts();
 // *******************************
 // $GLOBALS['LANG'] initialisation
 // *******************************
+// $GLOBALS needed here ?? we still are in the global scope.
+
 $GLOBALS['LANG'] = t3lib_div::makeInstance('language');
 $GLOBALS['LANG']->init($BE_USER->uc['lang']);
 

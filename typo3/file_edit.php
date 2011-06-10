@@ -27,7 +27,6 @@
 /**
  * Web>File: Editing documents
  *
- * $Id$
  * Revised for TYPO3 3.6 2/2003 by Kasper Skårhøj
  * XHTML compliant (except textarea field)
  *
@@ -116,10 +115,15 @@ class SC_file_edit {
 			throw new RuntimeException($title . ': ' . $message, 1294586841);
 		}
 			// Finding the icon
-		switch($GLOBALS['FILEMOUNTS'][$key]['type'])	{
-			case 'user':	$this->icon = 'gfx/i/_icon_ftp_user.gif';	break;
-			case 'group':	$this->icon = 'gfx/i/_icon_ftp_group.gif';	break;
-			default:		$this->icon = 'gfx/i/_icon_ftp.gif';	break;
+		switch($GLOBALS['FILEMOUNTS'][$key]['type']) {
+			case 'user':
+				$this->icon = 'gfx/i/_icon_ftp_user.gif';
+				break;
+			case 'group':
+				$this->icon = 'gfx/i/_icon_ftp_group.gif';
+				break;
+			default:
+				$this->icon = 'gfx/i/_icon_ftp.gif';
 		}
 
 		$this->icon = '<img'.t3lib_iconWorks::skinImg($this->backPath,$this->icon,'width="18" height="16"').' title="" alt="" />';
@@ -150,11 +154,10 @@ class SC_file_edit {
 	 * @return	void
 	 */
 	function main()	{
-		//TODO remove global, change $LANG into $GLOBALS['LANG'], change locallang*.php to locallang*.xml
-		global $BE_USER, $LANG, $TYPO3_CONF_VARS;
+		//TODO: change locallang*.php to locallang*.xml
 		$docHeaderButtons = $this->getButtons();
 
-		$this->content = $this->doc->startPage($LANG->sL('LLL:EXT:lang/locallang_core.php:file_edit.php.pagetitle'));
+		$this->content = $this->doc->startPage($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:file_edit.php.pagetitle'));
 
 			// hook	before compiling the output
 		if (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/file_edit.php']['preOutputProcessingHook'])) {
@@ -170,11 +173,11 @@ class SC_file_edit {
 			}
 		}
 
-		$pageContent = $this->doc->header($LANG->sL('LLL:EXT:lang/locallang_core.php:file_edit.php.pagetitle'));
+		$pageContent = $this->doc->header($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:file_edit.php.pagetitle'));
 		$pageContent .= $this->doc->spacer(2);
 
 		$fI = pathinfo($this->target);
-		$extList=$TYPO3_CONF_VARS['SYS']['textfile_ext'];
+		$extList = $GLOBALS['TYPO3_CONF_VARS']['SYS']['textfile_ext'];
 
 		if ($extList && t3lib_div::inList($extList,strtolower($fI['extension'])))		{
 				// Read file content to edit:
@@ -195,12 +198,12 @@ class SC_file_edit {
 				<br />';
 
 				// Make shortcut:
-			if ($BE_USER->mayMakeShortcut())	{
+			if ($GLOBALS['BE_USER']->mayMakeShortcut()) {
 				$this->MCONF['name']='xMOD_file_edit.php';
 				$docHeaderButtons['shortcut'] = $this->doc->makeShortcutIcon('target','',$this->MCONF['name'],1);
 			}
 		} else {
-			$code.=sprintf($LANG->sL('LLL:EXT:lang/locallang_core.php:file_edit.php.coundNot'), $extList);
+			$code .= sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.php:file_edit.php.coundNot'), $extList);
 		}
 
 			// Ending of section and outputting editing form:

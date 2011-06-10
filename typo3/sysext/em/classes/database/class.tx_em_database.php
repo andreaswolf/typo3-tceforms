@@ -27,8 +27,6 @@
  *
  * Module: Extension manager - DB access
  *
- * $Id: class.tx_em_database.php 2082 2010-03-21 17:19:42Z steffenk $
- *
  * @author  Marcus Krause <marcus#exp2010@t3sec.info>
  * @author  Steffen Kamper <info@sk-typo3.de>
  */
@@ -495,7 +493,7 @@ final class tx_em_Database {
 	 *
 	 * @param	string		Table name
 	 * @param	array		Field and key information (as provided from Install Tool class!)
-	 * @param	boolean		If true, add "DROP TABLE IF EXISTS"
+	 * @param	boolean		If TRUE, add "DROP TABLE IF EXISTS"
 	 * @return	string		Table definition SQL
 	 */
 	function dumpTableHeader($table, $fieldKeyInfo, $dropTableIfExists = 0) {

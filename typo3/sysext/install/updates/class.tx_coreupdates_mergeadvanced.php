@@ -29,7 +29,6 @@
  * Contains the update class for merging advanced and normal pagetype.
  *
  * @author Steffen Kamper <info@sk-typo3.de>
- * @version $Id$
  */
 class tx_coreupdates_mergeadvanced extends Tx_Install_Updates_Base {
 	protected $title = 'Update Pages with Pagetype "Advanced"';
@@ -38,16 +37,16 @@ class tx_coreupdates_mergeadvanced extends Tx_Install_Updates_Base {
 	 * Checks if an update is needed
 	 *
 	 * @param	string		&$description: The description for the update
-	 * @return	boolean		whether an update is needed (true) or not (false)
+	 * @return	boolean		whether an update is needed (TRUE) or not (FALSE)
 	 */
 	public function checkForUpdate(&$description) {
-		$result = false;
+		$result = FALSE;
 		$description = 'Merges the "Advanced" pagetype (doktype 2) to "Standard" (doktype 1) because "Standard" now has the same features, and "Advanced" is not needed anymore.';
 
 		if ($this->versionNumber >= 4002000) {
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid', 'pages', 'doktype=2', '', '', '1');
 			if($GLOBALS['TYPO3_DB']->sql_num_rows($res)) {
-				$result = true;
+				$result = TRUE;
 			}
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
 		}
@@ -60,10 +59,10 @@ class tx_coreupdates_mergeadvanced extends Tx_Install_Updates_Base {
 	 *
 	 * @param	array		&$dbQueries: queries done in this update
 	 * @param	mixed		&$customMessages: custom messages
-	 * @return	boolean		whether it worked (true) or not (false)
+	 * @return	boolean		whether it worked (TRUE) or not (FALSE)
 	 */
 	public function performUpdate(&$dbQueries, &$customMessages) {
-		$result = false;
+		$result = FALSE;
 		if($this->versionNumber >= 4002000)	{
 			$updateArray = array(
 				'doktype' => 1,
@@ -75,7 +74,7 @@ class tx_coreupdates_mergeadvanced extends Tx_Install_Updates_Base {
 			if ($GLOBALS['TYPO3_DB']->sql_error()) {
 				$customMessages = 'SQL-ERROR: ' . htmlspecialchars($GLOBALS['TYPO3_DB']->sql_error());
 			} else {
-				$result = true;
+				$result = TRUE;
 			}
 		}
 		return $result;

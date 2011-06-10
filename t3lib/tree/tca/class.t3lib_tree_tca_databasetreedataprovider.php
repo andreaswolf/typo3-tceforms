@@ -237,7 +237,7 @@ class t3lib_tree_Tca_DatabaseTreeDataProvider extends t3lib_tree_Tca_AbstractTca
 	 * Builds a complete node including childs
 	 *
 	 * @param t3lib_tree_Node $basicNode
-	 * @param null|t3lib_tree_tca_DatabaseNode $parent
+	 * @param NULL|t3lib_tree_tca_DatabaseNode $parent
 	 * @param int $level
 	 * @return A|object
 	 */
@@ -260,7 +260,10 @@ class t3lib_tree_Tca_DatabaseTreeDataProvider extends t3lib_tree_Tca_AbstractTca
 		}
 		$node->setId($basicNode->getId());
 
-		$node->setSelectable(!t3lib_div::inList($this->getNonSelectableLevelList(), $level));
+		$node->setSelectable(
+			!t3lib_div::inList($this->getNonSelectableLevelList(), $level)
+			&& !in_array($basicNode->getId(), $this->getItemUnselectableList())
+		);
 		$node->setSortValue($this->nodeSortValues[$basicNode->getId()]);
 
 		$node->setIcon(t3lib_iconWorks::mapRecordTypeToSpriteIconClass($this->tableName, $row));
@@ -309,7 +312,7 @@ class t3lib_tree_Tca_DatabaseTreeDataProvider extends t3lib_tree_Tca_AbstractTca
 	 *
 	 * @param t3lib_tree_Node $node
 	 * @param  $level
-	 * @return A|null|object
+	 * @return A|NULL|object
 	 */
 	protected function getChildrenOf(t3lib_tree_Node $node, $level) {
 		$nodeData = NULL;

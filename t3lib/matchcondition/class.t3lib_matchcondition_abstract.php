@@ -27,8 +27,6 @@
 /**
  * Matching TypoScript conditions
  *
- * $Id$
- *
  * Used with the TypoScript parser.
  * Matches browserinfo, IPnumbers for use with templates
  *
@@ -185,12 +183,12 @@ abstract class t3lib_matchCondition_abstract {
 				$andParts = explode(']&&[', $orPart);
 				foreach ($andParts as $andPart) {
 					$result = $this->evaluateCondition($andPart);
-						// If condition in AND context fails, the whole block is false:
+						// If condition in AND context fails, the whole block is FALSE:
 					if ($result === FALSE) {
 						break;
 					}
 				}
-					// If condition in OR context succeeds, the whole expression is true:
+					// If condition in OR context succeeds, the whole expression is TRUE:
 				if ($result === TRUE) {
 					break;
 				}
@@ -204,7 +202,7 @@ abstract class t3lib_matchCondition_abstract {
 	 * Evaluates a TypoScript condition given as input, eg. "[browser=net][...(other conditions)...]"
 	 *
 	 * @param	string		The condition to match against its criterias.
-	 * @return	mixed		Returns true or false based on the evaluation
+	 * @return	mixed		Returns TRUE or FALSE based on the evaluation
 	 */
 	protected function evaluateConditionCommon($key, $value) {
 		if (t3lib_div::inList('browser,version,system,useragent', strtolower($key))) {
@@ -408,8 +406,7 @@ abstract class t3lib_matchCondition_abstract {
 				$funcValue = t3lib_div::trimExplode(',', $values[1]);
 				$prefix = $this->getUserFuncClassPrefix();
 				if ($prefix &&
-					!t3lib_div::isFirstPartOfStr(trim($funcName), $prefix) &&
-					!t3lib_div::isFirstPartOfStr(trim($funcName), 'tx_')
+					!t3lib_div::hasValidClassPrefix($funcName, array($prefix))
 				) {
 					$this->log('Match condition: Function "' . $funcName . '" was not prepended with "' . $prefix . '"');
 					return FALSE;
@@ -469,7 +466,7 @@ abstract class t3lib_matchCondition_abstract {
 	 *
 	 * @param	string		$test: The value to compare with on the form [operator][number]. Eg. "< 123"
 	 * @param	integer		$leftValue: The value on the left side
-	 * @return	boolean		If $value is "50" and $test is "< 123" then it will return true.
+	 * @return	boolean		If $value is "50" and $test is "< 123" then it will return TRUE.
 	 */
 	protected function compareNumber($test, $leftValue) {
 		if (preg_match('/^(!?=+|<=?|>=?)\s*([^\s]*)\s*$/', $test, $matches)) {
@@ -507,7 +504,7 @@ abstract class t3lib_matchCondition_abstract {
 	 *
 	 * @param	string		The string in which to find $needle.
 	 * @param	string		The string to find in $haystack
-	 * @return	boolean		Returns true if $needle matches or is found in (according to wildcards) in $haystack. Eg. if $haystack is "Netscape 6.5" and $needle is "Net*" or "Net*ape" then it returns true.
+	 * @return	boolean		Returns TRUE if $needle matches or is found in (according to wildcards) in $haystack. Eg. if $haystack is "Netscape 6.5" and $needle is "Net*" or "Net*ape" then it returns TRUE.
 	 */
 	protected function searchStringWildcard($haystack, $needle) {
 		$result = FALSE;

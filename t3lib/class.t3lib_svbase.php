@@ -27,7 +27,6 @@
 /**
  * Parent class for "Services" classes
  *
- * $Id$
  * TODO: temp files are not removed
  *
  * @author	René Fritz <r.fritz@colorcube.de>
@@ -208,7 +207,7 @@ abstract class t3lib_svbase {
 	 *
 	 * @param	string		Name of the config option
 	 * @param	mixed		Default configuration if no special config is available
-	 * @param	bool		If set the 'default' config will be returned if no special config for this service is available (default: true)
+	 * @param	bool		If set the 'default' config will be returned if no special config for this service is available (default: TRUE)
 	 * @return	mixed		configuration value for the service
 	 */
 	function getServiceOption($optionName, $defaultValue = '', $includeDefaultConfig = TRUE) {

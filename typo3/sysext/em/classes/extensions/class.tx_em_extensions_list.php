@@ -25,7 +25,6 @@
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
-/* $Id: class.tx_em_extensions_list.php 2084 2010-03-22 01:46:37Z steffenk $ */
 
 /**
  * This class handles extension listings
@@ -814,7 +813,7 @@ EXTENSION KEYS:
 	 * @param	boolean		If set the info in the internal extensionsXML array will be unset before returning the result.
 	 * @return	array		List array and category index as key 0 / 1 in an array.
 	 */
-	function prepareImportExtList($unsetProc = false) {
+	function prepareImportExtList($unsetProc = FALSE) {
 		$list = array();
 		$cat = tx_em_Tools::getDefaultCategory();
 		$filepath = $this->parentObject->getMirrorURL();

@@ -29,11 +29,9 @@
  * @author		Markus Friedrich <markus.friedrich@dkd.de>
  * @package		TYPO3
  * @subpackage	tx_scheduler
- *
- * $Id$
  */
 if ((TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_CLI) && basename(PATH_thisScript) == 'cli_dispatch.phpsh') {
-	$hasTask = true;
+	$hasTask = TRUE;
 		// Create an instance of the scheduler object
 		/**
 		 * @var	tx_scheduler
@@ -48,7 +46,7 @@ if ((TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_CLI) && basename(PATH_thisScript) == 
 				 * @var	tx_scheduler_Task
 				 */
 			$task = $scheduler->fetchTask();
-			$hasTask = true;
+			$hasTask = TRUE;
 			try {
 				$scheduler->executeTask($task);
 			}
@@ -61,7 +59,7 @@ if ((TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_CLI) && basename(PATH_thisScript) == 
 		}
 			// There are no more tasks, quit the run
 		catch (OutOfBoundsException $e) {
-			$hasTask = false;
+			$hasTask = FALSE;
 		}
 			// A task could not be unserialized properly, skip to next task
 		catch (UnexpectedValueException $e) {

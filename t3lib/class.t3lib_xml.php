@@ -27,7 +27,6 @@
 /**
  * Contains class for creating XML output from records
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -88,7 +87,7 @@ class t3lib_xml {
 	 * @param	string		Top Level Name
 	 * @return	void
 	 */
-	function t3lib_xml($topLevelName) {
+	function __construct($topLevelName) {
 		$this->topLevelName = $topLevelName;
 	}
 
@@ -149,7 +148,7 @@ class t3lib_xml {
 	 * Indents/Outdents a new level named, $name
 	 *
 	 * @param	string		The name of the new element for this level
-	 * @param	boolean		If false, then this function call will *end* the level, otherwise create it.
+	 * @param	boolean		If FALSE, then this function call will *end* the level, otherwise create it.
 	 * @param	array		Array of attributes in key/value pairs which will be added to the element (tag), $name
 	 * @return	void
 	 */
@@ -190,7 +189,7 @@ class t3lib_xml {
 	 * Increments/Decrements Indentation counter, ->XMLIndent
 	 * Sets and returns ->Icode variable which is a line prefix consisting of a number of tab-chars corresponding to the indent-levels of the current posision (->XMLindent)
 	 *
-	 * @param	boolean		If true the XMLIndent var is increased, otherwise decreased
+	 * @param	boolean		If TRUE the XMLIndent var is increased, otherwise decreased
 	 * @return	string		->Icode - the prefix string with TAB-chars.
 	 */
 	function indent($b) {

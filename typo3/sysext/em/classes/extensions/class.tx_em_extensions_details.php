@@ -26,7 +26,6 @@
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
-/* $Id: class.tx_em_extensions_details.php 2058 2010-03-17 09:39:15Z steffenk $ */
 
 /**
  * This class handles extension details
@@ -250,7 +249,7 @@ class tx_em_Extensions_Details {
 		if ($emConfFileContent) {
 
 			if (@is_file($emConfFileName)) {
-				if (t3lib_div::writeFile($emConfFileName, $emConfFileContent) === true) {
+				if (t3lib_div::writeFile($emConfFileName, $emConfFileContent) === TRUE) {
 					return sprintf($GLOBALS['LANG']->getLL('updateLocalEM_CONF_ok'),
 						substr($emConfFileName, strlen($absPath)));
 				} else {
@@ -763,8 +762,7 @@ $EM_CONF[$_EXTKEY] = ' . tx_em_Tools::arrayToCode($EM_CONF, 0) . ';
 	 * @deprecated since TYPO3 4.5, will be removed in TYPO3 4.7
 	 */
 	function helpCol($key) {
-		global $BE_USER;
-		if ($BE_USER->uc['edit_showFieldHelp']) {
+		if ($GLOBALS['BE_USER']->uc['edit_showFieldHelp']) {
 			if (empty($key)) {
 				return '<td>&nbsp;</td>';
 			}

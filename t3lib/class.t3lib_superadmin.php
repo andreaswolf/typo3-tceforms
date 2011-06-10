@@ -28,7 +28,6 @@
  * Super Admin class has functions for the administration of multiple TYPO3 sites in folders
  * See 'misc/superadmin.php' for details on how to use!
  *
- * $Id$
  * Revised for TYPO3 3.6 February/2004 by Kasper Skårhøj
  * XHTML Compliant
  *
@@ -92,11 +91,7 @@
 	// *******************************
 	// Set error reporting
 	// *******************************
-if (defined('E_DEPRECATED')) {
-	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
-} else {
-	error_reporting(E_ALL ^ E_NOTICE);
-}
+error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
 
 define('TYPO3_mainDir', 'typo3/'); // This is the directory of the backend administration for the sites of this TYPO3 installation.
 
@@ -171,7 +166,7 @@ class t3lib_superadmin {
 	 *
 	 * @return	void
 	 */
-	function t3lib_superadmin() {
+	function __construct() {
 		$this->show = t3lib_div::_GP('show');
 		$this->type = t3lib_div::_GP('type');
 		$this->exp = t3lib_div::_GP('exp');
@@ -480,6 +475,7 @@ class t3lib_superadmin {
 	 * @see initProcess()
 	 */
 	function processSiteDir($path, $dir) {
+		$out = '';
 		if (@is_dir($path)) {
 			$localconf = $path . '/typo3conf/localconf.php';
 			if (@is_file($localconf)) {
@@ -1307,6 +1303,7 @@ class t3lib_superadmin {
 		$pass = trim(t3lib_div::_POST('NEWPASS'));
 		$passMD5 = t3lib_div::_POST('NEWPASS_md5');
 
+		$content = '';
 		$updatedFlag = 0;
 		if (($pass || $passMD5) && is_array($whichFields)) {
 			$pass = $passMD5 ? $passMD5 : md5($pass);

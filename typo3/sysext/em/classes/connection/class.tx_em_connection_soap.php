@@ -25,7 +25,6 @@
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
-/* $Id: class.tx_em_Connection_Soap.php 1978 2010-03-09 03:18:50Z mkrause $ */
 
 /**
  * Enter description here...
@@ -54,12 +53,12 @@ class tx_em_Connection_Soap {
 	 *
 	 * @var SoapClient
 	 */
-	var $client = false;
+	var $client = FALSE;
 
-	var $error = false;
-	var $username = false;
-	var $password = false;
-	var $reactid = false;
+	var $error = FALSE;
+	var $username = FALSE;
+	var $password = FALSE;
+	var $reactid = FALSE;
 
 	/**
 	 * Init Soap
@@ -69,9 +68,9 @@ class tx_em_Connection_Soap {
 	 * @param	string		$password
 	 * @return	[type]		...
 	 */
-	function init($options = false, $username = false, $password = false) {
-		if ($username !== false) {
-			if ($password === false) {
+	function init($options = FALSE, $username = FALSE, $password = FALSE) {
+		if ($username !== FALSE) {
+			if ($password === FALSE) {
 				$this->reactid = $username;
 			} else {
 				$this->username = $username;
@@ -81,7 +80,7 @@ class tx_em_Connection_Soap {
 
 		$options['format'] = $options['format'] == 'object' ? 'object' : 'array';
 
-		if ($options !== false) {
+		if ($options !== FALSE) {
 			$this->options = (array) $options;
 		}
 
@@ -98,18 +97,18 @@ class tx_em_Connection_Soap {
 	 *
 	 * @param	string		$username
 	 * @param	string		$password
-	 * @return	mixed		false on failure, $reactid on success
+	 * @return	mixed		FALSE on failure, $reactid on success
 	 */
 	function login($username, $password) {
 		$reactid = $this->call('login', array('username' => $username, 'password' => $password));
 
 		if ($this->error) {
-			return false;
+			return FALSE;
 		}
 
 		$this->reactid = $reactid;
 		$this->username = $username;
-		$this->password = false;
+		$this->password = FALSE;
 
 		return $reactid;
 	}
@@ -121,11 +120,11 @@ class tx_em_Connection_Soap {
 	 */
 	function logout() {
 		$this->call('logout');
-		$this->reactid = false;
+		$this->reactid = FALSE;
 		if ($this->error) {
-			return false;
+			return FALSE;
 		}
-		return true;
+		return TRUE;
 	}
 
 
@@ -138,16 +137,16 @@ class tx_em_Connection_Soap {
 	 * @param	unknown_type		$password
 	 * @return	unknown
 	 */
-	function call($func, $param = array(), $username = false, $password = false) {
+	function call($func, $param = array(), $username = FALSE, $password = FALSE) {
 		if (!$this->client) {
 			$this->error = sprintf(
 				'Error in %s: No soap client implementation found. ' .
 						'Make sure PHP soap extension is available!', __FILE__);
-			return false;
+			return FALSE;
 		}
 
-		if ($username !== false) {
-			if ($password === false) {
+		if ($username !== FALSE) {
+			if ($password === FALSE) {
 				$this->reactid = $username;
 			} else {
 				$this->username = $username;
@@ -162,7 +161,7 @@ class tx_em_Connection_Soap {
 		if ($this->options['prefix']) {
 			$func = $this->options['prefix'] . ucfirst($func);
 		}
-		$this->error = false;
+		$this->error = FALSE;
 
 		return $this->callPhpSOAP($func, $param);
 	}
@@ -175,7 +174,7 @@ class tx_em_Connection_Soap {
 	 * @return	unknown
 	 */
 	function callPhpSOAP($func, $param) {
-		$header = null;
+		$header = NULL;
 		if ($this->options['authentication'] == 'headers') {
 			if ($this->reactid) {
 				$header = new SoapHeader(
@@ -190,7 +189,7 @@ class tx_em_Connection_Soap {
 						'password' => $this->password
 					), 1
 				);
-				$this->password = false;
+				$this->password = FALSE;
 			}
 		}
 		 /*return array(
@@ -203,7 +202,7 @@ class tx_em_Connection_Soap {
 
 		if (is_soap_fault($result)) {
 			$this->error = $result;
-			return false;
+			return FALSE;
 		}
 
 		if (is_a($this->client->headersIn['HeaderAuthenticate'], 'stdClass')) {

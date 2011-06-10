@@ -27,8 +27,6 @@
 /**
  * Web > Functions module plugin for cleaning up.
  *
- * $Id$
- *
  * XHTML compliant
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
@@ -108,11 +106,9 @@ class tx_lowlevel_cleaner extends t3lib_extobjbase {
 	 * @return	string		The content
 	 */
 	function main()	{
-		global $BE_USER;
-
 		$content = '';
 
-		if ($BE_USER->isAdmin())	{
+		if ($GLOBALS['BE_USER']->isAdmin()) {
 			$content.= $this->pObj->doc->spacer(5);
 			$content.= $this->createMenu().'<hr/>';
 			$content.= $this->moduleContent();
@@ -204,7 +200,7 @@ debug($contentTreeData);
 						$GLOBALS['TYPO3_DB']->exec_UPDATEquery($table,'uid='.intval($uid),$incomingData[$table][$uid]);
 						$output .= '<br />Updated ' . $table . ':' . $uid . '...';
 						$this->updateRefIndex($table,$uid);
-					} else if (t3lib_div::_POST('_DELETE'))	{
+					} elseif (t3lib_div::_POST('_DELETE'))	{
 						$GLOBALS['TYPO3_DB']->exec_DELETEquery($table,'uid='.intval($uid));
 						$output .= '<br />Deleted ' . $table . ':' . $uid . '...';
 						$this->updateRefIndex($table,$uid);

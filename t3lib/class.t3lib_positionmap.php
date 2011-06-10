@@ -27,7 +27,6 @@
 /**
  * Contains class for creating a position map.
  *
- * $Id$
  * Revised for TYPO3 3.6 November/2003 by Kasper Skårhøj
  * XHTML compliant (should be)
  *
@@ -118,9 +117,9 @@ class t3lib_positionMap {
 	 * @return	string		HTML code for the tree.
 	 */
 	function positionTree($id, $pageinfo, $perms_clause, $R_URI) {
-		global $LANG, $BE_USER;
-
+		$code = '';
 			// Make page tree object:
+		/** @var $t3lib_pageTree localPageTree */
 		$t3lib_pageTree = t3lib_div::makeInstance('localPageTree');
 		$t3lib_pageTree->init(' AND ' . $perms_clause);
 		$t3lib_pageTree->addField('pid');
@@ -193,9 +192,14 @@ class t3lib_positionMap {
 
 				// The line with the icon and title:
 			$t_code = '<span class="nobr">' .
-					  $dat['HTML'] .
-					  $this->linkPageTitle($this->boldTitle(htmlspecialchars(t3lib_div::fixed_lgd_cs($dat['row']['title'], $BE_USER->uc['titleLen'])), $dat, $id), $dat['row']) .
-					  '</span><br />';
+				$dat['HTML'] .
+				$this->linkPageTitle(
+					$this->boldTitle(
+						htmlspecialchars(t3lib_div::fixed_lgd_cs($dat['row']['title'], $GLOBALS['BE_USER']->uc['titleLen'])),
+						$dat,
+						$id),
+					$dat['row']
+				) . '</span><br />';
 			$code .= $t_code;
 		}
 
@@ -234,7 +238,7 @@ class t3lib_positionMap {
 	 * @return	string		<script> section
 	 */
 	function JSimgFunc($prefix = '') {
-		$code .= $GLOBALS['TBE_TEMPLATE']->wrapScriptTags('
+		$code = $GLOBALS['TBE_TEMPLATE']->wrapScriptTags('
 
 			var img_newrecord_marker=new Image();
 			img_newrecord_marker.src = "' . t3lib_iconWorks::skinImg($this->backPath, 'gfx/newrecord' . $prefix . '_marker.gif', '', 1) . '";
@@ -300,8 +304,7 @@ class t3lib_positionMap {
 	 * @return	string		The localized label for "insert new page here"
 	 */
 	function insertlabel() {
-		global $LANG;
-		return $LANG->getLL($this->l_insertNewPageHere, 1);
+		return $GLOBALS['LANG']->getLL($this->l_insertNewPageHere, 1);
 	}
 
 	/**
@@ -323,10 +326,9 @@ class t3lib_positionMap {
 	 * @return	boolean
 	 */
 	function checkNewPageInPid($pid) {
-		global $BE_USER;
 		if (!isset($this->checkNewPageCache[$pid])) {
 			$pidInfo = t3lib_BEfunc::getRecord('pages', $pid);
-			$this->checkNewPageCache[$pid] = ($BE_USER->isAdmin() || $BE_USER->doesUserHaveAccess($pidInfo, 8));
+			$this->checkNewPageCache[$pid] = ($GLOBALS['BE_USER']->isAdmin() || $GLOBALS['BE_USER']->doesUserHaveAccess($pidInfo, 8));
 		}
 		return $this->checkNewPageCache[$pid];
 	}
@@ -350,7 +352,7 @@ class t3lib_positionMap {
 	 * Insert half/quad lines.
 	 *
 	 * @param	string		keywords for which lines to insert.
-	 * @param	boolean		If true all lines are just blank clear.gifs
+	 * @param	boolean		If TRUE all lines are just blank clear.gifs
 	 * @return	string		HTML content.
 	 */
 	function insertQuadLines($codes, $allBlank = 0) {
@@ -490,9 +492,9 @@ class t3lib_positionMap {
 
 					if (isset($columnConfig['colPos']) && $head) {
 						$table .= $this->wrapColumnHeader($head, '', '') . '</div>' . implode('<br />', $lines[$columnKey]);
-					} else if ($columnConfig['colPos']) {
+					} elseif ($columnConfig['colPos']) {
 						$table .= $this->wrapColumnHeader($GLOBALS['LANG']->getLL('noAccess'), '', '') . '</div>';
-					} else if ($columnConfig['name']) {
+					} elseif ($columnConfig['name']) {
 						$table .= $this->wrapColumnHeader($columnConfig['name'], '', '') . '</div>';
 					} else {
 						$table .= $this->wrapColumnHeader($GLOBALS['LANG']->getLL('notAssigned'), '', '') . '</div>';

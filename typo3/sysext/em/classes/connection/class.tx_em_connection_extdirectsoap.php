@@ -78,7 +78,7 @@ class tx_em_Connection_ExtDirectSoap {
 	 */
 	public function testUserLogin() {
 		if (is_array($this->accountData)) {
-			$login = false;
+			$login = FALSE;
 			if ($login) {
 				$data = array(
 					'success' => TRUE,
@@ -323,7 +323,7 @@ class tx_em_Connection_ExtDirectSoap {
 	}
 	/**
 	 * @param  $data
-	 * @return bool|null|string|tx_em_Settings|unknown
+	 * @return bool|NULL|string|tx_em_Settings|unknown
 	 */
 	protected function addUploads($data) {
 		if (count((array) $data) === 0) {

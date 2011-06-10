@@ -27,7 +27,6 @@
 /**
  * Class with template object that is responsible for generating the template
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -240,7 +239,7 @@ class t3lib_TStemplate {
 	 * is regenerated - at least the this->start function must be called,
 	 * because this will make a new portion of data in currentPageData string.
 	 *
-	 * @return	array		Returns the unmatched array $currentPageData if found cached in "cache_pagesection". Otherwise false is returned which means that the array must be generated and stored in the cache-table
+	 * @return	array		Returns the unmatched array $currentPageData if found cached in "cache_pagesection". Otherwise FALSE is returned which means that the array must be generated and stored in the cache-table
 	 * @see start(), tslib_fe::getFromCache()
 	 */
 	function getCurrentPageData() {
@@ -268,7 +267,7 @@ class t3lib_TStemplate {
 	 * Fetches data about which TypoScript-matches there are at this page. Then it performs a matchingtest.
 	 *
 	 * @param	array		An array with three keys, "all", "rowSum" and "rootLine" - all coming from the "currentPageData" array
-	 * @return	array		The input array but with a new key added, "match" which contains the items from the "all" key which when passed to tslib_matchCondition returned true.
+	 * @return	array		The input array but with a new key added, "match" which contains the items from the "all" key which when passed to tslib_matchCondition returned TRUE.
 	 * @see t3lib_matchCondition, tslib_fe::getFromCache()
 	 */
 	function matching($cc) {
@@ -749,7 +748,7 @@ class t3lib_TStemplate {
 	 * @return	void		Row is passed by reference.
 	 */
 	function versionOL(&$row) {
-		if (is_object($GLOBALS['TSFE'])) { // Frontend:
+		if (TYPO3_MODE === 'FE') { // Frontend:
 			$GLOBALS['TSFE']->sys_page->versionOL('sys_template', $row);
 		} else { // Backend:
 			t3lib_BEfunc::workspaceOL('sys_template', $row);
@@ -822,7 +821,7 @@ class t3lib_TStemplate {
 		$config->regComments = $this->ext_regComments;
 		$config->setup = $this->setup;
 
-			// Transfer information about conditions found in "Constants" and which of them returned true.
+			// Transfer information about conditions found in "Constants" and which of them returned TRUE.
 		$config->sections = $constants->sections;
 		$config->sectionsMatch = $constants->sectionsMatch;
 

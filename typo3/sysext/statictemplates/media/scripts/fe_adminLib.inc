@@ -27,7 +27,6 @@
 /**
  * FE admin lib
  *
- * $Id: fe_adminLib.inc 6454 2009-11-17 16:51:32Z steffenk $
  * Revised for TYPO3 3.6 June/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -103,7 +102,7 @@
 class user_feAdmin	{
 
 		// External, static:
-	var $recInMarkersHSC = TRUE;		// If true, values from the record put into markers going out into HTML will be passed through htmlspecialchars()!
+	var $recInMarkersHSC = TRUE;		// If TRUE, values from the record put into markers going out into HTML will be passed through htmlspecialchars()!
 
 	var $dataArr = array();
 	var $failureMsg = array();
@@ -986,7 +985,7 @@ class user_feAdmin	{
 			if (!is_array($this->dataArr)) {
 				$this->dataArr = array();
 			}
-			
+
 			$markerArray = $this->cObj->fillInMarkerArray($this->markerArray, $this->dataArr, '', TRUE, 'FIELD_', $this->recInMarkersHSC);
 			if ($this->conf['create.']['preview'] && !$this->previewLabel)	{$markerArray['###HIDDENFIELDS###'].= '<input type="hidden" name="preview" value="1" />';}
 			$content = $this->cObj->substituteMarkerArray($templateCode, $markerArray);
@@ -1469,7 +1468,7 @@ class user_feAdmin	{
 	 * Detects if content is HTML (looking for <html> tag as first and last in string)
 	 *
 	 * @param	string		Content string to test
-	 * @return	boolean		Returns true if the content begins and ends with <html></html>-tags
+	 * @return	boolean		Returns TRUE if the content begins and ends with <html></html>-tags
 	 */
 	function isHTMLContent($c)	{
 		$c = trim($c);
@@ -1561,17 +1560,17 @@ class user_feAdmin	{
 
 
 	/**
-	 * Returns true if authentication is OK based on the "aC" code which is a GET parameter set from outside with a hash string which must match some internal hash string.
+	 * Returns TRUE if authentication is OK based on the "aC" code which is a GET parameter set from outside with a hash string which must match some internal hash string.
 	 * This allows to authenticate editing without having a fe_users login
 	 * Uses $this->authCode which is set in init() by "t3lib_div::_GP('aC');"
 	 *
 	 * @param	array		The data array for which to evaluate authentication
-	 * @return	boolean		True if authenticated OK
+	 * @return	boolean		TRUE if authenticated OK
 	 * @see authCode(), init()
 	 */
 	function aCAuth($r)	{
 		if ($this->authCode && !strcmp($this->authCode,$this->authCode($r)))	{
-			return true;
+			return TRUE;
 		}
 	}
 
@@ -1661,7 +1660,7 @@ class user_feAdmin	{
 
 
 	/**
-	 * Returns true if preview display is on.
+	 * Returns TRUE if preview display is on.
 	 *
 	 * @return	boolean
 	 */

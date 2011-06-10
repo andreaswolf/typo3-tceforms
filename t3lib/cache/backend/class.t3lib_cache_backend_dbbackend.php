@@ -22,14 +22,13 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-
 /**
  * A caching backend which stores cache entries in database tables
  *
  * @package TYPO3
  * @subpackage t3lib_cache
  * @api
- * @version $Id$
+ * @scope prototype
  */
 class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend {
 
@@ -56,10 +55,11 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 	/**
 	 * Constructs this backend
 	 *
+	 * @param string $context FLOW3's application context
 	 * @param array $options Configuration options - depends on the actual backend
 	 */
-	public function __construct(array $options = array()) {
-		parent::__construct($options);
+	public function __construct($context, array $options = array()) {
+		parent::__construct($context, $options);
 
 		if (!$this->cacheTable) {
 			throw new t3lib_cache_Exception(
@@ -169,7 +169,7 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 	 * @author Ingo Renner <ingo@typo3.org>
 	 */
 	public function get($entryIdentifier) {
-		$cacheEntry = false;
+		$cacheEntry = FALSE;
 
 		$cacheEntry = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
 			'content',
@@ -221,7 +221,7 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 	 * @author Ingo Renner <ingo@typo3.org>
 	 */
 	public function remove($entryIdentifier) {
-		$entryRemoved = false;
+		$entryRemoved = FALSE;
 
 		$res = $GLOBALS['TYPO3_DB']->exec_DELETEquery(
 			$this->cacheTable,
@@ -234,7 +234,7 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 		);
 
 		if ($GLOBALS['TYPO3_DB']->sql_affected_rows($res) == 1) {
-			$entryRemoved = true;
+			$entryRemoved = TRUE;
 		}
 
 		return $entryRemoved;
@@ -464,7 +464,7 @@ class t3lib_cache_backend_DbBackend extends t3lib_cache_backend_AbstractBackend 
 	 * @author Oliver Hader <oliver@typo3.org>
 	 */
 	protected function getQueryForTag($tag) {
-		if (strpos($tag, '*') === false) {
+		if (strpos($tag, '*') === FALSE) {
 			$query = $this->tagsTable . '.tag = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($tag, $this->tagsTable);
 		} else {
 			$patternForLike = $GLOBALS['TYPO3_DB']->escapeStrForLike(

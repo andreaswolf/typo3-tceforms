@@ -27,7 +27,6 @@
 /**
  * Contains the parent class for 'ScriptClasses' in backend modules.
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -66,8 +65,8 @@
  *		 require ('conf.php');
  *		 require ($BACK_PATH.'init.php');
  *		 require ($BACK_PATH.'template.php');
- *		 $LANG->includeLLFile('EXT:prototype/locallang.php');
- *		 $BE_USER->modAccess($MCONF,1);
+ *		 $GLOBALS['LANG']->includeLLFile('EXT:prototype/locallang.php');
+ *		 $GLOBALS['BE_USER']->modAccess($MCONF,1);
  *
  *			 // SC_mod_prototype EXTENDS THE CLASS t3lib_SCbase with a main() and printContent() function:
  *		 class SC_mod_prototype extends t3lib_SCbase {

@@ -27,8 +27,6 @@
 /**
  * The Inline-Relational-Record-Editing (IRRE) functions as part of the TCEforms.
  *
- * $Id$
- *
  * @author	Oliver Hader <oliver@typo3.org>
  */
 /**
@@ -68,7 +66,7 @@
  * 1000:	 function getStructureItemName($levelData)
  * 1015:	 function getStructureLevel($level)
  * 1032:	 function getStructurePath($structureDepth = -1)
- * 1057:	 function parseStructureString($string, $loadConfig = false)
+ * 1057:	 function parseStructureString($string, $loadConfig = FALSE)
  *
  *			  SECTION: Helper functions
  * 1098:	 function checkConfiguration(&$config)
@@ -171,10 +169,12 @@ class t3lib_TCEforms_inline {
 	 * @return	string		The HTML code for the TCEform field
 	 */
 	function getSingleField_typeInline($table, $field, $row, &$PA) {
-			// check the TCA configuration - if false is returned, something was wrong
+			// check the TCA configuration - if FALSE is returned, something was wrong
 		if ($this->checkConfiguration($PA['fieldConf']['config']) === FALSE) {
 			return FALSE;
 		}
+
+		$item = '';
 
 			// count the number of processed inline elements
 		$this->inlineCount++;
@@ -1027,45 +1027,43 @@ class t3lib_TCEforms_inline {
 	 * @return	void
 	 */
 	protected function processAjaxRequestConstruct(&$ajaxArguments) {
-		global $SOBE, $BE_USER, $TYPO3_CONF_VARS;
-
 		require_once(PATH_typo3 . 'template.php');
 
 		$GLOBALS['LANG']->includeLLFile('EXT:lang/locallang_alt_doc.xml');
 
 			// Create a new anonymous object:
-		$SOBE = new stdClass();
-		$SOBE->MOD_MENU = array(
+		$GLOBALS['SOBE'] = new stdClass();
+		$GLOBALS['SOBE']->MOD_MENU = array(
 			'showPalettes' => '',
 			'showDescriptions' => '',
 			'disableRTE' => ''
 		);
 			// Setting virtual document name
-		$SOBE->MCONF['name'] = 'xMOD_alt_doc.php';
+		$GLOBALS['SOBE']->MCONF['name'] = 'xMOD_alt_doc.php';
 			// CLEANSE SETTINGS
-		$SOBE->MOD_SETTINGS = t3lib_BEfunc::getModuleData(
-			$SOBE->MOD_MENU,
+		$GLOBALS['SOBE']->MOD_SETTINGS = t3lib_BEfunc::getModuleData(
+			$GLOBALS['SOBE']->MOD_MENU,
 			t3lib_div::_GP('SET'),
-			$SOBE->MCONF['name']
+			$GLOBALS['SOBE']->MCONF['name']
 		);
 			// Create an instance of the document template object
-		$SOBE->doc = t3lib_div::makeInstance('template');
-		$SOBE->doc->backPath = $GLOBALS['BACK_PATH'];
+		$GLOBALS['SOBE']->doc = t3lib_div::makeInstance('template');
+		$GLOBALS['SOBE']->doc->backPath = $GLOBALS['BACK_PATH'];
 			// Initialize TCEforms (rendering the forms)
-		$SOBE->tceforms = t3lib_div::makeInstance('t3lib_TCEforms');
-		$SOBE->tceforms->inline = $this;
-		$SOBE->tceforms->RTEcounter = intval(array_shift($ajaxArguments));
-		$SOBE->tceforms->initDefaultBEMode();
-		$SOBE->tceforms->palettesCollapsed = !$SOBE->MOD_SETTINGS['showPalettes'];
-		$SOBE->tceforms->disableRTE = $SOBE->MOD_SETTINGS['disableRTE'];
-		$SOBE->tceforms->enableClickMenu = TRUE;
-		$SOBE->tceforms->enableTabMenu = TRUE;
+		$GLOBALS['SOBE']->tceforms = t3lib_div::makeInstance('t3lib_TCEforms');
+		$GLOBALS['SOBE']->tceforms->inline = $this;
+		$GLOBALS['SOBE']->tceforms->RTEcounter = intval(array_shift($ajaxArguments));
+		$GLOBALS['SOBE']->tceforms->initDefaultBEMode();
+		$GLOBALS['SOBE']->tceforms->palettesCollapsed = !$GLOBALS['SOBE']->MOD_SETTINGS['showPalettes'];
+		$GLOBALS['SOBE']->tceforms->disableRTE = $GLOBALS['SOBE']->MOD_SETTINGS['disableRTE'];
+		$GLOBALS['SOBE']->tceforms->enableClickMenu = TRUE;
+		$GLOBALS['SOBE']->tceforms->enableTabMenu = TRUE;
 			// Clipboard is initialized:
-		$SOBE->tceforms->clipObj = t3lib_div::makeInstance('t3lib_clipboard'); // Start clipboard
-		$SOBE->tceforms->clipObj->initializeClipboard(); // Initialize - reads the clipboard content from the user session
+		$GLOBALS['SOBE']->tceforms->clipObj = t3lib_div::makeInstance('t3lib_clipboard'); // Start clipboard
+		$GLOBALS['SOBE']->tceforms->clipObj->initializeClipboard(); // Initialize - reads the clipboard content from the user session
 			// Setting external variables:
-		if ($BE_USER->uc['edit_showFieldHelp'] != 'text' && $SOBE->MOD_SETTINGS['showDescriptions']) {
-			$SOBE->tceforms->edit_showFieldHelp = 'text';
+		if ($GLOBALS['BE_USER']->uc['edit_showFieldHelp'] != 'text' && $GLOBALS['SOBE']->MOD_SETTINGS['showDescriptions']) {
+			$GLOBALS['SOBE']->tceforms->edit_showFieldHelp = 'text';
 		}
 	}
 
@@ -1312,6 +1310,7 @@ class t3lib_TCEforms_inline {
 	 * @return	array		An array to be used for JSON
 	 */
 	protected function getExecuteChangesJsonArray($oldItemList, $newItemList) {
+		$data = '';
 		$parent = $this->getStructureLevel(-1);
 		$current = $this->inlineStructure['unstable'];
 
@@ -1552,7 +1551,7 @@ class t3lib_TCEforms_inline {
 	 * @param	array		The record data array where the value(s) for the field can be found
 	 * @param	array		An array with additional configuration options.
 	 * @param	string		$checkForConfField: For which field in the foreign_table the possible records should be fetched
-	 * @return	mixed		Array of possible record items; false if type is "group/db", then everything could be "possible"
+	 * @return	mixed		Array of possible record items; FALSE if type is "group/db", then everything could be "possible"
 	 */
 	function getPossibleRecords($table, $field, $row, $conf, $checkForConfField = 'foreign_selector') {
 			// ctrl configuration from TCA:
@@ -1863,7 +1862,7 @@ class t3lib_TCEforms_inline {
 	 *  - 'unstable': Containting partly filled data (e.g. only table and possibly field)
 	 *
 	 * @param	string		$domObjectId: The DOM object-id
-	 * @param	boolean		$loadConfig: Load the TCA configuration for that level (default: true)
+	 * @param	boolean		$loadConfig: Load the TCA configuration for that level (default: TRUE)
 	 * @return	void
 	 */
 	function parseStructureString($string, $loadConfig = TRUE) {
@@ -1919,7 +1918,7 @@ class t3lib_TCEforms_inline {
 	 * @param	string		$table: The table name of the record
 	 * @param	string		$field: The field name which this element is supposed to edit
 	 * @param	array		$row: The record data array of the parent
-	 * @return	boolean		If critical configuration errors were found, false is returned
+	 * @return	boolean		If critical configuration errors were found, FALSE is returned
 	 */
 	function checkConfiguration(&$config) {
 		$foreign_table = $config['foreign_table'];
@@ -1970,7 +1969,7 @@ class t3lib_TCEforms_inline {
 	 * @param	string		$cmd: The command that sould be performed ('new' or 'edit')
 	 * @param	string		$table: The table to check access for
 	 * @param	string		$theUid: The record uid of the table
-	 * @return	boolean		Returns true is the user has access, or false if not
+	 * @return	boolean		Returns TRUE is the user has access, or FALSE if not
 	 */
 	function checkAccess($cmd, $table, $theUid) {
 			// Checking if the user has permissions? (Only working as a precaution, because the final permission check is always down in TCE. But it's good to notify the user on beforehand...)
@@ -2072,11 +2071,15 @@ class t3lib_TCEforms_inline {
 	 * @return	string		The wrapped HTML code
 	 */
 	function wrapFormsSection($section, $styleAttrs = array(), $tableAttrs = array()) {
+		$style = '';
+		$table = '';
 		if (!$styleAttrs['margin-right']) {
 			$styleAttrs['margin-right'] = $this->inlineStyles['margin-right'] . 'px';
 		}
 
-		foreach ($styleAttrs as $key => $value) $style .= ($style ? ' ' : '') . $key . ': ' . htmlspecialchars($value) . '; ';
+		foreach ($styleAttrs as $key => $value) {
+			$style .= ($style ? ' ' : '') . $key . ': ' . htmlspecialchars($value) . '; ';
+		}
 		if ($style) {
 			$style = ' style="' . $style . '"';
 		}
@@ -2100,7 +2103,9 @@ class t3lib_TCEforms_inline {
 			$tableAttrs['class'] = $this->borderStyle[3];
 		}
 
-		foreach ($tableAttrs as $key => $value) $table .= ($table ? ' ' : '') . $key . '="' . htmlspecialchars($value) . '"';
+		foreach ($tableAttrs as $key => $value) {
+			$table .= ($table ? ' ' : '') . $key . '="' . htmlspecialchars($value) . '"';
+		}
 
 		$out = '<table ' . $table . $style . '>' . $section . '</table>';
 		return $out;
@@ -2219,18 +2224,18 @@ class t3lib_TCEforms_inline {
 					}
 				}
 
-					// if one or more matches are required ('OR'), return true after the first successful match
+					// if one or more matches are required ('OR'), return TRUE after the first successful match
 				if ($type == '%OR' && $localMatches > 0) {
 					return TRUE;
 				}
-					// if all matches are required ('AND') and we have no result after the first run, return false
+					// if all matches are required ('AND') and we have no result after the first run, return FALSE
 				if ($type == '%AND' && $localMatches == 0) {
 					return FALSE;
 				}
 			}
 		}
 
-			// return the result for '%AND' (if nothing was checked, true is returned)
+			// return the result for '%AND' (if nothing was checked, TRUE is returned)
 		return $localEntries == $localMatches ? TRUE : FALSE;
 	}
 
@@ -2239,7 +2244,7 @@ class t3lib_TCEforms_inline {
 	 * Checks whether an object is an associative array.
 	 *
 	 * @param	mixed		$object: The object to be checked
-	 * @return	boolean		Returns true, if the object is an associative array
+	 * @return	boolean		Returns TRUE, if the object is an associative array
 	 */
 	function isAssociativeArray($object) {
 		return is_array($object) && count($object) && (array_keys($object) !== range(0, sizeof($object) - 1))
@@ -2271,7 +2276,7 @@ class t3lib_TCEforms_inline {
 	 * the value of the flat array is the label of the record.
 	 *
 	 * @param	array		$possibleRecords: The possibleRecords array (for select fields)
-	 * @return	mixed		A flat array with key=uid, value=label; if $possibleRecords isn't an array, false is returned.
+	 * @return	mixed		A flat array with key=uid, value=label; if $possibleRecords isn't an array, FALSE is returned.
 	 */
 	function getPossibleRecordsFlat($possibleRecords) {
 		$flat = FALSE;
@@ -2287,7 +2292,7 @@ class t3lib_TCEforms_inline {
 	 * Determine the configuration and the type of a record selector.
 	 *
 	 * @param	array		$conf: TCA configuration of the parent(!) field
-	 * @return	array		Associative array with the keys 'PA' and 'type', both are false if the selector was not valid.
+	 * @return	array		Associative array with the keys 'PA' and 'type', both are FALSE if the selector was not valid.
 	 */
 	function getPossibleRecordsSelectorConfig($conf, $field = '') {
 		$foreign_table = $conf['foreign_table'];
@@ -2327,7 +2332,7 @@ class t3lib_TCEforms_inline {
 	 * Determine the type of a record selector, e.g. select or group/db.
 	 *
 	 * @param	array		$config: TCE configuration of the selector
-	 * @return	mixed		The type of the selector, 'select' or 'groupdb' - false not valid
+	 * @return	mixed		The type of the selector, 'select' or 'groupdb' - FALSE not valid
 	 */
 	function getPossibleRecordsSelectorType($config) {
 		$type = FALSE;
@@ -2404,7 +2409,7 @@ class t3lib_TCEforms_inline {
 	 *
 	 * @param	string		$table: Name of the child table
 	 * @param	integer		$uid: uid of the the child record
-	 * @return	boolean		true=expand, false=collapse
+	 * @return	boolean		TRUE=expand, FALSE=collapse
 	 */
 	function getExpandedCollapsedState($table, $uid) {
 		if (isset($this->inlineView[$table]) && is_array($this->inlineView[$table])) {

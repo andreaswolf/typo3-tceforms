@@ -31,8 +31,6 @@
  *
  * @author	Philipp Borgmann <philipp.borgmann@gmx.de>
  * @author	Stanislas Rolland <typo3(arobas)sjbr.ca>
- *
- * $Id$  *
  */
 
 class tx_rtehtmlarea_base extends t3lib_rteapi {
@@ -142,10 +140,10 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 	protected $pluginEnabledCumulativeArray = array();	// Cumulative array of plugin id's enabled so far in any of the RTE editing areas of the form
 	protected $cumulativeScripts = array();
 	public $registeredPlugins = array();			// Array of registered plugins indexed by their plugin Id's
-	protected $fullScreen = false;
+	protected $fullScreen = FALSE;
 
 	/**
-	 * Returns true if the RTE is available. Here you check if the browser requirements are met.
+	 * Returns TRUE if the RTE is available. Here you check if the browser requirements are met.
 	 * If there are reasons why the RTE cannot be displayed you simply enter them as text in ->errorLog
 	 *
 	 * @return	boolean		TRUE if this RTE object offers an RTE in the current browser environment
@@ -187,7 +185,7 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 												}
 											}
 										}
-									} else {		
+									} else {
 											// No system config: system is supported
 										$rteIsAvailable = TRUE;
 										break;
@@ -232,14 +230,14 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 	 */
 
 	function drawRTE($parentObject, $table, $field, $row, $PA, $specConf, $thisConfig, $RTEtypeVal, $RTErelPath, $thePidValue) {
-		global $BE_USER, $LANG, $TYPO3_DB, $TYPO3_CONF_VARS;
+		global $LANG, $TYPO3_DB, $TYPO3_CONF_VARS;
 
 		$this->TCEform = $parentObject;
 		$inline = $this->TCEform->inline;
 		$LANG->includeLLFile('EXT:' . $this->ID . '/locallang.xml');
 		$this->client = $this->clientInfo();
 		$this->typoVersion = t3lib_div::int_from_ver(TYPO3_version);
-		$this->userUid = 'BE_' . $BE_USER->user['uid'];
+		$this->userUid = 'BE_' . $GLOBALS['BE_USER']->user['uid'];
 
 			// Draw form element:
 		if ($this->debugMode)	{	// Draws regular text area (debug mode)
@@ -269,7 +267,7 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 
 				// Find "thisConfig" for record/editor:
 			unset($this->RTEsetup);
-			$this->RTEsetup = $BE_USER->getTSConfig('RTE',t3lib_BEfunc::getPagesTSconfig($this->tscPID));
+			$this->RTEsetup = $GLOBALS['BE_USER']->getTSConfig('RTE', t3lib_BEfunc::getPagesTSconfig($this->tscPID));
 			$this->thisConfig = $thisConfig;
 
 				// Special configuration and default extras:
@@ -340,28 +338,6 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 			 */
 			$this->initializeToolbarConfiguration();
 
-			if ($this->client['BROWSER'] == 'msie') {
-				$this->thisConfig['keepButtonGroupTogether'] = 0;
-			}
-			if ($this->client['BROWSER'] == 'opera') {
-				$this->thisConfig['keepButtonGroupTogether'] = 0;
-			}
-			if ($this->client['BROWSER'] == 'gecko' && $this->client['VERSION'] == '1.3')  {
-				$this->thisConfig['keepButtonGroupTogether'] = 0;
-			}
-
-				// Toolbar
-			$this->setToolbar();
-
-				// Check if some plugins need to be disabled
-			$this->setPlugins();
-			
-				// Merge the list of enabled plugins with the lists from the previous RTE editing areas on the same form
-			$this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()] = $this->pluginEnabledArray;
-			if ($this->TCEform->getRTEcounter() > 1 && isset($this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()-1]) && is_array($this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()-1])) {
-				$this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()] = array_unique(array_values(array_merge($this->pluginEnabledArray,$this->pluginEnabledCumulativeArray[$this->TCEform->getRTEcounter()-1])));
-			}
-			
 			/* =======================================
 			 * SET STYLES
 			 * =======================================
@@ -374,9 +350,9 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 				$RTEPaddingRight = '0';
 				$editorWrapWidth = '100%';
 			} else {
-				$RTEWidth = isset($BE_USER->userTS['options.']['RTESmallWidth']) ? $BE_USER->userTS['options.']['RTESmallWidth'] : '530';
-				$RTEHeight = isset($BE_USER->userTS['options.']['RTESmallHeight']) ? $BE_USER->userTS['options.']['RTESmallHeight'] : '380';
-				$RTEWidth  = $RTEWidth + ($this->TCEform->docLarge ? (isset($BE_USER->userTS['options.']['RTELargeWidthIncrement']) ? $BE_USER->userTS['options.']['RTELargeWidthIncrement'] : '150') : 0);
+				$RTEWidth = isset($GLOBALS['BE_USER']->userTS['options.']['RTESmallWidth']) ? $GLOBALS['BE_USER']->userTS['options.']['RTESmallWidth'] : '530';
+				$RTEHeight = isset($GLOBALS['BE_USER']->userTS['options.']['RTESmallHeight']) ? $GLOBALS['BE_USER']->userTS['options.']['RTESmallHeight'] : '380';
+				$RTEWidth  = $RTEWidth + ($this->TCEform->docLarge ? (isset($GLOBALS['BE_USER']->userTS['options.']['RTELargeWidthIncrement']) ? $GLOBALS['BE_USER']->userTS['options.']['RTELargeWidthIncrement'] : '150') : 0);
 				$RTEWidth -= ($inline->getStructureDepth() > 0 ? ($inline->getStructureDepth()+1)*$inline->getLevelMargin() : 0);
 				$RTEWidthOverride = (is_object($GLOBALS['BE_USER']) && isset($GLOBALS['BE_USER']->uc['rteWidth']) && trim($GLOBALS['BE_USER']->uc['rteWidth'])) ? trim($GLOBALS['BE_USER']->uc['rteWidth']) : trim($this->thisConfig['RTEWidthOverride']);
 				if ($RTEWidthOverride) {
@@ -389,7 +365,7 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 					}
 				}
 				$RTEWidth = strstr($RTEWidth, '%') ? $RTEWidth :  $RTEWidth . 'px';
-				$RTEHeight = $RTEHeight + ($this->TCEform->docLarge ?  (isset($BE_USER->userTS['options.']['RTELargeHeightIncrement']) ? $BE_USER->userTS['options.']['RTELargeHeightIncrement'] : 0) : 0);
+				$RTEHeight = $RTEHeight + ($this->TCEform->docLarge ?  (isset($GLOBALS['BE_USER']->userTS['options.']['RTELargeHeightIncrement']) ? $GLOBALS['BE_USER']->userTS['options.']['RTELargeHeightIncrement'] : 0) : 0);
 				$RTEHeightOverride = (is_object($GLOBALS['BE_USER']) && isset($GLOBALS['BE_USER']->uc['rteHeight']) && intval($GLOBALS['BE_USER']->uc['rteHeight'])) ? intval($GLOBALS['BE_USER']->uc['rteHeight']) : intval($this->thisConfig['RTEHeightOverride']);
 				$RTEHeight = ($RTEHeightOverride > 0) ? $RTEHeightOverride : $RTEHeight;
 				$RTEPaddingRight = '2px';
@@ -554,7 +530,7 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 					// Traverse registered plugins
 		if (is_array($TYPO3_CONF_VARS['EXTCONF'][$this->ID]['plugins'])) {
 			foreach($TYPO3_CONF_VARS['EXTCONF'][$this->ID]['plugins'] as $pluginId => $pluginObjectConfiguration) {
-				$plugin = false;
+				$plugin = FALSE;
 				if (is_array($pluginObjectConfiguration) && count($pluginObjectConfiguration)) {
 					$plugin = t3lib_div::getUserObj($pluginObjectConfiguration['objectReference']);
 				}
@@ -593,8 +569,6 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 	 */
 
 	function setToolbar() {
-		global $BE_USER;
-
 		if ($this->client['browser'] == 'msie' || $this->client['browser'] == 'opera') {
 			$this->thisConfig['keepButtonGroupTogether'] = 0;
 		}
@@ -645,8 +619,8 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 		}
 
 			// Resticting to RTEkeyList for backend user
-		if(is_object($BE_USER)) {
-			$RTEkeyList = isset($BE_USER->userTS['options.']['RTEkeyList']) ? $BE_USER->userTS['options.']['RTEkeyList'] : '*';
+		if(is_object($GLOBALS['BE_USER'])) {
+			$RTEkeyList = isset($GLOBALS['BE_USER']->userTS['options.']['RTEkeyList']) ? $GLOBALS['BE_USER']->userTS['options.']['RTEkeyList'] : '*';
 			if ($RTEkeyList != '*')	{ 	// If not all
 				$show = array_intersect($show, t3lib_div::trimExplode(',',$RTEkeyList,1));
 			}
@@ -694,11 +668,11 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 		$hidePlugins = array();
 		foreach ($this->pluginButton as $pluginId => $buttonList) {
 			if ($this->registeredPlugins[$pluginId]->addsButtons()) {
-				$showPlugin = false;
+				$showPlugin = FALSE;
 				$buttonArray = t3lib_div::trimExplode(',', $buttonList, 1);
 				foreach ($buttonArray as $button) {
 					if (in_array($button, $this->toolbar)) {
-						$showPlugin = true;
+						$showPlugin = TRUE;
 					}
 				}
 				if (!$showPlugin) {
@@ -861,7 +835,7 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 			RTEarea[editornumber].disablePCexamples = ' . (trim($this->thisConfig['disablePCexamples'])?'true':'false') . ';
 			RTEarea[editornumber].showTagFreeClasses = ' . (trim($this->thisConfig['showTagFreeClasses'])?'true':'false') . ';
 			RTEarea[editornumber].useHTTPS = ' . ((trim(stristr($this->siteURL, 'https')) || $this->thisConfig['forceHTTPS'])?'true':'false') . ';
-			RTEarea[editornumber].tceformsNested = ' . (is_object($this->TCEform) && method_exists($this->TCEform, 'getDynNestedStack') ? $this->TCEform->getDynNestedStack(true) : '[]') . ';
+			RTEarea[editornumber].tceformsNested = ' . (is_object($this->TCEform) && method_exists($this->TCEform, 'getDynNestedStack') ? $this->TCEform->getDynNestedStack(TRUE) : '[]') . ';
 			RTEarea[editornumber].dialogueWindows = new Object();';
 		if (isset($this->thisConfig['dialogueWindows.']['defaultPositionFromTop'])) {
 			$configureRTEInJavascriptString .= '
@@ -928,7 +902,7 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 		$configureRTEInJavascriptString .= '
 			RTEarea[editornumber].pageStyle = "' . t3lib_div::createVersionNumberedFilename($this->getFullFileName($filename)) .'";';
 			// Process classes configuration
-		$classesConfigurationRequired = false;
+		$classesConfigurationRequired = FALSE;
 		foreach ($this->registeredPlugins as $pluginId => $plugin) {
 			if ($this->isPluginEnabled($pluginId)) {
 				$classesConfigurationRequired = $classesConfigurationRequired || $plugin->requiresClassesConfiguration();
@@ -955,11 +929,11 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 	}
 
 	/**
-	 * Return true, if the plugin can be loaded
+	 * Return TRUE, if the plugin can be loaded
 	 *
 	 * @param	string		$pluginId: The identification string of the plugin
 	 *
-	 * @return	boolean		true if the plugin can be loaded
+	 * @return	boolean		TRUE if the plugin can be loaded
 	 */
 
 	function isPluginEnabled($pluginId) {
@@ -1403,7 +1377,7 @@ class tx_rtehtmlarea_base extends t3lib_rteapi {
 	}
 
 	/**
-	 * Return true if we are in the FE, but not in the FE editing feature of BE.
+	 * Return TRUE if we are in the FE, but not in the FE editing feature of BE.
 	 *
 	 * @return boolean
 	 */

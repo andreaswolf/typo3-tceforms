@@ -27,7 +27,6 @@
 /**
  * Contains the base class for 'Extension Objects' in backend modules.
  *
- * $Id$
  * Revised for TYPO3 3.6 July/2003 by Kasper Skårhøj
  *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
@@ -180,8 +179,6 @@ class t3lib_extobjbase {
 	 * @see t3lib_SCbase::checkExtObj()
 	 */
 	function init(&$pObj, $conf) {
-		global $LANG;
-
 		$this->pObj = $pObj;
 
 			// Path of this script:
@@ -223,11 +220,10 @@ class t3lib_extobjbase {
 	 * @return	void
 	 */
 	function incLocalLang() {
-		global $LANG;
 		#if ($this->localLangFile && @is_file($this->thisPath.'/'.$this->localLangFile))	{
 		#	include($this->thisPath.'/'.$this->localLangFile);
 		if ($this->localLangFile && (@is_file($this->thisPath . '/' . $this->localLangFile) || @is_file($this->thisPath . '/' . substr($this->localLangFile, 0, -4) . '.xml'))) {
-			$LOCAL_LANG = $LANG->includeLLFile($this->thisPath . '/' . $this->localLangFile, FALSE);
+			$LOCAL_LANG = $GLOBALS['LANG']->includeLLFile($this->thisPath . '/' . $this->localLangFile, FALSE);
 			if (is_array($LOCAL_LANG)) {
 				$GLOBALS['LOCAL_LANG'] = t3lib_div::array_merge_recursive_overrule((array) $GLOBALS['LOCAL_LANG'], $LOCAL_LANG);
 			}

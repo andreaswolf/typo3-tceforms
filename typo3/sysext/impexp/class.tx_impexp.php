@@ -535,8 +535,7 @@ class tx_impexp {
 	 * @return	array		overview of relations found and added: Keys [table]:[uid], values array with table and id
 	 * @see export_addFilesFromRelations()
 	 */
-	function export_addDBRelations($relationLevel=0)	{
-		global $TCA;
+	function export_addDBRelations($relationLevel=0) {
 
 			// Initialize:
 		$addR = array();
@@ -546,7 +545,7 @@ class tx_impexp {
 			foreach ($this->dat['records'] as $k => $value) {
 				if (is_array($this->dat['records'][$k]))	{
 					foreach ($this->dat['records'][$k]['rels'] as $fieldname => $vR) {
-#debug($vR);
+
 							// For all DB types of relations:
 						if ($vR['type']=='db')	{
 							foreach($vR['itemArray'] as $fI)	{
@@ -638,10 +637,8 @@ class tx_impexp {
 	 * @see export_addDBRelations()
 	 */
 	function export_addDBRelations_registerRelation($fI, &$addR, $tokenID='')	{
-		global $TCA;
-
 		$rId = $fI['table'].':'.$fI['id'];
-		if (isset($TCA[$fI['table']])
+		if (isset($GLOBALS['TCA'][$fI['table']])
 				&& !$this->isTableStatic($fI['table'])
 				&& !$this->isExcluded($fI['table'],$fI['id'])
 				&& (!$tokenID || $this->includeSoftref($tokenID))
@@ -1091,9 +1088,9 @@ class tx_impexp {
 	}
 
 	/**
-	 * Returns true if the output should be compressed.
+	 * Returns TRUE if the output should be compressed.
 	 *
-	 * @return	boolean		True if compression is possible AND requested.
+	 * @return	boolean		TRUE if compression is possible AND requested.
 	 */
 	function doOutputCompress()	{
 		return $this->compress && !$this->dontCompress;
@@ -1286,7 +1283,6 @@ class tx_impexp {
 	 * @see writeRecords_pages()
 	 */
 	function writeRecords_records($pid)	{
-		global $TCA;
 
 			// Write the rest of the records
 		$this->import_data = array();
@@ -1296,7 +1292,7 @@ class tx_impexp {
 					foreach ($recs as $uid => $thisRec) {
 							// PID: Set the main $pid, unless a NEW-id is found
 						$setPid = isset($this->import_mapId['pages'][$thisRec['pid']]) ? $this->import_mapId['pages'][$thisRec['pid']] : $pid;
-						if (is_array($TCA[$table]) && $TCA[$table]['ctrl']['rootLevel'])	{
+						if (is_array($GLOBALS['TCA'][$table]) && $GLOBALS['TCA'][$table]['ctrl']['rootLevel']) {
 							$setPid = 0;
 						}
 
@@ -1537,8 +1533,6 @@ class tx_impexp {
 	 * @see setFlexFormRelations()
 	 */
 	function setRelations()	{
-		global $TCA;
-
 		$updateData = array();
 
 			// import_newId contains a register of all records that was in the import memorys "records" key
@@ -1647,8 +1641,6 @@ class tx_impexp {
 	 * @see setRelations()
 	 */
 	function setFlexFormRelations()	{
-		global $TCA;
-
 		$updateData = array();
 			// import_newId contains a register of all records that was in the import memorys "records" key
 		foreach ($this->import_newId as $nId => $dat) {
@@ -1671,7 +1663,7 @@ class tx_impexp {
 									// If there has been registered relations inside the flex form field, run processing on the content:
 								if (count($config['flexFormRels']['db']) || count($config['flexFormRels']['file']))	{
 									$origRecordRow = t3lib_BEfunc::getRecord($table,$thisNewUid,'*');	// This will fetch the new row for the element (which should be updated with any references to data structures etc.)
-									$conf = $TCA[$table]['columns'][$field]['config'];
+									$conf = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
 									if (is_array($origRecordRow) && is_array($conf) && $conf['type']==='flex')	{
 											// Get current data structure and value array:
 										$dataStructArray = t3lib_BEfunc::getFlexFormDS($conf, $origRecordRow, $table);
@@ -1771,7 +1763,6 @@ class tx_impexp {
 	 * @return	void
 	 */
 	function processSoftReferences()	{
-		global $TCA;
 
 			// Initialize:
 		$inData = array();
@@ -1782,7 +1773,7 @@ class tx_impexp {
 				foreach($recs as $uid => $thisRec)	{
 
 						// If there are soft references defined, traverse those:
-					if (isset($TCA[$table]) && is_array($thisRec['softrefs']))	{
+					if (isset($GLOBALS['TCA'][$table]) && is_array($thisRec['softrefs'])) {
 						t3lib_div::loadTCA($table);
 
 							// First traversal is to collect softref configuration and split them up based on fields. This could probably also have been done with the "records" key instead of the header.
@@ -1800,8 +1791,8 @@ class tx_impexp {
 
 							// Now, if there are any fields that require substitution to be done, lets go for that:
 						foreach($fieldsIndex as $field => $softRefCfgs)	{
-							if (is_array($TCA[$table]['columns'][$field]))	{
-								$conf = $TCA[$table]['columns'][$field]['config'];
+							if (is_array($GLOBALS['TCA'][$table]['columns'][$field])) {
+								$conf = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
 								if ($conf['type']==='flex')	{
 
 									$origRecordRow = t3lib_BEfunc::getRecord($table,$thisNewUid,'*');	// This will fetch the new row for the element (which should be updated with any references to data structures etc.)
@@ -1812,6 +1803,7 @@ class tx_impexp {
 										$currentValueArray = t3lib_div::xml2array($origRecordRow[$field]);
 
 											// Do recursive processing of the XML data:
+										/** @var $iteratorObj t3lib_TCEmain */
 										$iteratorObj = t3lib_div::makeInstance('t3lib_TCEmain');
 										$iteratorObj->callBackObj = $this;
 										$currentValueArray['data'] = $iteratorObj->checkValue_flex_procInData(
@@ -2119,7 +2111,7 @@ class tx_impexp {
 	 * @param	string		Absolute filename inside PATH_site to write to
 	 * @param	string		File ID from import memory
 	 * @param	boolean		Bypasses the checking against filemounts - only for RTE files!
-	 * @return	boolean		Returns true if it went well. Notice that the content of the file is read again, and md5 from import memory is validated.
+	 * @return	boolean		Returns TRUE if it went well. Notice that the content of the file is read again, and md5 from import memory is validated.
 	 */
 	function writeFileVerify($fileName, $fileID, $bypassMountCheck=FALSE)	{
 		$fileProcObj = $this->getFileProcObj();
@@ -2143,10 +2135,10 @@ class tx_impexp {
 	}
 
 	/**
-	 * Returns true if directory exists  and if it doesn't it will create directory and return true if that succeeded.
+	 * Returns TRUE if directory exists  and if it doesn't it will create directory and return TRUE if that succeeded.
 	 *
 	 * @param	string		Directory to create. Having a trailing slash. Must be in fileadmin/. Relative to PATH_site
-	 * @return	boolean		True, if directory exists (was created)
+	 * @return	boolean		TRUE, if directory exists (was created)
 	 */
 	function checkOrCreateDir($dirPrefix)	{
 
@@ -2178,8 +2170,8 @@ class tx_impexp {
 	 * If it doesn't it will try to find another relative filemount for the user and return an alternative path prefix for the file.
 	 *
 	 * @param	string		Path relative to PATH_site
-	 * @param	boolean		If set, Do not look for alternative path! Just return false
-	 * @return	string		If a path is available that will be returned, otherwise false.
+	 * @param	boolean		If set, Do not look for alternative path! Just return FALSE
+	 * @return	string		If a path is available that will be returned, otherwise FALSE.
 	 */
 	function verifyFolderAccess($dirPrefix, $noAlternative=FALSE)	{
 		$fileProcObj = $this->getFileProcObj();
@@ -2229,7 +2221,7 @@ class tx_impexp {
 	 *
 	 * @param	string		Filename, absolute
 	 * @param	boolean		If set, all information is loaded (header, records and files). Otherwise the default is to read only the header information
-	 * @return	boolean		True if the operation went well
+	 * @return	boolean		TRUE if the operation went well
 	 */
 	function loadFile($filename,$all=0)	{
 		if (@is_file($filename))	{
@@ -2584,6 +2576,7 @@ class tx_impexp {
 	function traverseAllRecords($pT,&$lines)	{
 		foreach ($pT as $t => $recUidArr) {
 			if ($t!='pages')	{
+				$preCode = '';
 				foreach ($recUidArr as $ruid => $value) {
 					$this->singleRecordLines($t,$ruid,$lines,$preCode,1);
 				}
@@ -2602,7 +2595,7 @@ class tx_impexp {
 	 * @return	void
 	 */
 	function singleRecordLines($table,$uid,&$lines,$preCode,$checkImportInPidRecord=0)	{
-		global $TCA,$BE_USER,$LANG;
+		global $LANG;
 
 			// Get record:
 		$record = $this->dat['header']['records'][$table][$uid];
@@ -2614,8 +2607,9 @@ class tx_impexp {
 		$pInfo['ref'] = $table.':'.$uid;
 		if ($table==='_SOFTREF_')	{	// Unknown table name:
 			$pInfo['preCode'] = $preCode;
-			$pInfo['title'] = '<em>'.$LANG->getLL('impexpcore_singlereco_softReferencesFiles',1).'</em>';
-		} elseif (!isset($TCA[$table]))	{	// Unknown table name:
+			$pInfo['title'] = '<em>' . $GLOBALS['LANG']->getLL('impexpcore_singlereco_softReferencesFiles', 1) . '</em>';
+		} elseif (!isset($GLOBALS['TCA'][$table])) {
+				// Unknown table name:
 			$pInfo['preCode'] = $preCode;
 			$pInfo['msg'] = "UNKNOWN TABLE '".$pInfo['ref']."'";
 			$pInfo['title'] = '<em>'.htmlspecialchars($record['title']).'</em>';
@@ -2624,19 +2618,29 @@ class tx_impexp {
 				// Import Validation (triggered by $this->display_import_pid_record) will show messages if import is not possible of various items.
 			if (is_array($this->display_import_pid_record))	{
 				if ($checkImportInPidRecord)	{
-					if (!$BE_USER->doesUserHaveAccess($this->display_import_pid_record, $table=='pages'?8:16))	{
+					if (!$GLOBALS['BE_USER']->doesUserHaveAccess($this->display_import_pid_record, $table === 'pages' ? 8 : 16)) {
 						$pInfo['msg'].="'".$pInfo['ref']."' cannot be INSERTED on this page! ";
 					}
-					if (!$this->checkDokType($table, $this->display_import_pid_record['doktype']) && !$TCA[$table]['ctrl']['rootLevel'])	{
+					if (!$this->checkDokType($table, $this->display_import_pid_record['doktype']) && !$GLOBALS['TCA'][$table]['ctrl']['rootLevel']) {
 						$pInfo['msg'].="'".$table."' cannot be INSERTED on this page type (change page type to 'Folder'.) ";
 					}
 				}
-				if (!$BE_USER->check('tables_modify',$table))	{$pInfo['msg'].="You are not allowed to CREATE '".$table."' tables! ";}
+				if (!$GLOBALS['BE_USER']->check('tables_modify', $table)) {
+					{$pInfo['msg'] .="You are not allowed to CREATE '" . $table . "' tables! ";}
+				}
 
-				if ($TCA[$table]['ctrl']['readOnly'])	{$pInfo['msg'].="TABLE '".$table."' is READ ONLY! ";}
-				if ($TCA[$table]['ctrl']['adminOnly'] && !$BE_USER->isAdmin())	{$pInfo['msg'].="TABLE '".$table."' is ADMIN ONLY! ";}
-				if ($TCA[$table]['ctrl']['is_static'])	{$pInfo['msg'].="TABLE '".$table."' is a STATIC TABLE! ";}
-				if ($TCA[$table]['ctrl']['rootLevel'])	{$pInfo['msg'].="TABLE '".$table."' will be inserted on ROOT LEVEL! ";}
+				if ($GLOBALS['TCA'][$table]['ctrl']['readOnly']) {
+					$pInfo['msg'] .= "TABLE '". $table . "' is READ ONLY! ";
+				}
+				if ($GLOBALS['TCA'][$table]['ctrl']['adminOnly'] && !$GLOBALS['BE_USER']->isAdmin()) {
+					$pInfo['msg'] .= "TABLE '" . $table . "' is ADMIN ONLY! ";
+				}
+				if ($GLOBALS['TCA'][$table]['ctrl']['is_static']) {
+					$pInfo['msg'] .= "TABLE '" . $table . "' is a STATIC TABLE! ";
+				}
+				if ($GLOBALS['TCA'][$table]['ctrl']['rootLevel']) {
+					$pInfo['msg'] .= "TABLE '" . $table . "' will be inserted on ROOT LEVEL! ";
+				}
 
 				$diffInverse = FALSE;
 				if ($this->update)	{
@@ -2940,14 +2944,14 @@ class tx_impexp {
 	 *
 	 * @param	string		Table name to check
 	 * @param	integer		doktype value.
-	 * @return	boolean		True if OK
+	 * @return	boolean		TRUE if OK
 	 */
 	function checkDokType($checkTable,$doktype)	{
 		global $PAGES_TYPES;
 		$allowedTableList = isset($PAGES_TYPES[$doktype]['allowedTables']) ? $PAGES_TYPES[$doktype]['allowedTables'] : $PAGES_TYPES['default']['allowedTables'];
 		$allowedArray = t3lib_div::trimExplode(',',$allowedTableList,1);
-		if (strstr($allowedTableList,'*') || in_array($checkTable,$allowedArray))	{		// If all tables or the table is listed as a allowed type, return true
-			return true;
+		if (strstr($allowedTableList,'*') || in_array($checkTable,$allowedArray))	{		// If all tables or the table is listed as a allowed type, return TRUE
+			return TRUE;
 		}
 	}
 
@@ -3057,51 +3061,45 @@ class tx_impexp {
 	 *****************************/
 
 	/**
-	 * Returns true if the input table name is to be regarded as a static relation (that is, not exported etc).
+	 * Returns TRUE if the input table name is to be regarded as a static relation (that is, not exported etc).
 	 *
 	 * @param	string		Table name
-	 * @return	boolean		True, if table is marked static
+	 * @return	boolean		TRUE, if table is marked static
 	 */
 	function isTableStatic($table)	{
-		global $TCA;
-
-		if (is_array($TCA[$table]))	{
-			return $TCA[$table]['ctrl']['is_static'] || in_array($table, $this->relStaticTables) || in_array('_ALL', $this->relStaticTables);
+		if (is_array($GLOBALS['TCA'][$table])) {
+			return $GLOBALS['TCA'][$table]['ctrl']['is_static'] || in_array($table, $this->relStaticTables) || in_array('_ALL', $this->relStaticTables);
 		}
 	}
 
 	/**
-	 * Returns true if the input table name is to be included as relation
+	 * Returns TRUE if the input table name is to be included as relation
 	 *
 	 * @param	string		Table name
-	 * @return	boolean		True, if table is marked static
+	 * @return	boolean		TRUE, if table is marked static
 	 */
 	function inclRelation($table)	{
-		global $TCA;
-
-		if (is_array($TCA[$table]))	{
+		if (is_array($GLOBALS['TCA'][$table])) {
 			return (in_array($table, $this->relOnlyTables) || in_array('_ALL', $this->relOnlyTables)) && $GLOBALS['BE_USER']->check('tables_select',$table);
 		}
 	}
 
 	/**
-	 * Returns true if the element should be excluded as static record.
+	 * Returns TRUE if the element should be excluded as static record.
 	 *
 	 * @param	string		Table name
 	 * @param	integer		UID value
-	 * @return	boolean		True, if table is marked static
+	 * @return	boolean		TRUE, if table is marked static
 	 */
 	function isExcluded($table,$uid)	{
-		global $TCA;
-
 		return $this->excludeMap[$table.':'.$uid] ? TRUE : FALSE;
 	}
 
 	/**
-	 * Returns true if soft reference should be included in exported file.
+	 * Returns TRUE if soft reference should be included in exported file.
 	 *
 	 * @param	string		Token ID for soft reference
-	 * @return	boolean		True if softreference media should be included
+	 * @return	boolean		TRUE if softreference media should be included
 	 */
 	function includeSoftref($tokenID)	{
 		return $tokenID && !t3lib_div::inList('exclude,editable', $this->softrefCfg[$tokenID]['mode']);
@@ -3111,13 +3109,11 @@ class tx_impexp {
 	 * Checking if a PID is in the webmounts of the user
 	 *
 	 * @param	integer		Page ID to check
-	 * @return	boolean		True if OK
+	 * @return	boolean		TRUE if OK
 	 */
 	function checkPID($pid)	{
-		global $BE_USER;
-
 		if (!isset($this->checkPID_cache[$pid]))	{
-			$this->checkPID_cache[$pid] = (boolean)$BE_USER->isInWebMount($pid);
+			$this->checkPID_cache[$pid] = (boolean)$GLOBALS['BE_USER']->isInWebMount($pid);
 		}
 
 		return $this->checkPID_cache[$pid];
@@ -3128,7 +3124,7 @@ class tx_impexp {
 	 *
 	 * @param	string		Table name
 	 * @param	integer		Uid or record
-	 * @return	boolean		True if the position of the record should be updated to match the one in the import structure
+	 * @return	boolean		TRUE if the position of the record should be updated to match the one in the import structure
 	 */
 	function dontIgnorePid($table, $uid)	{
 		return $this->import_mode[$table.':'.$uid]!=='ignore_pid' &&
@@ -3141,7 +3137,7 @@ class tx_impexp {
 	 * @param	string		Table name
 	 * @param	integer		UID of record
 	 * @param	string		Field list to select. Default is "uid,pid"
-	 * @return	array		Result of t3lib_BEfunc::getRecord() which means the record if found, otherwise false
+	 * @return	array		Result of t3lib_BEfunc::getRecord() which means the record if found, otherwise FALSE
 	 */
 	function doesRecordExist($table,$uid,$fields='')	{
 		return t3lib_BEfunc::getRecord($table, $uid, $fields ? $fields : 'uid,pid');
@@ -3194,7 +3190,7 @@ class tx_impexp {
 	 * @return	string		HTML
 	 */
 	function compareRecords($databaseRecord, $importRecord, $table, $inverseDiff=FALSE)	{
-		global $TCA, $LANG;
+		global $LANG;
 
 			// Initialize:
 		$output = array();
@@ -3205,7 +3201,7 @@ class tx_impexp {
 
 				// Traverse based on database record
 			foreach($databaseRecord as $fN => $value)	{
-				if (is_array($TCA[$table]['columns'][$fN]) && $TCA[$table]['columns'][$fN]['config']['type']!='passthrough')	{
+				if (is_array($GLOBALS['TCA'][$table]['columns'][$fN]) && $GLOBALS['TCA'][$table]['columns'][$fN]['config']['type']!='passthrough')	{
 					if (isset($importRecord[$fN]))	{
 						if (strcmp(trim($databaseRecord[$fN]), trim($importRecord[$fN])))	{
 
@@ -3225,7 +3221,7 @@ class tx_impexp {
 
 				// Traverse remaining in import record:
 			foreach($importRecord as $fN => $value)	{
-				if (is_array($TCA[$table]['columns'][$fN]) && $TCA[$table]['columns'][$fN]['config']['type']!='passthrough')	{
+				if (is_array($GLOBALS['TCA'][$table]['columns'][$fN]) && $GLOBALS['TCA'][$table]['columns'][$fN]['config']['type'] !== 'passthrough') {
 					$output[$fN] = '<strong>Field missing</strong> in database';
 				}
 			}
@@ -3236,7 +3232,8 @@ class tx_impexp {
 				foreach($output as $fN => $state)	{
 					$tRows[] = '
 						<tr>
-							<td class="bgColor5">'.$LANG->sL($TCA[$table]['columns'][$fN]['label'],1).' ('.htmlspecialchars($fN).')</td>
+							<td class="bgColor5">' . $GLOBALS['LANG']->sL($GLOBALS['TCA'][$table]['columns'][$fN]['label'], 1 ) .
+								' (' . htmlspecialchars($fN) . ')</td>
 							<td class="bgColor4">'.$state.'</td>
 						</tr>
 					';

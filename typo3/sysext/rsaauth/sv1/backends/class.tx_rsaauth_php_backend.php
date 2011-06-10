@@ -24,8 +24,6 @@
 
 /**
  * [CLASS/FUNCTION INDEX of SCRIPT]
- *
- * $Id$
  */
 
 require_once(t3lib_extMgm::extPath('rsaauth', 'sv1/backends/class.tx_rsaauth_abstract_backend.php'));
@@ -44,11 +42,11 @@ class tx_rsaauth_php_backend extends tx_rsaauth_abstract_backend {
 	/**
 	 * Creates a new public/private key pair using PHP OpenSSL extension.
 	 *
-	 * @return tx_rsaauth_keypair	A new key pair or null in case of error
+	 * @return tx_rsaauth_keypair	A new key pair or NULL in case of error
 	 * @see tx_rsaauth_abstract_backend::createNewKeyPair()
 	 */
 	public function createNewKeyPair() {
-		$result = null;
+		$result = NULL;
 		$privateKey = @openssl_pkey_new();
 		if ($privateKey) {
 			// Create private key as string
@@ -58,7 +56,7 @@ class tx_rsaauth_php_backend extends tx_rsaauth_abstract_backend {
 			// Prepare public key information
 			$exportedData = '';
 			$csr = openssl_csr_new(array(), $privateKey);
-			openssl_csr_export($csr, $exportedData, false);
+			openssl_csr_export($csr, $exportedData, FALSE);
 
 			// Get public key (in fact modulus) and exponent
 			$publicKey = $this->extractPublicKeyModulus($exportedData);
@@ -83,13 +81,13 @@ class tx_rsaauth_php_backend extends tx_rsaauth_abstract_backend {
 	 *
 	 * @param string	$privateKey	The private key (obtained from a call to createNewKeyPair())
 	 * @param string	$data	Data to decrypt (base64-encoded)
-	 * @return string	Decrypted data or null in case of a error
+	 * @return string	Decrypted data or NULL in case of a error
 	 * @see tx_rsaauth_abstract_backend::decrypt()
 	 */
 	public function decrypt($privateKey, $data) {
 		$result = '';
 		if (!@openssl_private_decrypt(base64_decode($data), $result, $privateKey)) {
-			$result = null;
+			$result = NULL;
 		}
 		return $result;
 	}
@@ -102,12 +100,12 @@ class tx_rsaauth_php_backend extends tx_rsaauth_abstract_backend {
 	 * @see tx_rsaauth_abstract_backend::isAvailable()
 	 */
 	public function isAvailable() {
-		$result = false;
+		$result = FALSE;
 		if (is_callable('openssl_pkey_new')) {
 			if (TYPO3_OS !== 'WIN') {
 				// If the server does not run Windows, we can be sure than
 				// OpenSSL will work
-				$result = true;
+				$result = TRUE;
 			}
 			else {
 				// On Windows PHP extension has to be configured properly. It
@@ -116,7 +114,7 @@ class tx_rsaauth_php_backend extends tx_rsaauth_abstract_backend {
 				$testKey = @openssl_pkey_new();
 				if ($testKey) {
 					openssl_free_key($testKey);
-					$result = true;
+					$result = TRUE;
 				}
 			}
 		}
@@ -131,7 +129,7 @@ class tx_rsaauth_php_backend extends tx_rsaauth_abstract_backend {
 	 */
 	protected function extractExponent($data) {
 		$index = strpos($data, 'Exponent: ');
-		// We do not check for '$index === false' because the exponent is
+		// We do not check for '$index === FALSE' because the exponent is
 		// always there!
 		return intval(substr($data, $index + 10));
 	}

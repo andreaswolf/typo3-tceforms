@@ -30,8 +30,6 @@
  *
  * @author	Kasper Skårhøj <kasper@typo3.com>
  * @author	Stanislas Rolland <typo3(arobas)sjbr.ca>
- *
- * $Id$  *
  */
 require_once(PATH_typo3.'class.browse_links.php');
 
@@ -54,7 +52,7 @@ class tx_rtehtmlarea_image_folderTree extends t3lib_folderTree {
 	 */
 	function wrapTitle($title,$v)	{
 		$title = htmlspecialchars($title);
-		
+
 		if ($this->ext_isLinkable($v))	{
 			$aOnClick = 'return jumpToUrl(\'?editorNo='.$GLOBALS['SOBE']->browser->editorNo.'&expandFolder='.rawurlencode($v['path']).'\');';
 			return '<a href="#" onclick="'.htmlspecialchars($aOnClick).'">'.$title.'</a>';
@@ -64,10 +62,10 @@ class tx_rtehtmlarea_image_folderTree extends t3lib_folderTree {
 	}
 
 	/**
-	 * Returns true if the input "record" contains a folder which can be linked.
+	 * Returns TRUE if the input "record" contains a folder which can be linked.
 	 *
 	 * @param	array		Array with information about the folder element. Contains keys like title, uid, path, _title
-	 * @return	boolean		True is returned if the path is found in the web-part of the the server and is NOT a recycler or temp folder
+	 * @return	boolean		TRUE is returned if the path is found in the web-part of the the server and is NOT a recycler or temp folder
 	 */
 	function ext_isLinkable($v)	{
 		$webpath=t3lib_BEfunc::getPathType_web_nonweb($v['path']);
@@ -343,7 +341,7 @@ class tx_rtehtmlarea_select_image extends browse_links {
 					$cHeight = t3lib_div::intInRange(t3lib_div::_GP('cHeight'), 0, $this->magicMaxHeight);
 					if (!$cWidth)	$cWidth = $this->magicMaxWidth;
 					if (!$cHeight)	$cHeight = $this->magicMaxHeight;
-	
+
 					$imgI = $this->imgObj->imageMagickConvert($filepath,'WEB',$cWidth.'m',$cHeight.'m');	// ($imagefile,$newExt,$w,$h,$params,$frame,$options,$mustCreate=0)
 					if ($imgI[3])	{
 						$fI=pathinfo($imgI[3]);
@@ -365,7 +363,7 @@ class tx_rtehtmlarea_select_image extends browse_links {
 			}
 		} else {
 			t3lib_div::sysLog('Attempt at creating a magic image failed due to missing image file info.', $this->extKey . '/tx_rtehtmlarea_select_image', t3lib_div::SYSLOG_SEVERITY_ERROR);
-		}	
+		}
 	}
 
 	/**
@@ -757,12 +755,12 @@ class tx_rtehtmlarea_select_image extends browse_links {
 	 * @return	array		Session data and boolean which indicates that data needs to be stored in session because it's changed
 	 */
 	function processSessionData($data) {
-		$store = false;
+		$store = FALSE;
 
 		if ($this->act != 'image') {
 			if (isset($this->act))	{
 				$data['act'] = $this->act;
-				$store = true;
+				$store = TRUE;
 			} else {
 				$this->act = $data['act'];
 			}
@@ -770,7 +768,7 @@ class tx_rtehtmlarea_select_image extends browse_links {
 
 		if (isset($this->expandFolder))	{
 			$data['expandFolder'] = $this->expandFolder;
-			$store = true;
+			$store = TRUE;
 		} else {
 			$this->expandFolder = $data['expandFolder'];
 		}
@@ -784,7 +782,7 @@ class tx_rtehtmlarea_select_image extends browse_links {
 	 * @return	[type]		...
 	 */
 	function main_rte()	{
-		global $LANG, $TYPO3_CONF_VARS, $FILEMOUNTS, $BE_USER;
+		global $LANG;
 
 			// Starting content:
 		$this->content = $this->doc->startPage($LANG->getLL('Insert Image',1));
@@ -835,7 +833,7 @@ class tx_rtehtmlarea_select_image extends browse_links {
 					// Adding upload form, if allowed
 				$this->content .= $this->insertUploadForm($this->expandFolder);
 					// Getting flag for showing/not showing thumbnails:
-				$noThumbs = $BE_USER->getTSConfigVal('options.noThumbsInRTEimageSelect');
+				$noThumbs = $GLOBALS['BE_USER']->getTSConfigVal('options.noThumbsInRTEimageSelect');
 				if (!$noThumbs)	{
 						// MENU-ITEMS, fetching the setting for thumbnails from File>List module:
 					$_MOD_MENU = array('displayThumbs' => '');
@@ -868,7 +866,7 @@ class tx_rtehtmlarea_select_image extends browse_links {
 			case 'dragdrop':
 				$foldertree = t3lib_div::makeInstance('TBE_FolderTree');
 				$foldertree->thisScript=$this->thisScript;
-				$foldertree->ext_noTempRecyclerDirs = true;
+				$foldertree->ext_noTempRecyclerDirs = TRUE;
 				$tree = $foldertree->getBrowsableTree();
 				list(,,$specUid) = explode('_',t3lib_div::_GP('PM'));
 				$files = $this->TBE_dragNDrop($foldertree->specUIDmap[$specUid], implode(',', $this->allowedFileTypes));
@@ -934,7 +932,7 @@ class tx_rtehtmlarea_select_image extends browse_links {
 	 * @return	[type]		...
 	 */
 	function expandFolder($expandFolder=0,$plainFlag=0,$noThumbs=0)	{
-		global $LANG, $BE_USER, $BACK_PATH;
+		global $LANG, $BACK_PATH;
 
 		$expandFolder = $expandFolder ? $expandFolder :t3lib_div::_GP('expandFolder');
 		$out='';
@@ -944,7 +942,7 @@ class tx_rtehtmlarea_select_image extends browse_links {
 			if (is_array($files))	{
 				$out.=$this->barheader(sprintf($LANG->getLL('images').' (%s):',count($files)));
 
-				$titleLen = intval($BE_USER->uc['titleLen']);
+				$titleLen = intval($GLOBALS['BE_USER']->uc['titleLen']);
 				$picon='<img'.t3lib_iconWorks::skinImg($BACK_PATH,'gfx/i/_icon_webfolders.gif','width="18" height="16"').' alt="" />';
 				$picon.=htmlspecialchars(t3lib_div::fixed_lgd_cs(basename($expandFolder),$titleLen));
 				$out.='<span class="nobr">'.$picon.'</span><br />';
@@ -1125,10 +1123,8 @@ class tx_rtehtmlarea_select_image extends browse_links {
 	 * @return	array		RTE configuration array
 	 */
 	protected function getRTEConfig()	{
-		global $BE_USER;
-
 		$RTEtsConfigParts = explode(':', $this->RTEtsConfigParams);
-		$RTEsetup = $BE_USER->getTSConfig('RTE',t3lib_BEfunc::getPagesTSconfig($RTEtsConfigParts[5]));
+		$RTEsetup = $GLOBALS['BE_USER']->getTSConfig('RTE',t3lib_BEfunc::getPagesTSconfig($RTEtsConfigParts[5]));
 		return t3lib_BEfunc::RTEsetup($RTEsetup['properties'],$RTEtsConfigParts[0],$RTEtsConfigParts[2],$RTEtsConfigParts[4]);
 	}
 

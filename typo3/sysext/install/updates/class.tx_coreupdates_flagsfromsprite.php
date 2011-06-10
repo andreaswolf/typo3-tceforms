@@ -29,7 +29,6 @@
  * Contains the update class for transitioning from ".gif" flags to sprites
  *
  * @author Ernesto Baschny <ernst@cron-it.de>
- * @version $Id$
  */
 class tx_coreupdates_flagsfromsprite extends Tx_Install_Updates_Base {
 	protected $title = 'Update Graphics, Using Sprites for sys_language Records';
@@ -38,7 +37,7 @@ class tx_coreupdates_flagsfromsprite extends Tx_Install_Updates_Base {
 	 * Checks if an update is needed
 	 *
 	 * @param	string		&$description: The description for the update
-	 * @return	boolean		whether an update is needed (true) or not (false)
+	 * @return	boolean		whether an update is needed (TRUE) or not (FALSE)
 	 */
 	public function checkForUpdate(&$description) {
 		$result = FALSE;
@@ -60,7 +59,7 @@ class tx_coreupdates_flagsfromsprite extends Tx_Install_Updates_Base {
 	 *
 	 * @param	array		&$dbQueries: queries done in this update
 	 * @param	mixed		&$customMessages: custom messages
-	 * @return	boolean		whether it worked (true) or not (false)
+	 * @return	boolean		whether it worked (TRUE) or not (FALSE)
 	 */
 	public function performUpdate(&$dbQueries, &$customMessages) {
 		$result = FALSE;

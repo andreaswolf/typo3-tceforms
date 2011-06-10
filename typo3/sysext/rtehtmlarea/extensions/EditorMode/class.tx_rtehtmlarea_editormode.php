@@ -26,8 +26,6 @@
  *
  * @author Stanislas Rolland <typo3(arobas)sjbr.ca>
  *
- * TYPO3 SVN ID: $Id$
- *
  */
 class tx_rtehtmlarea_editormode extends tx_rtehtmlarea_api {
 
@@ -50,8 +48,8 @@ class tx_rtehtmlarea_editormode extends tx_rtehtmlarea_api {
 	public function main($parentObject) {
 		parent::main($parentObject);
 			// Do not disable this plugin even if the chMode button is disabled
-		$this->pluginAddsButtons = false;
-		return true;
+		$this->pluginAddsButtons = FALSE;
+		return TRUE;
 	}
 }
 

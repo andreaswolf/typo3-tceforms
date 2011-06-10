@@ -28,8 +28,6 @@
 /**
  * TCEforms wizard for rendering an AJAX selector for records
  *
- * $Id: class.t3lib_tceforms_suggest.php 7905 2010-06-13 14:42:33Z ohader $
- *
  * @author Steffen Ritter <info@steffen-ritter.net>
  * @author Steffen Kamper <steffen@typo3.org>
  */
@@ -68,9 +66,9 @@ class t3lib_TCEforms_Tree {
 		$valueArray = array();
 		$selectedNodes = array();
 
-                if($PA['itemFormElValue'] != 0) {
-                    $valueArray = explode(',', $PA['itemFormElValue']);
-                }
+		if(!empty($PA['itemFormElValue'])) {
+			$valueArray = explode(',', $PA['itemFormElValue']);
+		}
 
 		if (count($valueArray)) {
 			foreach ($valueArray as $selectedValue) {
@@ -153,6 +151,7 @@ class t3lib_TCEforms_Tree {
 		$pageRenderer = $GLOBALS['SOBE']->doc->getPageRenderer();
 		$pageRenderer->loadExtJs();
 		$pageRenderer->addJsFile('../t3lib/js/extjs/tree/tree.js');
+		$pageRenderer->addInlineLanguageLabelFile(t3lib_extMgm::extPath('lang') . 'locallang_csh_corebe.xml', 'tcatree');
 		$pageRenderer->addExtOnReadyCode('
 			TYPO3.Components.Tree.StandardTreeItemData["' . $id . '"] = ' . $treeData . ';
 			var tree' . $id . ' = new TYPO3.Components.Tree.StandardTree({
@@ -186,7 +185,8 @@ class t3lib_TCEforms_Tree {
 		$PA['fieldConf']['config']['exclusiveKeys']
 				? $PA['fieldConf']['config']['exclusiveKeys'] : '') . '",
 				ucId: "' . md5($table . '|' . $field) . '",
-				selModel: TYPO3.Components.Tree.EmptySelectionModel
+				selModel: TYPO3.Components.Tree.EmptySelectionModel,
+				disabled: ' . ($PA['fieldConf']['config']['readOnly'] ? 'true' : 'false') . '
 			});' . LF .
 			($autoSizeMax
 				? 'tree' . $id . '.bodyStyle = "max-height: ' . $autoSizeMax . 'px;min-height: ' . $height . 'px;";'

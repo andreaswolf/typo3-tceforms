@@ -31,8 +31,6 @@ require_once(PATH_typo3 . 'contrib/swiftmailer/swift_required.php');
 /**
  * Adapter for Swift_Mailer to be used by TYPO3 extensions
  *
- * $Id$
- *
  * @author	Ernesto Baschny <ernst@cron-it.de>
  * @package TYPO3
  * @subpackage t3lib
@@ -50,7 +48,7 @@ class t3lib_mail_Message extends Swift_Message {
 	protected $mailerHeader = 'TYPO3';
 
 	/**
-	 * True if the message has been sent.
+	 * TRUE if the message has been sent.
 	 * @var boolean
 	 */
 	protected $sent = FALSE;

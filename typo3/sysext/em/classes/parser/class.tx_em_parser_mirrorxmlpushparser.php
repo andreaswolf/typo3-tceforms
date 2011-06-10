@@ -27,8 +27,6 @@
  *
  * Module: Extension manager - mirrors.xml push-parser
  *
- * $Id$
- *
  * @author  Marcus Krause <marcus#exp2010@t3sec.info>
  * @author  Steffen Kamper <info@sk-typo3.de>
  */
@@ -198,8 +196,8 @@ class tx_em_Parser_MirrorXmlPushParser extends tx_em_Parser_MirrorXmlAbstractPar
 	 * @see	 $observers, attach(), notify()
 	 */
 	public function detach(SplObserver $observer) {
-		$key = array_search($observer, $this->observers, true);
-		if (!($key === false)) {
+		$key = array_search($observer, $this->observers, TRUE);
+		if (!($key === FALSE)) {
 			unset($this->observers[$key]);
 		}
 	}

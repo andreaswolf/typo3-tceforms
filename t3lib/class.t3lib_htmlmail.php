@@ -27,8 +27,6 @@
 /**
  * HTML mail class
  *
- * $Id$
- *
  * @author	Kasper Skårhøj <kasperYYYY@typo3.com>
  */
 /**
@@ -244,7 +242,7 @@ class t3lib_htmlmail {
 	 *
 	 * @return	void
 	 */
-	public function t3lib_htmlmail() {
+	public function __construct() {
 		t3lib_div::logDeprecatedFunction();
 		$this->forceReturnPath = $GLOBALS['TYPO3_CONF_VARS']['SYS']['forceReturnPath'];
 
@@ -722,9 +720,7 @@ class t3lib_htmlmail {
 		}
 		$recipient = t3lib_div::normalizeMailAddress($this->recipient);
 
-			// If safe mode is on, the fifth parameter to mail is not allowed, so the fix wont work on unix with safe_mode=On
-		$returnPathPossible = (!t3lib_utility_PhpOptions::isSafeModeEnabled() && $this->forceReturnPath);
-		if ($returnPathPossible) {
+		if ($this->forceReturnPath) {
 			$mailWasSent = t3lib_utility_Mail::mail(
 				$recipient,
 				$this->subject,
@@ -747,7 +743,7 @@ class t3lib_htmlmail {
 			$theParts[0] = str_replace('###SUBJECT###', $this->subject, $theParts[0]);
 			$theParts[1] = str_replace("/", LF, $theParts[1]);
 			$theParts[1] = str_replace("###MESSAGE###", $this->getContent('plain'), $theParts[1]);
-			if ($returnPathPossible) {
+			if ($this->forceReturnPath) {
 				$mailWasSent = t3lib_utility_Mail::mail(
 					$this->from_email,
 					$theParts[0],
@@ -1082,7 +1078,7 @@ class t3lib_htmlmail {
 	/**
 	 * This function substitutes the media-references in $this->theParts["html"]["content"]
 	 *
-	 * @param	boolean		$absolute: If true, then the refs are substituted with http:// ref's indstead of Content-ID's (cid).
+	 * @param	boolean		$absolute: If TRUE, then the refs are substituted with http:// ref's indstead of Content-ID's (cid).
 	 * @return	void
 	 */
 	public function substMediaNamesInHTML($absolute) {
@@ -1233,7 +1229,7 @@ class t3lib_htmlmail {
 	 * reads the URL or file and determines the Content-type by either guessing or opening a connection to the host
 	 *
 	 * @param	string		$url: the URL to get information of
-	 * @return	mixed		either false or the array with information
+	 * @return	mixed		either FALSE or the array with information
 	 */
 	public function getExtendedURL($url) {
 		$res = array();

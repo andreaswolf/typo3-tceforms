@@ -24,8 +24,6 @@
  ***************************************************************/
 /**
  * Module: Extension manager - Extension.xml pull-parser
- *
- * $Id: class.tx_em_parser_extensionxmlpullparser.php 1913 2010-02-21 15:47:37Z mkrause $
  */
 
 /**
@@ -223,8 +221,8 @@ class tx_em_Parser_ExtensionXmlPullParser extends tx_em_Parser_ExtensionXmlAbstr
 	 * @return  void
 	 */
 	public function detach(SplObserver $observer) {
-		$key = array_search($observer, $this->observers, true);
-		if (!($key === false)) {
+		$key = array_search($observer, $this->observers, TRUE);
+		if (!($key === FALSE)) {
 			unset($this->observers[$key]);
 		}
 	}
