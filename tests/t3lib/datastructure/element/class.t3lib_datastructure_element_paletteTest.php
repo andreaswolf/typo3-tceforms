@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010-2011 Andreas Wolf <andreas.wolf@ikt-werk.de>
+ *  (c) 2011 Andreas Wolf <andreas.wolf@ikt-werk.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,18 +27,26 @@
 
 
 /**
- * Resolver for normal, array-based TCA data structures.
+ * Testcase for the palette abstraction class in TCA.
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCA_DataStructure_TCAResolver extends t3lib_TCA_DataStructure_Resolver implements t3lib_Singleton {
-	public function resolveDataStructure($table) {
-		t3lib_div::loadTCA($table);
-		$dataStructureObject = new t3lib_TCA_DataStructure($GLOBALS['TCA'][$table]);
+class t3lib_DataStructure_Element_PaletteTest extends Tx_Phpunit_TestCase {
+	/**
+	 * @test
+	 */
+	public function storedElementsMayBeRetrievedFromPalette() {
+		$fixture = $this->getMock('t3lib_TCA_DataStructure_Palette', NULL, array(), '', FALSE);
 
-		return $dataStructureObject;
+		$element1 = $this->getMock('t3lib_TCA_DataStructure_Element');
+		$element2 = $this->getMock('t3lib_TCA_DataStructure_Element');
+
+		$fixture->addElement($element1);
+		$fixture->addElement($element2);
+
+		$this->assertEquals(array($element1, $element2), $fixture->getElements());
 	}
 }
 

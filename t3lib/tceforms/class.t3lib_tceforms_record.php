@@ -150,9 +150,9 @@ class t3lib_TCEforms_Record extends t3lib_TCA_Record {
 	 *
 	 * @param string $table The table this record belongs to
 	 * @param array $recordData
-	 * @param t3lib_TCA_DataStructure $dataStructure
+	 * @param t3lib_DataStructure_Tca $dataStructure
 	 */
-	public function __construct($table, array $recordData, t3lib_TCA_DataStructure $dataStructure) {
+	public function __construct($table, array $recordData, t3lib_DataStructure_Tca $dataStructure) {
 		parent::__construct($table, $recordData, $dataStructure);
 		$this->contextRecordObject = $this;
 	}

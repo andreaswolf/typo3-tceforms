@@ -54,7 +54,7 @@ class t3lib_TCEforms_WidgetBuilder {
 	 *
 	 * @see bindWidgetTreeToRecord()
 	 */
-	public function buildWidgetTreeForType(t3lib_TCA_DataStructure_Type $type) {
+	public function buildWidgetTreeForType(t3lib_DataStructure_Type $type) {
 		/*
 		 * TODO for caching:
 		 *  - check cache; if entry is present, return it

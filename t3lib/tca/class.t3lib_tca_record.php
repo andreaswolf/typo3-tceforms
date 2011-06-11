@@ -58,7 +58,7 @@ class t3lib_TCA_Record {
 	/**
 	 * The data structure object for the record
 	 *
-	 * @var t3lib_TCA_DataStructure
+	 * @var t3lib_DataStructure_Tca
 	 */
 	protected $dataStructure;
 
@@ -72,7 +72,7 @@ class t3lib_TCA_Record {
 	/**
 	 * The type configuration for this record.
 	 *
-	 * @var t3lib_TCA_DataStructure_Type
+	 * @var t3lib_DataStructure_Type
 	 */
 	protected $typeConfiguration;
 
@@ -81,9 +81,9 @@ class t3lib_TCA_Record {
 	 *
 	 * @param string $table The table this record belongs to
 	 * @param array $recordData
-	 * @param t3lib_TCA_DataStructure $dataStructure
+	 * @param t3lib_DataStructure_Tca $dataStructure
 	 */
-	public function __construct($table, array $recordData, t3lib_TCA_DataStructure $dataStructure) {
+	public function __construct($table, array $recordData, t3lib_DataStructure_Tca $dataStructure) {
 		$this->table = $table;
 		$this->recordData = $recordData;
 		$this->dataStructure = $dataStructure;
@@ -113,7 +113,7 @@ class t3lib_TCA_Record {
 	 * The source for this data structure could have been PHP-based TCA or an XML-based Flexform
 	 * data structure
 	 *
-	 * @return t3lib_TCA_DataStructure
+	 * @return t3lib_DataStructure_Tca
 	 */
 	public function getDataStructure() {
 		return $this->dataStructure;

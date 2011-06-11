@@ -1,11 +1,11 @@
 <?php
 
-class t3lib_TCA_DataStructure_Field extends t3lib_TCA_DataStructure_Element {
+class t3lib_DataStructure_Element_Field extends t3lib_DataStructure_Element_Abstract {
 
 	/**
 	 * The data structure this field belongs to
 	 *
-	 * @var t3lib_TCA_DataStructure
+	 * @var t3lib_DataStructure_Tca
 	 */
 	protected $dataStructure;
 
@@ -44,12 +44,12 @@ class t3lib_TCA_DataStructure_Field extends t3lib_TCA_DataStructure_Element {
 	/**
 	 * The palette object attached to this field, if any
 	 *
-	 * @var t3lib_TCA_DataStructure_Palette
+	 * @var t3lib_DataStructure_Element_Palette
 	 */
 	protected $palette = NULL;
 
 	/**
-	 * @param t3lib_TCA_DataStructure $dataStructure
+	 * @param t3lib_DataStructure_Tca $dataStructure
 	 * @param string $name The field name of this field
 	 * @return void
 	 */
@@ -134,7 +134,7 @@ class t3lib_TCA_DataStructure_Field extends t3lib_TCA_DataStructure_Element {
 		$this->specialConfiguration = $specialConfiguration;
 	}
 
-	public function addPalette(t3lib_TCA_DataStructure_Palette $paletteObject) {
+	public function addPalette(t3lib_DataStructure_Element_Palette $paletteObject) {
 		// TODO throw exception if palette has already been set
 		$this->palette = $paletteObject;
 	}

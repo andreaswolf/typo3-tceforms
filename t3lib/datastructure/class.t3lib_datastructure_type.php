@@ -38,11 +38,11 @@
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCA_DataStructure_Type {
+class t3lib_DataStructure_Type {
 	/**
 	 * The data structure this type belongs to
 	 *
-	 * @var \t3lib_TCA_DataStructure
+	 * @var \t3lib_DataStructure_Tca
 	 */
 	protected $dataStructure;
 
@@ -105,7 +105,7 @@ class t3lib_TCA_DataStructure_Type {
 	/**
 	 * Constructor method for this class.
 	 *
-	 * @param t3lib_TCA_DataStructure $dataStructure The data structure this type belongs to
+	 * @param t3lib_DataStructure_Tca $dataStructure The data structure this type belongs to
 	 * @param mixed $typeValue The unique value used in records for this type.
 	 * @param array $configuration The configuration array for this type. Has to contain some sort of display configuration (showitem string, widget configuration array/string)
 	 */
@@ -119,7 +119,7 @@ class t3lib_TCA_DataStructure_Type {
 	}
 
 	/*
-	 * TODO remove this method, resolve sheets to widget config in FlexForms resolver instead
+	 * TODO remove this method, resolve sheets to widget config in FlexForm resolver instead
 	 */
 	public static function createFromSheets($sheets) {
 		//
@@ -137,7 +137,7 @@ class t3lib_TCA_DataStructure_Type {
 		}
 
 		if (isset($configuration['widgetConfiguration'])) {
-			$this->widgetConfiguration = t3lib_TCA_DataStructure::parseWidgetConfiguration($configuration['widgetConfiguration']);
+			$this->widgetConfiguration = t3lib_DataStructure_Tca::parseWidgetConfiguration($configuration['widgetConfiguration']);
 		} elseif (isset($configuration['showitem'])) {
 			$this->widgetConfiguration = $this->dataStructure->convertTypeShowitemStringToWidgetConfigurationArray($configuration['showitem']);
 		}

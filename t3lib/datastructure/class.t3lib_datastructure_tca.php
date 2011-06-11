@@ -35,11 +35,11 @@
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  */
-class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
+class t3lib_DataStructure_Tca extends t3lib_DataStructure_Abstract {
 	/**
 	 * Cache for field objects created by getFieldObject
 	 *
-	 * @var t3lib_TCA_DataStructure[]
+	 * @var t3lib_DataStructure_Tcas[]
 	 */
 	protected $fieldObjects = array();
 
@@ -47,7 +47,7 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 	 * The configuration objects of all defined palettes
 	 * This holds information from e.g. $TCA[$tableName]['palettes']
 	 *
-	 * @var array<t3lib_TCA_DataStructure_Palette>
+	 * @var t3lib_DataStructure_Element_Palette[]
 	 */
 	protected $palettes = array();
 
@@ -112,7 +112,7 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 			$typeValue = $this->getDefaultTypeForRecord($record);
 		}
 
-		/** @var $typeConfiguration t3lib_TCA_DataStructure_Type */
+		/** @var $typeConfiguration t3lib_DataStructure_Type */
 		$typeConfiguration = $this->getTypeConfiguration($typeValue);
 
 		if ($typeConfiguration->hasSubtypeValueField()) {
@@ -153,7 +153,7 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 	 * configuration added in type configurations has to be applied separately
 	 *
 	 * @param string $fieldName
-	 * @return t3lib_TCA_DataStructure_Field
+	 * @return t3lib_DataStructure_Element_Field
 	 *
 	 * @access package
 	 *
@@ -161,8 +161,8 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 	 */
 	public function getFieldObject($fieldName) {
 		if (!$this->fieldObjects[$fieldName]) {
-			/** @var $fieldObject t3lib_TCA_DataStructure_Field */
-			$fieldObject = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Field', $fieldName);
+			/** @var $fieldObject t3lib_DataStructure_Element_Field */
+			$fieldObject = t3lib_div::makeInstance('t3lib_DataStructure_Element_Field', $fieldName);
 			$fieldObject->setDataStructure($this);
 
 			$this->fieldObjects[$fieldName] = $fieldObject;
@@ -238,11 +238,11 @@ class t3lib_TCA_DataStructure extends t3lib_DataStructure_Abstract {
 	}
 
 	protected function createTypeObject($typeValue) {
-		$this->types[$typeValue] = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Type', $this, $typeValue, $this->rawTypes[$typeValue]);
+		$this->types[$typeValue] = t3lib_div::makeInstance('t3lib_DataStructure_Type', $this, $typeValue, $this->rawTypes[$typeValue]);
 	}
 
 	public function createElementObject($name, $label, $specialConfiguration) {
-		$object = new t3lib_TCA_DataStructure_Field($this, $name);
+		$object = new t3lib_DataStructure_Element_Field($this, $name);
 
 		return $object;
 	}

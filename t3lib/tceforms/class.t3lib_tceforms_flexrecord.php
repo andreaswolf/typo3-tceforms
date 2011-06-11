@@ -15,13 +15,13 @@ class t3lib_TCEforms_FlexRecord extends t3lib_TCEforms_Record {
 	protected $parentFormObject;
 
 	/**
-	 * @var t3lib_TCA_FlexFormDataStructure
+	 * @var t3lib_DataStructure_FlexForm
 	 */
 	protected $dataStructure;
 
 	protected $localizationMethod;
 
-	public function __construct(array $recordData, t3lib_TCA_FlexFormDataStructure $dataStructure, $language = 'DEF') {
+	public function __construct(array $recordData, t3lib_DataStructure_FlexForm $dataStructure, $language = 'DEF') {
 		// TODO check for localization type
 		// TODO create some kind of identifier for using instead of a table name
 

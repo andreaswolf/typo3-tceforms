@@ -33,7 +33,7 @@
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCA_FlexFormDataStructureTest extends Tx_Phpunit_TestCase {
+class t3lib_DataStructure_FlexFormTest extends Tx_Phpunit_TestCase {
 
 	public function localizationIsEnabledIfMetaValueIsNotSet_dataProvider() {
 		return array(
@@ -56,11 +56,11 @@ class t3lib_TCA_FlexFormDataStructureTest extends Tx_Phpunit_TestCase {
 	 * This tests whether the entry <langDisable>1</langDisable> inside the FF XML is recognized properly.
 	 *
 	 * @test
-	 * @covers t3lib_TCA_FlexFormDataStructure::isLocalizationEnabled
+	 * @covers t3lib_DataStructure_FlexForm::isLocalizationEnabled
 	 * @dataProvider localizationIsEnabledIfMetaValueIsNotSet_dataProvider
 	 */
 	public function localizationIsEnabledIfMetaValueIsNotSet($mockedMeta, $expectedValue) {
-		$fixture = new t3lib_TCA_FlexFormDataStructure(array('meta' => $mockedMeta, 'sheets' => array()));
+		$fixture = new t3lib_DataStructure_FlexForm(array('meta' => $mockedMeta, 'sheets' => array()));
 		$this->assertEquals($expectedValue, $fixture->isLocalizationEnabled());
 	}
 }

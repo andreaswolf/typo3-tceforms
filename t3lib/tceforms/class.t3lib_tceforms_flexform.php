@@ -158,7 +158,7 @@ class t3lib_TCEforms_Flexform extends t3lib_TCEforms_Form implements t3lib_TCEfo
 		}
 	}
 
-	public function setDataStructure(t3lib_TCA_DataStructure $dataStructure) {
+	public function setDataStructure(t3lib_DataStructure_Tca $dataStructure) {
 		$this->dataStructure = $dataStructure;
 
 		return $this;

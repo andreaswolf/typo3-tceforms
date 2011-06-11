@@ -48,7 +48,7 @@ abstract class t3lib_DataStructure_Abstract {
 	 * The definition of the fields this data structure contains
 	 * This holds information about e.g. $TCA[$tableName]['columns']
 	 *
-	 * @var array<t3lib_TCA_DataStructure_Field>
+	 * @var t3lib_DataStructure_Element_Field[]
 	 */
 	protected $fields = array();
 
@@ -57,7 +57,7 @@ abstract class t3lib_DataStructure_Abstract {
 	 * The array contains an entry for each defined type, with a reference to the type object
      * This holds information from e.g. $TCA[$tableName]['types']
 	 *
-	 * @var array<t3lib_TCA_DataStructure_Type>
+	 * @var t3lib_DataStructure_Type[]
 	 */
 	protected $types = array();
 
@@ -134,6 +134,7 @@ abstract class t3lib_DataStructure_Abstract {
 	public function getFieldConfigurations() {
 		return $this->fields;
 	}
+
 	/**
 	 * Returns TRUE if a field for differentiating between different types of the record exists
 	 *

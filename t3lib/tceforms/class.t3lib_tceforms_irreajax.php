@@ -78,8 +78,8 @@ class t3lib_TCEforms_IrreAjax implements t3lib_TCEforms_Element {
 		$contextLevel = $this->getStructureLevel(0);
 		$contextRecord = t3lib_BEfunc::getRecord($contextLevel['table'], $contextLevel['uid']);
 
-		/** @var $resolver t3lib_TCA_DataStructure_TCAResolver */
-		$resolver = t3lib_div::makeInstance('t3lib_TCA_DataStructure_TCAResolver');
+		/** @var $resolver t3lib_DataStructure_Resolver_Tca */
+		$resolver = t3lib_div::makeInstance('t3lib_DataStructure_Resolver_Tca');
 		$dataStructure = $resolver->resolveDataStructure($contextLevel['table']);
 		$contextRecordObject = new t3lib_TCEforms_Record($contextLevel['table'], $contextRecord, $dataStructure);
 

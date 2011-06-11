@@ -3,7 +3,7 @@
 class t3lib_TCEforms_FlexFormBuilder extends t3lib_TCEforms_FormBuilder {
 
 	/**
-	 * @var t3lib_TCA_FlexFormDataStructure
+	 * @var t3lib_DataStructure_FlexForm
 	 */
 	protected $dataStructure;
 

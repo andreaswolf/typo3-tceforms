@@ -49,7 +49,7 @@ class t3lib_TCA_RecordTest extends Tx_Phpunit_TestCase {
 		);
 		$table = uniqid();
 
-		$mockedDataStructure = $this->getMock('t3lib_TCA_DataStructure', array(), array(), '', FALSE);
+		$mockedDataStructure = $this->getMock('t3lib_DataStructure_Tca', array(), array(), '', FALSE);
 
 		$fixture = new t3lib_TCA_Record($table, $recordData, $mockedDataStructure);
 

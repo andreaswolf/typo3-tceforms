@@ -58,7 +58,7 @@ class t3lib_TCEforms_WidgetBuilderTest extends Tx_Phpunit_TestCase {
 				'field' => 'bar'
 			)
 		);
-		$mockedType = $this->getMock('t3lib_TCA_DataStructure_Type', array(), array(), '', FALSE);
+		$mockedType = $this->getMock('t3lib_DataStructure_Type', array(), array(), '', FALSE);
 		$mockedType->expects($this->once())->method('getWidgetConfiguration')->will($this->returnValue($widgetConfig));
 
 		/** @var $fixture t3lib_TCEforms_WidgetBuilder */
@@ -72,7 +72,7 @@ class t3lib_TCEforms_WidgetBuilderTest extends Tx_Phpunit_TestCase {
 	 * @test
 	 */
 	public function buildWidgetTreeForTypeReturnsArrayWithBuiltWidgetConfiguration() {
-		$mockedType = $this->getMock('t3lib_TCA_DataStructure_Type', array(), array(), '', FALSE);
+		$mockedType = $this->getMock('t3lib_DataStructure_Type', array(), array(), '', FALSE);
 		$mockedType->expects($this->once())->method('getWidgetConfiguration')->will($this->returnValue(array()));
 		$mockedWidgetTreeRoot = $this->getMock('t3lib_TCEforms_ContainerWidget');
 

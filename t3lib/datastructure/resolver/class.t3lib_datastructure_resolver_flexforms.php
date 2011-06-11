@@ -33,7 +33,7 @@
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCA_DataStructure_FlexFormsResolver extends t3lib_TCA_DataStructure_Resolver implements t3lib_Singleton {
+class t3lib_DataStructure_Resolver_FlexForm extends t3lib_DataStructure_Resolver_Abstract implements t3lib_Singleton {
 	/**
 	 *
 	 * @var t3lib_flexformtools
@@ -48,7 +48,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolver extends t3lib_TCA_DataStructure_
 	 * Resolves a FlexForm XML data structure into a matching DataStructure object.
 	 *
 	 * @param t3lib_TCEforms_Element_Flex $flexElementObject
-	 * @return t3lib_TCA_DataStructure The DataStructure object
+	 * @return t3lib_DataStructure_Tca The DataStructure object
 	 */
 	public function resolveDataStructure(t3lib_TCEforms_Element_Flex $flexElementObject) {
 		$record = $flexElementObject->getRecordObject()->getRecordData();
@@ -101,7 +101,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolver extends t3lib_TCA_DataStructure_
 	}
 
 	protected function createDataStructureObject(array $TCAentry) {
-		return t3lib_div::makeInstance('t3lib_TCA_FlexFormDataStructure', $TCAentry);
+		return t3lib_div::makeInstance('t3lib_DataStructure_FlexForm', $TCAentry);
 	}
 
 	protected function extractColumnsFromDataStructureArray($dataStructureArray) {

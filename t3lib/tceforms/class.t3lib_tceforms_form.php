@@ -273,8 +273,8 @@ class t3lib_TCEforms_Form implements t3lib_TCEforms_Context {
 			t3lib_div::loadTCA($table);
 		}
 
-		/** @var $resolver t3lib_TCA_DataStructure_TCAResolver */
-		$resolver = t3lib_div::makeInstance('t3lib_TCA_DataStructure_TCAResolver');
+		/** @var $resolver t3lib_DataStructure_Resolver_Tca */
+		$resolver = t3lib_div::makeInstance('t3lib_DataStructure_Resolver_Tca');
 		$dataStructure = $resolver->resolveDataStructure($table);
 
 			// TODO move this to a more appropriate place

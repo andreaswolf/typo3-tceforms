@@ -39,12 +39,12 @@ class t3lib_TCEforms_Container_Palette implements t3lib_TCEforms_Container {
 	/**
 	 * The data structure definition of this palette
 	 *
-	 * @var t3lib_TCA_DataStructure_Palette
+	 * @var t3lib_DataStructure_Element_Palette
 	 */
 	protected $paletteDefinition;
 
 
-	public function __construct(t3lib_TCA_DataStructure_Palette $paletteDefinition, $paletteName) {
+	public function __construct(t3lib_DataStructure_Element_Palette $paletteDefinition, $paletteName) {
 		$this->paletteDefinition = $paletteDefinition;
 		$this->name = $paletteName;
 	}

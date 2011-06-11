@@ -27,14 +27,13 @@
 
 
 /**
- * A FlexForm dataStructure. The information for this class is extracted from XML by the FlexFormsResolver in
- * t3lib_TCA_DataStructure.
+ * A FlexForm data structure. The information for this class is extracted from XML by the FlexForm resolver class.
  *
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCA_FlexFormDataStructure extends t3lib_TCA_DataStructure {
+class t3lib_DataStructure_FlexForm extends t3lib_DataStructure_Tca {
 	/**
 	 * Determines whether localization is enabled or not. This value comes from meta[langDisabled] (inverted, of course)
 	 * The default value is FALSE
@@ -85,7 +84,7 @@ class t3lib_TCA_FlexFormDataStructure extends t3lib_TCA_DataStructure {
 
 	protected function createTypeObject($typeValue) {
 		// TODO: create type object from field information here
-		$this->types[$typeValue] = t3lib_div::makeInstance('t3lib_TCA_DataStructure_Type', $this, $typeValue, $this->rawTypes[$typeValue]);
+		$this->types[$typeValue] = t3lib_div::makeInstance('t3lib_DataStructure_Type', $this, $typeValue, $this->rawTypes[$typeValue]);
 	}
 
 	public function getMetaValue($key) {

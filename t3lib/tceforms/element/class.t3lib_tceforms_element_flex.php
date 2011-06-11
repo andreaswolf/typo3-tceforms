@@ -14,7 +14,7 @@ class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 	protected $recordData = array();
 
 	/**
-	 * @var t3lib_TCA_DataStructure_FlexFormsResolver
+	 * @var t3lib_DataStructure_Resolver_FlexForm
 	 */
 	protected $dataStructureResolver;
 
@@ -25,7 +25,7 @@ class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 
 	/**
 	 *
-	 * @var t3lib_TCA_FlexFormDataStructure
+	 * @var t3lib_DataStructure_FlexForm
 	 */
 	protected $dataStructure;
 
@@ -34,13 +34,13 @@ class t3lib_TCEforms_Element_Flex extends t3lib_TCEforms_Element_Abstract {
 		/**
 		 * TODO in this method:
 		 *  - create an instance of t3lib_TCEforms_FlexForm
-		 *  - create an instance of t3lib_TCA_DataStructure_FlexFormsResolver and call it with this
+		 *  - create an instance of t3lib_DataStructure_Resolver_FlexForm and call it with this
 		 *    element as a parameter (maybe this call should be moved to FormBuilder, to separate concerns)
 		 *  - create Record objects from the data the FlexFormsResolver injected via setFlexRecordData()
 		 *  - take care of initializing the FlexForm object and hand our records to it
 		 */
 
-		$this->dataStructureResolver = t3lib_div::makeInstance('t3lib_TCA_DataStructure_FlexFormsResolver');
+		$this->dataStructureResolver = t3lib_div::makeInstance('t3lib_DataStructure_Resolver_FlexForm');
 		$this->dataStructure = $this->dataStructureResolver->resolveDataStructure($this);
 
 		$this->formObject = new t3lib_TCEforms_Flexform();

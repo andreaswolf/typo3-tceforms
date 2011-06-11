@@ -19,7 +19,7 @@ class t3lib_TCA_DisplayConfiguration {
 	protected $sheets;
 
 	/**
-	 * @var t3lib_TCA_DataStructure
+	 * @var t3lib_DataStructure_Tca
 	 */
 	protected $dataStructure;
 
@@ -31,7 +31,7 @@ class t3lib_TCA_DisplayConfiguration {
 	protected $subtypeValueFieldSheet;
 
 	/**
-	 * @var t3lib_TCA_DataStructure_Type
+	 * @var t3lib_DataStructure_Type
 	 */
 	protected $typeConfiguration;
 
@@ -55,10 +55,10 @@ class t3lib_TCA_DisplayConfiguration {
 	 * function when there is a concrete typeConfiguration (with every TCA record)
 	 * or createFromSheets when having a Flexform.
 	 *
-	 * @param t3lib_TCA_DataStructure $dataStructure
+	 * @param t3lib_DataStructure_Tca $dataStructure
 	 * @see createFromConfiguration(), createFromSheets()
 	 */
-	public function __construct(t3lib_TCA_DataStructure $dataStructure) {
+	public function __construct(t3lib_DataStructure_Tca $dataStructure) {
 		$this->dataStructure = $dataStructure;
 	}
 
@@ -68,7 +68,7 @@ class t3lib_TCA_DisplayConfiguration {
 	 *
 	 * @param array $fieldList The list of fields to display
 	 */
-	public static function createFromConfiguration(t3lib_TCA_DataStructure $dataStructure, t3lib_TCA_DataStructure_Type $typeConfiguration, array $addFieldList, array $excludeFieldList, array $fieldList = NULL) {
+	public static function createFromConfiguration(t3lib_DataStructure_Tca $dataStructure, t3lib_DataStructure_Type $typeConfiguration, array $addFieldList, array $excludeFieldList, array $fieldList = NULL) {
 		/** @var $obj t3lib_TCA_DisplayConfiguration */
 		$obj = t3lib_div::makeInstance('t3lib_TCA_DisplayConfiguration', $dataStructure);
 		$obj->typeConfiguration = $typeConfiguration;
@@ -94,7 +94,7 @@ class t3lib_TCA_DisplayConfiguration {
 	 * Factory method to create a new display configuration
 	 * based on the data structure and the sheets, used when having flexforms
 	 */
-	public static function createFromSheets(t3lib_TCA_DataStructure $dataStructure, array $sheets) {
+	public static function createFromSheets(t3lib_DataStructure_Tca $dataStructure, array $sheets) {
 		/** @var $obj t3lib_TCA_DisplayConfiguration */
 		$obj = t3lib_div::makeInstance('t3lib_TCA_DisplayConfiguration', $dataStructure);
 		$obj->sheets = $sheets;
@@ -206,7 +206,7 @@ class t3lib_TCA_DisplayConfiguration {
 	 * @param integer $paletteNumber
 	 * @param string $label
 	 * @param t3lib_TCA_FieldStyle $fieldStyle The style for the field that contains the palette. Neccessary as a starting point for
-	 * @return t3lib_TCA_DataStructure_Palette
+	 * @return t3lib_DataStructure_Element_Palette
 	 *
 	 * TODO: respect label if given as second element of $fieldDescriptorParts.
 	 * TODO: implement handling of linebreak
@@ -215,7 +215,7 @@ class t3lib_TCA_DisplayConfiguration {
 		$paletteConfiguration = $this->dataStructure->getPaletteConfiguration($paletteNumber);
 		$paletteFieldNames = t3lib_div::trimExplode(',', $paletteConfiguration['showitem']);
 
-		$paletteObject = new t3lib_TCA_DataStructure_Palette($paletteConfiguration, $this->dataStructure, $label, $paletteNumber);
+		$paletteObject = new t3lib_DataStructure_Element_Palette($paletteConfiguration, $this->dataStructure, $label, $paletteNumber);
 		$paletteObject->setStyle($fieldStyle);
 
 		foreach ($paletteFieldNames as $fieldDescriptor) {

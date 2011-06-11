@@ -15,7 +15,7 @@ class t3lib_TCEforms_FormBuilder {
 	/**
 	 * The data structure the target record is based on
 	 *
-	 * @var t3lib_TCA_DataStructure
+	 * @var t3lib_DataStructure_Tca
 	 */
 	protected $dataStructure;
 
@@ -110,7 +110,7 @@ class t3lib_TCEforms_FormBuilder {
 	 * @param   string   $altName   Alternative field name label to show.
 	 * @return  t3lib_TCEforms_Element_Abstract
 	 */
-	public function createFieldObjectFromDefinition(t3lib_TCA_DataStructure_Field $fieldDefinition) {
+	public function createFieldObjectFromDefinition(t3lib_DataStructure_Element_Field $fieldDefinition) {
 		$fieldConf = $fieldDefinition->getConfiguration();
 		$label = $fieldDefinition->getLabel();
 		$fieldName = $fieldDefinition->getName();
@@ -137,10 +137,10 @@ class t3lib_TCEforms_FormBuilder {
 	/**
 	 * Creates a palette container object from a TCA datastructure definition of a palette
 	 *
-	 * @param t3lib_TCA_DataStructure_Palette $paletteObject
+	 * @param t3lib_DataStructure_Element_Palette $paletteObject
 	 * @return t3lib_TCEforms_Container_Palette
 	 */
-	protected function createPaletteObjectFromDefinition(t3lib_TCA_DataStructure_Palette $paletteDataStructureObject) {
+	protected function createPaletteObjectFromDefinition(t3lib_DataStructure_Element_Palette $paletteDataStructureObject) {
 		$dataStructureElements = $paletteDataStructureObject->getElements();
 
 		/* @var $paletteObject t3lib_TCEforms_Container_Palette */
@@ -217,7 +217,7 @@ class t3lib_TCEforms_FormBuilder {
 
 		foreach ($sheetDefinition->getElements() as $fieldObject) {
 			if (is_a($fieldObject, 't3lib_TCA_DataStructure_Field')) {
-				/** @var $element t3lib_TCA_DataStructure_Field */
+				/** @var $element t3lib_DataStructure_Element_Field */
 				$elementObject = $this->createFieldObjectFromDefinition($fieldObject);
 
 				$sheetObject->addChildObject($elementObject);
@@ -273,7 +273,7 @@ class t3lib_TCEforms_FormBuilder {
 	 *
 	 * @return t3lib_TCEforms_Container_Palette
 	 */
-	protected function createPaletteContainerObject(t3lib_TCA_DataStructure_Palette $paletteDataStructure) {
+	protected function createPaletteContainerObject(t3lib_DataStructure_Element_Palette $paletteDataStructure) {
 		$paletteObject = new t3lib_TCEforms_Container_Palette($paletteDataStructure, $paletteDataStructure->getName());
 		$paletteObject->setContextObject($this->contextObject)
 		              ->setRecordObject($this->recordObject)

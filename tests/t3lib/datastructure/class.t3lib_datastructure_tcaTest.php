@@ -33,10 +33,10 @@
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
+class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 
 	/**
-	 * @var t3lib_TCA_DataStructure
+	 * @var t3lib_DataStructure_Tca
 	 */
 	private $fixture;
 
@@ -46,13 +46,13 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 	private $tcaFixture = array();
 
 	protected function setUpFixture($Tca) {
-		$this->fixture = new t3lib_TCA_DataStructure($Tca);
+		$this->fixture = new t3lib_DataStructure_Tca($Tca);
 	}
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure::hasControlValue
-	 * @covers t3lib_TCA_DataStructure::getControlValue
+	 * @covers t3lib_DataStructure_Tca::hasControlValue
+	 * @covers t3lib_DataStructure_Tca::getControlValue
 	 */
 	public function controlValuesCanBeRetrievedFromDataStructure() {
 		$TcaFixture = array(
@@ -64,7 +64,7 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_TCA_DataStructure($TcaFixture);
+		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
 
 		foreach ($TcaFixture['ctrl'] as $key => $value) {
 			$this->assertTrue($fixture->hasControlValue($key));
@@ -76,36 +76,36 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure::getFieldObject
+	 * @covers t3lib_DataStructure_Tca::getFieldObject
 	 */
 	public function getFieldObjectReturnsProperFieldObject() {
-		/** @var $mockedField t3lib_TCA_DataStructure_Field */
+		/** @var $mockedField t3lib_DataStructure_Elements_Field */
 		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array(), array(), '', FALSE);
 		t3lib_div::addInstance('t3lib_TCA_DataStructure_Field', $mockedField);
 
-		/** @var $fixture t3lib_TCA_DataStructure */
-		$fixture = $this->getMock('t3lib_TCA_DataStructure', NULL, array(), '', FALSE);
+		/** @var $fixture t3lib_DataStructure_Tca */
+		$fixture = $this->getMock('t3lib_DataStructure_Tca', NULL, array(), '', FALSE);
 
 		$this->assertSame($mockedField, $fixture->getFieldObject(uniqid()));
 	}
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure::getFieldObject
+	 * @covers t3lib_DataStructure_Tca::getFieldObject
 	 */
 	public function getFieldObjectCachesObjects() {
-		/** @var $mockedField t3lib_TCA_DataStructure_Field */
+		/** @var $mockedField t3lib_DataStructure_Elements_Field */
 		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array(), array(), '', FALSE);
 		t3lib_div::addInstance('t3lib_TCA_DataStructure_Field', $mockedField);
 		$fieldName1 = uniqid();
 
-		/** @var $mockedField t3lib_TCA_DataStructure_Field */
+		/** @var $mockedField t3lib_DataStructure_Elements_Field */
 		$mockedField2 = $this->getMock('t3lib_TCA_DataStructure_Field', array(), array(), '', FALSE);
 		t3lib_div::addInstance('t3lib_TCA_DataStructure_Field', $mockedField2);
 		$fieldName2 = uniqid();
 
-		/** @var $fixture t3lib_TCA_DataStructure */
-		$fixture = $this->getMock('t3lib_TCA_DataStructure', NULL, array(), '', FALSE);
+		/** @var $fixture t3lib_DataStructure_Tca */
+		$fixture = $this->getMock('t3lib_DataStructure_Tca', NULL, array(), '', FALSE);
 
 		$obj1 = $fixture->getFieldObject($fieldName1);
 		$obj2 = $fixture->getFieldObject($fieldName1);
@@ -118,8 +118,8 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure::hasTypeField
-	 * @covers t3lib_TCA_DataStructure::getTypeField
+	 * @covers t3lib_DataStructure_Tca::hasTypeField
+	 * @covers t3lib_DataStructure_Tca::getTypeField
 	 */
 	public function typeFieldIsCorrectlyHandled() {
 		$TcaFixture = array(
@@ -128,7 +128,7 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_TCA_DataStructure($TcaFixture);
+		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
 
 		$this->assertTrue($fixture->hasTypeField());
 		$this->assertEquals($TcaFixture['ctrl']['type'], $fixture->getTypeField());
@@ -136,8 +136,8 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure::hasLanguageField
-	 * @covers t3lib_TCA_DataStructure::getLanguageField
+	 * @covers t3lib_DataStructure_Tca::hasLanguageField
+	 * @covers t3lib_DataStructure_Tca::getLanguageField
 	 */
 	public function languageFieldIsCorrectlyHandled() {
 		$TcaFixture = array(
@@ -146,7 +146,7 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_TCA_DataStructure($TcaFixture);
+		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
 
 		$this->assertTrue($fixture->hasLanguageField());
 		$this->assertEquals($TcaFixture['ctrl']['languageField'], $fixture->getLanguageField());
@@ -164,7 +164,7 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_TCA_DataStructure($TcaFixture);
+		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
 
 		foreach (array_keys($TcaFixture['columns']) as $fieldName) {
 			$this->assertTrue($fixture->hasField($fieldName));
@@ -185,7 +185,7 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_TCA_DataStructure($TcaFixture);
+		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
 
 		$fieldConfigurations = $fixture->getFieldConfigurations();
 		foreach ($TcaFixture['columns'] as $fieldName => $configuration) {
@@ -197,11 +197,11 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure::getTypeConfiguration
+	 * @covers t3lib_DataStructure_Tca::getTypeConfiguration
 	 */
 	public function getTypeConfigurationFallsBackToDefaultTypeNumberForInvalidTypeNumbers() {
-		/** @var $fixture t3lib_TCA_DataStructure */
-		$fixture = $this->getMock('t3lib_TCA_DataStructure', array('typeExists', 'createTypeObject'), array(), '', FALSE);
+		/** @var $fixture t3lib_DataStructure_Tca */
+		$fixture = $this->getMock('t3lib_DataStructure_Tca', array('typeExists', 'createTypeObject'), array(), '', FALSE);
 		$fixture->expects($this->once())->method('typeExists')->will($this->returnValue(FALSE));
 		$fixture->expects($this->once())->method('createTypeObject')->with($this->equalTo(1));
 
@@ -210,19 +210,19 @@ class t3lib_TCA_DataStructureTest extends Tx_Phpunit_TestCase {
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure::getTypeConfiguration
-	 * @covers t3lib_TCA_DataStructure::createTypeObject
+	 * @covers t3lib_DataStructure_Tca::getTypeConfiguration
+	 * @covers t3lib_DataStructure_Tca::createTypeObject
 	 */
 	public function getTypeConfiurationCachesCreatedObjects() {
-		$mockedType = $this->getMock('t3lib_TCA_DataStructure_Type', array(), array(), '', FALSE);
-		t3lib_div::addInstance('t3lib_TCA_DataStructure_Type', $mockedType);
+		$mockedType = $this->getMock('t3lib_DataStructure_Type', array(), array(), '', FALSE);
+		t3lib_div::addInstance('t3lib_DataStructure_Type', $mockedType);
 
 		$mockedTca = array('types' => array(
 			'1' => array()
 		));
 
-		/** @var $fixture t3lib_TCA_DataStructure */
-		$fixture = $this->getMock('t3lib_TCA_DataStructure', array('typeExists'), array($mockedTca));
+		/** @var $fixture t3lib_DataStructure_Tca */
+		$fixture = $this->getMock('t3lib_DataStructure_Tca', array('typeExists'), array($mockedTca));
 		$fixture->expects($this->any())->method('typeExists')->will($this->returnValue(FALSE));
 
 		$obj1 = $fixture->getTypeConfiguration(1);

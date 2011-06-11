@@ -33,12 +33,12 @@
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase {
+class t3lib_DataStructure_Resolver_FlexFormTest extends Tx_Phpunit_TestCase {
 	protected $dataStructureMock;
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractColumnsFromDataStructureArray
+	 * @covers t3lib_DataStructure_Resolver_FlexForm::extractColumnsFromDataStructureArray
 	 */
 	public function fieldTypeIsCorrectlyRecognized() {
 		$dataStructureMock = array('sheets' => array(
@@ -52,7 +52,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 			)))
 		));
 
-		$fixture = new t3lib_TCA_DataStructure_FlexFormsResolver();
+		$fixture = new t3lib_DataStructure_Resolver_FlexForm();
 		$TcaEntry = $fixture->extractInformationFromDataStructureArray($dataStructureMock);
 		$fields = $TcaEntry['columns'];
 
@@ -65,7 +65,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractSheetInformation
+	 * @covers t3lib_DataStructure_Resolver_FlexForm::extractSheetInformation
 	 */
 	public function fieldNamesAreExtractedForSheets() {
 		$dataStructureMock = array('sheets' => array(
@@ -79,7 +79,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 			))),
 		));
 
-		$fixture = new t3lib_TCA_DataStructure_FlexFormsResolver();
+		$fixture = new t3lib_DataStructure_Resolver_FlexForm();
 		$TcaEntry = $fixture->extractInformationFromDataStructureArray($dataStructureMock);
 		$sheets = $TcaEntry['sheets'];
 
@@ -96,7 +96,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractSheetInformation
+	 * @covers t3lib_DataStructure_Resolver_FlexForm::extractSheetInformation
 	 */
 	public function fieldConfigIsCorrectlyExtracted() {
 		$dataStructureMock = array('sheets' => array(
@@ -115,7 +115,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 			))),
 		));
 
-		$fixture = new t3lib_TCA_DataStructure_FlexFormsResolver();
+		$fixture = new t3lib_DataStructure_Resolver_FlexForm();
 		$TcaEntry = $fixture->extractInformationFromDataStructureArray($dataStructureMock);
 
 		$elements = $dataStructureMock['sheets']['defaultSheet']['ROOT']['el'];
@@ -155,15 +155,15 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractContainersFromFlexformSection
+	 * @covers t3lib_DataStructure_Resolver_FlexForm::extractContainersFromFlexformSection
 	 */
 	public function containersAreRecognizedWhileResolvingDataStructure() {
 		$dataStructure = $this->getMockedDataStructureWithContainer();
 		$container1 = $dataStructure['sheets']['defaultSheet']['ROOT']['el']['sectionField']['el']['containerOne'];
 		$container2 = $dataStructure['sheets']['defaultSheet']['ROOT']['el']['sectionField']['el']['containerTwo'];
 
-		/** @var $fixture t3lib_TCA_DataStructure_FlexFormsResolver */
-		$fixture = $this->getMock('t3lib_TCA_DataStructure_FlexFormsResolver', array('extractFieldInformationFromFlexformContainer'));
+		/** @var $fixture t3lib_DataStructure_Resolver_FlexForm */
+		$fixture = $this->getMock('t3lib_DataStructure_Resolver_FlexForm', array('extractFieldInformationFromFlexformContainer'));
 		$fixture->expects($this->at(0))->method('extractFieldInformationFromFlexformContainer')->with($this->equalTo($container1));
 		$fixture->expects($this->at(1))->method('extractFieldInformationFromFlexformContainer')->with($this->equalTo($container2));
 
@@ -176,13 +176,13 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractFieldInformationFromFlexformContainer
+	 * @covers t3lib_DataStructure_Resolver_FlexForm::extractFieldInformationFromFlexformContainer
 	 */
 	public function containerFieldsAreCorrectlyExtractedFromDataStructure() {
 		$dataStructure = $this->getMockedDataStructureWithContainer();
 		$containers = $dataStructure['sheets']['defaultSheet']['ROOT']['el']['sectionField']['el'];
 
-		$fixture = new t3lib_TCA_DataStructure_FlexFormsResolver();
+		$fixture = new t3lib_DataStructure_Resolver_FlexForm();
 
 		$TcaEntry = $fixture->extractInformationFromDataStructureArray($dataStructure);
 
@@ -198,7 +198,7 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 
 	/**
 	 * @test
-	 * @covers t3lib_TCA_DataStructure_FlexFormsResolver::extractColumnsFromDataStructureArray
+	 * @covers t3lib_DataStructure_Resolver_FlexForm::extractColumnsFromDataStructureArray
 	 */
 	public function configArrayIsCorrectlySetForSectionFields() {
 		$dataStructureMock = array('sheets' => array(
@@ -209,8 +209,8 @@ class t3lib_TCA_DataStructure_FlexFormsResolverTest extends Tx_Phpunit_TestCase 
 			)))
 		));
 
-		/** @var $fixture t3lib_TCA_DataStructure_FlexFormsResolver */
-		$fixture = $this->getMock('t3lib_TCA_DataStructure_FlexFormsResolver', array('resolveDataStructureXml', 'createDataStructureObject'));
+		/** @var $fixture t3lib_DataStructure_Resolver_FlexForm */
+		$fixture = $this->getMock('t3lib_DataStructure_Resolver_FlexForm', array('resolveDataStructureXml', 'createDataStructureObject'));
 
 		$TcaEntry = $fixture->extractInformationFromDataStructureArray($dataStructureMock);
 		$column = array_shift($TcaEntry['columns']);
