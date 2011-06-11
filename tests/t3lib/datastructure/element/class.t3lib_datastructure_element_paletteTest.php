@@ -38,10 +38,10 @@ class t3lib_DataStructure_Element_PaletteTest extends Tx_Phpunit_TestCase {
 	 * @test
 	 */
 	public function storedElementsMayBeRetrievedFromPalette() {
-		$fixture = $this->getMock('t3lib_TCA_DataStructure_Palette', NULL, array(), '', FALSE);
+		$fixture = $this->getMock('t3lib_DataStructure_Element_Palette', NULL, array(), '', FALSE);
 
-		$element1 = $this->getMock('t3lib_TCA_DataStructure_Element');
-		$element2 = $this->getMock('t3lib_TCA_DataStructure_Element');
+		$element1 = $this->getMockForAbstractClass('t3lib_DataStructure_Element_Abstract');
+		$element2 = $this->getMockForAbstractClass('t3lib_DataStructure_Element_Abstract');
 
 		$fixture->addElement($element1);
 		$fixture->addElement($element2);

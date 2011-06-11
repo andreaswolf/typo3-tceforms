@@ -49,7 +49,6 @@ class t3lib_DataStructure_Element_Field extends t3lib_DataStructure_Element_Abst
 	protected $palette = NULL;
 
 	/**
-	 * @param t3lib_DataStructure_Tca $dataStructure
 	 * @param string $name The field name of this field
 	 * @return void
 	 */

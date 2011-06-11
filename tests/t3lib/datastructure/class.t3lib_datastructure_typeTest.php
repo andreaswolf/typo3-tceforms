@@ -34,7 +34,7 @@
  * @package TYPO3
  * @subpackage t3lib
  */
-class t3lib_TCA_DataStructure_TypeTest extends Tx_Phpunit_TestCase {
+class t3lib_DataStructure_TypeTest extends Tx_Phpunit_TestCase {
 	/**
 	 * @var t3lib_DataStructure_Type
 	 */

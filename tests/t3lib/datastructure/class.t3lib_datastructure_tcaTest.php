@@ -80,8 +80,8 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	 */
 	public function getFieldObjectReturnsProperFieldObject() {
 		/** @var $mockedField t3lib_DataStructure_Elements_Field */
-		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array(), array(), '', FALSE);
-		t3lib_div::addInstance('t3lib_TCA_DataStructure_Field', $mockedField);
+		$mockedField = $this->getMock('t3lib_DataStructure_Element_Field', array(), array(), '', FALSE);
+		t3lib_div::addInstance('t3lib_DataStructure_Element_Field', $mockedField);
 
 		/** @var $fixture t3lib_DataStructure_Tca */
 		$fixture = $this->getMock('t3lib_DataStructure_Tca', NULL, array(), '', FALSE);
@@ -95,13 +95,13 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	 */
 	public function getFieldObjectCachesObjects() {
 		/** @var $mockedField t3lib_DataStructure_Elements_Field */
-		$mockedField = $this->getMock('t3lib_TCA_DataStructure_Field', array(), array(), '', FALSE);
-		t3lib_div::addInstance('t3lib_TCA_DataStructure_Field', $mockedField);
+		$mockedField = $this->getMock('t3lib_DataStructure_Element_Field', array(), array(), '', FALSE);
+		t3lib_div::addInstance('t3lib_DataStructure_Element_Field', $mockedField);
 		$fieldName1 = uniqid();
 
 		/** @var $mockedField t3lib_DataStructure_Elements_Field */
-		$mockedField2 = $this->getMock('t3lib_TCA_DataStructure_Field', array(), array(), '', FALSE);
-		t3lib_div::addInstance('t3lib_TCA_DataStructure_Field', $mockedField2);
+		$mockedField2 = $this->getMock('t3lib_DataStructure_Element_Field', array(), array(), '', FALSE);
+		t3lib_div::addInstance('t3lib_DataStructure_Element_Field', $mockedField2);
 		$fieldName2 = uniqid();
 
 		/** @var $fixture t3lib_DataStructure_Tca */
