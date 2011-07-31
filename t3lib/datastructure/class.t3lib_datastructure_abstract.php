@@ -37,6 +37,13 @@
 abstract class t3lib_DataStructure_Abstract {
 
 	/**
+	 * An identifier for this data structure.
+	 *
+	 * @var string
+	 */
+	protected $identifier;
+
+	/**
 	 * The control section of this data structure
 	 * This holds information from e.g. $TCA[$tableName]['ctrl']
 	 *
@@ -185,6 +192,16 @@ abstract class t3lib_DataStructure_Abstract {
 	}
 
 	abstract protected function createTypeObject($typeValue);
+
+	/**
+	 * Returns the identifier for this data structure; this might be a table name or some arbitrary unique string.
+	 *
+	 * @abstract
+	 * @return string
+	 */
+	public function getIdentifier() {
+		return $this->identifier;
+	}
 
 }
 

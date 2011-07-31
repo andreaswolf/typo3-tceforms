@@ -36,7 +36,7 @@
 class t3lib_DataStructure_Resolver_Tca extends t3lib_DataStructure_Resolver_Abstract implements t3lib_Singleton {
 	public function resolveDataStructure($table) {
 		t3lib_div::loadTCA($table);
-		$dataStructureObject = new t3lib_DataStructure_Tca($GLOBALS['TCA'][$table]);
+		$dataStructureObject = new t3lib_DataStructure_Tca($table, $GLOBALS['TCA'][$table]);
 
 		return $dataStructureObject;
 	}

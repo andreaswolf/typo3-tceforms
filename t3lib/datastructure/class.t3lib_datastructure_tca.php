@@ -81,7 +81,8 @@ class t3lib_DataStructure_Tca extends t3lib_DataStructure_Abstract {
 	 * @param array $TCAinformation The information from the Table Control Array
 	 * @return void
 	 */
-	public function __construct($TCAinformation) {
+	public function __construct($table, $TCAinformation) {
+		$this->identifier = $table;
 		$this->fields = $TCAinformation['columns'];
 		$this->control = $TCAinformation['ctrl'];
 		$this->palettes = $TCAinformation['palettes'];
