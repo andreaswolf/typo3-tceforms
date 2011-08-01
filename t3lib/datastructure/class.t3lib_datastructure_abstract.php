@@ -53,11 +53,18 @@ abstract class t3lib_DataStructure_Abstract {
 
 	/**
 	 * The definition of the fields this data structure contains
-	 * This holds information about e.g. $TCA[$tableName]['columns']
+	 * This holds information from e.g. $TCA[$tableName]['columns']
+	 *
+	 * @var array
+	 */
+	protected $fields = array();
+
+	/**
+	 * Cache for field objects created by getFieldObject()
 	 *
 	 * @var t3lib_DataStructure_Element_Field[]
 	 */
-	protected $fields = array();
+	protected $fieldObjects = array();
 
 	/**
 	 * The different types defined for this data structure.
@@ -140,6 +147,29 @@ abstract class t3lib_DataStructure_Abstract {
 	 */
 	public function getFieldConfigurations() {
 		return $this->fields;
+	}
+
+	/**
+	 * Returns the object representation of a field.
+	 *
+	 * Note however that this is only the bare configuration as specified in the data structure definition.
+	 * Any special configuration added by types is not considered; look at the type object for these field definitions
+	 *
+	 * @param string $fieldName
+	 * @return t3lib_DataStructure_Element_Field
+	 *
+	 * @access package
+	 */
+	public function getFieldObject($fieldName) {
+		if (!$this->fieldObjects[$fieldName]) {
+			/** @var $fieldObject t3lib_DataStructure_Element_Field */
+			$fieldObject = t3lib_div::makeInstance('t3lib_DataStructure_Element_Field', $fieldName);
+			$fieldObject->setDataStructure($this);
+
+			$this->fieldObjects[$fieldName] = $fieldObject;
+		}
+
+		return $this->fieldObjects[$fieldName];
 	}
 
 	/**

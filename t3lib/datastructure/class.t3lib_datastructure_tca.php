@@ -36,12 +36,6 @@
  * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
  */
 class t3lib_DataStructure_Tca extends t3lib_DataStructure_Abstract {
-	/**
-	 * Cache for field objects created by getFieldObject
-	 *
-	 * @var t3lib_DataStructure_Tcas[]
-	 */
-	protected $fieldObjects = array();
 
 	/**
 	 * The configuration objects of all defined palettes
@@ -145,31 +139,6 @@ class t3lib_DataStructure_Tca extends t3lib_DataStructure_Abstract {
 		$this->displayConfigurations[$displayConfigurationHash] = $displayConfiguration;
 		//print_r($displayConfiguration);
 		return $displayConfiguration;
-	}
-
-	/**
-	 * Returns the object representation of a TCA field.
-	 *
-	 * This is only the bare variant of this field, as defined in the TCA columns section. Any special
-	 * configuration added in type configurations has to be applied separately
-	 *
-	 * @param string $fieldName
-	 * @return t3lib_DataStructure_Element_Field
-	 *
-	 * @access package
-	 *
-	 * @TODO add caching
-	 */
-	public function getFieldObject($fieldName) {
-		if (!$this->fieldObjects[$fieldName]) {
-			/** @var $fieldObject t3lib_DataStructure_Element_Field */
-			$fieldObject = t3lib_div::makeInstance('t3lib_DataStructure_Element_Field', $fieldName);
-			$fieldObject->setDataStructure($this);
-
-			$this->fieldObjects[$fieldName] = $fieldObject;
-		}
-
-		return $this->fieldObjects[$fieldName];
 	}
 
 	/**
