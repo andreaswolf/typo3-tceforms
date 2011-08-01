@@ -5,7 +5,7 @@ class t3lib_DataStructure_Element_Field extends t3lib_DataStructure_Element_Abst
 	/**
 	 * The data structure this field belongs to
 	 *
-	 * @var t3lib_DataStructure_Tca
+	 * @var t3lib_DataStructure_Abstract
 	 */
 	protected $dataStructure;
 
@@ -58,12 +58,29 @@ class t3lib_DataStructure_Element_Field extends t3lib_DataStructure_Element_Abst
 		$this->setStyle(new t3lib_TCA_FieldStyle());
 	}
 
+	/**
+	 * Sets the data strcture this field belongs to
+	 *
+	 * TODO move this to constructor
+	 *
+	 * @param t3lib_DataStructure_Abstract $dataStructure
+	 * @return t3lib_DataStructure_Element_Field
+	 */
 	public function setDataStructure(t3lib_DataStructure_Abstract $dataStructure) {
 		$this->dataStructure = $dataStructure;
 		$this->configuration = $dataStructure->getFieldConfiguration($this->name);
 		$this->setLabel($this->configuration['label']);
 
 		return $this;
+	}
+
+	/**
+	 * Returns the data structure this field belongs
+	 *
+	 * @return t3lib_DataStructure_Tca
+	 */
+	public function getDataStructure() {
+		return $this->dataStructure;
 	}
 
 	/**
