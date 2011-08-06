@@ -164,7 +164,7 @@ class t3lib_TCA_Record {
 			$this->typeNumber = 1;
 		}
 
-		$this->typeConfiguration = $this->dataStructure->getTypeConfiguration($this->typeNumber);
+		$this->typeConfiguration = $this->dataStructure->getTypeObject($this->typeNumber);
 	}
 
 	/**

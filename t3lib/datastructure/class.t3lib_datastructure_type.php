@@ -30,7 +30,8 @@
  * Definition of a type in a TCA data structure.
  *
  * A type is a collection of fields that should be shown for a certain record type. A good example
- * are the various types for the tt_content table (text, text w/image etc.)
+ * are the various types for the tt_content table (text, text w/image etc.). In regular TYPO3 data structures
+ * that are stored in a database table types help implement the "single table inheritance" pattern
  *
  * This class is instantiated once for each type value.
  *
@@ -118,7 +119,7 @@ class t3lib_DataStructure_Type {
 		}
 	}
 
-	/*
+	/**
 	 * TODO remove this method, resolve sheets to widget config in FlexForm resolver instead
 	 */
 	public static function createFromSheets($sheets) {

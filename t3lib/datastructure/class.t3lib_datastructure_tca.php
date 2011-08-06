@@ -108,7 +108,7 @@ class t3lib_DataStructure_Tca extends t3lib_DataStructure_Abstract {
 		}
 
 		/** @var $typeConfiguration t3lib_DataStructure_Type */
-		$typeConfiguration = $this->getTypeConfiguration($typeValue);
+		$typeConfiguration = $this->getTypeObject($typeValue);
 
 		if ($typeConfiguration->hasSubtypeValueField()) {
 			$subtypeValue = $record->getValue($typeConfiguration->getSubtypeValueField());

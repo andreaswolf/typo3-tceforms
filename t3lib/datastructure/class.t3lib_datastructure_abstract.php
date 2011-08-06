@@ -81,7 +81,7 @@ abstract class t3lib_DataStructure_Abstract {
 	 *
 	 * Default type is zero
 	 *
-	 * @var array<string>
+	 * @var string[]
 	 */
 	protected $definedTypeValues = array();
 
@@ -191,6 +191,15 @@ abstract class t3lib_DataStructure_Abstract {
 	}
 
 	/**
+	 * Returns a list of all types defined in this data structure.
+	 *
+	 * @return array
+	 */
+	public function getAvailableTypes() {
+		return $this->definedTypeValues;
+	}
+
+	/**
 	 * Returns TRUE if the given type value exists.
 	 *
 	 * @param  $typeValue
@@ -206,9 +215,9 @@ abstract class t3lib_DataStructure_Abstract {
 	 * These are defined in the [types]-section of the TCA.
 	 *
 	 * @param string/integer $typeNum
-	 * @return array
+	 * @return t3lib_DataStructure_Type
 	 */
-	public function getTypeConfiguration($typeValue = '0') {
+	public function getTypeObject($typeValue = '0') {
 			// See "TYPO3 Core APIs, section "$TCA array reference", subsection "['types'][key] section"
 		if (!$this->typeExists($typeValue)) {
 			$typeValue = 1;

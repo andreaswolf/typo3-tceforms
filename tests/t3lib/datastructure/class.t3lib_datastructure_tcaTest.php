@@ -205,7 +205,7 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 		$fixture->expects($this->once())->method('typeExists')->will($this->returnValue(FALSE));
 		$fixture->expects($this->once())->method('createTypeObject')->with($this->equalTo(1));
 
-		$fixture->getTypeConfiguration(0);
+		$fixture->getTypeObject(0);
 	}
 
 	/**
@@ -225,8 +225,8 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 		$fixture = $this->getMock('t3lib_DataStructure_Tca', array('typeExists'), array($mockedTca));
 		$fixture->expects($this->any())->method('typeExists')->will($this->returnValue(FALSE));
 
-		$obj1 = $fixture->getTypeConfiguration(1);
-		$obj2 = $fixture->getTypeConfiguration(1);
+		$obj1 = $fixture->getTypeObject(1);
+		$obj2 = $fixture->getTypeObject(1);
 
 		$this->assertSame($obj1, $obj2);
 	}
