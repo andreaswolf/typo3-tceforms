@@ -120,6 +120,15 @@ class t3lib_DataStructure_Type {
 	}
 
 	/**
+	 * Returns the value used as an identifier for this particular type.
+	 *
+	 * @return mixed
+	 */
+	public function getIdentifier() {
+		return $this->typeValue;
+	}
+
+	/**
 	 * TODO remove this method, resolve sheets to widget config in FlexForm resolver instead
 	 */
 	public static function createFromSheets($sheets) {
