@@ -90,6 +90,32 @@ class t3lib_DataStructure_TypeTest extends Tx_Phpunit_TestCase {
 						"title": "' . uniqid() . '"
 					}]
 				}'
+			),
+			'widgetConfigWithFields' => array(
+				'widgetConfiguration' => array(
+					'type' => uniqid('type-'),
+					'items' => array(
+						array(
+							'type' => 'field',
+							'field' => uniqid()
+						),
+						array(
+							'type' => 'field',
+							'field' => uniqid()
+						)
+					)
+				)
+			),
+			'widgetConfigWithFieldClassName' => array(
+				'widgetConfiguration' => array(
+					'type' => uniqid('type-'),
+					'items' => array(
+						array(
+							'class' => '', // this is set in the test method
+							'field' => uniqid()
+						)
+					)
+				)
 			)
 		);
 	}
@@ -288,6 +314,57 @@ class t3lib_DataStructure_TypeTest extends Tx_Phpunit_TestCase {
 		$this->assertEquals($configuration['widgetConfiguration'], $this->fixture->getWidgetConfiguration());
 	}
 
+	/**
+	 * @test
+	 */
+	public function fieldListIsCorrectlyExtractedFromWidgetConfiguration() {
+		$configuration = $this->typeConfigurations['widgetConfigWithFields'];
+		$mockedDataStructure = $this->getMock('t3lib_DataStructure_Tca');
+		$mockedDataStructure->expects($this->any())->method('hasField')->will($this->returnValue(TRUE));
+		$this->setUpFixtureWithConfiguration($configuration, $mockedDataStructure);
+
+		$fieldList = $this->fixture->getFieldList();
+
+		$this->assertEquals(2, count($fieldList));
+		$this->assertEquals($configuration['widgetConfiguration']['items'][0]['field'], $fieldList[0]);
+		$this->assertEquals($configuration['widgetConfiguration']['items'][1]['field'], $fieldList[1]);
+	}
+
+	/**
+	 * @test
+	 */
+	public function fieldListParsingRecognizesFieldsAddedWithAClassName() {
+		$configuration = $this->typeConfigurations['widgetConfigWithFieldClassName'];
+		$configuration['widgetConfiguration']['items'][0]['class'] = $this->getMockClass('t3lib_TCEforms_FieldWidget');
+
+		$mockedDataStructure = $this->getMock('t3lib_DataStructure_Tca');
+		$mockedDataStructure->expects($this->any())->method('hasField')->will($this->returnValue(TRUE));
+		$this->setUpFixtureWithConfiguration($configuration, $mockedDataStructure);
+
+		$fieldList = $this->fixture->getFieldList();
+
+		$this->assertEquals(1, count($fieldList));
+		$this->assertEquals($configuration['widgetConfiguration']['items'][0]['field'], $fieldList[0]);
+	}
+
+	/**
+	 * @test
+	 * @depends fieldListParsingRecognizesFieldsAddedWithAClassName
+	 */
+	public function fieldListParsingIgnoresFieldClassesThatDontImplementTheFieldWidgetInterface() {
+		$this->markTestSkipped('Skipping this test because it still makes sense, but the functionality has not been implemented (see t3lib_DataStructure_Type::extractFieldListFromConfiguration() for an explanation).');
+
+		$configuration = $this->typeConfigurations['widgetConfigWithFieldClassName'];
+		$configuration['widgetConfiguration']['items'][0]['class'] = $this->getMockClass('t3lib_TCEforms_Widget');
+
+		$mockedDataStructure = $this->getMock('t3lib_DataStructure_Tca');
+		$mockedDataStructure->expects($this->any())->method('hasField')->will($this->returnValue(TRUE));
+		$this->setUpFixtureWithConfiguration($configuration, $mockedDataStructure);
+
+		$fieldList = $this->fixture->getFieldList();
+
+		$this->assertEmpty($fieldList);
+	}
 }
 
 ?>

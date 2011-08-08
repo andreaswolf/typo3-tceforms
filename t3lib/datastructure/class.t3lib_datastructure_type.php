@@ -151,6 +151,45 @@ class t3lib_DataStructure_Type {
 		} elseif (isset($configuration['showitem'])) {
 			$this->widgetConfiguration = $this->dataStructure->convertTypeShowitemStringToWidgetConfigurationArray($configuration['showitem']);
 		}
+
+		$this->extractFieldListFromConfiguration();
+	}
+
+	/**
+	 * Extracts the names of fields from the configured widgets. This effectively forms the list of all fields this type
+	 * contains. Does not respect fields added/excluded by subtype or bitmask fields.
+	 *
+	 * @return void
+	 */
+	protected function extractFieldListFromConfiguration() {
+		$itemStack = array($this->widgetConfiguration);
+
+		while (!empty($itemStack)) {
+			$item = array_shift($itemStack);
+
+			if (isset($item['items'])) {
+				foreach ($item['items'] as $childItem) {
+					array_push($itemStack, $childItem);
+				}
+			}
+
+				// NOTE this check is rather weak as there is no real check if the configuration makes sense.
+				// This would require us to check if the class, if set, implements t3lib_TCEforms_WidgetInterface,
+				// which is only possible by creating an object or using reflection
+			if (($item['type'] == 'field' || !empty($item['class']))
+			  && !empty($item['field']) && $this->dataStructure->hasField($item['field'])) {
+				array_push($this->fieldList, $item['field']);
+			}
+		}
+	}
+
+	/**
+	 * Returns a list of all field names associated with this type.
+	 *
+	 * @return string[]
+	 */
+	public function getFieldList() {
+		return $this->fieldList;
 	}
 
 
