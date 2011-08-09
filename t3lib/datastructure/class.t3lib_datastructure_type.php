@@ -57,7 +57,7 @@ class t3lib_DataStructure_Type {
 	/**
 	 * @var string[]
 	 */
-	protected $fieldList = array();
+	protected $fieldNames = array();
 
 	/**
 	 * The field that contains the subtype value for this type, if any.
@@ -152,7 +152,7 @@ class t3lib_DataStructure_Type {
 			$this->widgetConfiguration = $this->dataStructure->convertTypeShowitemStringToWidgetConfigurationArray($configuration['showitem']);
 		}
 
-		$this->extractFieldListFromConfiguration();
+		$this->extractFieldNamesFromConfiguration();
 	}
 
 	/**
@@ -161,7 +161,7 @@ class t3lib_DataStructure_Type {
 	 *
 	 * @return void
 	 */
-	protected function extractFieldListFromConfiguration() {
+	protected function extractFieldNamesFromConfiguration() {
 		$itemStack = array($this->widgetConfiguration);
 
 		while (!empty($itemStack)) {
@@ -178,7 +178,7 @@ class t3lib_DataStructure_Type {
 				// which is only possible by creating an object or using reflection
 			if (($item['type'] == 'field' || !empty($item['class']))
 			  && !empty($item['field']) && $this->dataStructure->hasField($item['field'])) {
-				array_push($this->fieldList, $item['field']);
+				array_push($this->fieldNames, $item['field']);
 			}
 		}
 	}
@@ -188,8 +188,8 @@ class t3lib_DataStructure_Type {
 	 *
 	 * @return string[]
 	 */
-	public function getFieldList() {
-		return $this->fieldList;
+	public function getFieldNames() {
+		return $this->fieldNames;
 	}
 
 

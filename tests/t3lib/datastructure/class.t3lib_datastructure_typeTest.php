@@ -323,7 +323,7 @@ class t3lib_DataStructure_TypeTest extends Tx_Phpunit_TestCase {
 		$mockedDataStructure->expects($this->any())->method('hasField')->will($this->returnValue(TRUE));
 		$this->setUpFixtureWithConfiguration($configuration, $mockedDataStructure);
 
-		$fieldList = $this->fixture->getFieldList();
+		$fieldList = $this->fixture->getFieldNames();
 
 		$this->assertEquals(2, count($fieldList));
 		$this->assertEquals($configuration['widgetConfiguration']['items'][0]['field'], $fieldList[0]);
@@ -341,7 +341,7 @@ class t3lib_DataStructure_TypeTest extends Tx_Phpunit_TestCase {
 		$mockedDataStructure->expects($this->any())->method('hasField')->will($this->returnValue(TRUE));
 		$this->setUpFixtureWithConfiguration($configuration, $mockedDataStructure);
 
-		$fieldList = $this->fixture->getFieldList();
+		$fieldList = $this->fixture->getFieldNames();
 
 		$this->assertEquals(1, count($fieldList));
 		$this->assertEquals($configuration['widgetConfiguration']['items'][0]['field'], $fieldList[0]);
@@ -361,7 +361,7 @@ class t3lib_DataStructure_TypeTest extends Tx_Phpunit_TestCase {
 		$mockedDataStructure->expects($this->any())->method('hasField')->will($this->returnValue(TRUE));
 		$this->setUpFixtureWithConfiguration($configuration, $mockedDataStructure);
 
-		$fieldList = $this->fixture->getFieldList();
+		$fieldList = $this->fixture->getFieldNames();
 
 		$this->assertEmpty($fieldList);
 	}
