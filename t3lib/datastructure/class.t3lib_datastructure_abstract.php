@@ -112,7 +112,7 @@ abstract class t3lib_DataStructure_Abstract {
 	}
 
 	/**
-	 * Returns true if the data structure has a field called $fieldName
+	 * Returns true if the data structure has an editable field called $fieldName.
 	 *
 	 * @param string $fieldName
 	 * @return bool
@@ -122,7 +122,8 @@ abstract class t3lib_DataStructure_Abstract {
 	}
 
 	/**
-	 * Returns the names of all fields in this data structure
+	 * Returns the names of all editable fields in this data structure. This does not include metadata fields like
+	 * crdate or cruser_id which are managed by the TYPO3 Core Engine (TCE).
 	 *
 	 * @return array
 	 */
@@ -131,7 +132,7 @@ abstract class t3lib_DataStructure_Abstract {
 	}
 
 	/**
-	 * Returns the configuration object for a field
+	 * Returns the configuration object for an editable field
 	 *
 	 * @param string $fieldName
 	 * @return array
@@ -141,7 +142,10 @@ abstract class t3lib_DataStructure_Abstract {
 	}
 
 	/**
-	 * Returns the raw configuration of all fields
+	 * Returns the raw configuration of all editable fields.
+	 *
+	 * Note however that this is only the bare configuration as specified in the data structure definition.
+	 * Any special configuration added by types is not considered; look at the type object for these field definitions.
 	 *
 	 * @return array
 	 */
@@ -150,10 +154,10 @@ abstract class t3lib_DataStructure_Abstract {
 	}
 
 	/**
-	 * Returns the object representation of a field.
+	 * Returns the object representation of an editable field.
 	 *
 	 * Note however that this is only the bare configuration as specified in the data structure definition.
-	 * Any special configuration added by types is not considered; look at the type object for these field definitions
+	 * Any special configuration added by types is not considered; look at the type object for these field definitions.
 	 *
 	 * @param string $fieldName
 	 * @return t3lib_DataStructure_Element_Field

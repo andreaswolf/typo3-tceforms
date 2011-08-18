@@ -159,6 +159,8 @@ class t3lib_DataStructure_Type {
 	 * Extracts the names of fields from the configured widgets. This effectively forms the list of all fields this type
 	 * contains. Does not respect fields added/excluded by subtype or bitmask fields.
 	 *
+	 * TODO add handling for metadata (i.e. non-editable fields) like crdate, cruser_id etc.
+	 *
 	 * @return void
 	 */
 	protected function extractFieldNamesFromConfiguration() {
@@ -184,7 +186,7 @@ class t3lib_DataStructure_Type {
 	}
 
 	/**
-	 * Returns a list of all field names associated with this type.
+	 * Returns a list with the names of all editable fields in this type.
 	 *
 	 * @return string[]
 	 */
