@@ -277,6 +277,17 @@ class t3lib_DataStructure_Tca extends t3lib_DataStructure_Abstract {
 		return $this->widgetBlocks[$name]['widgetConfiguration'];
 	}
 
+	/**
+	 * Adds a block to the internal widget blocks array
+	 *
+	 * @param string $name
+	 * @param array $configuration
+	 * @return void
+	 */
+	protected function addWidgetBlock($name, array $configuration) {
+		$this->widgetBlocks[$name] = $configuration;
+	}
+
 	/********************************************
 	 * Showitem string handling
 	 ********************************************/
@@ -293,13 +304,15 @@ class t3lib_DataStructure_Tca extends t3lib_DataStructure_Abstract {
 	}
 
 	/**
-	 * Converts the showitem string from a palette configuration to an array-based tree of widget configurations
+	 * Converts the showitem string from a palette configuration to a pointer pointing to the palette.
+	 * The palette contents itself are added to the widget blocks
 	 *
 	 * @param  $showitemString The showitem string as taken from TCA[$table][palettes]
 	 * @return array
 	 */
-	public function convertPaletteShowitemStringToWidgetConfigurationArray($showitemString) {
-		return $this->convertShowitemStringToWidgetConfigurationArray($showitemString, '--linebreak--', 'hbox', 'hbox', 'vbox');
+	public function convertPaletteShowitemStringToWidgetConfigurationArray($paletteName, $showitemString) {
+		$widgetConfig = $this->convertShowitemStringToWidgetConfigurationArray($showitemString, '--linebreak--', 'hbox', 'hbox', 'vbox');
+		$this->addWidgetBlock($paletteName, array('widgetConfiguration' => $widgetConfig));
 	}
 
 	/**
@@ -387,11 +400,14 @@ class t3lib_DataStructure_Tca extends t3lib_DataStructure_Abstract {
 		switch ($fieldname) {
 			case '--palette--':
 				$paletteName = $part3;
+				$paletteConfiguration = $this->getPaletteConfiguration($paletteName);
 
 				$widgetConfig = array(
 					'block' => $paletteName,
 					'label' => $label
 				);
+
+				$this->convertPaletteShowitemStringToWidgetConfigurationArray($paletteName, $paletteConfiguration['showitem']);
 
 				break;
 		}

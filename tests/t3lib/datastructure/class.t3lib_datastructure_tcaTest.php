@@ -385,6 +385,11 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 		$this->assertEquals('field2', $widgetConfiguration['items'][1]['items'][0]['field']);
 	}
 
+
+	/********************************************
+	 * Palette handling
+	 ********************************************/
+
 	/**
 	 * @test
 	 * @group showitemString
@@ -392,10 +397,14 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	public function palettesFromShowitemStringAreResolvedToBlocks() {
 		// TODO implement palette and block handling in DataStructure
 		$showitemFixture = '--palette--;;paletteRef';
-		$this->setUpFixture(array());
+		$this->setUpFixture(array('palettes' => array('paletteRef' => array('showitem' => 'foo,bar'))));
 		$widgetConfiguration = $this->fixture->convertTypeShowitemStringToWidgetConfigurationArray($showitemFixture);
+		$blockConfiguration = $this->fixture->getWidgetConfigurationForBlock('paletteRef');
 
 		$this->assertEquals('paletteRef', $widgetConfiguration['items'][0]['block']);
+		$this->assertTrue($this->fixture->hasWidgetBlock('paletteRef'));
+		$this->assertEquals('foo', $blockConfiguration['items'][0]['field']);
+		$this->assertEquals('bar', $blockConfiguration['items'][1]['field']);
 	}
 
 	/**
@@ -405,7 +414,9 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	public function paletteShowitemStringWithoutLinebreakIsConvertedToHbox() {
 		$showitemFixture = 'field1, field2';
 		$this->setUpFixture(array());
-		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+		$paletteName = uniqid();
+		$this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($paletteName, $showitemFixture);
+		$widgetConfiguration = $this->fixture->getWidgetConfigurationForBlock($paletteName);
 
 		$this->assertEquals('hbox', $widgetConfiguration['type']);
 	}
@@ -418,7 +429,9 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	public function fieldnamesInPaletteShowitemStringAreConvertedToFieldWidgets() {
 		$showitemFixture = 'field1, field2';
 		$this->setUpFixture(array());
-		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+		$paletteName = uniqid();
+		$this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($paletteName, $showitemFixture);
+		$widgetConfiguration = $this->fixture->getWidgetConfigurationForBlock($paletteName);
 
 		$this->assertEquals('field', $widgetConfiguration['items'][0]['type']);
 		$this->assertEquals('field', $widgetConfiguration['items'][1]['type']);
@@ -432,7 +445,9 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	public function fieldsFromPaletteShowitemStringAreStoredInCorrectLine() {
 		$showitemFixture = 'field1, --linebreak--, field2';
 		$this->setUpFixture(array());
-		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+		$paletteName = uniqid();
+		$this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($paletteName, $showitemFixture);
+		$widgetConfiguration = $this->fixture->getWidgetConfigurationForBlock($paletteName);
 
 		$this->assertEquals('field1', $widgetConfiguration['items'][0]['items'][0]['field']);
 		$this->assertEquals('field2', $widgetConfiguration['items'][1]['items'][0]['field']);
@@ -445,7 +460,9 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	public function paletteLinebreaksAreConvertedToVbox() {
 		$showitemFixture = 'field1, --linebreak--, field2';
 		$this->setUpFixture(array());
-		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+		$paletteName = uniqid();
+		$this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($paletteName, $showitemFixture);
+		$widgetConfiguration = $this->fixture->getWidgetConfigurationForBlock($paletteName);
 
 		$this->assertEquals('vbox', $widgetConfiguration['type']);
 	}
@@ -458,7 +475,9 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	public function paletteLinebreaksAreNotAddedAsFields() {
 		$showitemFixture = 'field1, --linebreak--, field2';
 		$this->setUpFixture(array());
-		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+		$paletteName = uniqid();
+		$this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($paletteName, $showitemFixture);
+		$widgetConfiguration = $this->fixture->getWidgetConfigurationForBlock($paletteName);
 
 		foreach ($widgetConfiguration['items'] as $line) {
 			foreach ($line['items'] as $item) {
@@ -475,7 +494,9 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	public function lineHboxesInPaletteAreWrappedInVbox() {
 		$showitemFixture = 'field1, --linebreak--, field2';
 		$this->setUpFixture(array());
-		$widgetConfiguration = $this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($showitemFixture);
+		$paletteName = uniqid();
+		$this->fixture->convertPaletteShowitemStringToWidgetConfigurationArray($paletteName, $showitemFixture);
+		$widgetConfiguration = $this->fixture->getWidgetConfigurationForBlock($paletteName);
 
 		$this->assertEquals('hbox', $widgetConfiguration['items'][0]['type']);
 		$this->assertEquals('hbox', $widgetConfiguration['items'][1]['type']);
