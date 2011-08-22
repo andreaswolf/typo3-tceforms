@@ -121,6 +121,15 @@ class t3lib_TCA_Record {
 	}
 
 	/**
+	 * Returns the type object for this record.
+	 *
+	 * @return t3lib_DataStructure_Type
+	 */
+	public function getType() {
+		return $this->dataStructure->getTypeObject($this->typeNumber);
+	}
+
+	/**
 	 * Returns the table this record belongs to.
 	 *
 	 * @return string
