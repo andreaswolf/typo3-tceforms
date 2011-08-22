@@ -173,6 +173,11 @@ class t3lib_DataStructure_Type {
 				foreach ($item['items'] as $childItem) {
 					array_push($itemStack, $childItem);
 				}
+			} elseif (isset($item['block'])) {
+				$blockConfig = $this->dataStructure->getWidgetConfigurationForBlock($item['block']);
+				foreach ($blockConfig['items'] as $childItem) {
+					array_push($itemStack, $childItem);
+				}
 			}
 
 				// NOTE this check is rather weak as there is no real check if the configuration makes sense.
