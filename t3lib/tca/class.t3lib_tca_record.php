@@ -49,7 +49,8 @@ class t3lib_TCA_Record {
 	protected $recordData;
 
 	/**
-	 * The data for the default language (for localized records)
+	 * The data for the default language (for localized records). This is e.g. neccessary to get the default
+	 * value if a field is set to use the default language data for empty fields (mergeIfNotBlank)
 	 *
 	 * @var array
 	 */
@@ -150,9 +151,10 @@ class t3lib_TCA_Record {
 			$typeFieldName = $this->dataStructure->getTypeField();
 				// Get value of the row from the record which contains the type value.
 			$typeFieldConfig = $this->dataStructure->getFieldConfiguration($typeFieldName);
+				// for localized records: check the default language for a type value
 			$this->typeNumber = $this->getLanguageOverlayRawValue($typeFieldName);
 				// If that value is an empty string, set it to "0" (zero)
-			if (!strcmp($this->typeNumber,'')) $this->typeNumber = 0;
+			if ($this->typeNumber === '') $this->typeNumber = 0;
 		} else {
 			$this->typeNumber = 0;	// If no "type" field, then set to "0" (zero)
 		}
@@ -172,18 +174,18 @@ class t3lib_TCA_Record {
 	 * This means the requested field value will be overridden with the data from the default language.
 	 * Can be used to render read only fields for example.
 	 *
-	 * @param   string  Field name represented by $item
-	 * @return  string  Unprocessed field value merged with default language data if needed
+	 * @param   string $fieldName  Field name represented by $item
+	 * @return  mixed  Unprocessed field value merged with default language data if needed
 	 *
 	 * @TODO check if this could replace the method in Element_Abstract. This method has been copied here
 	 *       because we need an overlay for determining the record type value (@see setRecordTypeNumber())
 	 */
 	protected function getLanguageOverlayRawValue($fieldName) {
+		$value = $this->recordData[$fieldName];
 		$fieldConfig = $this->dataStructure->getFieldObject($fieldName);
 
 		if ($fieldConfig->getLocalizationMode() == 'exclude'
-		  || ($fieldConfig->getLocalizationMode() == 'mergeIfNotBlank'
-		  && strcmp(trim($this->defaultLanguageData[$fieldName]), ''))) {
+		  || ($fieldConfig->getLocalizationMode() == 'mergeIfNotBlank' && trim($this->defaultLanguageData[$fieldName] !== ''))) {
 
 			$value = $this->defaultLanguageData[$fieldName];
 		}
