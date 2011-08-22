@@ -45,8 +45,14 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 	 */
 	private $tcaFixture = array();
 
+	/**
+	 * @var string
+	 */
+	private $table;
+
 	protected function setUpFixture($Tca) {
-		$this->fixture = new t3lib_DataStructure_Tca($Tca);
+		$this->table = uniqid();
+		$this->fixture = new t3lib_DataStructure_Tca($this->table, $Tca);
 	}
 
 	/**
@@ -64,14 +70,14 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
+		$this->setUpFixture($TcaFixture);
 
 		foreach ($TcaFixture['ctrl'] as $key => $value) {
-			$this->assertTrue($fixture->hasControlValue($key));
-			$this->assertEquals($value, $fixture->getControlValue($key));
+			$this->assertTrue($this->fixture->hasControlValue($key));
+			$this->assertEquals($value, $this->fixture->getControlValue($key));
 		}
 
-		$this->assertFalse($fixture->hasControlValue(uniqid()));
+		$this->assertFalse($this->fixture->hasControlValue(uniqid()));
 	}
 
 	/**
@@ -128,10 +134,10 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
+		$this->setUpFixture($TcaFixture);
 
-		$this->assertTrue($fixture->hasTypeField());
-		$this->assertEquals($TcaFixture['ctrl']['type'], $fixture->getTypeField());
+		$this->assertTrue($this->fixture->hasTypeField());
+		$this->assertEquals($TcaFixture['ctrl']['type'], $this->fixture->getTypeField());
 	}
 
 	/**
@@ -146,10 +152,10 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
+		$this->setUpFixture($TcaFixture);
 
-		$this->assertTrue($fixture->hasLanguageField());
-		$this->assertEquals($TcaFixture['ctrl']['languageField'], $fixture->getLanguageField());
+		$this->assertTrue($this->fixture->hasLanguageField());
+		$this->assertEquals($TcaFixture['ctrl']['languageField'], $this->fixture->getLanguageField());
 	}
 
 	/**
@@ -164,13 +170,13 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
+		$this->setUpFixture($TcaFixture);
 
 		foreach (array_keys($TcaFixture['columns']) as $fieldName) {
-			$this->assertTrue($fixture->hasField($fieldName));
+			$this->assertTrue($this->fixture->hasField($fieldName));
 		}
 
-		$this->assertFalse($fixture->hasField(uniqid('foo')));
+		$this->assertFalse($this->fixture->hasField(uniqid('foo')));
 	}
 
 	/**
@@ -185,13 +191,13 @@ class t3lib_DataStructure_TcaTest extends Tx_Phpunit_TestCase {
 			)
 		);
 
-		$fixture = new t3lib_DataStructure_Tca($TcaFixture);
+		$this->setUpFixture($TcaFixture);
 
-		$fieldConfigurations = $fixture->getFieldConfigurations();
+		$fieldConfigurations = $this->fixture->getFieldConfigurations();
 		foreach ($TcaFixture['columns'] as $fieldName => $configuration) {
 			$this->assertArrayHasKey($fieldName, $fieldConfigurations);
 			$this->assertEquals($configuration, $fieldConfigurations[$fieldName]);
-			$this->assertEquals($configuration, $fixture->getFieldConfiguration($fieldName));
+			$this->assertEquals($configuration, $this->fixture->getFieldConfiguration($fieldName));
 		}
 	}
 
